@@ -1,0 +1,211 @@
+package ads
+
+import (
+	"context"
+	"fmt"
+	"gocms/internal/errs"
+	"gocms/internal/logger"
+	"gocms/internal/permissions"
+	"gocms/internal/search"
+	"net/url"
+	"strings"
+	"time"
+	"unicode"
+)
+
+type Service struct {
+	repo   Repository
+	lookup SearchEngine
+}
+
+func NewService(repo Repository, se SearchEngine) *Service {
+	return &Service{
+		repo:   repo,
+		lookup: se,
+	}
+}
+
+func isValidURL(str string) bool {
+	u, err := url.ParseRequestURI(str)
+	if err != nil {
+		return false
+	}
+
+	scheme := strings.ToLower(u.Scheme)
+	if scheme != "http" && scheme != "https" {
+		return false
+	}
+
+	if u.Host == "" {
+		return false
+	}
+
+	return true
+}
+
+func (s *Service) sanitize(ad *Doc) error {
+	ad.Group = strings.TrimSpace(strings.ToLower(ad.Group))
+	if strings.IndexFunc(ad.Group, unicode.IsSpace) >= 0 {
+		return fmt.Errorf("%w: no spaces allowed in group", errs.ErrInval)
+	}
+
+	if !isValidURL(ad.URL) {
+		return fmt.Errorf("%w: URL is not valid", errs.ErrInval)
+	}
+
+	return nil
+}
+
+func (s *Service) Create(ctx context.Context, ad *Doc) error {
+	level := ctx.Value("userperm")
+
+	if level == nil || !permissions.Has("ads", "create", level.(uint32)) {
+		return errs.ErrPerm
+	}
+
+	if err := s.sanitize(ad); err != nil {
+		return err
+	}
+
+	model := ad.ToModel()
+	if err := s.repo.Create(ctx, &model); err != nil {
+		logger.Error("Ads.Service", "Failed to create advertisement", err)
+		return err
+	}
+	ad.ID = model.ID
+	if err := s.lookup.Index(ctx, ad); err != nil {
+		logger.Error("Ads.Service", "Failed to add advertisement to the search index", err)
+		return err
+	}
+
+	return nil
+}
+
+func (s *Service) Update(ctx context.Context, ad *Doc) (*Doc, error) {
+	level := ctx.Value("userperm")
+
+	if level == nil || !permissions.Has("ads", "edit", level.(uint32)) {
+		return nil, errs.ErrPerm
+	}
+
+	if err := s.sanitize(ad); err != nil {
+		return nil, err
+	}
+
+	model := ad.ToModel()
+	if err := s.repo.Update(ctx, &model); err != nil {
+		logger.Error("Ads.Service", "Failed to update advertisement", err)
+		return nil, err
+	}
+
+	if err := s.lookup.Index(ctx, ad); err != nil {
+		logger.Error("Ads.Service", "Failed to update advertisement in the search index", err)
+		return ad, err
+	}
+
+	return ad, nil
+}
+
+func (s *Service) Get(ctx context.Context, id uint) (*Doc, error) {
+	ad, err := s.repo.Get(ctx, id)
+	if err != nil {
+		logger.Error("Ads.Service", "Failed to retrieve advertisement", err)
+		return nil, err
+	}
+
+	doc := ad.ToDoc()
+	return &doc, nil
+}
+
+func (s *Service) GetGroup(ctx context.Context, group string) ([]Doc, error) {
+	model, err := s.repo.GetGroup(ctx, group)
+	if err != nil {
+		logger.Error("Ads.Service", "Failed to retrieve advertisements", err)
+		return nil, err
+	}
+
+	ads := make([]Doc, 0, len(model))
+
+	for _, ad := range model {
+		ads = append(ads, ad.ToDoc())
+	}
+
+	return ads, nil
+}
+
+func (s *Service) GetGroupUnexpired(ctx context.Context, group string) ([]Doc, error) {
+	model, err := s.repo.GetGroup(ctx, group)
+	if err != nil {
+		logger.Error("Ads.Service", "Failed to retrieve unexpired advertisements", err)
+		return nil, err
+	}
+
+	ads := make([]Doc, 0, len(model))
+
+	now := time.Now()
+	for _, ad := range model {
+		if ad.ExpiresAt == nil || ad.ExpiresAt.After(now) {
+			ads = append(ads, ad.ToDoc())
+		}
+	}
+
+	return ads, nil
+}
+
+func (s *Service) AllGroups(ctx context.Context) ([]string, error) {
+	groups, err := s.repo.GetGroups(ctx)
+	if err != nil {
+		logger.Error("Ads.Service", "Failed to retrieve advertisement groups", err)
+		return nil, err
+	}
+
+	return groups, nil
+}
+
+func (s *Service) GetPartners(ctx context.Context) ([]Doc, error) {
+	model, err := s.repo.GetGroup(ctx, "partners")
+	if err != nil {
+		logger.Error("Ads.Service", "Failed to retrieve partner advertisements", err)
+		return nil, err
+	}
+
+	ads := make([]Doc, 0, len(model))
+
+	for _, ad := range model {
+		ads = append(ads, ad.ToDoc())
+	}
+
+	return ads, nil
+}
+
+func (s *Service) Search(ctx context.Context, filters *SearchParams) (*SearchResult, error) {
+	search.ClampParams(&filters.Params)
+
+	ads, err := s.lookup.Search(ctx, filters)
+	if err != nil {
+		logger.Error("Ads.Service", "Failed to search advertisements", err)
+		return nil, err
+	}
+
+	return ads, nil
+}
+
+func (s *Service) Delete(ctx context.Context, id uint) error {
+	level := ctx.Value("userperm")
+
+	if level == nil || !permissions.Has("ads", "delete", level.(uint32)) {
+		return errs.ErrPerm
+	}
+
+	if err := s.repo.Delete(ctx, id); err != nil {
+		logger.Error("Ads.Service", "Failed to delete advertisement", err)
+		return err
+	}
+
+	if err := s.lookup.Delete(ctx, id); err != nil {
+		logger.Error("Ads.Service", "Failed to remove advertisement from the search index", err)
+		return err
+	}
+
+	return nil
+}

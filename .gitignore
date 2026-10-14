@@ -1,0 +1,55 @@
+.env
+.ssh
+**/content/
+/storage/
+cmd/**/storage/
+# Compiled Object files, temporary folders, logs, and bin/
+*.o
+*.obj
+*.a
+*.exe*
+*.test
+*.prof
+/bin/
+
+# Architecture specific extensions/files
+*.5
+*.6
+*.8
+*.9
+*.a
+*.o
+
+# Output of the go coverage tool, regional artifacts, and suite test binaries
+*.out
+*.test
+*.cgo1.go
+*.cgo2.c
+_cgo_defun.c
+_cgo_gotypes.go
+_cgo_export.c
+_cgo_export.h
+
+# Compiled static and dynamic libraries
+*.so
+*.dll
+*.dylib
+
+# Test binary, built with `go test -c`
+*.test
+
+# Output of the go coverage tool, localized test crash logs
+*.out
+*.log
+*.prof
+*.test
+cgo
+
+# Development Environment Files (Optional but recommended to add if needed)
+.idea/
+.vscode/
+# *.suo
+# *.ntvs*
+# *.njsproj
+# *.sln
+# *.sw?

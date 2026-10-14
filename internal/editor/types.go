@@ -1,0 +1,90 @@
+package editor
+
+import (
+	"context"
+	"gocms/internal/search"
+	"gocms/internal/user"
+	"time"
+
+	"gorm.io/gorm"
+)
+
+type Model struct {
+	Locale   string     `json:"locale" gorm:"size:8;primaryKey;foreignKey:locales(code);constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	Name     string     `json:"name"`
+	User     string     `json:"username" gorm:"primaryKey;size:64;"`
+	UserData user.Model `json:"user_data" gorm:"foreignKey:User;references:Username;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	Version  uint       `json:"-" gorm:"default:1"`
+}
+
+type Doc struct {
+	ID          string `json:"id"`
+	User        string `json:"username"`
+	Email       string `json:"email"`
+	Name        string `json:"name"`
+	Locale      string `json:"locale"`
+	SuspendedAt *int64 `json:"suspended_at"`
+}
+
+type SearchParams struct {
+	search.Params
+	Locale          string     `json:"locale"`
+	Suspended       *bool      `json:"suspended"`
+	SuspendedAfter  *time.Time `json:"suspended_after"`
+	SuspendedBefore *time.Time `json:"suspended_before"`
+}
+
+type SearchResult = search.Result[Doc]
+
+type Repository interface {
+	Create(ctx context.Context, editor *Model) error
+	Update(ctx context.Context, editor *Model) error
+	Get(ctx context.Context, username string, locale string) (*Model, error)
+	GetTranslation(ctx context.Context, username string, locale string) (*Model, error)
+	GetAll(ctx context.Context, locale string) ([]Model, error)
+	Delete(ctx context.Context, username string) error
+}
+
+type SearchEngine interface {
+	Index(ctx context.Context, editor *Doc) error
+	Get(ctx context.Context, username string, locale string) (*Doc, error)
+	Search(ctx context.Context, filters *SearchParams) (*SearchResult, error)
+	Delete(ctx context.Context, username string) error
+}
+
+func (Model) TableName() string {
+	return "editors"
+}
+
+func (em *Model) ToDoc() Doc {
+	var ed Doc
+
+	if em.UserData.SuspendedAt.Valid {
+		ts := em.UserData.SuspendedAt.Time.Unix()
+		ed.SuspendedAt = &ts
+	}
+
+	ed.User = em.User
+	ed.Email = em.UserData.Email
+	ed.Name = em.Name
+	ed.Locale = em.Locale
+	return ed
+}
+
+func (ed *Doc) ToModel() Model {
+	var em Model
+
+	if ed.SuspendedAt != nil {
+		em.UserData.SuspendedAt = gorm.DeletedAt{
+			Time:  time.Unix(*ed.SuspendedAt, 0).UTC(),
+			Valid: true,
+		}
+	}
+
+	em.User = ed.User
+	em.Locale = ed.Locale
+	em.Name = ed.Name
+	em.UserData.Username = ed.User
+	em.UserData.Email = ed.Email
+	return em
+}

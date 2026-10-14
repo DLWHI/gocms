@@ -109,6 +109,8 @@ func (app *Container) Init(ctx context.Context, cfg Config) error {
 	dispatcher := outbox.NewMessageDispatcher()
 	relay := outbox.NewRelay(app.DB, dispatcher)
 
+	app.WireEvents(dispatcher)
+
 	app.DB = db
 	app.Redis = redis
 	app.Meilisearch = search
@@ -150,6 +152,8 @@ func (app *Container) TearDown() {
 func (app *Container) Start(ctx context.Context) {
 	app.group.Add(1)
 	go app.ViewsCounter.Start(ctx, &app.group, time.Minute*30)
+	app.group.Add(1)
+	go app.MessageRelay.Start(ctx, &app.group, 100*time.Millisecond)
 	app.group.Add(1)
 	go app.Server.Start(ctx, &app.group)
 }

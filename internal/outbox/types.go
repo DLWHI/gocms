@@ -15,7 +15,7 @@ type Message struct {
 	Time        time.Time  `json:"time" gorm:"not null;default:current_timestamp"`
 	Type        Event      `json:"type" gorm:"not null"`
 	Data        []byte     `json:"data"`
-	Proccessed  *time.Time `json:"-" gorm:"default:false"`
+	Processed   *time.Time `json:"-" gorm:"default:false"`
 }
 
 type MessageRepository interface {
@@ -24,7 +24,7 @@ type MessageRepository interface {
 }
 
 type PublishDriver interface {
-	Publish(ctx context.Context, messages *[]Message) error
+	Publish(ctx context.Context, messages *[]Message) ([]Message, error)
 	Subscribe(event Event, handler EventHandler)
 	Unsubscribe(event Event) bool
 }

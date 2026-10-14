@@ -17,7 +17,7 @@ func NewGORMRepository(db *gorm.DB) *GORMRepository {
 	return &GORMRepository{db: db}
 }
 
-func modelDiff(post *Model) map[string]interface{} {
+func modelDiff(post *Meta) map[string]interface{} {
 	toUpdate := make(map[string]interface{})
 
 	if post.Slug != "" {
@@ -74,7 +74,7 @@ func (r *GORMRepository) Create(ctx context.Context, post *Translation) error {
 	})
 }
 
-func (r *GORMRepository) Update(ctx context.Context, diff *Model) error {
+func (r *GORMRepository) Update(ctx context.Context, diff *Meta) error {
 	var version struct {
 		Post        uint
 		Translation uint
@@ -94,7 +94,7 @@ func (r *GORMRepository) Update(ctx context.Context, diff *Model) error {
 				return err
 			}
 
-			result := tx.Model(&Model{}).
+			result := tx.Model(&Meta{}).
 				Where("id = ? AND version = ?", diff.ID, version.Post).
 				Updates(pdiff)
 			if result.Error != nil {
@@ -144,7 +144,7 @@ func (r *GORMRepository) UpdateTranslation(ctx context.Context, diff *Translatio
 				return err
 			}
 
-			result := tx.Model(&Model{}).
+			result := tx.Model(&Meta{}).
 				Where("id = ? AND version = ?", diff.PostID, version.Post).
 				Updates(pdiff)
 			if result.Error != nil {
@@ -193,7 +193,7 @@ func (r *GORMRepository) UpdateTranslation(ctx context.Context, diff *Translatio
 }
 
 func (r *GORMRepository) IncrementViews(ctx context.Context, id uint, value uint) error {
-	var post Model
+	var post Meta
 	for i := 0; i < 5; i++ {
 		err := r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 			if err := tx.Table("posts").Where("id = ?", id).Take(&post).Error; err != nil {
@@ -203,7 +203,7 @@ func (r *GORMRepository) IncrementViews(ctx context.Context, id uint, value uint
 				return err
 			}
 
-			result := tx.Model(&Model{}).
+			result := tx.Model(&Meta{}).
 				Where("id = ? AND views = ?", id, post.Views).
 				Update("views", gorm.Expr("views + ?", value))
 			if result.Error != nil {
@@ -228,10 +228,10 @@ func (r *GORMRepository) IncrementViews(ctx context.Context, id uint, value uint
 	return errs.ErrLock
 }
 
-func (r *GORMRepository) Get(ctx context.Context, id uint) (*Model, error) {
-	var post Model
+func (r *GORMRepository) Get(ctx context.Context, id uint) (*Meta, error) {
+	var post Meta
 
-	result := r.db.WithContext(ctx).Model(&Model{}).
+	result := r.db.WithContext(ctx).Model(&Meta{}).
 		Where("id = ?", id).
 		Take(&post)
 	if result.Error != nil {
@@ -246,7 +246,7 @@ func (r *GORMRepository) Get(ctx context.Context, id uint) (*Model, error) {
 
 func (r *GORMRepository) GetTranslation(ctx context.Context, id uint, locale string) (*Translation, error) {
 	var res struct {
-		Model
+		Meta
 		Title       string
 		Media       string
 		MediaSource string
@@ -268,7 +268,7 @@ func (r *GORMRepository) GetTranslation(ctx context.Context, id uint, locale str
 		}
 		return nil, err
 	}
-	res.Model.Version = 0
+	res.Meta.Version = 0
 	return &Translation{
 		Title:       res.Title,
 		Description: res.Description,
@@ -278,7 +278,7 @@ func (r *GORMRepository) GetTranslation(ctx context.Context, id uint, locale str
 		MediaSource: res.MediaSource,
 		MediaType:   res.MediaType,
 		PostID:      res.ID,
-		Post:        res.Model,
+		Post:        res.Meta,
 	}, nil
 }
 
@@ -300,7 +300,7 @@ func (r *GORMRepository) GetCategories(ctx context.Context, id uint) ([]string, 
 func (r *GORMRepository) Delete(ctx context.Context, id uint) error {
 	return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		result := tx.Where("id = ?", id).
-			Delete(&Model{})
+			Delete(&Meta{})
 		if result.Error != nil {
 			return result.Error
 		}

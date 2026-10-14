@@ -80,9 +80,6 @@ func (s *Service) Create(ctx context.Context, post *Doc) error {
 		return errs.ErrPerm
 	}
 
-	if post.Author == "" {
-		return errs.ErrPerm
-	}
 	post.Author = author.(string)
 
 	if err := s.sanitize(ctx, post); err != nil {
@@ -140,7 +137,7 @@ func (s *Service) SetViews(ctx context.Context, id uint, value uint) error {
 		return err
 	}
 
-	updated := Model{
+	updated := Meta{
 		ID:    post.ID,
 		Views: value,
 	}
@@ -266,12 +263,27 @@ func (s *Service) SyncSearch(ctx context.Context, action outbox.Event, data []by
 
 	switch payload.Action {
 	case "create":
+		fallthrough
 	case "update":
-		post, err := s.repository.GetTranslation(ctx, payload.ID, payload.Locale)
+		var doc Doc
+		if payload.Locale == "" {
+			post, err := s.repository.Get(ctx, payload.ID)
+			if err != nil {
+				return err
+			}
+			doc = post.ToDoc()
+		} else {
+			post, err := s.repository.GetTranslation(ctx, payload.ID, payload.Locale)
+			if err != nil {
+				return err
+			}
+			doc = post.ToDoc()
+		}
+		categories, err := s.repository.GetCategories(ctx, payload.ID)
 		if err != nil {
 			return err
 		}
-		doc := post.ToDoc()
+		doc.Categories = categories
 		if err := s.lookup.Index(ctx, &doc); err != nil {
 			return err
 		}

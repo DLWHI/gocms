@@ -41,7 +41,7 @@ func (r *RedisRepository) Create(ctx context.Context, post *Translation) error {
 	return r.origin.Create(ctx, post)
 }
 
-func (r *RedisRepository) Update(ctx context.Context, post *Model) error {
+func (r *RedisRepository) Update(ctx context.Context, post *Meta) error {
 	if err := r.origin.Update(ctx, post); err != nil {
 		return err
 	}
@@ -67,8 +67,8 @@ func (r *RedisRepository) IncrementViews(ctx context.Context, id uint, value uin
 	return r.origin.IncrementViews(ctx, id, value)
 }
 
-func (r *RedisRepository) Get(ctx context.Context, id uint) (*Model, error) {
-	var post Model
+func (r *RedisRepository) Get(ctx context.Context, id uint) (*Meta, error) {
+	var post Meta
 	key := fmt.Sprintf(r.keyFormat, id, "__all")
 
 	if err := cache.UnmarshalRedisKey(r.rdb, ctx, key, &post); err != nil {
@@ -106,7 +106,7 @@ func (r *RedisRepository) Get(ctx context.Context, id uint) (*Model, error) {
 		if res.Err != nil {
 			return nil, res.Err
 		}
-		post = *res.Val.(*Model)
+		post = *res.Val.(*Meta)
 	}
 
 	return &post, nil

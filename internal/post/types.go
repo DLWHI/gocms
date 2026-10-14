@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-type Model struct {
+type Meta struct {
 	ID          uint             `json:"id" gorm:"primaryKey;autoIncrement"`
 	Slug        string           `json:"slug"`
 	CreatedAt   time.Time        `json:"created_at" gorm:"default:current_timestamp"`
@@ -31,7 +31,7 @@ type Translation struct {
 	MediaType   string `json:"media_type"`
 	Locale      string `json:"locale" gorm:"size:8;primaryKey;foreignKey:locales(code);constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 	PostID      uint   `json:"post_id" gorm:"primaryKey"`
-	Post        Model  `json:"post_meta" gorm:"foreignKey:PostID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	Post        Meta   `json:"post_meta" gorm:"foreignKey:PostID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 	Version     uint   `json:"-" gorm:"default:1"`
 }
 
@@ -78,10 +78,10 @@ type SearchResult = search.Result[Doc]
 
 type Repository interface {
 	Create(ctx context.Context, post *Translation) error
-	Update(ctx context.Context, post *Model) error
+	Update(ctx context.Context, post *Meta) error
 	UpdateTranslation(ctx context.Context, post *Translation) error
 	IncrementViews(ctx context.Context, id uint, value uint) error
-	Get(ctx context.Context, id uint) (*Model, error)
+	Get(ctx context.Context, id uint) (*Meta, error)
 	GetTranslation(ctx context.Context, id uint, locale string) (*Translation, error)
 	GetCategories(ctx context.Context, id uint) ([]string, error)
 	Delete(ctx context.Context, id uint) error
@@ -96,12 +96,37 @@ type SearchEngine interface {
 	DeleteTranslation(ctx context.Context, id uint, locale string) error
 }
 
-func (Model) TableName() string {
+func (Meta) TableName() string {
 	return "posts"
 }
 
 func (Translation) TableName() string {
 	return "post_translations"
+}
+
+func (pm *Meta) ToDoc() Doc {
+	var pd Doc
+
+	if pm.PublishedAt != nil {
+		ts := pm.PublishedAt.Unix()
+		pd.PublishedAt = &ts
+	}
+
+	// To make json.Marshall convert no categories to empty array
+	categories := make([]string, 0, len(pm.Categories))
+	for _, category := range pm.Categories {
+		categories = append(categories, category.Slug)
+	}
+	pd.Categories = categories
+
+	pd.PostID = pm.ID
+	pd.Slug = pm.Slug
+	pd.CreatedAt = pm.CreatedAt.Unix()
+	pd.Views = pm.Views
+	pd.Preview = pm.Preview
+	pd.Author = pm.Author
+
+	return pd
 }
 
 func (pm *Translation) ToDoc() Doc {

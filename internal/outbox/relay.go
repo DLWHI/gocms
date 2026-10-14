@@ -33,7 +33,7 @@ func (d *Relay) Update(ctx context.Context, messages *[]Message) error {
 
 	result := d.db.Model(&Message{}).
 		Where("id IN ?", ids).
-		Update("proccessed", time.Now())
+		Update("processed", time.Now())
 	if result.Error != nil {
 		return result.Error
 	}
@@ -43,7 +43,8 @@ func (d *Relay) Update(ctx context.Context, messages *[]Message) error {
 func (d *Relay) GetUnprocessed(ctx context.Context, limit int) (*[]Message, error) {
 	var messages []Message
 	result := d.db.WithContext(ctx).Model(&Message{}).
-		Where("processed IS NULL").
+		Where("processed = ?", false).
+		Limit(limit).
 		Find(&messages)
 	if result.Error != nil {
 		return nil, result.Error
@@ -69,11 +70,12 @@ func (d *Relay) Dispatch(ctx context.Context) error {
 		return err
 	}
 
-	if err := d.broker.Publish(ctx, messages); err != nil {
+	processed, err := d.broker.Publish(ctx, messages)
+	if err != nil {
 		return err
 	}
 
-	if err := d.Update(ctx, messages); err != nil {
+	if err := d.Update(ctx, &processed); err != nil {
 		return err
 	}
 

@@ -140,10 +140,8 @@ func (r *MeilisearchEngine) Index(ctx context.Context, post *Doc) error {
 	for i := range posts {
 		posts[i].Categories = post.Categories
 		posts[i].Preview = post.Preview
-		posts[i].Media = post.Media
-		posts[i].MediaSource = post.MediaSource
-		posts[i].MediaType = post.MediaType
 		posts[i].PublishedAt = post.PublishedAt
+		posts[i].Views = post.Views
 		posts[i].Slug = post.Slug
 	}
 	if post.Locale != "" {

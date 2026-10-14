@@ -207,7 +207,7 @@ func (s *Manager) Create(path string) error {
 		return err
 	}
 
-	file, err := os.OpenFile(fullPath, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0660)
+	file, err := os.OpenFile(fullPath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0660)
 	if err != nil {
 		logger.Error("Storage.Manager", "Failed to create a file.", err)
 		return err

@@ -146,7 +146,9 @@ func (r *MeilisearchEngine) Index(ctx context.Context, post *Doc) error {
 		posts[i].PublishedAt = post.PublishedAt
 		posts[i].Slug = post.Slug
 	}
-	posts = append(posts, *post)
+	if post.Locale != "" {
+		posts = append(posts, *post)
+	}
 
 	taskInfo, err := index.AddDocumentsWithContext(ctx, posts, nil)
 	task, err := r.se.TaskManager().WaitForTask(taskInfo.TaskUID, 100*time.Millisecond)
@@ -156,62 +158,6 @@ func (r *MeilisearchEngine) Index(ctx context.Context, post *Doc) error {
 	if task.Status == meilisearch.TaskStatusFailed && task.Error.Code != "index_not_found" {
 		return fmt.Errorf("Error indexing: %s - %s", task.Error.Code, task.Error.Message)
 	}
-	return err
-}
-
-func (r *MeilisearchEngine) IndexViews(ctx context.Context, id uint, value uint) error {
-	index := r.se.Index(r.idx)
-	req := &meilisearch.DocumentsQuery{
-		Filter: fmt.Sprintf("post_id = %d", id),
-	}
-
-	var res meilisearch.DocumentsResult
-	err := r.se.Index(r.idx).GetDocumentsWithContext(ctx, req, &res)
-	if err != nil {
-		if errors.Is(err, meilisearch.ErrInvalidRequestMethod) {
-			return errs.ErrNotFound
-		}
-		return err
-	}
-
-	var posts []Doc
-	if err := res.Results.DecodeInto(&posts); err != nil {
-		return err
-	}
-
-	for i := range posts {
-		posts[i].Views = value
-	}
-
-	_, err = index.AddDocumentsWithContext(ctx, posts, nil)
-	return err
-}
-
-func (r *MeilisearchEngine) IndexViewsIncrement(ctx context.Context, id uint, value uint) error {
-	index := r.se.Index(r.idx)
-	req := &meilisearch.DocumentsQuery{
-		Filter: fmt.Sprintf("post_id = %d", id),
-	}
-
-	var res meilisearch.DocumentsResult
-	err := r.se.Index(r.idx).GetDocumentsWithContext(ctx, req, &res)
-	if err != nil {
-		if errors.Is(err, meilisearch.ErrInvalidRequestMethod) {
-			return errs.ErrNotFound
-		}
-		return err
-	}
-
-	var posts []Doc
-	if err := res.Results.DecodeInto(&posts); err != nil {
-		return err
-	}
-
-	for i := range posts {
-		posts[i].Views += value
-	}
-
-	_, err = index.AddDocumentsWithContext(ctx, posts, nil)
 	return err
 }
 

@@ -4,6 +4,7 @@ import (
 	"context"
 	"gocms/internal/analytics"
 	"gocms/internal/logger"
+	"gocms/internal/outbox"
 	"gocms/internal/public"
 	"gocms/internal/runner"
 	"gocms/internal/user"
@@ -42,6 +43,7 @@ type Container struct {
 
 	Server       runner.Runner
 	ViewsCounter runner.Runner
+	MessageRelay runner.Runner
 }
 
 func NewContainer() *Container {
@@ -104,6 +106,9 @@ func (app *Container) Init(ctx context.Context, cfg Config) error {
 
 	server := runner.NewHttp(cfg.Address, cfg.Port, router.mux)
 
+	dispatcher := outbox.NewMessageDispatcher()
+	relay := outbox.NewRelay(app.DB, dispatcher)
+
 	app.DB = db
 	app.Redis = redis
 	app.Meilisearch = search
@@ -117,8 +122,13 @@ func (app *Container) Init(ctx context.Context, cfg Config) error {
 
 	app.Server = server
 	app.ViewsCounter = views
+	app.MessageRelay = relay
 
 	return nil
+}
+
+func (app *Container) WireEvents(dispatcher outbox.PublishDriver) {
+	dispatcher.Subscribe("post", app.Posts.Service.SyncSearch)
 }
 
 func (app *Container) TearDown() {

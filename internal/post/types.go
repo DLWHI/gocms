@@ -25,6 +25,7 @@ type Translation struct {
 	Title       string `json:"title" gorm:"not null"`
 	Description string `json:"description" gorm:"not null"`
 	Keywords    string `json:"keywords" gorm:"not null"`
+	Markdown    string `json:"markdown"`
 	Media       string `json:"media"`
 	MediaSource string `json:"media_source"`
 	MediaType   string `json:"media_type"`
@@ -32,6 +33,12 @@ type Translation struct {
 	PostID      uint   `json:"post_id" gorm:"primaryKey"`
 	Post        Model  `json:"post_meta" gorm:"foreignKey:PostID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 	Version     uint   `json:"-" gorm:"default:1"`
+}
+
+type MessagePayload struct {
+	ID     uint   `json:"id"`
+	Locale string `json:"locale"`
+	Action string `json:"action"`
 }
 
 type Doc struct {
@@ -71,22 +78,18 @@ type SearchResult = search.Result[Doc]
 
 type Repository interface {
 	Create(ctx context.Context, post *Translation) error
-	Update(ctx context.Context, post *Translation) error
-	UpdateViews(ctx context.Context, id uint, value uint) error
+	Update(ctx context.Context, post *Model) error
+	UpdateTranslation(ctx context.Context, post *Translation) error
 	IncrementViews(ctx context.Context, id uint, value uint) error
-	Get(ctx context.Context, id uint, locale string) (*Translation, error)
+	Get(ctx context.Context, id uint) (*Model, error)
 	GetTranslation(ctx context.Context, id uint, locale string) (*Translation, error)
 	GetCategories(ctx context.Context, id uint) ([]string, error)
-	GetViews(ctx context.Context, id uint) (uint, error)
-	AuthorOf(ctx context.Context, id uint) (string, error)
 	Delete(ctx context.Context, id uint) error
 	DeleteTranslation(ctx context.Context, id uint, locale string) error
 }
 
 type SearchEngine interface {
 	Index(ctx context.Context, post *Doc) error
-	IndexViews(ctx context.Context, id uint, value uint) error
-	IndexViewsIncrement(ctx context.Context, id uint, value uint) error
 	Get(ctx context.Context, id uint, locale string) (*Doc, error)
 	Search(ctx context.Context, post *SearchParams) (*SearchResult, error)
 	Delete(ctx context.Context, id uint) error
@@ -133,7 +136,6 @@ func (pm *Translation) ToDoc() Doc {
 	return pd
 }
 
-// Same for author
 func (pd *Doc) ToModel() Translation {
 	var pm Translation
 	if pd.PublishedAt != nil {

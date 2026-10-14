@@ -18,7 +18,6 @@ import (
 // ------------------------------------------------------------------
 // POST /posts - Get/search published posts
 // GET /posts/{id}?slug={slug} - Get published post by id
-// GET /posts/{id}/content - Read post content
 //
 // GET /categories - Get all categories
 // GET /locales - Get all locales
@@ -33,7 +32,6 @@ import (
 type Handler struct {
 	PostSearch    http.Handler
 	PostGet       http.Handler
-	PostContent   http.Handler
 	CategoriesAll http.Handler
 	LocalesAll    http.Handler
 	EditorAll     http.Handler
@@ -58,7 +56,6 @@ func NewHandler(ps *post.Service, es *editor.Service, cs *category.Service, ls *
 	hndl.views = vc
 	hndl.PostSearch = http.HandlerFunc(hndl.postsSearch)
 	hndl.PostGet = http.HandlerFunc(hndl.postsGet)
-	hndl.PostContent = http.HandlerFunc(hndl.postsContent)
 	hndl.CategoriesAll = http.HandlerFunc(hndl.categoriesAll)
 	hndl.LocalesAll = http.HandlerFunc(hndl.localesAll)
 	hndl.EditorAll = http.HandlerFunc(hndl.editorsAll)
@@ -118,33 +115,6 @@ func (h *Handler) postsGet(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	_ = json.NewEncoder(w).Encode(&post)
-}
-
-// GET /posts/{id}/content - Read post content
-func (h *Handler) postsContent(w http.ResponseWriter, r *http.Request) {
-	id, err := strconv.ParseUint(r.PathValue("id"), 10, 64)
-	if err != nil {
-		http.Error(w, "Invalid ID", http.StatusBadRequest)
-		return
-	}
-
-	ctx := r.Context()
-
-	content, err := h.posts.ReadContent(ctx, uint(id))
-	if err != nil {
-		errs.ServeMessage(w, "Post's content", err)
-		return
-	}
-	defer content.Close()
-
-	err = h.views.Read(ctx, uint(id))
-	if err != nil {
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
-		return
-	}
-
-	w.WriteHeader(http.StatusOK)
-	_, _ = io.Copy(w, content)
 }
 
 // GET /categories - Get all categories

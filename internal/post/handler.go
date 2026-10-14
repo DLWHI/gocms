@@ -3,7 +3,6 @@ package post
 import (
 	"encoding/json"
 	"gocms/internal/errs"
-	"io"
 	"net/http"
 	"strconv"
 )
@@ -17,21 +16,17 @@ import (
 // DELETE /posts/{id} - Delete post with all translations
 // DELETE /posts/{id}/{locale} - Delete post translation
 //
-// GET /posts/{id}/content - Read post content
-// PATCH /posts/{id}/content - Save post content
 // ------------------------------------------------------------------
 
 type Handler struct {
-	Create        http.Handler
-	Search        http.Handler
-	Get           http.Handler
-	Update        http.Handler
-	UpdateViews   http.Handler
-	Delete        http.Handler
-	DeleteLocale  http.Handler
-	GetContent    http.Handler
-	UpdateContent http.Handler
-	postService   *Service
+	Create       http.Handler
+	Search       http.Handler
+	Get          http.Handler
+	Update       http.Handler
+	UpdateViews  http.Handler
+	Delete       http.Handler
+	DeleteLocale http.Handler
+	postService  *Service
 }
 
 func NewHandler(s *Service) *Handler {
@@ -44,8 +39,6 @@ func NewHandler(s *Service) *Handler {
 	hndl.UpdateViews = http.HandlerFunc(hndl.updateViews)
 	hndl.Delete = http.HandlerFunc(hndl.delete)
 	hndl.DeleteLocale = http.HandlerFunc(hndl.deleteLocale)
-	hndl.GetContent = http.HandlerFunc(hndl.getContent)
-	hndl.UpdateContent = http.HandlerFunc(hndl.updateContent)
 	return &hndl
 }
 
@@ -181,39 +174,5 @@ func (h *Handler) deleteLocale(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
-}
-
-// GET /posts/{id}/content - Read post content
-func (h *Handler) getContent(w http.ResponseWriter, r *http.Request) {
-	id, err := strconv.ParseUint(r.PathValue("id"), 10, 64)
-	if err != nil {
-		http.Error(w, "Invalid ID", http.StatusBadRequest)
-		return
-	}
-
-	content, err := h.postService.ReadContent(r.Context(), uint(id))
-	if err != nil {
-		errs.ServeMessage(w, "Post's content", err)
-		return
-	}
-	defer content.Close()
-
-	w.WriteHeader(http.StatusOK)
-	_, _ = io.Copy(w, content)
-}
-
-// PATCH /posts/{id}/content - Save post content
-func (h *Handler) updateContent(w http.ResponseWriter, r *http.Request) {
-	id, err := strconv.ParseUint(r.PathValue("id"), 10, 64)
-	if err != nil {
-		http.Error(w, "Invalid ID", http.StatusBadRequest)
-		return
-	}
-
-	if err := h.postService.EditContent(r.Context(), uint(id), r.Body); err != nil {
-		errs.ServeMessage(w, "Post's content", err)
-		return
-	}
 	w.WriteHeader(http.StatusOK)
 }

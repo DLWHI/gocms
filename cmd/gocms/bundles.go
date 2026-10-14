@@ -85,11 +85,6 @@ func NewUserBundle(db *gorm.DB, search meilisearch.ServiceManager, redis *redis.
 }
 
 func NewPostBundle(db *gorm.DB, search meilisearch.ServiceManager, redis *redis.Client) *PostBundle {
-	path := os.Getenv("CONTENT_STORAGE_PATH")
-	if path == "" {
-		path = "./content/posts"
-	}
-
 	redisCfg := post.RedisConfig{
 		Client:    redis,
 		Ttl:       30 * time.Minute,
@@ -98,9 +93,8 @@ func NewPostBundle(db *gorm.DB, search meilisearch.ServiceManager, redis *redis.
 
 	repo := post.NewGORMRepository(db)
 	cacheRepo := post.NewRedisRepository(repo, &redisCfg)
-	storage := storage.NewManager(path)
 	searchEngine := post.NewMeilisearchEngine(search, "posts")
-	service := post.NewService(cacheRepo, searchEngine, storage)
+	service := post.NewService(cacheRepo, searchEngine)
 	handler := post.NewHandler(service)
 	return &PostBundle{
 		Service:           service,

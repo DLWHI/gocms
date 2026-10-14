@@ -2,6 +2,7 @@ package outbox
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"gocms/internal/errs"
 	"gocms/internal/logger"
@@ -16,9 +17,10 @@ type Relay struct {
 	db     *gorm.DB
 }
 
-func NewMessageDispatcher(db *gorm.DB) *Relay {
+func NewRelay(db *gorm.DB, broker PublishDriver) *Relay {
 	return &Relay{
-		db: db,
+		broker: broker,
+		db:     db,
 	}
 }
 
@@ -108,6 +110,24 @@ func (d *Relay) Stop(ctx context.Context) error {
 	logger.Info("Outbox.MessageDispatcher", "Executing final message dispatch")
 	if err := d.Dispatch(ctx); err != nil {
 		logger.Error("Outbox.MessageDispatcher", "Failed to dispatch messages", err)
+		return err
+	}
+	return nil
+}
+
+func WriteMessage(tx *gorm.DB, action Event, source string, target any) error {
+	payload, err := json.Marshal(target)
+	if err != nil {
+		return err
+	}
+	message := Message{
+		SpecVersion: "1.0",
+		Source:      source,
+		Time:        time.Now(),
+		Type:        action,
+		Data:        payload,
+	}
+	if err := tx.Create(message).Error; err != nil {
 		return err
 	}
 	return nil

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"gocms/internal/errs"
+	"gocms/internal/outbox"
 
 	"gorm.io/gorm"
 )
@@ -16,7 +17,7 @@ func NewGORMRepository(db *gorm.DB) *GORMRepository {
 	return &GORMRepository{db: db}
 }
 
-func postDiff(post *Model) map[string]interface{} {
+func modelDiff(post *Model) map[string]interface{} {
 	toUpdate := make(map[string]interface{})
 
 	if post.Slug != "" {
@@ -62,17 +63,74 @@ func translationDiff(post *Translation) map[string]interface{} {
 }
 
 func (r *GORMRepository) Create(ctx context.Context, post *Translation) error {
-	return r.db.WithContext(ctx).Create(post).Error
+	return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		if err := tx.Create(post).Error; err != nil {
+			return err
+		}
+		if err := writeMessage(tx, "create", post.PostID, post.Locale); err != nil {
+			return err
+		}
+		return nil
+	})
 }
 
-func (r *GORMRepository) Update(ctx context.Context, diff *Translation) error {
+func (r *GORMRepository) Update(ctx context.Context, diff *Model) error {
 	var version struct {
 		Post        uint
 		Translation uint
 	}
 	for i := 0; i < 5; i++ {
 		err := r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-			pdiff := postDiff(&diff.Post)
+			pdiff := modelDiff(diff)
+			err := tx.Table("posts AS p").
+				Select("p.version as post, pt.version as translation").
+				Joins("LEFT JOIN post_translations AS pt ON pt.post_id = p.id").
+				Where("p.id = ?", diff.ID).
+				Take(&version).Error
+			if err != nil {
+				if errors.Is(err, gorm.ErrRecordNotFound) {
+					return errs.ErrNotFound
+				}
+				return err
+			}
+
+			result := tx.Model(&Model{}).
+				Where("id = ? AND version = ?", diff.ID, version.Post).
+				Updates(pdiff)
+			if result.Error != nil {
+				return result.Error
+			}
+			if result.RowsAffected == 0 {
+				return errs.ErrLock
+			}
+
+			if err := tx.Model(diff).Association("Categories").Replace(&diff.Categories); err != nil {
+				return err
+			}
+
+			if err := writeMessage(tx, "update", diff.ID, ""); err != nil {
+				return err
+			}
+
+			return nil
+		})
+		if err == nil {
+			return nil
+		} else if !errors.Is(err, errs.ErrLock) {
+			return err
+		}
+	}
+	return errs.ErrLock
+}
+
+func (r *GORMRepository) UpdateTranslation(ctx context.Context, diff *Translation) error {
+	var version struct {
+		Post        uint
+		Translation uint
+	}
+	for i := 0; i < 5; i++ {
+		err := r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+			pdiff := modelDiff(&diff.Post)
 			ptdiff := translationDiff(diff)
 			err := tx.Table("posts AS p").
 				Select("p.version as post, pt.version as translation").
@@ -118,40 +176,11 @@ func (r *GORMRepository) Update(ctx context.Context, diff *Translation) error {
 					}
 				}
 			}
-			return nil
-		})
-		if err == nil {
-			return nil
-		} else if !errors.Is(err, errs.ErrLock) {
-			return err
-		}
-	}
-	return errs.ErrLock
-}
 
-func (r *GORMRepository) UpdateViews(ctx context.Context, id uint, value uint) error {
-	var version uint
-	for i := 0; i < 5; i++ {
-		err := r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-			if err := tx.Table("posts").Select("version").Where("id = ?", id).Take(&version).Error; err != nil {
-				if errors.Is(err, gorm.ErrRecordNotFound) {
-					return errs.ErrNotFound
-				}
+			if err := writeMessage(tx, "update", diff.PostID, diff.Locale); err != nil {
 				return err
 			}
 
-			result := tx.Model(&Model{}).
-				Where("id = ? AND version = ?", id, version).
-				Updates(map[string]any{
-					"views":   value,
-					"version": gorm.Expr("version + 1"),
-				})
-			if result.Error != nil {
-				return result.Error
-			}
-			if result.RowsAffected == 0 {
-				return errs.ErrLock
-			}
 			return nil
 		})
 		if err == nil {
@@ -164,10 +193,10 @@ func (r *GORMRepository) UpdateViews(ctx context.Context, id uint, value uint) e
 }
 
 func (r *GORMRepository) IncrementViews(ctx context.Context, id uint, value uint) error {
-	var views uint
+	var post Model
 	for i := 0; i < 5; i++ {
 		err := r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-			if err := tx.Table("posts").Select("views").Where("id = ?", id).Take(&views).Error; err != nil {
+			if err := tx.Table("posts").Where("id = ?", id).Take(&post).Error; err != nil {
 				if errors.Is(err, gorm.ErrRecordNotFound) {
 					return errs.ErrNotFound
 				}
@@ -175,7 +204,7 @@ func (r *GORMRepository) IncrementViews(ctx context.Context, id uint, value uint
 			}
 
 			result := tx.Model(&Model{}).
-				Where("id = ? AND views = ?", id, views).
+				Where("id = ? AND views = ?", id, post.Views).
 				Update("views", gorm.Expr("views + ?", value))
 			if result.Error != nil {
 				return result.Error
@@ -183,6 +212,11 @@ func (r *GORMRepository) IncrementViews(ctx context.Context, id uint, value uint
 			if result.RowsAffected == 0 {
 				return errs.ErrLock
 			}
+
+			if err := writeMessage(tx, "update", id, ""); err != nil {
+				return err
+			}
+
 			return nil
 		})
 		if err == nil {
@@ -194,42 +228,20 @@ func (r *GORMRepository) IncrementViews(ctx context.Context, id uint, value uint
 	return errs.ErrLock
 }
 
-func (r *GORMRepository) Get(ctx context.Context, id uint, locale string) (*Translation, error) {
-	var res struct {
-		Model
-		Title       string
-		Media       string
-		MediaSource string
-		MediaType   string
-		Description string
-		Keywords    string
-		Locale      string
-	}
+func (r *GORMRepository) Get(ctx context.Context, id uint) (*Model, error) {
+	var post Model
 
-	err := r.db.WithContext(ctx).
-		Table("posts AS p").
-		Select("*").
-		Joins("LEFT JOIN post_translations AS pt ON pt.post_id = p.id AND pt.locale = ?", locale).
-		Where("p.id = ?", id).
-		Take(&res).Error
-	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
+	result := r.db.WithContext(ctx).Model(&Model{}).
+		Where("id = ?", id).
+		Take(&post)
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 			return nil, errs.ErrNotFound
 		}
-		return nil, err
+		return nil, result.Error
 	}
-	res.Model.Version = 0
-	return &Translation{
-		Title:       res.Title,
-		Description: res.Description,
-		Keywords:    res.Keywords,
-		Locale:      locale,
-		Media:       res.Media,
-		MediaSource: res.MediaSource,
-		MediaType:   res.MediaType,
-		PostID:      res.ID,
-		Post:        res.Model,
-	}, nil
+
+	return &post, nil
 }
 
 func (r *GORMRepository) GetTranslation(ctx context.Context, id uint, locale string) (*Translation, error) {
@@ -247,8 +259,8 @@ func (r *GORMRepository) GetTranslation(ctx context.Context, id uint, locale str
 	err := r.db.WithContext(ctx).
 		Table("posts AS p").
 		Select("*").
-		Joins("LEFT JOIN post_translations AS pt ON pt.post_id = p.id").
-		Where("p.id = ? AND pt.locale = ?", id, locale).
+		Joins("INNER JOIN post_translations AS pt ON pt.post_id = p.id AND pt.locale = ?").
+		Where("p.id = ?", id, locale).
 		Take(&res).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -285,55 +297,45 @@ func (r *GORMRepository) GetCategories(ctx context.Context, id uint) ([]string, 
 	return categories, nil
 }
 
-func (r *GORMRepository) GetViews(ctx context.Context, id uint) (uint, error) {
-	var views uint
-	result := r.db.WithContext(ctx).Model(&Model{}).
-		Select("Views").
-		Where("id = ?", id).
-		Take(&views)
-	if result.Error != nil {
-		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-			return 0, errs.ErrNotFound
-		}
-		return 0, result.Error
-	}
-	return views, nil
-}
-
-func (r *GORMRepository) AuthorOf(ctx context.Context, id uint) (string, error) {
-	var author string
-	result := r.db.WithContext(ctx).Model(&Model{}).
-		Select("Author").
-		Where("id = ?", id).
-		Take(&author)
-	if result.Error != nil {
-		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-			return "", errs.ErrNotFound
-		}
-		return "", result.Error
-	}
-	return author, nil
-}
-
 func (r *GORMRepository) Delete(ctx context.Context, id uint) error {
-	result := r.db.WithContext(ctx).
-		Where("id = ?", id).
-		Delete(&Model{})
-	if result.Error != nil {
-		return result.Error
-	}
-	if result.RowsAffected == 0 {
-		return errs.ErrNotFound
-	}
-	return nil
+	return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		result := tx.Where("id = ?", id).
+			Delete(&Model{})
+		if result.Error != nil {
+			return result.Error
+		}
+		if result.RowsAffected == 0 {
+			return errs.ErrNotFound
+		}
+		if err := writeMessage(tx, "delete", id, ""); err != nil {
+			return err
+		}
+		return nil
+	})
 }
 
 func (r *GORMRepository) DeleteTranslation(ctx context.Context, id uint, locale string) error {
-	result := r.db.WithContext(ctx).
-		Where("post_id = ? AND locale = ?", id, locale).
-		Delete(&Translation{})
-	if result.RowsAffected == 0 {
-		return errs.ErrNotFound
+	return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		result := tx.Where("post_id = ? AND locale = ?", id, locale).
+			Delete(&Translation{})
+		if result.RowsAffected == 0 {
+			return errs.ErrNotFound
+		}
+		if err := writeMessage(tx, "delete.translation", id, locale); err != nil {
+			return err
+		}
+		return nil
+	})
+}
+
+func writeMessage(tx *gorm.DB, action string, id uint, locale string) error {
+	payload := MessagePayload{
+		ID:     id,
+		Locale: locale,
+		Action: action,
 	}
-	return result.Error
+	if err := outbox.WriteMessage(tx, "post", "Post.Repository", &payload); err != nil {
+		return err
+	}
+	return nil
 }

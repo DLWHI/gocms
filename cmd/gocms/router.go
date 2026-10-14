@@ -94,14 +94,8 @@ func (router *Router) AddLocaleRoutes(handler *locale.Handler) {
 }
 
 func (router *Router) AddPostRoutes(handler *post.Handler) {
-	requestLimiter := middleware.NewRequestLimiter(RequestLimit)
 	streamLimiter := middleware.NewRequestLimiter(ContentLimit)
 	m := middleware.Chain(
-		requestLimiter.Wrap,
-		router.auth,
-		middleware.Locale,
-	)
-	s := middleware.Chain(
 		streamLimiter.Wrap,
 		router.auth,
 		middleware.Locale,
@@ -114,8 +108,6 @@ func (router *Router) AddPostRoutes(handler *post.Handler) {
 	router.mux.Handle("PATCH /cms/posts/{id}/views", m(handler.UpdateViews))
 	router.mux.Handle("DELETE /cms/posts/{id}", m(handler.Delete))
 	router.mux.Handle("DELETE /cms/posts/{id}/{locale}", m(handler.DeleteLocale))
-	router.mux.Handle("GET /cms/posts/{id}/content", m(handler.GetContent))
-	router.mux.Handle("PATCH /cms/posts/{id}/content", s(handler.UpdateContent))
 }
 
 func (router *Router) AddCategoryRoutes(handler *category.Handler) {
@@ -166,7 +158,7 @@ func (router *Router) AddStorageRoutes(handler *storage.Handler) {
 
 	router.mux.Handle("GET /storage/tree/{path...}", m(handler.Tree))
 	router.mux.Handle("GET /storage/media/{path...}", requestLimiter.Wrap(handler.Get))
-	router.mux.Handle("POST /storage/media/{path...}", s(handler.Upload))
+	router.mux.Handle("PUT /storage/media/{path...}", s(handler.Upload))
 	router.mux.Handle("DELETE /storage/media/{path...}", m(handler.Delete))
 	router.mux.Handle("POST /storage/folders", m(handler.Folder))
 	router.mux.Handle("GET /storage/preview/{path...}", requestLimiter.Wrap(handler.Get))
@@ -182,7 +174,6 @@ func (router *Router) AddPublicoutes(handler *public.Handler) {
 	router.mux.Handle("GET /public/locales", limiter.Wrap(handler.LocalesAll))
 	router.mux.Handle("POST /public/posts", m(handler.PostSearch))
 	router.mux.Handle("GET /public/posts/{id}", m(handler.PostGet))
-	router.mux.Handle("GET /public/posts/{id}/content", m(handler.PostContent))
 	router.mux.Handle("GET /public/categories", m(handler.CategoriesAll))
 	router.mux.Handle("GET /public/editors", m(handler.EditorAll))
 	router.mux.Handle("GET /public/editors/{username}", m(handler.EditorGet))

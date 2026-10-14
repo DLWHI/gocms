@@ -3,26 +3,17 @@ package outbox
 import (
 	"context"
 	"fmt"
-	"gocms/internal/tokens"
 	"sync"
 )
 
-type SubscriptionID int64
-
-type subscription struct {
-	id      SubscriptionID
-	handler EventHandler
-}
-
 type MessageDispatcher struct {
 	mu          sync.RWMutex
-	ids         tokens.IDGenerator
-	subscribers map[Event][]subscription
+	subscribers map[Event]EventHandler
 }
 
-func NewMessageBroker() *MessageDispatcher {
+func NewMessageDispatcher() *MessageDispatcher {
 	return &MessageDispatcher{
-		subscribers: make(map[Event][]subscription),
+		subscribers: make(map[Event]EventHandler),
 	}
 }
 
@@ -37,59 +28,39 @@ func (b *MessageDispatcher) Publish(ctx context.Context, messages *[]Message) er
 		}
 
 		b.mu.RLock()
-		handlers := b.subscribers[message.Type]
+		handler := b.subscribers[message.Type]
 		b.mu.RUnlock()
 
-		for _, subscriber := range handlers {
+		if handler != nil {
 			if err := ctx.Err(); err != nil {
 				return err
 			}
-			if err := subscriber.handler(message.Type, message.Data); err != nil {
-				return fmt.Errorf("handler for event %q failed: %w", message.Type, err)
+			if err := handler(ctx, message.Type, message.Data); err != nil {
+				return fmt.Errorf("Handler for event %q failed: %w", message.Type, err)
 			}
 		}
 	}
 	return nil
 }
 
-func (b *MessageDispatcher) Subscribe(event Event, handler EventHandler) SubscriptionID {
+func (b *MessageDispatcher) Subscribe(event Event, handler EventHandler) {
 	if handler == nil {
-		return 0
+		return
 	}
 	b.mu.Lock()
 	defer b.mu.Unlock()
 
-	id := SubscriptionID(b.ids.Next())
-	b.subscribers[event] = append(b.subscribers[event], subscription{
-		id:      id,
-		handler: handler,
-	})
-	return id
+	b.subscribers[event] = handler
 }
 
-// Unsubscribe removes a handler from an event and reports whether it existed.
-func (b *MessageDispatcher) Unsubscribe(event Event, id SubscriptionID) bool {
+func (b *MessageDispatcher) Unsubscribe(event Event) bool {
 	b.mu.Lock()
 	defer b.mu.Unlock()
 
-	current, exists := b.subscribers[event]
-	if !exists {
+	if _, exists := b.subscribers[event]; !exists {
 		return false
 	}
 
-	for i, subscriber := range current {
-		if subscriber.id == id {
-			updated := make([]subscription, len(current)-1)
-			copy(updated, current[:i])
-			copy(updated[i:], current[i+1:])
-			if len(updated) == 0 {
-				delete(b.subscribers, event)
-			} else {
-				b.subscribers[event] = updated
-			}
-			break
-		}
-	}
-
+	delete(b.subscribers, event)
 	return true
 }

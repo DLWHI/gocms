@@ -68,8 +68,6 @@ func (router *Router) AddPostRoutes(mux *http.ServeMux, handler *post.Handler) {
 	mux.Handle("PATCH /cms/posts/{id}", m(handler.Update))
 	mux.Handle("DELETE /cms/posts/{id}", m(handler.Delete))
 	mux.Handle("DELETE /cms/posts/{id}/{locale}", m(handler.DeleteLocale))
-	mux.Handle("GET /cms/posts/{id}/content", m(handler.GetContent))
-	mux.Handle("PATCH /cms/posts/{id}/content", m(handler.UpdateContent))
 }
 
 func (router *Router) AddCategoryRoutes(mux *http.ServeMux, handler *category.Handler) {

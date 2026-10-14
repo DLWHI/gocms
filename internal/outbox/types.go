@@ -6,7 +6,7 @@ import (
 )
 
 type Event string
-type EventHandler func(Event, []byte) error
+type EventHandler func(context.Context, Event, []byte) error
 
 type Message struct {
 	SpecVersion string     `json:"specversion" gorm:"not null"`
@@ -25,8 +25,8 @@ type MessageRepository interface {
 
 type PublishDriver interface {
 	Publish(ctx context.Context, messages *[]Message) error
-	Subscribe(event Event, handler EventHandler) SubscriptionID
-	Unsubscribe(event Event, id SubscriptionID) bool
+	Subscribe(event Event, handler EventHandler)
+	Unsubscribe(event Event) bool
 }
 
 func (Message) TableName() string {

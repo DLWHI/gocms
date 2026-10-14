@@ -2,14 +2,14 @@ package post
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"gocms/internal/errs"
 	"gocms/internal/logger"
+	"gocms/internal/outbox"
 	"gocms/internal/permissions"
 	"gocms/internal/search"
-	"gocms/internal/storage"
-	"io"
 	"strings"
 	"time"
 	"unicode"
@@ -18,16 +18,12 @@ import (
 type Service struct {
 	repository Repository
 	lookup     SearchEngine
-	files      *storage.Manager
-	pathFormat string
 }
 
-func NewService(repo Repository, se SearchEngine, content *storage.Manager) *Service {
+func NewService(repo Repository, se SearchEngine) *Service {
 	return &Service{
 		repository: repo,
 		lookup:     se,
-		files:      content,
-		pathFormat: "/%d/%s.md",
 	}
 }
 
@@ -39,14 +35,14 @@ func (s *Service) hasPermissionsOnPost(ctx context.Context, action string, id ui
 		if permissions.Has("posts", action, level.(uint32)) {
 			return nil
 		}
-		author, err := s.repository.AuthorOf(ctx, id)
+		post, err := s.repository.Get(ctx, id)
 		if err != nil {
 			if !errors.Is(err, errs.ErrNotFound) {
 				logger.Error("Post.Service", "Failed to verify post ownership", err)
 			}
 			return err
 		}
-		if author != initiator.(string) {
+		if post.Author != initiator.(string) {
 			return errs.ErrCred
 		}
 	} else {
@@ -87,7 +83,7 @@ func (s *Service) Create(ctx context.Context, post *Doc) error {
 	if post.Author == "" {
 		return errs.ErrPerm
 	}
-	// post.Author = author.(string)
+	post.Author = author.(string)
 
 	if err := s.sanitize(ctx, post); err != nil {
 		return err
@@ -106,16 +102,6 @@ func (s *Service) Create(ctx context.Context, post *Doc) error {
 	}
 	post.PostID = model.PostID
 
-	content := fmt.Sprintf(s.pathFormat, model.PostID, post.Locale)
-	if err := s.files.Create(content); err != nil {
-		logger.Error("Post.Service", "Failed to create post content storage", err)
-		return err
-	}
-
-	if err := s.lookup.Index(ctx, post); err != nil {
-		logger.Error("Post.Service", "Failed to add post to the search index", err)
-		return err
-	}
 	return nil
 }
 
@@ -129,23 +115,10 @@ func (s *Service) Edit(ctx context.Context, post *Doc) (*Doc, error) {
 	}
 
 	model := post.ToModel()
-	err := s.repository.Update(ctx, &model)
+	err := s.repository.UpdateTranslation(ctx, &model)
 	if err != nil {
 		logger.Error("Post.Service", "Failed to update post", err)
 		return nil, err
-	}
-
-	content := fmt.Sprintf(s.pathFormat, post.PostID, post.Locale)
-	if !s.files.Exists(content) {
-		if err := s.files.Create(content); err != nil {
-			logger.Error("Post.Service", "Failed to create post content storage", err)
-			return nil, err
-		}
-	}
-
-	if err := s.lookup.Index(ctx, post); err != nil {
-		logger.Error("Post.Service", "Failed to update post in the search index", err)
-		return post, err
 	}
 
 	return post, nil
@@ -157,22 +130,23 @@ func (s *Service) IncrementViews(ctx context.Context, id uint, value uint) error
 		return err
 	}
 
-	if err := s.lookup.IndexViewsIncrement(ctx, id, value); err != nil {
-		logger.Error("Post.Service", "Failed to increment post views in the search index", err)
-		return err
-	}
-
 	return nil
 }
 
 func (s *Service) SetViews(ctx context.Context, id uint, value uint) error {
-	if err := s.repository.UpdateViews(ctx, id, value); err != nil {
-		logger.Error("Post.Service", "Failed to update post view count", err)
+	post, err := s.repository.Get(ctx, id)
+	if err != nil {
+		logger.Error("Post.Service", "Failed to retrieve post view count", err)
 		return err
 	}
 
-	if err := s.lookup.IndexViews(ctx, id, value); err != nil {
-		logger.Error("Post.Service", "Failed to update post views in the search index", err)
+	updated := Model{
+		ID:    post.ID,
+		Views: value,
+	}
+
+	if err := s.repository.Update(ctx, &updated); err != nil {
+		logger.Error("Post.Service", "Failed to update post view count", err)
 		return err
 	}
 
@@ -196,7 +170,7 @@ func (s *Service) Get(ctx context.Context, id uint) (*Doc, error) {
 		return nil, fmt.Errorf("%w: empty locale", errs.ErrInval)
 	}
 
-	post, err := s.repository.Get(ctx, id, locale.(string))
+	post, err := s.repository.GetTranslation(ctx, id, locale.(string))
 	if err != nil {
 		logger.Error("Post.Service", "Failed to retrieve post", err)
 		return nil, err
@@ -224,7 +198,10 @@ func (s *Service) Read(ctx context.Context, id uint, slug string) (*Doc, error) 
 		return nil, err
 	}
 	if post.Post.Slug != slug {
-		return nil, fmt.Errorf("%w: mismatched slug", errs.ErrInval)
+		return nil, errs.ErrNotFound
+	}
+	if post.Post.PublishedAt == nil {
+		return nil, errs.ErrNotFound
 	}
 
 	doc := post.ToDoc()
@@ -238,13 +215,13 @@ func (s *Service) Read(ctx context.Context, id uint, slug string) (*Doc, error) 
 }
 
 func (s *Service) GetViews(ctx context.Context, id uint) (uint, error) {
-	views, err := s.repository.GetViews(ctx, id)
+	post, err := s.repository.Get(ctx, id)
 	if err != nil {
 		logger.Error("Post.Service", "Failed to retrieve post view count", err)
 		return 0, err
 	}
 
-	return views, nil
+	return post.Views, nil
 }
 
 func (s *Service) Delete(ctx context.Context, id uint) error {
@@ -254,12 +231,6 @@ func (s *Service) Delete(ctx context.Context, id uint) error {
 
 	if err := s.repository.Delete(ctx, id); err != nil {
 		logger.Error("Post.Service", "Failed to delete post", err)
-		return err
-	}
-
-	content := fmt.Sprintf("/%d/", id)
-	if err := s.files.Delete(content, true); err != nil {
-		logger.Error("Post.Service", "Failed to delete post content storage", err)
 		return err
 	}
 
@@ -284,45 +255,37 @@ func (s *Service) DeleteTranslation(ctx context.Context, id uint, locale string)
 		return err
 	}
 
-	content := fmt.Sprintf(s.pathFormat, id, locale)
-	if err := s.files.Delete(content, false); err != nil {
-		logger.Error("Post.Service", "Failed to delete post translation content", err)
-		return err
-	}
-
 	return nil
 }
 
-func (s *Service) EditContent(ctx context.Context, id uint, content io.Reader) error {
-	locale := ctx.Value("locale")
-	if locale == nil {
-		return fmt.Errorf("%w: empty locale", errs.ErrInval)
-	}
-
-	if err := s.hasPermissionsOnPost(ctx, "edit", id); err != nil {
+func (s *Service) SyncSearch(ctx context.Context, action outbox.Event, data []byte) error {
+	var payload MessagePayload
+	if err := json.Unmarshal(data, &payload); err != nil {
 		return err
 	}
 
-	path := fmt.Sprintf(s.pathFormat, id, locale.(string))
-	if err := s.files.Save(path, content); err != nil {
-		logger.Error("Post.Service", "Failed to save post content", err)
-		return err
+	switch payload.Action {
+	case "create":
+	case "update":
+		post, err := s.repository.GetTranslation(ctx, payload.ID, payload.Locale)
+		if err != nil {
+			return err
+		}
+		doc := post.ToDoc()
+		if err := s.lookup.Index(ctx, &doc); err != nil {
+			return err
+		}
+		return nil
+	case "delete":
+		if err := s.lookup.Delete(ctx, payload.ID); err != nil {
+			return err
+		}
+		return nil
+	case "delete.translation":
+		if err := s.lookup.DeleteTranslation(ctx, payload.ID, payload.Locale); err != nil {
+			return err
+		}
+		return nil
 	}
-
-	return nil
-}
-
-func (s *Service) ReadContent(ctx context.Context, id uint) (io.ReadCloser, error) {
-	locale := ctx.Value("locale")
-	if locale == nil {
-		return nil, fmt.Errorf("%w: empty locale", errs.ErrInval)
-	}
-
-	path := fmt.Sprintf(s.pathFormat, id, locale.(string))
-	io, err := s.files.Read(path)
-	if err != nil {
-		logger.Error("Post.Service", "Failed to read post content", err)
-		return nil, err
-	}
-	return io, nil
+	return fmt.Errorf("%w: unkown action", errs.ErrInval)
 }

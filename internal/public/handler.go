@@ -59,7 +59,6 @@ func NewHandler(ps *post.Service, es *editor.Service, cs *category.Service, ls *
 	hndl.LocalesAll = http.HandlerFunc(hndl.localesAll)
 	hndl.EditorAll = http.HandlerFunc(hndl.editorsAll)
 	hndl.EditorGet = http.HandlerFunc(hndl.editorsGet)
-	hndl.EditorBio = http.HandlerFunc(hndl.editorsBio)
 	hndl.Ads = http.HandlerFunc(hndl.adsGet)
 	return &hndl
 }

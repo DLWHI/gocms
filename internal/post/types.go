@@ -41,7 +41,7 @@ type MessagePayload struct {
 	Action string `json:"action"`
 }
 
-type Doc struct {
+type Document struct {
 	ID          string   `json:"id"`
 	PostID      uint     `json:"post_id"`
 	Title       string   `json:"title"`
@@ -75,7 +75,7 @@ type SearchParams struct {
 	Published         *bool      `json:"published,omitempty"`
 }
 
-type SearchResult = search.Result[Doc]
+type SearchResult = search.Result[Document]
 
 type Repository interface {
 	Create(ctx context.Context, post *Translation) error
@@ -90,8 +90,8 @@ type Repository interface {
 }
 
 type SearchEngine interface {
-	Index(ctx context.Context, post *Doc) error
-	Get(ctx context.Context, id uint, locale string) (*Doc, error)
+	Index(ctx context.Context, post *Document) error
+	Get(ctx context.Context, id uint, locale string) (*Document, error)
 	Search(ctx context.Context, post *SearchParams) (*SearchResult, error)
 	Delete(ctx context.Context, id uint) error
 	DeleteTranslation(ctx context.Context, id uint, locale string) error
@@ -105,8 +105,8 @@ func (Translation) TableName() string {
 	return "post_translations"
 }
 
-func (pm *Meta) ToDoc() Doc {
-	var pd Doc
+func (pm *Meta) ToDoc() Document {
+	var pd Document
 
 	if pm.PublishedAt != nil {
 		ts := pm.PublishedAt.Unix()
@@ -130,8 +130,8 @@ func (pm *Meta) ToDoc() Doc {
 	return pd
 }
 
-func (pm *Translation) ToDoc() Doc {
-	var pd Doc
+func (pm *Translation) ToDoc() Document {
+	var pd Document
 
 	if pm.Post.PublishedAt != nil {
 		ts := pm.Post.PublishedAt.Unix()
@@ -162,7 +162,7 @@ func (pm *Translation) ToDoc() Doc {
 	return pd
 }
 
-func (pd *Doc) ToModel() Translation {
+func (pd *Document) ToModel() Translation {
 	var pm Translation
 	if pd.PublishedAt != nil {
 		ts := time.Unix(*pd.PublishedAt, 0).UTC()

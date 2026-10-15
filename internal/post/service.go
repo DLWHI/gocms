@@ -51,7 +51,7 @@ func (s *Service) hasPermissionsOnPost(ctx context.Context, action string, id ui
 	return nil
 }
 
-func (s *Service) sanitize(ctx context.Context, post *Doc) error {
+func (s *Service) sanitize(ctx context.Context, post *Document) error {
 	post.Slug = strings.TrimSpace(strings.ToLower(post.Slug))
 	if post.Slug == "" {
 		return fmt.Errorf("%w: slug cannot be empty", errs.ErrInval)
@@ -72,7 +72,7 @@ func (s *Service) sanitize(ctx context.Context, post *Doc) error {
 	return nil
 }
 
-func (s *Service) Create(ctx context.Context, post *Doc) error {
+func (s *Service) Create(ctx context.Context, post *Document) error {
 	author := ctx.Value("username")
 	level := ctx.Value("userperm")
 
@@ -102,7 +102,7 @@ func (s *Service) Create(ctx context.Context, post *Doc) error {
 	return nil
 }
 
-func (s *Service) Edit(ctx context.Context, post *Doc) (*Doc, error) {
+func (s *Service) Edit(ctx context.Context, post *Document) (*Document, error) {
 	if err := s.hasPermissionsOnPost(ctx, "edit", post.PostID); err != nil {
 		return nil, err
 	}
@@ -161,7 +161,7 @@ func (s *Service) Search(ctx context.Context, filters *SearchParams) (*SearchRes
 	return posts, nil
 }
 
-func (s *Service) Get(ctx context.Context, id uint) (*Doc, error) {
+func (s *Service) Get(ctx context.Context, id uint) (*Document, error) {
 	locale := ctx.Value("locale")
 	if locale == nil {
 		return nil, fmt.Errorf("%w: empty locale", errs.ErrInval)
@@ -183,7 +183,7 @@ func (s *Service) Get(ctx context.Context, id uint) (*Doc, error) {
 	return &doc, nil
 }
 
-func (s *Service) Read(ctx context.Context, id uint, slug string) (*Doc, error) {
+func (s *Service) Read(ctx context.Context, id uint, slug string) (*Document, error) {
 	locale := ctx.Value("locale")
 	if locale == nil {
 		return nil, fmt.Errorf("%w: empty locale", errs.ErrInval)
@@ -263,7 +263,7 @@ func (s *Service) SyncSearch(ctx context.Context, action outbox.Event, data []by
 
 	switch payload.Action {
 	case "create", "update":
-		var doc Doc
+		var doc Document
 		if payload.Locale == "" {
 			post, err := s.repository.Get(ctx, payload.ID)
 			if err != nil {

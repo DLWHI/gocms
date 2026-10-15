@@ -44,7 +44,7 @@ func NewHandler(s *Service) *Handler {
 
 // POST /posts - Create post translation
 func (h *Handler) create(w http.ResponseWriter, r *http.Request) {
-	var post Doc
+	var post Document
 
 	if err := json.NewDecoder(r.Body).Decode(&post); err != nil {
 		http.Error(w, "Invalid JSON payload", http.StatusBadRequest)
@@ -105,7 +105,7 @@ func (h *Handler) update(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid ID", http.StatusBadRequest)
 		return
 	}
-	var post Doc
+	var post Document
 
 	if err := json.NewDecoder(r.Body).Decode(&post); err != nil {
 		http.Error(w, "Invalid JSON payload", http.StatusBadRequest)

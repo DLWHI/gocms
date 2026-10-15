@@ -113,7 +113,7 @@ func (r *MeilisearchEngine) Settings() meilisearch.Settings {
 	}
 }
 
-func (r *MeilisearchEngine) Index(ctx context.Context, post *Doc) error {
+func (r *MeilisearchEngine) Index(ctx context.Context, post *Document) error {
 	index := r.se.Index(r.idx)
 	post.ID = fmt.Sprintf("%d-%s", post.PostID, post.Locale)
 	req := &meilisearch.DocumentsQuery{
@@ -132,7 +132,7 @@ func (r *MeilisearchEngine) Index(ctx context.Context, post *Doc) error {
 		return err
 	}
 
-	var posts []Doc
+	var posts []Document
 	if err := res.Results.DecodeInto(&posts); err != nil {
 		return err
 	}
@@ -158,8 +158,8 @@ func (r *MeilisearchEngine) Index(ctx context.Context, post *Doc) error {
 	return err
 }
 
-func (r *MeilisearchEngine) Get(ctx context.Context, id uint, locale string) (*Doc, error) {
-	var post Doc
+func (r *MeilisearchEngine) Get(ctx context.Context, id uint, locale string) (*Document, error) {
+	var post Document
 	docID := fmt.Sprintf("%d-%s", id, locale)
 	err := r.se.Index(r.idx).GetDocumentWithContext(ctx, docID, nil, &post)
 	if err != nil {

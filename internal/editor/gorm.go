@@ -19,22 +19,13 @@ func NewGORMRepository(db *gorm.DB) *GORMRepository {
 	return &GORMRepository{db: db}
 }
 
-func userDiff(user *user.Model) map[string]interface{} {
-	toUpdate := make(map[string]interface{})
-
-	if user.Email != "" {
-		toUpdate["email"] = user.Email
-		toUpdate["version"] = gorm.Expr("version + 1")
-	}
-
-	return toUpdate
-}
-
 func editorDiff(editor *Model) map[string]interface{} {
 	toUpdate := make(map[string]interface{})
 	if editor.Name != "" {
 		toUpdate["name"] = editor.Name
-		toUpdate["version"] = gorm.Expr("version + 1")
+	}
+	if editor.Bio != "" {
+		toUpdate["bio"] = editor.Bio
 	}
 	return toUpdate
 }
@@ -57,17 +48,12 @@ func (r *GORMRepository) Create(ctx context.Context, editor *Model) error {
 }
 
 func (r *GORMRepository) Update(ctx context.Context, diff *Model) error {
-	var version struct {
-		User   uint
-		Editor uint
-	}
+	var version uint
 	for i := 0; i < 5; i++ {
 		err := r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-			udiff := userDiff(&diff.UserData)
 			ediff := editorDiff(diff)
-			err := tx.Table("users AS u").
-				Select("u.version AS user, e.version AS editor").
-				Joins("LEFT JOIN editors AS e ON e.user = u.username AND e.locale = ?", diff.Locale).
+			err := tx.Table("editors AS e").
+				Select("e.version AS version").
 				Where("u.username = ? AND u.suspended_at IS NULL", diff.User).
 				Take(&version).Error
 			if err != nil {
@@ -77,28 +63,16 @@ func (r *GORMRepository) Update(ctx context.Context, diff *Model) error {
 				return err
 			}
 
-			if len(udiff) > 0 {
-				result := tx.Model(&user.Model{}).
-					Where("username = ? AND version = ?", diff.User, version.User).
-					Updates(udiff)
-				if result.Error != nil {
-					return result.Error
-				}
-
-				if result.RowsAffected == 0 {
-					return errs.ErrLock
-				}
-			}
-
 			if len(ediff) > 0 {
-				if version.Editor == 0 {
+				ediff["version"] = gorm.Expr("version + 1")
+				if version == 0 {
 					diff.Version = 1
 					if err := tx.Create(diff).Error; err != nil {
 						return err
 					}
 				} else {
 					result := tx.Model(&Model{}).
-						Where("user = ? AND locale = ? AND version = ?", diff.User, diff.Locale, version.Editor).
+						Where("user = ? AND locale = ? AND version = ?", diff.User, diff.Locale, version).
 						Updates(ediff)
 					if result.Error != nil {
 						return result.Error

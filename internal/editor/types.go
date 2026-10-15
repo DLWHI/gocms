@@ -12,6 +12,7 @@ import (
 type Model struct {
 	Locale   string     `json:"locale" gorm:"size:8;primaryKey;foreignKey:locales(code);constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 	Name     string     `json:"name"`
+	Bio      string     `json:"bio"`
 	User     string     `json:"username" gorm:"primaryKey;size:64;"`
 	UserData user.Model `json:"user_data" gorm:"foreignKey:User;references:Username;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 	Version  uint       `json:"-" gorm:"default:1"`
@@ -21,6 +22,7 @@ type Document struct {
 	ID          string `json:"id"`
 	User        string `json:"username"`
 	Email       string `json:"email"`
+	Bio         string `json:"bio"`
 	Name        string `json:"name"`
 	Locale      string `json:"locale"`
 	SuspendedAt *int64 `json:"suspended_at"`

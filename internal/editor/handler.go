@@ -3,7 +3,6 @@ package editor
 import (
 	"encoding/json"
 	"gocms/internal/errs"
-	"io"
 	"net/http"
 )
 
@@ -15,8 +14,6 @@ import (
 // PATCH /editors/{username} - Update editor
 // PATCH /editors/{username}/permission - Update editors permissions
 // DELETE /editors/{username} - Delete editor
-// GET /editors/{username}/bio - Get editor bio
-// PATCH /editors/{username}/bio - Update editor bio
 
 // ------------------------------------------------------------------
 type Handler struct {
@@ -26,8 +23,6 @@ type Handler struct {
 	Get           http.Handler
 	Update        http.Handler
 	Delete        http.Handler
-	Bio           http.Handler
-	EditBio       http.Handler
 	editorService *Service
 }
 
@@ -40,8 +35,6 @@ func NewHandler(s *Service) *Handler {
 	hndl.Get = http.HandlerFunc(hndl.get)
 	hndl.Update = http.HandlerFunc(hndl.update)
 	hndl.Delete = http.HandlerFunc(hndl.delete)
-	hndl.Bio = http.HandlerFunc(hndl.bio)
-	hndl.EditBio = http.HandlerFunc(hndl.editBio)
 	return &hndl
 }
 
@@ -150,39 +143,5 @@ func (h *Handler) delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
-}
-
-// GET /users/{username}/bio - Get user's bio
-func (h *Handler) bio(w http.ResponseWriter, r *http.Request) {
-	username := r.PathValue("username")
-	if username == "" {
-		http.Error(w, "Username was not provided", http.StatusBadRequest)
-		return
-	}
-
-	content, err := h.editorService.ReadBio(r.Context(), username)
-	if err != nil {
-		errs.ServeMessage(w, "Editor's bio", err)
-		return
-	}
-	defer content.Close()
-
-	w.WriteHeader(http.StatusOK)
-	_, _ = io.Copy(w, content)
-}
-
-// PATCH /editors/{username}/bio - Update editor bio
-func (h *Handler) editBio(w http.ResponseWriter, r *http.Request) {
-	username := r.PathValue("username")
-	if username == "" {
-		http.Error(w, "Username was not provided", http.StatusInternalServerError)
-		return
-	}
-
-	if err := h.editorService.EditBio(r.Context(), username, r.Body); err != nil {
-		errs.ServeMessage(w, "Editor's bio", err)
-		return
-	}
 	w.WriteHeader(http.StatusOK)
 }

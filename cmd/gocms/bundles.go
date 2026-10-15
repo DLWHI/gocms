@@ -6,9 +6,7 @@ import (
 	"gocms/internal/editor"
 	"gocms/internal/locale"
 	"gocms/internal/post"
-	"gocms/internal/storage"
 	"gocms/internal/user"
-	"os"
 	"time"
 
 	"github.com/meilisearch/meilisearch-go"
@@ -127,22 +125,16 @@ func NewCategoryBundle(db *gorm.DB, search meilisearch.ServiceManager, redis *re
 }
 
 func NewEditorBundle(db *gorm.DB, search meilisearch.ServiceManager, redis *redis.Client) *EditorBundle {
-	path := os.Getenv("USER_PROFILE_STORAGE_PATH")
-	if path == "" {
-		path = "./content/bios"
-	}
 	redisCfg := editor.RedisConfig{
 		Client:    redis,
 		Ttl:       60 * time.Minute,
 		KeyFormat: "cms:editors:%s:%s",
 	}
 
-	storage := storage.NewManager(path)
-
 	repo := editor.NewGORMRepository(db)
 	cacheRepo := editor.NewRedisRepository(repo, &redisCfg)
 	searchEngine := editor.NewMeilisearchEngine(search, "editors")
-	service := editor.NewService(cacheRepo, searchEngine, storage)
+	service := editor.NewService(cacheRepo, searchEngine)
 	handler := editor.NewHandler(service)
 	return &EditorBundle{
 		Service:           service,

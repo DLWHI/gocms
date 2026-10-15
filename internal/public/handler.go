@@ -9,7 +9,6 @@ import (
 	"gocms/internal/errs"
 	"gocms/internal/locale"
 	"gocms/internal/post"
-	"io"
 	"net/http"
 	"strconv"
 	"strings"
@@ -169,25 +168,6 @@ func (h *Handler) editorsGet(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	_ = json.NewEncoder(w).Encode(&editor)
-}
-
-// GET /posts/{id}/content - Read post content
-func (h *Handler) editorsBio(w http.ResponseWriter, r *http.Request) {
-	username := r.PathValue("username")
-	if username == "" {
-		http.Error(w, "Unknown editor", http.StatusBadRequest)
-		return
-	}
-
-	content, err := h.editors.ReadBio(r.Context(), username)
-	if err != nil {
-		errs.ServeMessage(w, "Editor's bio", err)
-		return
-	}
-	defer content.Close()
-
-	w.WriteHeader(http.StatusOK)
-	_, _ = io.Copy(w, content)
 }
 
 // GET /advertisements - Get ad groups

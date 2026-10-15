@@ -10,24 +10,18 @@ import (
 	"gocms/internal/outbox"
 	"gocms/internal/permissions"
 	"gocms/internal/search"
-	"gocms/internal/storage"
-	"io"
 	"strings"
 )
 
 type Service struct {
-	repo       Repository
-	se         SearchEngine
-	files      *storage.Manager
-	pathFormat string
+	repo Repository
+	se   SearchEngine
 }
 
-func NewService(db Repository, se SearchEngine, content *storage.Manager) *Service {
+func NewService(db Repository, se SearchEngine) *Service {
 	return &Service{
-		repo:       db,
-		se:         se,
-		files:      content,
-		pathFormat: "/%s/%s.md",
+		repo: db,
+		se:   se,
 	}
 }
 
@@ -50,12 +44,6 @@ func (s *Service) Create(ctx context.Context, editor *Document) error {
 	model := editor.ToModel()
 	if err := s.repo.Create(ctx, &model); err != nil {
 		logger.Error("Editor.Service", "Failed to create editor profile", err)
-		return err
-	}
-
-	content := fmt.Sprintf(s.pathFormat, editor.User, editor.Locale)
-	if err := s.files.Create(content); err != nil {
-		logger.Error("Editor.Service", "Failed to create editor biography storage", err)
 		return err
 	}
 
@@ -82,14 +70,6 @@ func (s *Service) Edit(ctx context.Context, editor *Document) error {
 	if err := s.repo.Update(ctx, &model); err != nil {
 		logger.Error("Editor.Service", "Failed to update editor profile", err)
 		return err
-	}
-
-	content := fmt.Sprintf(s.pathFormat, editor.User, editor.Locale)
-	if !s.files.Exists(content) {
-		if err := s.files.Create(content); err != nil {
-			logger.Error("Editor.Service", "Failed to create editor biography storage", err)
-			return err
-		}
 	}
 
 	return nil
@@ -158,41 +138,6 @@ func (s *Service) Suspend(ctx context.Context, username string) error {
 	}
 
 	return nil
-}
-
-func (s *Service) EditBio(ctx context.Context, username string, content io.Reader) error {
-	initiator := ctx.Value("username")
-
-	if initiator == nil || initiator.(string) != username {
-		return errs.ErrCred
-	}
-
-	locale := ctx.Value("locale")
-	if locale == nil {
-		return fmt.Errorf("%s: missing locale", errs.ErrInval)
-	}
-
-	path := fmt.Sprintf(s.pathFormat, username, locale.(string))
-	if err := s.files.Save(path, content); err != nil {
-		logger.Error("Editor.Service", "Failed to save editor biography", err)
-		return err
-	}
-	return nil
-}
-
-func (s *Service) ReadBio(ctx context.Context, username string) (io.ReadCloser, error) {
-	locale := ctx.Value("locale")
-	if locale == nil {
-		return nil, fmt.Errorf("%s: missing locale", errs.ErrInval)
-	}
-
-	bioPath := fmt.Sprintf(s.pathFormat, username, locale)
-	content, err := s.files.Read(bioPath)
-	if err != nil {
-		logger.Error("Editor.Service", "Failed to read editor biography", err)
-		return nil, err
-	}
-	return content, nil
 }
 
 func (s *Service) SyncSearch(ctx context.Context, action outbox.Event, data []byte) error {

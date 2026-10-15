@@ -58,14 +58,8 @@ func (router *Router) AddUserRoutes(handler *user.Handler) {
 }
 
 func (router *Router) AddEditorRoutes(handler *editor.Handler) {
-	requestLimiter := middleware.NewRequestLimiter(RequestLimit)
 	streamLimiter := middleware.NewRequestLimiter(ContentLimit)
 	m := middleware.Chain(
-		requestLimiter.Wrap,
-		router.auth,
-		middleware.Locale,
-	)
-	s := middleware.Chain(
 		streamLimiter.Wrap,
 		router.auth,
 		middleware.Locale,
@@ -77,8 +71,6 @@ func (router *Router) AddEditorRoutes(handler *editor.Handler) {
 	router.mux.Handle("GET /cms/editors/{username}", m(handler.Get))
 	router.mux.Handle("PATCH /cms/editors/{username}", m(handler.Update))
 	router.mux.Handle("DELETE /cms/editors/{username}", m(handler.Delete))
-	router.mux.Handle("GET /cms/editors/{username}/bio", m(handler.Bio))
-	router.mux.Handle("PATCH /cms/editors/{username}/bio", s(handler.EditBio))
 }
 
 func (router *Router) AddLocaleRoutes(handler *locale.Handler) {
@@ -177,6 +169,5 @@ func (router *Router) AddPublicoutes(handler *public.Handler) {
 	router.mux.Handle("GET /public/categories", m(handler.CategoriesAll))
 	router.mux.Handle("GET /public/editors", m(handler.EditorAll))
 	router.mux.Handle("GET /public/editors/{username}", m(handler.EditorGet))
-	router.mux.Handle("GET /public/editors/{username}/bio", m(handler.EditorBio))
 	router.mux.Handle("GET /public/advertisements", m(handler.Ads))
 }

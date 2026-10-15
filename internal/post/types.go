@@ -45,18 +45,19 @@ type Doc struct {
 	ID          string   `json:"id"`
 	PostID      uint     `json:"post_id"`
 	Title       string   `json:"title"`
-	Description string   `json:"description"`
+	Description string   `json:"description;omitempty"`
+	Markdown    string   `json:"markdown;omitempty"`
 	Slug        string   `json:"slug"`
-	Keywords    string   `json:"keywords"`
+	Keywords    string   `json:"keywords;omitempty"`
 	Locale      string   `json:"locale"`
-	CreatedAt   int64    `json:"created_at"`
+	CreatedAt   int64    `json:"created_at;omitempty"`
 	PublishedAt *int64   `json:"published_at"`
 	Views       uint     `json:"views"`
 	Preview     string   `json:"preview"`
-	Media       string   `json:"media"`
-	MediaSource string   `json:"media_source"`
-	MediaType   string   `json:"media_type"`
-	Author      string   `json:"author"`
+	Media       string   `json:"media;omitempty"`
+	MediaSource string   `json:"media_source;omitempty"`
+	MediaType   string   `json:"media_type;omitempty"`
+	Author      string   `json:"author;omitempty"`
 	Categories  []string `json:"categories"`
 }
 

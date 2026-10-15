@@ -5,6 +5,7 @@ import (
 	"gocms/internal/category"
 	"gocms/internal/editor"
 	"gocms/internal/locale"
+	"gocms/internal/outbox"
 	"gocms/internal/post"
 	"gocms/internal/user"
 
@@ -22,6 +23,7 @@ func SoftMigrate(db *gorm.DB) error {
 		&category.Model{},
 		&category.Translation{},
 		&locale.Model{},
+		&outbox.Message{},
 	)
 
 	if err != nil {
@@ -49,6 +51,7 @@ func HardMigrate(db *gorm.DB) error {
 		&post.Translation{},
 		&category.Model{},
 		&category.Translation{},
+		&outbox.Message{},
 	); err != nil {
 		return err
 	}

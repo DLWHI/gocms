@@ -106,10 +106,8 @@ func (app *Container) Init(ctx context.Context, cfg Config) error {
 
 	server := runner.NewHttp(cfg.Address, cfg.Port, router.mux)
 
-	dispatcher := outbox.NewMessageDispatcher()
-	relay := outbox.NewRelay(app.DB, dispatcher)
-
-	app.WireEvents(dispatcher)
+	dispatcher := outbox.NewDirectPublisher()
+	relay := outbox.NewRelay(db, dispatcher)
 
 	app.DB = db
 	app.Redis = redis
@@ -126,10 +124,11 @@ func (app *Container) Init(ctx context.Context, cfg Config) error {
 	app.ViewsCounter = views
 	app.MessageRelay = relay
 
+	app.WireEvents(dispatcher)
 	return nil
 }
 
-func (app *Container) WireEvents(dispatcher outbox.PublishDriver) {
+func (app *Container) WireEvents(dispatcher outbox.Publisher) {
 	dispatcher.Subscribe("post", app.Posts.Service.SyncSearch)
 }
 
@@ -168,6 +167,9 @@ func (app *Container) Stop(timeout time.Duration) bool {
 		success = false
 	}
 	if err := app.ViewsCounter.Stop(ctx); err != nil {
+		success = false
+	}
+	if err := app.MessageRelay.Stop(ctx); err != nil {
 		success = false
 	}
 

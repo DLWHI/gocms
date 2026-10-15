@@ -5,9 +5,9 @@ import (
 	"errors"
 	"fmt"
 	"gocms/internal/errs"
+	"gocms/internal/search"
 	"net/http"
 	"strings"
-	"time"
 
 	"github.com/meilisearch/meilisearch-go"
 )
@@ -148,13 +148,12 @@ func (r *MeilisearchEngine) Index(ctx context.Context, post *Doc) error {
 		posts = append(posts, *post)
 	}
 
-	taskInfo, err := index.AddDocumentsWithContext(ctx, posts, nil)
-	task, err := r.se.TaskManager().WaitForTask(taskInfo.TaskUID, 100*time.Millisecond)
+	task, err := index.AddDocumentsWithContext(ctx, posts, nil)
 	if err != nil {
 		return err
 	}
-	if task.Status == meilisearch.TaskStatusFailed && task.Error.Code != "index_not_found" {
-		return fmt.Errorf("Error indexing: %s - %s", task.Error.Code, task.Error.Message)
+	if err := search.WaitForMeilisearchTask(r.se, task); err != nil {
+		return err
 	}
 	return err
 }
@@ -176,15 +175,27 @@ func (r *MeilisearchEngine) Delete(ctx context.Context, id uint) error {
 	filter := fmt.Sprintf("post_id = %d", id)
 	index := r.se.Index(r.idx)
 
-	_, err := index.DeleteDocumentsByFilterWithContext(ctx, filter, nil)
-	return err
+	task, err := index.DeleteDocumentsByFilterWithContext(ctx, filter, nil)
+	if err != nil {
+		return err
+	}
+	if err := search.WaitForMeilisearchTask(r.se, task); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (r *MeilisearchEngine) DeleteTranslation(ctx context.Context, id uint, locale string) error {
 	docID := fmt.Sprintf("%d-%s", id, locale)
 	index := r.se.Index(r.idx)
-	_, err := index.DeleteDocumentWithContext(ctx, docID, nil)
-	return err
+	task, err := index.DeleteDocumentWithContext(ctx, docID, nil)
+	if err != nil {
+		return err
+	}
+	if err := search.WaitForMeilisearchTask(r.se, task); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (r *MeilisearchEngine) Search(ctx context.Context, params *SearchParams) (*SearchResult, error) {

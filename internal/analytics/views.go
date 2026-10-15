@@ -48,7 +48,7 @@ func (c *RedisCounter) ParseStartArgs(params ...any) (time.Duration, error) {
 	}
 
 	interval, ok := params[0].(time.Duration)
-	if !ok {
+	if !ok || interval <= 0 {
 		return 0, fmt.Errorf("%v: invalid duration", errs.ErrInval)
 	}
 	return interval, nil

@@ -262,19 +262,23 @@ func (s *Service) SyncSearch(ctx context.Context, action outbox.Event, data []by
 	}
 
 	switch payload.Action {
-	case "create":
-		fallthrough
-	case "update":
+	case "create", "update":
 		var doc Doc
 		if payload.Locale == "" {
 			post, err := s.repository.Get(ctx, payload.ID)
 			if err != nil {
+				if errors.Is(err, errs.ErrNotFound) {
+					return nil
+				}
 				return err
 			}
 			doc = post.ToDoc()
 		} else {
 			post, err := s.repository.GetTranslation(ctx, payload.ID, payload.Locale)
 			if err != nil {
+				if errors.Is(err, errs.ErrNotFound) {
+					return nil
+				}
 				return err
 			}
 			doc = post.ToDoc()

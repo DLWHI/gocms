@@ -7,7 +7,11 @@ func Error(source, message string, reason error) {
 }
 
 func Warn(source, message string, reason error) {
-	slog.Default().With("source", source).Warn(message, "reason", reason)
+	if reason == nil {
+		slog.Default().With("source", source).Warn(message)
+	} else {
+		slog.Default().With("source", source).Warn(message, "reason", reason)
+	}
 }
 
 func Info(source, message string, attrs ...any) {

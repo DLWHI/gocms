@@ -31,17 +31,13 @@ func NewMeilisearchConnection(host string, port string, apiKey string) meilisear
 
 func CreateMeilisearchIndex(se meilisearch.ServiceManager, idx MeilisearchIndex) error {
 	config := idx.Config()
-	taskInfo, err := se.CreateIndex(&config)
+	task, err := se.CreateIndex(&config)
 	if err != nil {
 		return err
 	}
 	logger.Info("Search.Meilisearch", "Search index creation enqueued")
-	task, err := se.TaskManager().WaitForTask(taskInfo.TaskUID, 100*time.Millisecond)
-	if err != nil {
+	if err := WaitForMeilisearchTask(se, task); err != nil {
 		return err
-	}
-	if task.Status == meilisearch.TaskStatusFailed {
-		return fmt.Errorf("Error creating index %s: %s - %s", config.Uid, task.Error.Code, task.Error.Message)
 	}
 
 	err = ConfigureMeilisearchIndex(se, idx)
@@ -53,17 +49,13 @@ func CreateMeilisearchIndex(se meilisearch.ServiceManager, idx MeilisearchIndex)
 
 func WipeMeilisearchIndex(se meilisearch.ServiceManager, idx MeilisearchIndex) error {
 	config := idx.Config()
-	taskInfo, err := se.DeleteIndex(config.Uid)
+	task, err := se.DeleteIndex(config.Uid)
 	if err != nil {
 		return err
 	}
 	logger.Info("Search.Meilisearch", "Search index deletion enqueued")
-	task, err := se.TaskManager().WaitForTask(taskInfo.TaskUID, 100*time.Millisecond)
-	if err != nil {
+	if err := WaitForMeilisearchTask(se, task); err != nil {
 		return err
-	}
-	if task.Status == meilisearch.TaskStatusFailed && task.Error.Code != "index_not_found" {
-		return fmt.Errorf("Error wiping index %s: %s - %s", config.Uid, task.Error.Code, task.Error.Message)
 	}
 	return nil
 }
@@ -71,17 +63,24 @@ func WipeMeilisearchIndex(se meilisearch.ServiceManager, idx MeilisearchIndex) e
 func ConfigureMeilisearchIndex(se meilisearch.ServiceManager, idx MeilisearchIndex) error {
 	config := idx.Config()
 	settings := idx.Settings()
-	taskInfo, err := se.Index(config.Uid).UpdateSettings(&settings)
+	task, err := se.Index(config.Uid).UpdateSettings(&settings)
 	if err != nil {
 		return err
 	}
 	logger.Info("Search.Meilisearch", "Search index settings update enqueued")
-	task, err := se.TaskManager().WaitForTask(taskInfo.TaskUID, 100*time.Millisecond)
+	if err := WaitForMeilisearchTask(se, task); err != nil {
+		return err
+	}
+	return nil
+}
+
+func WaitForMeilisearchTask(se meilisearch.ServiceManager, info *meilisearch.TaskInfo) error {
+	task, err := se.TaskManager().WaitForTask(info.TaskUID, 100*time.Millisecond)
 	if err != nil {
 		return err
 	}
-	if task.Status == meilisearch.TaskStatusFailed {
-		return fmt.Errorf("Error configuring index: %s - %s", task.Error.Code, task.Error.Message)
+	if task.Status == meilisearch.TaskStatusFailed && task.Error.Code != "index_not_found" {
+		return fmt.Errorf("Error indexing: %s - %s", task.Error.Code, task.Error.Message)
 	}
 	return nil
 }

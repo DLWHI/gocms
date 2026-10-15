@@ -2,12 +2,16 @@ package tests
 
 import (
 	"context"
-	"gocms/internal/ads"
+	"gocms/internal/analytics"
 	"gocms/internal/category"
-	"gocms/internal/editor"
-	"gocms/internal/locale"
-	"gocms/internal/post"
+	"gocms/internal/logger"
+	"gocms/internal/outbox"
+	"gocms/internal/public"
+	"gocms/internal/runner"
 	"gocms/internal/user"
+	"log/slog"
+	"sync"
+	"time"
 
 	"github.com/meilisearch/meilisearch-go"
 	"github.com/redis/go-redis/v9"
@@ -61,97 +65,158 @@ var (
 )
 
 type Container struct {
-	Context context.Context
-	Stop    context.CancelFunc
+	group  sync.WaitGroup
+	Logger *slog.Logger
 
 	DB          *gorm.DB
 	Redis       *redis.Client
 	Meilisearch meilisearch.ServiceManager
 
-	CategoryHandler *category.Handler
-	UserHandler     *user.Handler
-	PostHandler     *post.Handler
-	AdHandler       *ads.Handler
-	LocalesHandler  *locale.Handler
-	EditorHandler   *editor.Handler
+	Categories *CategoryBundle
+	Users      *UserBundle
+	Posts      *PostBundle
+	Ads        *AdsBundle
+	Editors    *EditorBundle
+	Locales    *LocaleBundle
 
-	RedisSessionManager *user.RedisSessionStorage
+	Server       runner.Runner
+	ViewsCounter runner.Runner
+	MessageRelay runner.Runner
 }
 
 func NewContainer() *Container {
 	return &Container{}
 }
 
-func (app *Container) Init() error {
-	// app.Context, app.Stop = signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
-	// if err := os.RemoveAll("./content"); err != nil {
-	// 	return err
-	// }
-	// app.DB = MySQLDatabase(app)
-	// if app.DB == nil {
-	// 	return fmt.Errorf("[ERROR] No database instance provided")
-	// }
-	// app.Redis = RedisClient(app)
-	// if app.Redis == nil {
-	// 	return fmt.Errorf("[ERROR] No working redis client, aborting")
-	// }
-	// app.Meilisearch = MeilisearchClient(app)
-	// if app.Meilisearch == nil {
-	// 	return fmt.Errorf("[ERROR] No working search client provided, aborting")
-	// }
-	// app.deleteIndexes()
-	// if err := app.createIndexes(); err != nil {
-	// 	return err
-	// }
+func (app *Container) Init(ctx context.Context) error {
+	app.Logger = slog.New(logger.NewReasonedHandler(nil))
+	slog.SetDefault(app.Logger)
 
-	// app.RedisSessionManager = RedisSessionManager(app)
+	db, err := MySQLDatabase(app)
+	if err != nil {
+		logger.Error("Init", "Failed to connect to database", err)
+		return err
+	}
+	redis, err := RedisClient(ctx, app)
+	if err != nil {
+		logger.Error("Init", "Failed to connect to redis", err)
+		return err
+	}
 
-	// app.PostHandler = DefaultPostHandler(app)
-	// app.UserHandler = DefaultUserHandler(app)
-	// app.CategoryHandler = DefaultCategoryHandler(app)
-	// app.AdHandler = DefaultAdvertisementsHandler(app)
-	// app.LocalesHandler = DefaultLocalesHandler(app)
-	// app.EditorHandler = DefaultEditorHandler(app)
+	search, err := MeilisearchClient(app)
+	if err != nil {
+		logger.Error("Init", "Failed to connect to meilisearch", err)
+		return err
+	}
 
-	// if err := database.HardMigrate(app.DB, "cms_routes_test"); err != nil {
-	// 	return fmt.Errorf("[ERROR] Failed to run schema setup: %w", err)
-	// }
+	sessions := user.NewRedisSessionStorage(redis, 24*time.Hour)
 
-	// if err := app.seedCategories(); err != nil {
-	// 	return err
-	// }
-	// if err := app.seedUsers(); err != nil {
-	// 	return err
-	// }
+	categories := NewCategoryBundle(db, search, redis)
+	users := NewUserBundle(db, search, redis, sessions)
+	posts := NewPostBundle(db, search, redis)
+	ads := NewAdsBundle(db, search, redis)
+	editors := NewEditorBundle(db, search, redis)
+	locales := NewLocaleBundle(db, redis)
 
+	views := analytics.NewRedisCounter(app.Redis, posts.Service)
+
+	publicHandler := public.NewHandler(
+		posts.Service,
+		editors.Service,
+		categories.Service,
+		locales.Service,
+		ads.Service,
+		views,
+	)
+
+	storageHandler := DefaultStorageHandler()
+
+	router := NewRouter(sessions)
+
+	router.AddPostRoutes(posts.Handler)
+	router.AddUserRoutes(users.Handler)
+	router.AddCategoryRoutes(categories.Handler)
+	router.AddAdsRoutes(ads.Handler)
+	router.AddEditorRoutes(editors.Handler)
+	router.AddLocaleRoutes(locales.Handler)
+	router.AddStorageRoutes(storageHandler)
+	router.AddPublicoutes(publicHandler)
+
+	server := runner.NewHttp(address, port, router.mux)
+
+	dispatcher := outbox.NewDirectPublisher()
+	relay := outbox.NewRelay(db, dispatcher)
+
+	app.DB = db
+	app.Redis = redis
+	app.Meilisearch = search
+
+	app.Categories = categories
+	app.Users = users
+	app.Posts = posts
+	app.Ads = ads
+	app.Editors = editors
+	app.Locales = locales
+
+	app.Server = server
+	app.ViewsCounter = views
+	app.MessageRelay = relay
+
+	app.WireEvents(dispatcher)
 	return nil
 }
 
+func (app *Container) WireEvents(dispatcher outbox.Publisher) {
+	dispatcher.Subscribe("post", app.Posts.Service.SyncSearch)
+	dispatcher.Subscribe("user", app.Users.Service.SyncSearch)
+	dispatcher.Subscribe("category", app.Categories.Service.SyncSearch)
+	dispatcher.Subscribe("editor", app.Editors.Service.SyncSearch)
+	dispatcher.Subscribe("ads", app.Ads.Service.SyncSearch)
+}
+
 func (app *Container) TearDown() {
-	// app.Stop()
-	// if err := os.RemoveAll("./content"); err != nil {
-	// 	fmt.Printf("[ERROR] Failed to run content storage cleanup: %v", err)
-	// }
+	sqlDB, err := app.DB.DB()
+	if err != nil {
+		logger.Error("Init", "Failed to close DB pool", err)
+	}
+	err = sqlDB.Close()
+	if err != nil {
+		logger.Error("Init", "Failed to sql DB connection", err)
+	}
 
-	// result := app.DB.Exec("DROP DATABASE IF EXISTS cms_routes_test;")
-	// if result.Error != nil {
-	// 	fmt.Printf("[ERROR] Failed to run schema cleanup: %v", result.Error)
-	// }
+	err = app.Redis.Close()
+	if err != nil {
+		logger.Error("Init", "Failed to close Redis connection", err)
+	}
+}
 
-	// sqlDB, err := app.DB.DB()
-	// if err != nil {
-	// 	fmt.Printf("[ERROR] Unable to obtain DB pool: %v", err)
-	// }
-	// err = sqlDB.Close()
-	// if err != nil {
-	// 	fmt.Printf("[ERROR] Unable to close DB pool: %v", err)
-	// }
+func (app *Container) Start(ctx context.Context) {
+	app.group.Add(1)
+	go app.ViewsCounter.Start(ctx, &app.group, time.Minute*30)
+	app.group.Add(1)
+	go app.MessageRelay.Start(ctx, &app.group, 100*time.Millisecond)
+	app.group.Add(1)
+	go app.Server.Start(ctx, &app.group)
+}
 
-	// err = app.Redis.Close()
-	// if err != nil {
-	// 	fmt.Printf("[ERROR] Unable to close Redis connection: %v", err)
-	// }
-	// app.deleteIndexes()
+func (app *Container) Stop(timeout time.Duration) bool {
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+
+	success := true
+
+	if err := app.Server.Stop(ctx); err != nil {
+		success = false
+	}
+	if err := app.ViewsCounter.Stop(ctx); err != nil {
+		success = false
+	}
+	if err := app.MessageRelay.Stop(ctx); err != nil {
+		success = false
+	}
+
+	app.group.Wait()
+	return success
 }
 
 func (app *Container) createIndexes() error {

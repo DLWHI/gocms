@@ -1,45 +1,47 @@
 package tests
 
 import (
+	"context"
 	"fmt"
-	"net/http"
+	"gocms/internal/logger"
 	"os"
+	"os/signal"
+	"syscall"
 	"testing"
 	"time"
 )
 
 var (
 	app       *Container
-	mux       *http.ServeMux
+	address                 = ""
+	port                    = "8080"
 	sleepTime time.Duration = 3 * time.Second // time before test starts pulling from meilisearch index
 )
 
 func TestMain(m *testing.M) {
 	if err := run(m); err != nil {
-		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		os.Exit(1)
 	}
 
 }
 
 func run(m *testing.M) error {
-	app = NewContainer()
-	mux = http.NewServeMux()
+	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer cancel()
 
-	err := app.Init()
-	if err != nil {
+	app = NewContainer()
+	if err := app.Init(ctx); err != nil {
+		logger.Error("Main", "Failed to initialize application", err)
 		return err
 	}
 	defer app.TearDown()
 
-	router := NewRouter()
+	app.Start(ctx)
 
-	router.AddUserRoutes(mux, app.UserHandler)
-	router.AddEditorRoutes(mux, app.EditorHandler)
-	router.AddCategoryRoutes(mux, app.CategoryHandler)
-	router.AddPostRoutes(mux, app.PostHandler)
-	router.AddAdsRoutes(mux, app.AdHandler)
-	router.AddLocaleRoutes(mux, app.LocalesHandler)
+	<-ctx.Done()
+
+	logger.Info("Main", "Shutdown signal received. Shutting down...")
+	app.Stop(30 * time.Second)
 
 	if m.Run() != 0 {
 		return fmt.Errorf("Test run failed")

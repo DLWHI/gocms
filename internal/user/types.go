@@ -35,12 +35,17 @@ type Session struct {
 	User Model  `json:"user"`
 }
 
-type Doc struct {
+type Document struct {
 	Username    string `json:"username"`
 	Email       string `json:"email"`
 	Permissions uint32 `json:"permissions"`
 	SuspendedAt *int64 `json:"suspended_at"`
 	LastLogin   *int64 `json:"last_login"`
+}
+
+type MessagePayload struct {
+	Username string `json:"username"`
+	Action   string `json:"action"`
 }
 
 type SearchParams struct {
@@ -53,7 +58,7 @@ type SearchParams struct {
 	LastLoginBefore *time.Time `json:"last_login_before"`
 }
 
-type SearchResult = search.Result[Doc]
+type SearchResult = search.Result[Document]
 
 type Repository interface {
 	Create(ctx context.Context, user *Model) error
@@ -68,10 +73,10 @@ type Repository interface {
 }
 
 type SearchEngine interface {
-	Index(ctx context.Context, user *Doc) error
-	Get(ctx context.Context, username string) (*Doc, error)
+	Index(ctx context.Context, user *Document) error
+	Get(ctx context.Context, username string) (*Document, error)
 	Search(ctx context.Context, filters *SearchParams) (*SearchResult, error)
-	Delete(ctx context.Context, username string) error
+	Delete(ctx context.Context, username string, timestamp int64) error
 }
 
 type SessionManager interface {
@@ -87,8 +92,8 @@ func (Model) TableName() string {
 	return "users"
 }
 
-func (um *Model) ToDoc() Doc {
-	var ud Doc
+func (um *Model) ToDoc() Document {
+	var ud Document
 
 	if um.SuspendedAt.Valid {
 		ts := um.SuspendedAt.Time.Unix()
@@ -106,7 +111,7 @@ func (um *Model) ToDoc() Doc {
 	return ud
 }
 
-func (ud *Doc) ToModel() Model {
+func (ud *Document) ToModel() Model {
 	var um Model
 	if ud.SuspendedAt != nil {
 		um.SuspendedAt = gorm.DeletedAt{

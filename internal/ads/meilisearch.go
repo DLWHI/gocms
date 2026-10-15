@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"gocms/internal/errs"
+	"gocms/internal/search"
 	"net/http"
 	"strconv"
 	"strings"
@@ -89,13 +90,12 @@ func (r *MeilisearchEngine) Settings() meilisearch.Settings {
 
 func (r *MeilisearchEngine) Index(ctx context.Context, ad *Doc) error {
 	index := r.se.Index(r.idx)
-	taskInfo, err := index.AddDocumentsWithContext(ctx, ad, nil)
-	task, err := r.se.TaskManager().WaitForTask(taskInfo.TaskUID, 100*time.Millisecond)
+	task, err := index.AddDocumentsWithContext(ctx, ad, nil)
 	if err != nil {
 		return err
 	}
-	if task.Status == meilisearch.TaskStatusFailed && task.Error.Code != "index_not_found" {
-		return fmt.Errorf("Error indexing: %s - %s", task.Error.Code, task.Error.Message)
+	if err := search.WaitForMeilisearchTask(r.se, task); err != nil {
+		return err
 	}
 	return err
 }
@@ -116,36 +116,16 @@ func (r *MeilisearchEngine) Get(ctx context.Context, id uint) (*Doc, error) {
 	return &ad, nil
 }
 
-// Retrieves all ads in group, capped 20
-func (r *MeilisearchEngine) GetGroup(ctx context.Context, group string) ([]Doc, error) {
-	results := make([]Doc, 0)
-	req := &meilisearch.SearchRequest{
-		Filter: fmt.Sprintf("group = %q", group),
-		Sort:   []string{"name:asc"},
-	}
-	index := r.se.Index(r.idx)
-
-	res, err := index.SearchWithContext(ctx, "", req)
-	if err != nil {
-		var meiliErr *meilisearch.Error
-		if errors.As(err, &meiliErr) {
-			if meiliErr.StatusCode == http.StatusNotFound {
-				return nil, errs.ErrNotFound
-			}
-		}
-		return nil, err
-	}
-
-	if err := res.Hits.DecodeInto(&results); err != nil {
-		return nil, err
-	}
-	return results, nil
-}
-
 func (r *MeilisearchEngine) Delete(ctx context.Context, id uint) error {
 	docID := strconv.FormatUint(uint64(id), 10)
 	index := r.se.Index(r.idx)
-	_, err := index.DeleteDocumentWithContext(ctx, docID, nil)
+	task, err := index.DeleteDocumentWithContext(ctx, docID, nil)
+	if err != nil {
+		return err
+	}
+	if err := search.WaitForMeilisearchTask(r.se, task); err != nil {
+		return err
+	}
 	return err
 }
 

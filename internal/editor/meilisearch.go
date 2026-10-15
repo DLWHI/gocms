@@ -5,9 +5,9 @@ import (
 	"errors"
 	"fmt"
 	"gocms/internal/errs"
+	"gocms/internal/search"
 	"net/http"
 	"strings"
-	"time"
 
 	"github.com/meilisearch/meilisearch-go"
 )
@@ -74,7 +74,7 @@ func (r *MeilisearchEngine) Settings() meilisearch.Settings {
 	}
 }
 
-func (r *MeilisearchEngine) Index(ctx context.Context, editor *Doc) error {
+func (r *MeilisearchEngine) Index(ctx context.Context, editor *Document) error {
 	index := r.se.Index(r.idx)
 	editor.ID = fmt.Sprintf("%s-%s", editor.User, editor.Locale)
 	req := &meilisearch.DocumentsQuery{
@@ -93,7 +93,7 @@ func (r *MeilisearchEngine) Index(ctx context.Context, editor *Doc) error {
 		return err
 	}
 
-	var editors []Doc
+	var editors []Document
 	if err := res.Results.DecodeInto(&editors); err != nil {
 		return err
 	}
@@ -103,19 +103,18 @@ func (r *MeilisearchEngine) Index(ctx context.Context, editor *Doc) error {
 	}
 	editors = append(editors, *editor)
 
-	taskInfo, err := index.AddDocumentsWithContext(ctx, editors, nil)
-	task, err := r.se.TaskManager().WaitForTask(taskInfo.TaskUID, 100*time.Millisecond)
+	task, err := index.AddDocumentsWithContext(ctx, editors, nil)
 	if err != nil {
 		return err
 	}
-	if task.Status == meilisearch.TaskStatusFailed && task.Error.Code != "index_not_found" {
-		return fmt.Errorf("Error indexing: %s - %s", task.Error.Code, task.Error.Message)
+	if err := search.WaitForMeilisearchTask(r.se, task); err != nil {
+		return err
 	}
 	return err
 }
 
-func (r *MeilisearchEngine) Get(ctx context.Context, username string, locale string) (*Doc, error) {
-	var editor Doc
+func (r *MeilisearchEngine) Get(ctx context.Context, username string, locale string) (*Document, error) {
+	var editor Document
 	editor.ID = fmt.Sprintf("%s-%s", editor.User, editor.Locale)
 	err := r.se.Index(r.idx).GetDocumentWithContext(ctx, editor.ID, nil, &editor)
 	if err != nil {
@@ -130,11 +129,17 @@ func (r *MeilisearchEngine) Get(ctx context.Context, username string, locale str
 	return &editor, nil
 }
 
-func (r *MeilisearchEngine) Delete(ctx context.Context, username string) error {
+func (r *MeilisearchEngine) Delete(ctx context.Context, username string, timestamp int64) error {
 	filter := fmt.Sprintf("username = %q", username)
 	index := r.se.Index(r.idx)
 
-	_, err := index.DeleteDocumentsByFilterWithContext(ctx, filter, nil)
+	task, err := index.DeleteDocumentsByFilterWithContext(ctx, filter, nil)
+	if err != nil {
+		return err
+	}
+	if err := search.WaitForMeilisearchTask(r.se, task); err != nil {
+		return err
+	}
 	return err
 }
 

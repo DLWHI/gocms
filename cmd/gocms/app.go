@@ -130,6 +130,10 @@ func (app *Container) Init(ctx context.Context, cfg Config) error {
 
 func (app *Container) WireEvents(dispatcher outbox.Publisher) {
 	dispatcher.Subscribe("post", app.Posts.Service.SyncSearch)
+	dispatcher.Subscribe("user", app.Users.Service.SyncSearch)
+	dispatcher.Subscribe("category", app.Categories.Service.SyncSearch)
+	dispatcher.Subscribe("editor", app.Editors.Service.SyncSearch)
+	dispatcher.Subscribe("ads", app.Ads.Service.SyncSearch)
 }
 
 func (app *Container) TearDown() {

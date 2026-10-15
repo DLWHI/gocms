@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"gocms/internal/errs"
+	"gocms/internal/outbox"
 
 	"gorm.io/gorm"
 )
@@ -45,30 +46,51 @@ func adDiff(ad *Model) map[string]interface{} {
 }
 
 func (r *GORMRepository) Create(ctx context.Context, ad *Model) error {
-	return r.db.WithContext(ctx).Create(ad).Error
+	err := r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		if err := tx.Create(ad).Error; err != nil {
+			return err
+		}
+		if err := writeMessage(tx, "create", ad.ID, ""); err != nil {
+			return err
+		}
+		return nil
+	})
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (r *GORMRepository) Update(ctx context.Context, diff *Model) error {
 	var version uint
 	for i := 0; i < 5; i++ {
-		adiff := adDiff(diff)
-		if err := r.db.WithContext(ctx).
-			Table("advertisements").
-			Select("version").
-			Where("id = ?", diff.ID).
-			Take(&version).Error; err != nil {
-			return err
-		}
+		err := r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+			adiff := adDiff(diff)
+			if err := tx.Table("advertisements").
+				Select("version").
+				Where("id = ?", diff.ID).
+				Take(&version).Error; err != nil {
+				return err
+			}
 
-		result := r.db.WithContext(ctx).
-			Model(&Model{}).
-			Where("id = ? AND version = ?", diff.ID, version).
-			Updates(adiff)
-		if result.Error != nil {
-			return result.Error
-		}
-		if result.RowsAffected > 0 {
+			result := tx.Model(&Model{}).
+				Where("id = ? AND version = ?", diff.ID, version).
+				Updates(adiff)
+			if result.Error != nil {
+				return result.Error
+			}
+			if result.RowsAffected == 0 {
+				return errs.ErrLock
+			}
+			if err := writeMessage(tx, "update", diff.ID, ""); err != nil {
+				return err
+			}
 			return nil
+		})
+		if err == nil {
+			return nil
+		} else if !errors.Is(err, errs.ErrLock) {
+			return err
 		}
 	}
 	return errs.ErrLock
@@ -119,27 +141,55 @@ func (r *GORMRepository) GetGroups(ctx context.Context) ([]string, error) {
 }
 
 func (r *GORMRepository) Delete(ctx context.Context, id uint) error {
-	result := r.db.WithContext(ctx).
-		Where("id = ?", id).
-		Delete(&Model{})
-	if result.Error != nil {
-		return result.Error
-	}
-	if result.RowsAffected == 0 {
-		return errs.ErrNotFound
+	err := r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		result := tx.Where("id = ?", id).
+			Delete(&Model{})
+		if result.Error != nil {
+			return result.Error
+		}
+		if result.RowsAffected == 0 {
+			return errs.ErrNotFound
+		}
+		if err := writeMessage(tx, "delete", id, ""); err != nil {
+			return err
+		}
+		return nil
+	})
+	if err != nil {
+		return err
 	}
 	return nil
 }
 
 func (r *GORMRepository) DeleteGroup(ctx context.Context, group string) error {
-	result := r.db.WithContext(ctx).
-		Where("group = ?", group).
-		Delete(&Model{})
-	if result.Error != nil {
-		return result.Error
+	err := r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		result := tx.Where("group = ?", group).
+			Delete(&Model{})
+		if result.Error != nil {
+			return result.Error
+		}
+		if result.RowsAffected == 0 {
+			return errs.ErrNotFound
+		}
+		if err := writeMessage(tx, "delete.group", 0, group); err != nil {
+			return err
+		}
+		return nil
+	})
+	if err != nil {
+		return err
 	}
-	if result.RowsAffected == 0 {
-		return errs.ErrNotFound
+	return nil
+}
+
+func writeMessage(tx *gorm.DB, action string, id uint, group string) error {
+	payload := MessagePayload{
+		ID:     id,
+		Group:  group,
+		Action: action,
+	}
+	if err := outbox.WriteMessage(tx, "ads", "Ads.Repository", &payload); err != nil {
+		return err
 	}
 	return nil
 }

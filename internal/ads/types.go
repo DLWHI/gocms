@@ -29,6 +29,12 @@ type Doc struct {
 	Banner      string `json:"banner"`
 }
 
+type MessagePayload struct {
+	ID     uint   `json:"id"`
+	Group  string `json:"group"`
+	Action string `json:"action"`
+}
+
 type SearchParams struct {
 	search.Params
 	ID            uint       `json:"id"`

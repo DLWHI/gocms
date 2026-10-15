@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"gocms/internal/errs"
+	"gocms/internal/outbox"
 
 	"gorm.io/gorm"
 )
@@ -38,7 +39,19 @@ func translationDiff(category *Translation) map[string]interface{} {
 }
 
 func (r *GORMRepository) Create(ctx context.Context, category *Translation) error {
-	return r.db.WithContext(ctx).Create(category).Error
+	err := r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		if err := tx.Create(category).Error; err != nil {
+			return err
+		}
+		if err := writeMessage(tx, "create", category.CategorySlug, category.Locale); err != nil {
+			return err
+		}
+		return nil
+	})
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (r *GORMRepository) Update(ctx context.Context, diff *Translation) error {
@@ -92,6 +105,9 @@ func (r *GORMRepository) Update(ctx context.Context, diff *Translation) error {
 					}
 				}
 			}
+			if err := writeMessage(tx, "update", diff.CategorySlug, diff.Locale); err != nil {
+				return err
+			}
 			return nil
 		})
 		if err == nil {
@@ -113,7 +129,7 @@ func (r *GORMRepository) Get(ctx context.Context, slug string, locale string) (*
 	err := r.db.WithContext(ctx).
 		Table("categories AS c").
 		Select("ct.name, c.slug, ct.locale, c.hidden, c.navbar").
-		Joins("LEFT JOIN category_translations AS ct ON ct.category_slug = c.slug AND ct.locale = ?", locale).
+		Joins("INNER JOIN category_translations AS ct ON ct.category_slug = c.slug AND ct.locale = ?", locale).
 		Where("c.slug = ?", slug).
 		Take(&res).Error
 	if err != nil {
@@ -166,14 +182,34 @@ func (r *GORMRepository) GetNotHidden(ctx context.Context, locale string) ([]Tra
 }
 
 func (r *GORMRepository) Delete(ctx context.Context, slug string) error {
-	result := r.db.WithContext(ctx).
-		Where("slug = ?", slug).
-		Delete(&Model{})
-	if result.Error != nil {
-		return result.Error
+	err := r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		result := tx.Where("slug = ?", slug).
+			Delete(&Model{})
+		if result.Error != nil {
+			return result.Error
+		}
+		if result.RowsAffected == 0 {
+			return errs.ErrNotFound
+		}
+		if err := writeMessage(tx, "delete", slug, ""); err != nil {
+			return err
+		}
+		return nil
+	})
+	if err != nil {
+		return err
 	}
-	if result.RowsAffected == 0 {
-		return errs.ErrNotFound
+	return nil
+}
+
+func writeMessage(tx *gorm.DB, action string, slug string, locale string) error {
+	payload := MessagePayload{
+		Slug:   slug,
+		Locale: locale,
+		Action: action,
+	}
+	if err := outbox.WriteMessage(tx, "category", "Category.Repository", &payload); err != nil {
+		return err
 	}
 	return nil
 }

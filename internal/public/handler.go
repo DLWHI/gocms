@@ -161,7 +161,7 @@ func (h *Handler) editorsGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	editor, err := h.editors.Read(r.Context(), username)
+	editor, err := h.editors.Get(r.Context(), username)
 	if err != nil {
 		errs.ServeMessage(w, "Editor", err)
 		return

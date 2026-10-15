@@ -2,9 +2,12 @@ package category
 
 import (
 	"context"
+	"encoding/json"
+	"errors"
 	"fmt"
 	"gocms/internal/errs"
 	"gocms/internal/logger"
+	"gocms/internal/outbox"
 	"gocms/internal/permissions"
 	"gocms/internal/search"
 	"strings"
@@ -12,18 +15,18 @@ import (
 )
 
 type Service struct {
-	repo   Repository
-	lookup SearchEngine
+	repo Repository
+	se   SearchEngine
 }
 
 func NewService(db Repository, se SearchEngine) *Service {
 	return &Service{
-		repo:   db,
-		lookup: se,
+		repo: db,
+		se:   se,
 	}
 }
 
-func (s *Service) sanitize(ctx context.Context, category *Doc) error {
+func (s *Service) sanitize(ctx context.Context, category *Document) error {
 	category.Slug = strings.TrimSpace(strings.ToLower(category.Slug))
 	if category.Slug == "" {
 		return fmt.Errorf("%w: slug cannot be empty", errs.ErrInval)
@@ -43,7 +46,7 @@ func (s *Service) sanitize(ctx context.Context, category *Doc) error {
 	return nil
 }
 
-func (s *Service) Create(ctx context.Context, category *Doc) error {
+func (s *Service) Create(ctx context.Context, category *Document) error {
 	level := ctx.Value("userperm")
 
 	if level == nil || !permissions.Has("categories", "create", level.(uint32)) {
@@ -64,14 +67,10 @@ func (s *Service) Create(ctx context.Context, category *Doc) error {
 		return err
 	}
 
-	if err := s.lookup.Index(ctx, category); err != nil {
-		logger.Error("Category.Service", "Failed to add category to the search index", err)
-		return err
-	}
 	return nil
 }
 
-func (s *Service) Edit(ctx context.Context, category *Doc) (*Doc, error) {
+func (s *Service) Edit(ctx context.Context, category *Document) (*Document, error) {
 	level := ctx.Value("userperm")
 
 	if level == nil || !permissions.Has("categories", "edit", level.(uint32)) {
@@ -89,14 +88,10 @@ func (s *Service) Edit(ctx context.Context, category *Doc) (*Doc, error) {
 		return nil, err
 	}
 
-	if err := s.lookup.Index(ctx, category); err != nil {
-		logger.Error("Category.Service", "Failed to update category in the search index", err)
-		return nil, err
-	}
 	return category, nil
 }
 
-func (s *Service) Get(ctx context.Context, slug string) (*Doc, error) {
+func (s *Service) Get(ctx context.Context, slug string) (*Document, error) {
 	locale := ctx.Value("locale")
 	if locale == nil {
 		return nil, fmt.Errorf("%w: empty locale", errs.ErrInval)
@@ -112,7 +107,7 @@ func (s *Service) Get(ctx context.Context, slug string) (*Doc, error) {
 	return &doc, nil
 }
 
-func (s *Service) All(ctx context.Context) ([]Doc, error) {
+func (s *Service) All(ctx context.Context) ([]Document, error) {
 	locale := ctx.Value("locale")
 	if locale == nil {
 		return nil, fmt.Errorf("%w: empty locale", errs.ErrInval)
@@ -124,7 +119,7 @@ func (s *Service) All(ctx context.Context) ([]Doc, error) {
 		return nil, err
 	}
 
-	categories := make([]Doc, 0, len(model))
+	categories := make([]Document, 0, len(model))
 
 	for _, category := range model {
 		categories = append(categories, category.ToDoc())
@@ -133,7 +128,7 @@ func (s *Service) All(ctx context.Context) ([]Doc, error) {
 	return categories, nil
 }
 
-func (s *Service) AllNotHidden(ctx context.Context) ([]Doc, error) {
+func (s *Service) AllNotHidden(ctx context.Context) ([]Document, error) {
 	locale := ctx.Value("locale")
 	if locale == nil {
 		return nil, fmt.Errorf("%w: empty locale", errs.ErrInval)
@@ -145,7 +140,7 @@ func (s *Service) AllNotHidden(ctx context.Context) ([]Doc, error) {
 		return nil, err
 	}
 
-	categories := make([]Doc, 0, len(model))
+	categories := make([]Document, 0, len(model))
 
 	for _, category := range model {
 		categories = append(categories, category.ToDoc())
@@ -157,7 +152,7 @@ func (s *Service) AllNotHidden(ctx context.Context) ([]Doc, error) {
 func (s *Service) Search(ctx context.Context, filters *SearchParams) (*SearchResult, error) {
 	search.ClampParams(&filters.Params)
 
-	categories, err := s.lookup.Search(ctx, filters)
+	categories, err := s.se.Search(ctx, filters)
 	if err != nil {
 		logger.Error("Category.Service", "Failed to search categories", err)
 		return nil, err
@@ -177,10 +172,35 @@ func (s *Service) Delete(ctx context.Context, slug string) error {
 		return err
 	}
 
-	if err := s.lookup.Delete(ctx, slug); err != nil {
-		logger.Error("Category.Service", "Failed to remove category from the search index", err)
+	return nil
+}
+
+func (s *Service) SyncSearch(ctx context.Context, action outbox.Event, data []byte) error {
+	var payload MessagePayload
+	if err := json.Unmarshal(data, &payload); err != nil {
 		return err
 	}
 
-	return nil
+	switch payload.Action {
+	case "create", "update":
+		category, err := s.repo.Get(ctx, payload.Slug, payload.Locale)
+		if err != nil {
+			if errors.Is(err, errs.ErrNotFound) {
+				return nil
+			}
+			return err
+		}
+		doc := category.ToDoc()
+
+		if err := s.se.Index(ctx, &doc); err != nil {
+			return err
+		}
+		return nil
+	case "delete":
+		if err := s.se.Delete(ctx, payload.Slug); err != nil {
+			return err
+		}
+		return nil
+	}
+	return fmt.Errorf("%w: unkown action", errs.ErrInval)
 }

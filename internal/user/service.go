@@ -2,10 +2,12 @@ package user
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"gocms/internal/errs"
 	"gocms/internal/logger"
+	"gocms/internal/outbox"
 	"gocms/internal/permissions"
 	"gocms/internal/search"
 	"strings"
@@ -19,14 +21,14 @@ const ()
 
 type Service struct {
 	repo     Repository
-	lookup   SearchEngine
+	se       SearchEngine
 	sessions SessionManager
 }
 
 func NewService(db Repository, se SearchEngine, sm SessionManager) *Service {
 	return &Service{
 		repo:     db,
-		lookup:   se,
+		se:       se,
 		sessions: sm,
 	}
 }
@@ -93,12 +95,6 @@ func (s *Service) Register(ctx context.Context, user *Model) error {
 		return err
 	}
 
-	d := user.ToDoc()
-	if err := s.lookup.Index(ctx, &d); err != nil {
-		logger.Error("User.Service", "Failed to index the new user", err)
-		return err
-	}
-
 	return nil
 }
 
@@ -122,12 +118,6 @@ func (s *Service) Login(ctx context.Context, username string, passwd Bytes) (*Se
 	user, err := s.repo.UpdateLogin(ctx, username, time.Now())
 	if err != nil {
 		logger.Error("User.Service", "Failed to update the user's last login time", err)
-		return nil, err
-	}
-
-	d := user.ToDoc()
-	if err := s.lookup.Index(ctx, &d); err != nil {
-		logger.Error("User.Service", "Failed to update the user search index after login", err)
 		return nil, err
 	}
 
@@ -186,7 +176,7 @@ func (s *Service) Get(ctx context.Context, username string) (*Model, error) {
 func (s *Service) Search(ctx context.Context, filters *SearchParams) (*SearchResult, error) {
 	search.ClampParams(&filters.Params)
 
-	users, err := s.lookup.Search(ctx, filters)
+	users, err := s.se.Search(ctx, filters)
 	if err != nil {
 		logger.Error("User.Service", "Failed to search users", err)
 		return nil, err
@@ -213,10 +203,6 @@ func (s *Service) Suspend(ctx context.Context, username string) error {
 	}
 	if err := s.repo.Delete(ctx, username); err != nil {
 		logger.Error("User.Service", "Failed to suspend user", err)
-		return err
-	}
-	if err := s.lookup.Delete(ctx, username); err != nil {
-		logger.Error("User.Service", "Failed to remove suspended user from the search index", err)
 		return err
 	}
 
@@ -322,12 +308,6 @@ func (s *Service) ChangePermissions(ctx context.Context, username string, perms 
 		return err
 	}
 
-	d := user.ToDoc()
-	if err := s.lookup.Index(ctx, &d); err != nil {
-		logger.Error("User.Service", "Failed to update the user search index after permission change", err)
-		return err
-	}
-
 	if _, err := s.sessions.Update(ctx, user); err != nil {
 		if !errors.Is(err, errs.ErrExpired) {
 			logger.Error("User.Service", "Failed to update the user's active session permissions", err)
@@ -335,4 +315,37 @@ func (s *Service) ChangePermissions(ctx context.Context, username string, perms 
 		}
 	}
 	return nil
+}
+
+func (s *Service) SyncSearch(ctx context.Context, action outbox.Event, data []byte) error {
+	var payload MessagePayload
+	if err := json.Unmarshal(data, &payload); err != nil {
+		return err
+	}
+
+	user, err := s.repo.Get(ctx, payload.Username)
+	if err != nil {
+		if errors.Is(err, errs.ErrNotFound) {
+			return nil
+		}
+		return err
+	}
+
+	doc := user.ToDoc()
+	switch payload.Action {
+	case "create", "update":
+		if user.SuspendedAt.Valid {
+			return nil
+		}
+		if err := s.se.Index(ctx, &doc); err != nil {
+			return err
+		}
+		return nil
+	case "delete":
+		if err := s.se.Delete(ctx, doc.Username, *doc.SuspendedAt); err != nil {
+			return err
+		}
+		return nil
+	}
+	return fmt.Errorf("%w: unkown action", errs.ErrInval)
 }

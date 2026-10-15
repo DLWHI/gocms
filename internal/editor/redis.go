@@ -108,50 +108,6 @@ func (r *RedisRepository) Get(ctx context.Context, username string, locale strin
 	return &editor, nil
 }
 
-func (r *RedisRepository) GetTranslation(ctx context.Context, username string, locale string) (*Model, error) {
-	var editor Model
-	key := fmt.Sprintf(r.keyFormat, username, locale)
-
-	if err := cache.UnmarshalRedisKey(r.rdb, ctx, key, &editor); err != nil {
-		if !errors.Is(err, redis.Nil) {
-			logger.Warn("Editor.Redis", "Failed to read from cache.", err)
-		}
-	} else {
-		return &editor, nil
-	}
-
-	ch := r.group.DoChan(key, func() (any, error) {
-		bg, cancel := context.WithTimeout(context.Background(), 20*time.Second)
-		defer cancel()
-
-		editor, err := r.origin.GetTranslation(bg, username, locale)
-		if err != nil {
-			if !errors.Is(err, errs.ErrNotFound) {
-				r.group.Forget(key)
-			}
-			return nil, err
-		}
-
-		if err := cache.MarshalRedisKey(r.rdb, ctx, key, r.ttl, &editor); err != nil {
-			logger.Warn("Editor.Redis", "Failed to write to cache.", err)
-		}
-		return editor, err
-	})
-
-	select {
-	case <-ctx.Done():
-		return nil, ctx.Err()
-
-	case res := <-ch:
-		if res.Err != nil {
-			return nil, res.Err
-		}
-		editor = *res.Val.(*Model)
-	}
-
-	return &editor, nil
-}
-
 func (r *RedisRepository) GetAll(ctx context.Context, locale string) ([]Model, error) {
 	var editors []Model
 	key := fmt.Sprintf(r.keyFormat, "__all", locale)

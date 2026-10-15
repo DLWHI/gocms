@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"gocms/internal/errs"
+	"gocms/internal/outbox"
 	"time"
 
 	"gorm.io/gorm"
@@ -18,7 +19,19 @@ func NewGORMRepository(db *gorm.DB) *GORMRepository {
 }
 
 func (r *GORMRepository) Create(ctx context.Context, user *Model) error {
-	return r.db.WithContext(ctx).Create(user).Error
+	err := r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		if err := tx.Create(user).Error; err != nil {
+			return err
+		}
+		if err := writeMessage(tx, "create", user.Username); err != nil {
+			return err
+		}
+		return nil
+	})
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (r *GORMRepository) UpdateLogin(ctx context.Context, username string, timestamp time.Time) (*Model, error) {
@@ -47,6 +60,9 @@ func (r *GORMRepository) UpdateLogin(ctx context.Context, username string, times
 			return errs.ErrLock
 		}
 		user.LastLogin = &timestamp
+		if err := writeMessage(tx, "update", username); err != nil {
+			return err
+		}
 		return nil
 	})
 	if err != nil {
@@ -81,6 +97,9 @@ func (r *GORMRepository) UpdatePermissions(ctx context.Context, username string,
 			}
 			if result.RowsAffected == 0 {
 				return errs.ErrLock
+			}
+			if err := writeMessage(tx, "update", username); err != nil {
+				return err
 			}
 			return nil
 		})
@@ -120,6 +139,9 @@ func (r *GORMRepository) UpdateEmail(ctx context.Context, username string, email
 			if result.RowsAffected == 0 {
 				return errs.ErrLock
 			}
+			if err := writeMessage(tx, "update", username); err != nil {
+				return err
+			}
 			return nil
 		})
 		if err == nil {
@@ -153,6 +175,9 @@ func (r *GORMRepository) UpdatePasswd(ctx context.Context, username string, pwdh
 			}
 			if result.RowsAffected == 0 {
 				return errs.ErrLock
+			}
+			if err := writeMessage(tx, "update", username); err != nil {
+				return err
 			}
 			return nil
 		})
@@ -215,14 +240,33 @@ func (r *GORMRepository) GetPasswdHash(ctx context.Context, username string) (By
 }
 
 func (r *GORMRepository) Delete(ctx context.Context, username string) error {
-	result := r.db.WithContext(ctx).
-		Where("username = ?", username).
-		Delete(&Model{})
-	if result.Error != nil {
-		return result.Error
+	err := r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		result := tx.Where("username = ?", username).
+			Delete(&Model{})
+		if result.Error != nil {
+			return result.Error
+		}
+		if result.RowsAffected == 0 {
+			return errs.ErrNotFound
+		}
+		if err := writeMessage(tx, "delete", username); err != nil {
+			return err
+		}
+		return nil
+	})
+	if err != nil {
+		return err
 	}
-	if result.RowsAffected == 0 {
-		return errs.ErrNotFound
+	return nil
+}
+
+func writeMessage(tx *gorm.DB, action string, username string) error {
+	payload := MessagePayload{
+		Username: username,
+		Action:   action,
+	}
+	if err := outbox.WriteMessage(tx, "user", "User.Repository", &payload); err != nil {
+		return err
 	}
 	return nil
 }

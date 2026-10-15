@@ -78,7 +78,7 @@ func (h *Handler) all(w http.ResponseWriter, r *http.Request) {
 
 // POST /editors - Create editor
 func (h *Handler) create(w http.ResponseWriter, r *http.Request) {
-	var editor Doc
+	var editor Document
 	if err := json.NewDecoder(r.Body).Decode(&editor); err != nil {
 		http.Error(w, "Invalid JSON payload", http.StatusBadRequest)
 		return
@@ -118,7 +118,7 @@ func (h *Handler) update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var editor Doc
+	var editor Document
 	if err := json.NewDecoder(r.Body).Decode(&editor); err != nil {
 		http.Error(w, "Invalid JSON payload", http.StatusBadRequest)
 		return

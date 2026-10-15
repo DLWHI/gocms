@@ -17,13 +17,20 @@ type Model struct {
 	Version  uint       `json:"-" gorm:"default:1"`
 }
 
-type Doc struct {
+type Document struct {
 	ID          string `json:"id"`
 	User        string `json:"username"`
 	Email       string `json:"email"`
 	Name        string `json:"name"`
 	Locale      string `json:"locale"`
 	SuspendedAt *int64 `json:"suspended_at"`
+}
+
+type MessagePayload struct {
+	Username    string `json:"username"`
+	Locale      string `json:"locale"`
+	SuspendedAt *int64 `json:"suspended_at"`
+	Action      string `json:"action"`
 }
 
 type SearchParams struct {
@@ -34,30 +41,29 @@ type SearchParams struct {
 	SuspendedBefore *time.Time `json:"suspended_before"`
 }
 
-type SearchResult = search.Result[Doc]
+type SearchResult = search.Result[Document]
 
 type Repository interface {
 	Create(ctx context.Context, editor *Model) error
 	Update(ctx context.Context, editor *Model) error
 	Get(ctx context.Context, username string, locale string) (*Model, error)
-	GetTranslation(ctx context.Context, username string, locale string) (*Model, error)
 	GetAll(ctx context.Context, locale string) ([]Model, error)
 	Delete(ctx context.Context, username string) error
 }
 
 type SearchEngine interface {
-	Index(ctx context.Context, editor *Doc) error
-	Get(ctx context.Context, username string, locale string) (*Doc, error)
+	Index(ctx context.Context, editor *Document) error
+	Get(ctx context.Context, username string, locale string) (*Document, error)
 	Search(ctx context.Context, filters *SearchParams) (*SearchResult, error)
-	Delete(ctx context.Context, username string) error
+	Delete(ctx context.Context, username string, timestamp int64) error
 }
 
 func (Model) TableName() string {
 	return "editors"
 }
 
-func (em *Model) ToDoc() Doc {
-	var ed Doc
+func (em *Model) ToDoc() Document {
+	var ed Document
 
 	if em.UserData.SuspendedAt.Valid {
 		ts := em.UserData.SuspendedAt.Time.Unix()
@@ -71,7 +77,7 @@ func (em *Model) ToDoc() Doc {
 	return ed
 }
 
-func (ed *Doc) ToModel() Model {
+func (ed *Document) ToModel() Model {
 	var em Model
 
 	if ed.SuspendedAt != nil {

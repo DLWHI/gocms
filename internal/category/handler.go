@@ -70,7 +70,7 @@ func (h *Handler) all(w http.ResponseWriter, r *http.Request) {
 
 // POST /categories - Create category
 func (h *Handler) create(w http.ResponseWriter, r *http.Request) {
-	var category Doc
+	var category Document
 	if err := json.NewDecoder(r.Body).Decode(&category); err != nil {
 		http.Error(w, "Invalid JSON payload", http.StatusBadRequest)
 		return
@@ -111,7 +111,7 @@ func (h *Handler) update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var category Doc
+	var category Document
 	if err := json.NewDecoder(r.Body).Decode(&category); err != nil {
 		http.Error(w, "Invalid JSON payload", http.StatusBadRequest)
 		return

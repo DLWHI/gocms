@@ -20,13 +20,19 @@ type Translation struct {
 	Version      uint   `json:"-" gorm:"default:1"`
 }
 
-type Doc struct {
+type Document struct {
 	ID     string `json:"id"`
 	Slug   string `json:"slug"`
 	Hidden bool   `json:"hidden"`
 	Navbar bool   `json:"navbar"`
 	Locale string `json:"locale"`
 	Name   string `json:"name"`
+}
+
+type MessagePayload struct {
+	Slug   string `json:"slug"`
+	Locale string `json:"locale"`
+	Action string `json:"action"`
 }
 
 type SearchParams struct {
@@ -36,7 +42,7 @@ type SearchParams struct {
 	Navbar *bool  `json:"navbar,omitempty"`
 }
 
-type SearchResult = search.Result[Doc]
+type SearchResult = search.Result[Document]
 
 type Repository interface {
 	Create(ctx context.Context, category *Translation) error
@@ -48,8 +54,8 @@ type Repository interface {
 }
 
 type SearchEngine interface {
-	Index(ctx context.Context, category *Doc) error
-	Get(ctx context.Context, slug string, locale string) (*Doc, error)
+	Index(ctx context.Context, category *Document) error
+	Get(ctx context.Context, slug string, locale string) (*Document, error)
 	Search(ctx context.Context, params *SearchParams) (*SearchResult, error)
 	Delete(ctx context.Context, slug string) error
 }
@@ -62,8 +68,8 @@ func (Translation) TableName() string {
 	return "category_translations"
 }
 
-func (cm *Translation) ToDoc() Doc {
-	var cd Doc
+func (cm *Translation) ToDoc() Document {
+	var cd Document
 
 	cd.Slug = cm.Category.Slug
 	cd.Hidden = cm.Category.Hidden
@@ -73,7 +79,7 @@ func (cm *Translation) ToDoc() Doc {
 	return cd
 }
 
-func (cd *Doc) ToModel() Translation {
+func (cd *Document) ToModel() Translation {
 	var cm Translation
 
 	cm.CategorySlug = cd.Slug

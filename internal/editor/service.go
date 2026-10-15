@@ -2,9 +2,12 @@ package editor
 
 import (
 	"context"
+	"encoding/json"
+	"errors"
 	"fmt"
 	"gocms/internal/errs"
 	"gocms/internal/logger"
+	"gocms/internal/outbox"
 	"gocms/internal/permissions"
 	"gocms/internal/search"
 	"gocms/internal/storage"
@@ -14,7 +17,7 @@ import (
 
 type Service struct {
 	repo       Repository
-	lookup     SearchEngine
+	se         SearchEngine
 	files      *storage.Manager
 	pathFormat string
 }
@@ -22,13 +25,13 @@ type Service struct {
 func NewService(db Repository, se SearchEngine, content *storage.Manager) *Service {
 	return &Service{
 		repo:       db,
-		lookup:     se,
+		se:         se,
 		files:      content,
 		pathFormat: "/%s/%s.md",
 	}
 }
 
-func (s *Service) Create(ctx context.Context, editor *Doc) error {
+func (s *Service) Create(ctx context.Context, editor *Document) error {
 	level := ctx.Value("userperm")
 
 	if level == nil || !permissions.Has("editors", "create", level.(uint32)) {
@@ -56,15 +59,10 @@ func (s *Service) Create(ctx context.Context, editor *Doc) error {
 		return err
 	}
 
-	if err := s.lookup.Index(ctx, editor); err != nil {
-		logger.Error("Editor.Service", "Failed to add editor profile to the search index", err)
-		return err
-	}
-
 	return nil
 }
 
-func (s *Service) Edit(ctx context.Context, editor *Doc) error {
+func (s *Service) Edit(ctx context.Context, editor *Document) error {
 	initiator := ctx.Value("username")
 
 	if initiator == nil || initiator.(string) != editor.User {
@@ -94,15 +92,10 @@ func (s *Service) Edit(ctx context.Context, editor *Doc) error {
 		}
 	}
 
-	if err := s.lookup.Index(ctx, editor); err != nil {
-		logger.Error("Editor.Service", "Failed to update editor profile in the search index", err)
-		return err
-	}
-
 	return nil
 }
 
-func (s *Service) Get(ctx context.Context, username string) (*Doc, error) {
+func (s *Service) Get(ctx context.Context, username string) (*Document, error) {
 	locale := ctx.Value("locale")
 	if locale == nil {
 		return nil, fmt.Errorf("%w: empty locale", errs.ErrInval)
@@ -118,23 +111,7 @@ func (s *Service) Get(ctx context.Context, username string) (*Doc, error) {
 	return &doc, nil
 }
 
-func (s *Service) Read(ctx context.Context, username string) (*Doc, error) {
-	locale := ctx.Value("locale")
-	if locale == nil {
-		return nil, fmt.Errorf("%w: empty locale", errs.ErrInval)
-	}
-
-	editor, err := s.repo.GetTranslation(ctx, username, locale.(string))
-	if err != nil {
-		logger.Error("Editor.Service", "Failed to retrieve editor profile translation", err)
-		return nil, err
-	}
-
-	doc := editor.ToDoc()
-	return &doc, nil
-}
-
-func (s *Service) All(ctx context.Context) ([]Doc, error) {
+func (s *Service) All(ctx context.Context) ([]Document, error) {
 	locale := ctx.Value("locale")
 	if locale == nil {
 		return nil, fmt.Errorf("%w: empty locale", errs.ErrInval)
@@ -146,7 +123,7 @@ func (s *Service) All(ctx context.Context) ([]Doc, error) {
 		return nil, err
 	}
 
-	editors := make([]Doc, 0, len(model))
+	editors := make([]Document, 0, len(model))
 
 	for _, editor := range model {
 		if !editor.UserData.SuspendedAt.Valid {
@@ -160,7 +137,7 @@ func (s *Service) All(ctx context.Context) ([]Doc, error) {
 func (s *Service) Search(ctx context.Context, filters *SearchParams) (*SearchResult, error) {
 	search.ClampParams(&filters.Params)
 
-	editors, err := s.lookup.Search(ctx, filters)
+	editors, err := s.se.Search(ctx, filters)
 	if err != nil {
 		logger.Error("Editor.Service", "Failed to search editor profiles", err)
 		return nil, err
@@ -180,10 +157,6 @@ func (s *Service) Suspend(ctx context.Context, username string) error {
 		return err
 	}
 
-	if err := s.lookup.Delete(ctx, username); err != nil {
-		logger.Error("Editor.Service", "Failed to remove editor profile from the search index", err)
-		return err
-	}
 	return nil
 }
 
@@ -220,4 +193,34 @@ func (s *Service) ReadBio(ctx context.Context, username string) (io.ReadCloser, 
 		return nil, err
 	}
 	return content, nil
+}
+
+func (s *Service) SyncSearch(ctx context.Context, action outbox.Event, data []byte) error {
+	var payload MessagePayload
+	if err := json.Unmarshal(data, &payload); err != nil {
+		return err
+	}
+
+	switch payload.Action {
+	case "create", "update":
+		editor, err := s.repo.Get(ctx, payload.Username, payload.Locale)
+		if err != nil {
+			if errors.Is(err, errs.ErrNotFound) {
+				return nil
+			}
+			return err
+		}
+		doc := editor.ToDoc()
+
+		if err := s.se.Index(ctx, &doc); err != nil {
+			return err
+		}
+		return nil
+	case "delete":
+		if err := s.se.Delete(ctx, payload.Username, *payload.SuspendedAt); err != nil {
+			return err
+		}
+		return nil
+	}
+	return fmt.Errorf("%w: unkown action", errs.ErrInval)
 }

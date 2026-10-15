@@ -16,14 +16,14 @@ import (
 )
 
 type Service struct {
-	repository Repository
-	lookup     SearchEngine
+	repo Repository
+	se   SearchEngine
 }
 
 func NewService(repo Repository, se SearchEngine) *Service {
 	return &Service{
-		repository: repo,
-		lookup:     se,
+		repo: repo,
+		se:   se,
 	}
 }
 
@@ -35,7 +35,7 @@ func (s *Service) hasPermissionsOnPost(ctx context.Context, action string, id ui
 		if permissions.Has("posts", action, level.(uint32)) {
 			return nil
 		}
-		post, err := s.repository.Get(ctx, id)
+		post, err := s.repo.Get(ctx, id)
 		if err != nil {
 			if !errors.Is(err, errs.ErrNotFound) {
 				logger.Error("Post.Service", "Failed to verify post ownership", err)
@@ -93,7 +93,7 @@ func (s *Service) Create(ctx context.Context, post *Document) error {
 	}
 
 	model := post.ToModel()
-	if err := s.repository.Create(ctx, &model); err != nil {
+	if err := s.repo.Create(ctx, &model); err != nil {
 		logger.Error("Post.Service", "Failed to create post", err)
 		return err
 	}
@@ -112,7 +112,7 @@ func (s *Service) Edit(ctx context.Context, post *Document) (*Document, error) {
 	}
 
 	model := post.ToModel()
-	err := s.repository.UpdateTranslation(ctx, &model)
+	err := s.repo.UpdateTranslation(ctx, &model)
 	if err != nil {
 		logger.Error("Post.Service", "Failed to update post", err)
 		return nil, err
@@ -122,7 +122,7 @@ func (s *Service) Edit(ctx context.Context, post *Document) (*Document, error) {
 }
 
 func (s *Service) IncrementViews(ctx context.Context, id uint, value uint) error {
-	if err := s.repository.IncrementViews(ctx, id, value); err != nil {
+	if err := s.repo.IncrementViews(ctx, id, value); err != nil {
 		logger.Error("Post.Service", "Failed to increment post view count", err)
 		return err
 	}
@@ -131,7 +131,7 @@ func (s *Service) IncrementViews(ctx context.Context, id uint, value uint) error
 }
 
 func (s *Service) SetViews(ctx context.Context, id uint, value uint) error {
-	post, err := s.repository.Get(ctx, id)
+	post, err := s.repo.Get(ctx, id)
 	if err != nil {
 		logger.Error("Post.Service", "Failed to retrieve post view count", err)
 		return err
@@ -142,7 +142,7 @@ func (s *Service) SetViews(ctx context.Context, id uint, value uint) error {
 		Views: value,
 	}
 
-	if err := s.repository.Update(ctx, &updated); err != nil {
+	if err := s.repo.Update(ctx, &updated); err != nil {
 		logger.Error("Post.Service", "Failed to update post view count", err)
 		return err
 	}
@@ -153,7 +153,7 @@ func (s *Service) SetViews(ctx context.Context, id uint, value uint) error {
 func (s *Service) Search(ctx context.Context, filters *SearchParams) (*SearchResult, error) {
 	search.ClampParams(&filters.Params)
 
-	posts, err := s.lookup.Search(ctx, filters)
+	posts, err := s.se.Search(ctx, filters)
 	if err != nil {
 		logger.Error("Post.Service", "Failed to search posts", err)
 		return nil, err
@@ -167,14 +167,14 @@ func (s *Service) Get(ctx context.Context, id uint) (*Document, error) {
 		return nil, fmt.Errorf("%w: empty locale", errs.ErrInval)
 	}
 
-	post, err := s.repository.GetTranslation(ctx, id, locale.(string))
+	post, err := s.repo.GetTranslation(ctx, id, locale.(string))
 	if err != nil {
 		logger.Error("Post.Service", "Failed to retrieve post", err)
 		return nil, err
 	}
 
 	doc := post.ToDoc()
-	doc.Categories, err = s.repository.GetCategories(ctx, id)
+	doc.Categories, err = s.repo.GetCategories(ctx, id)
 	if err != nil {
 		logger.Error("Post.Service", "Failed to retrieve post categories", err)
 		return nil, err
@@ -189,7 +189,7 @@ func (s *Service) Read(ctx context.Context, id uint, slug string) (*Document, er
 		return nil, fmt.Errorf("%w: empty locale", errs.ErrInval)
 	}
 
-	post, err := s.repository.GetTranslation(ctx, id, locale.(string))
+	post, err := s.repo.GetTranslation(ctx, id, locale.(string))
 	if err != nil {
 		logger.Error("Post.Service", "Failed to retrieve post translation", err)
 		return nil, err
@@ -202,7 +202,7 @@ func (s *Service) Read(ctx context.Context, id uint, slug string) (*Document, er
 	}
 
 	doc := post.ToDoc()
-	doc.Categories, err = s.repository.GetCategories(ctx, id)
+	doc.Categories, err = s.repo.GetCategories(ctx, id)
 	if err != nil {
 		logger.Error("Post.Service", "Failed to retrieve post categories", err)
 		return nil, err
@@ -212,7 +212,7 @@ func (s *Service) Read(ctx context.Context, id uint, slug string) (*Document, er
 }
 
 func (s *Service) GetViews(ctx context.Context, id uint) (uint, error) {
-	post, err := s.repository.Get(ctx, id)
+	post, err := s.repo.Get(ctx, id)
 	if err != nil {
 		logger.Error("Post.Service", "Failed to retrieve post view count", err)
 		return 0, err
@@ -226,7 +226,7 @@ func (s *Service) Delete(ctx context.Context, id uint) error {
 		return err
 	}
 
-	if err := s.repository.Delete(ctx, id); err != nil {
+	if err := s.repo.Delete(ctx, id); err != nil {
 		logger.Error("Post.Service", "Failed to delete post", err)
 		return err
 	}
@@ -247,7 +247,7 @@ func (s *Service) DeleteTranslation(ctx context.Context, id uint, locale string)
 		return err
 	}
 
-	if err := s.repository.DeleteTranslation(ctx, id, locale); err != nil {
+	if err := s.repo.DeleteTranslation(ctx, id, locale); err != nil {
 		logger.Error("Post.Service", "Failed to delete post translation", err)
 		return err
 	}
@@ -265,7 +265,7 @@ func (s *Service) SyncSearch(ctx context.Context, action outbox.Event, data []by
 	case "create", "update":
 		var doc Document
 		if payload.Locale == "" {
-			post, err := s.repository.Get(ctx, payload.ID)
+			post, err := s.repo.Get(ctx, payload.ID)
 			if err != nil {
 				if errors.Is(err, errs.ErrNotFound) {
 					return nil
@@ -274,7 +274,7 @@ func (s *Service) SyncSearch(ctx context.Context, action outbox.Event, data []by
 			}
 			doc = post.ToDoc()
 		} else {
-			post, err := s.repository.GetTranslation(ctx, payload.ID, payload.Locale)
+			post, err := s.repo.GetTranslation(ctx, payload.ID, payload.Locale)
 			if err != nil {
 				if errors.Is(err, errs.ErrNotFound) {
 					return nil
@@ -283,22 +283,22 @@ func (s *Service) SyncSearch(ctx context.Context, action outbox.Event, data []by
 			}
 			doc = post.ToDoc()
 		}
-		categories, err := s.repository.GetCategories(ctx, payload.ID)
+		categories, err := s.repo.GetCategories(ctx, payload.ID)
 		if err != nil {
 			return err
 		}
 		doc.Categories = categories
-		if err := s.lookup.Index(ctx, &doc); err != nil {
+		if err := s.se.Index(ctx, &doc); err != nil {
 			return err
 		}
 		return nil
 	case "delete":
-		if err := s.lookup.Delete(ctx, payload.ID); err != nil {
+		if err := s.se.Delete(ctx, payload.ID); err != nil {
 			return err
 		}
 		return nil
 	case "delete.translation":
-		if err := s.lookup.DeleteTranslation(ctx, payload.ID, payload.Locale); err != nil {
+		if err := s.se.DeleteTranslation(ctx, payload.ID, payload.Locale); err != nil {
 			return err
 		}
 		return nil

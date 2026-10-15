@@ -2,9 +2,12 @@ package ads
 
 import (
 	"context"
+	"encoding/json"
+	"errors"
 	"fmt"
 	"gocms/internal/errs"
 	"gocms/internal/logger"
+	"gocms/internal/outbox"
 	"gocms/internal/permissions"
 	"gocms/internal/search"
 	"net/url"
@@ -14,14 +17,14 @@ import (
 )
 
 type Service struct {
-	repo   Repository
-	lookup SearchEngine
+	repo Repository
+	se   SearchEngine
 }
 
 func NewService(repo Repository, se SearchEngine) *Service {
 	return &Service{
-		repo:   repo,
-		lookup: se,
+		repo: repo,
+		se:   se,
 	}
 }
 
@@ -72,11 +75,6 @@ func (s *Service) Create(ctx context.Context, ad *Doc) error {
 		logger.Error("Ads.Service", "Failed to create advertisement", err)
 		return err
 	}
-	ad.ID = model.ID
-	if err := s.lookup.Index(ctx, ad); err != nil {
-		logger.Error("Ads.Service", "Failed to add advertisement to the search index", err)
-		return err
-	}
 
 	return nil
 }
@@ -96,11 +94,6 @@ func (s *Service) Update(ctx context.Context, ad *Doc) (*Doc, error) {
 	if err := s.repo.Update(ctx, &model); err != nil {
 		logger.Error("Ads.Service", "Failed to update advertisement", err)
 		return nil, err
-	}
-
-	if err := s.lookup.Index(ctx, ad); err != nil {
-		logger.Error("Ads.Service", "Failed to update advertisement in the search index", err)
-		return ad, err
 	}
 
 	return ad, nil
@@ -181,7 +174,7 @@ func (s *Service) GetPartners(ctx context.Context) ([]Doc, error) {
 func (s *Service) Search(ctx context.Context, filters *SearchParams) (*SearchResult, error) {
 	search.ClampParams(&filters.Params)
 
-	ads, err := s.lookup.Search(ctx, filters)
+	ads, err := s.se.Search(ctx, filters)
 	if err != nil {
 		logger.Error("Ads.Service", "Failed to search advertisements", err)
 		return nil, err
@@ -202,10 +195,35 @@ func (s *Service) Delete(ctx context.Context, id uint) error {
 		return err
 	}
 
-	if err := s.lookup.Delete(ctx, id); err != nil {
-		logger.Error("Ads.Service", "Failed to remove advertisement from the search index", err)
+	return nil
+}
+
+func (s *Service) SyncSearch(ctx context.Context, action outbox.Event, data []byte) error {
+	var payload MessagePayload
+	if err := json.Unmarshal(data, &payload); err != nil {
 		return err
 	}
 
-	return nil
+	switch payload.Action {
+	case "create", "update":
+		category, err := s.repo.Get(ctx, payload.ID)
+		if err != nil {
+			if errors.Is(err, errs.ErrNotFound) {
+				return nil
+			}
+			return err
+		}
+		doc := category.ToDoc()
+
+		if err := s.se.Index(ctx, &doc); err != nil {
+			return err
+		}
+		return nil
+	case "delete":
+		if err := s.se.Delete(ctx, payload.ID); err != nil {
+			return err
+		}
+		return nil
+	}
+	return fmt.Errorf("%w: unkown action", errs.ErrInval)
 }

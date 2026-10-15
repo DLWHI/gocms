@@ -4,7 +4,9 @@ import (
 	"context"
 	"errors"
 	"gocms/internal/errs"
+	"gocms/internal/outbox"
 	"gocms/internal/user"
+	"time"
 
 	"gorm.io/gorm"
 )
@@ -38,7 +40,20 @@ func editorDiff(editor *Model) map[string]interface{} {
 }
 
 func (r *GORMRepository) Create(ctx context.Context, editor *Model) error {
-	return r.db.WithContext(ctx).Model(&Model{}).Omit("UserData").Create(editor).Error
+	err := r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		result := tx.Model(&Model{}).Omit("UserData").Create(editor)
+		if result.Error != nil {
+			return result.Error
+		}
+		if err := writeMessage(tx, "create", editor.User, editor.Locale, nil); err != nil {
+			return err
+		}
+		return nil
+	})
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (r *GORMRepository) Update(ctx context.Context, diff *Model) error {
@@ -93,6 +108,10 @@ func (r *GORMRepository) Update(ctx context.Context, diff *Model) error {
 					}
 				}
 			}
+
+			if err := writeMessage(tx, "update", diff.User, diff.Locale, nil); err != nil {
+				return err
+			}
 			return nil
 		})
 		if err == nil {
@@ -115,40 +134,8 @@ func (r *GORMRepository) Get(ctx context.Context, username string, locale string
 	err := r.db.WithContext(ctx).
 		Table("users AS u").
 		Select("u.username, u.email, e.name, e.locale").
-		Joins("LEFT JOIN editors AS e ON e.user = u.username AND e.locale = ?", locale).
+		Joins("INNER JOIN editors AS e ON e.user = u.username AND e.locale = ?", locale).
 		Where("u.username = ? AND u.suspended_at IS NULL", username).
-		Take(&res).Error
-	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, errs.ErrNotFound
-		}
-		return nil, err
-	}
-
-	return &Model{
-		Locale: locale,
-		Name:   res.Name,
-		User:   res.Username,
-		UserData: user.Model{
-			Email:    res.Email,
-			Username: res.Username,
-		},
-	}, nil
-}
-
-func (r *GORMRepository) GetTranslation(ctx context.Context, username string, locale string) (*Model, error) {
-	var res struct {
-		Username string
-		Name     string
-		Locale   string
-		Email    string
-	}
-
-	err := r.db.WithContext(ctx).
-		Table("users AS u").
-		Select("u.username, u.email, e.name, e.locale").
-		Joins("LEFT JOIN editors AS e ON e.user = u.username", locale).
-		Where("u.username = ? AND u.suspended_at IS NULL AND e.locale = ?", username, locale).
 		Take(&res).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -190,14 +177,40 @@ func (r *GORMRepository) GetAll(ctx context.Context, locale string) ([]Model, er
 }
 
 func (r *GORMRepository) Delete(ctx context.Context, username string) error {
-	result := r.db.WithContext(ctx).
-		Where("username = ?", username).
-		Delete(&user.Model{})
-	if result.Error != nil {
-		return result.Error
+	err := r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		now := time.Now()
+		result := tx.Where("user = ?", username).
+			Delete(&Model{})
+		if result.Error != nil {
+			return result.Error
+		}
+		if result.RowsAffected == 0 {
+			return errs.ErrNotFound
+		}
+		if err := writeMessage(tx, "delete", username, "", &now); err != nil {
+			return err
+		}
+		return nil
+	})
+	if err != nil {
+		return err
 	}
-	if result.RowsAffected == 0 {
-		return errs.ErrNotFound
+	return nil
+}
+
+func writeMessage(tx *gorm.DB, action string, username string, locale string, timestamp *time.Time) error {
+	payload := MessagePayload{
+		Username:    username,
+		Locale:      locale,
+		Action:      action,
+		SuspendedAt: nil,
+	}
+	if timestamp != nil {
+		ts := timestamp.Unix()
+		payload.SuspendedAt = &ts
+	}
+	if err := outbox.WriteMessage(tx, "editor", "Editor.Repository", &payload); err != nil {
+		return err
 	}
 	return nil
 }

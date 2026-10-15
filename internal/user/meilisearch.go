@@ -5,9 +5,9 @@ import (
 	"errors"
 	"fmt"
 	"gocms/internal/errs"
+	"gocms/internal/search"
 	"net/http"
 	"strings"
-	"time"
 
 	"github.com/meilisearch/meilisearch-go"
 )
@@ -83,21 +83,20 @@ func (r *MeilisearchEngine) Settings() meilisearch.Settings {
 	}
 }
 
-func (r *MeilisearchEngine) Index(ctx context.Context, user *Doc) error {
+func (r *MeilisearchEngine) Index(ctx context.Context, user *Document) error {
 	index := r.se.Index(r.idx)
-	taskInfo, err := index.AddDocumentsWithContext(ctx, user, nil)
-	task, err := r.se.TaskManager().WaitForTask(taskInfo.TaskUID, 100*time.Millisecond)
+	task, err := index.AddDocumentsWithContext(ctx, user, nil)
 	if err != nil {
 		return err
 	}
-	if task.Status == meilisearch.TaskStatusFailed && task.Error.Code != "index_not_found" {
-		return fmt.Errorf("Error indexing: %s - %s", task.Error.Code, task.Error.Message)
+	if err := search.WaitForMeilisearchTask(r.se, task); err != nil {
+		return err
 	}
-	return err
+	return nil
 }
 
-func (r *MeilisearchEngine) Get(ctx context.Context, username string) (*Doc, error) {
-	var user Doc
+func (r *MeilisearchEngine) Get(ctx context.Context, username string) (*Document, error) {
+	var user Document
 	err := r.se.Index(r.idx).GetDocumentWithContext(ctx, username, nil, &user)
 	if err != nil {
 		var meiliErr *meilisearch.Error
@@ -111,8 +110,8 @@ func (r *MeilisearchEngine) Get(ctx context.Context, username string) (*Doc, err
 	return &user, nil
 }
 
-func (r *MeilisearchEngine) Delete(ctx context.Context, username string) error {
-	var user Doc
+func (r *MeilisearchEngine) Delete(ctx context.Context, username string, timestamp int64) error {
+	var user Document
 	index := r.se.Index(r.idx)
 	err := r.se.Index(r.idx).GetDocumentWithContext(ctx, username, nil, &user)
 	if err != nil {
@@ -124,10 +123,15 @@ func (r *MeilisearchEngine) Delete(ctx context.Context, username string) error {
 		}
 		return err
 	}
-	ts := time.Now().Unix()
-	user.SuspendedAt = &ts
-	_, err = index.AddDocumentsWithContext(ctx, user, nil)
-	return err
+	user.SuspendedAt = &timestamp
+	task, err := index.AddDocumentsWithContext(ctx, user, nil)
+	if err != nil {
+		return err
+	}
+	if err := search.WaitForMeilisearchTask(r.se, task); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (r *MeilisearchEngine) Search(ctx context.Context, params *SearchParams) (*SearchResult, error) {

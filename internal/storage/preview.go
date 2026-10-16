@@ -2,6 +2,7 @@ package storage
 
 import (
 	"errors"
+	"fmt"
 	"gocms/internal/errs"
 	"image"
 	"io"
@@ -19,7 +20,7 @@ func GeneratePreview(file io.Reader, width int, height int) ([]byte, error) {
 	img, _, err := image.Decode(file)
 	if err != nil {
 		if errors.Is(err, image.ErrFormat) {
-			return nil, errs.ErrInval
+			return nil, fmt.Errorf("%w: file is not an image", errs.ErrInval)
 		}
 		return nil, err
 	}

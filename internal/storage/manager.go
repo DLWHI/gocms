@@ -2,6 +2,7 @@ package storage
 
 import (
 	"errors"
+	"fmt"
 	"io"
 	"io/fs"
 	"net/http"
@@ -9,6 +10,7 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+	"syscall"
 
 	"gocms/internal/errs"
 	"gocms/internal/logger"
@@ -69,21 +71,10 @@ func (s *Manager) syncDir(dir string) error {
 }
 
 func (s *Manager) detectWithMIMEType(path string) (ItemType, error) {
-	file, err := os.Open(filepath.Join(s.root, path))
+	mimeType, err := s.MimeTypeOf(path)
 	if err != nil {
 		return TypeFile, err
 	}
-	defer file.Close()
-
-	buffer := make([]byte, 512)
-	n, err := file.Read(buffer)
-	if err != nil && n == 0 {
-		return TypeFile, err
-	}
-
-	// Sniff magic bytes (e.g., JPEG, PNG, MP4 headers)
-	mimeType := http.DetectContentType(buffer[:n])
-
 	switch {
 	case strings.HasPrefix(mimeType, "image/"):
 		return TypeImage, nil
@@ -224,7 +215,7 @@ func (s *Manager) CreateDir(path string) error {
 		return err
 	}
 
-	if err := os.Mkdir(fullPath, 0755); err != nil {
+	if err := os.MkdirAll(fullPath, 0755); err != nil {
 		logger.Error("Storage.Manager", "Failed to create a directory.", err)
 		return err
 	}
@@ -264,23 +255,42 @@ func (s *Manager) Save(path string, content io.Reader) error {
 	return nil
 }
 
-func (s *Manager) Read(path string) (io.ReadCloser, error) {
+func (s *Manager) Read(path string) (io.ReadCloser, string, error) {
 	fullPath, _, err := s.safePath(path)
 	if err != nil {
 		logger.Error("Storage.Manager", "Failed to read a file.", err)
-		return nil, err
+		return nil, "", err
 	}
 
 	dst, err := os.Open(fullPath)
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
-			return nil, errs.ErrNotFound
+			return nil, "", errs.ErrNotFound
 		}
 		logger.Error("Storage.Manager", "Failed to read a file.", err)
-		return nil, err
+		return nil, "", err
 	}
 
-	return dst, nil
+	buffer := make([]byte, 512)
+	n, err := dst.Read(buffer)
+	if err != nil && n == 0 {
+		logger.Error("Storage.Manager", "Failed to read file.", err)
+		return nil, "", err
+	}
+
+	mime, err := http.DetectContentType(buffer[:n]), nil
+	if err != nil {
+		logger.Error("Storage.Manager", "Failed to read a file.", err)
+		return nil, "", err
+	}
+
+	_, err = dst.Seek(0, io.SeekStart)
+	if err != nil {
+		logger.Error("Storage.Manager", "Failed to read a file.", err)
+		return nil, "", err
+	}
+
+	return dst, mime, nil
 }
 
 func (s *Manager) TypeOf(path string) (ItemType, error) {
@@ -303,6 +313,34 @@ func (s *Manager) TypeOf(path string) (ItemType, error) {
 	} else {
 		return s.detectWithMIMEType(fullPath)
 	}
+}
+
+func (s *Manager) MimeTypeOf(path string) (string, error) {
+	fullPath, _, err := s.safePath(path)
+	if err != nil {
+		logger.Error("Storage.Manager", "Failed to detect file mime.", err)
+		return "", err
+	}
+
+	file, err := os.Open(fullPath)
+	if err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			return "", errs.ErrNotFound
+		}
+		logger.Error("Storage.Manager", "Failed to detect file mime.", err)
+		return "", err
+	}
+	defer file.Close()
+
+	buffer := make([]byte, 512)
+	n, err := file.Read(buffer)
+	if err != nil && n == 0 {
+		logger.Error("Storage.Manager", "Failed to detect file mime.", err)
+		return "", err
+	}
+
+	// Sniff magic bytes (e.g., JPEG, PNG, MP4 headers)
+	return http.DetectContentType(buffer[:n]), nil
 }
 
 func (s *Manager) Exists(path string) bool {
@@ -332,6 +370,15 @@ func (s *Manager) Delete(path string, recursive bool) error {
 		err = os.Remove(fullPath)
 	}
 	if err != nil {
+		var pathErr *os.PathError
+		if errors.As(err, &pathErr) {
+			var errno syscall.Errno
+			if errors.As(pathErr.Err, &errno) {
+				if errno == syscall.ERROR_DIR_NOT_EMPTY || errno == syscall.ENOTEMPTY {
+					return fmt.Errorf("%w: directory not empty", errs.ErrInval)
+				}
+			}
+		}
 		if errors.Is(err, os.ErrNotExist) {
 			return errs.ErrNotFound
 		}

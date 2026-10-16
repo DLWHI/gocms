@@ -2,24 +2,21 @@ package storage
 
 import (
 	"encoding/json"
-	"errors"
 	"io"
 	"net/http"
 	"net/url"
-	"os"
 	"strconv"
 
 	"gocms/internal/errs"
-	"gocms/internal/logger"
 )
 
 // ------------------------------------------------------------------
-// GET /storage/app/tree/{path} - Get storage
-// GET /storage/app/media/{path} - Get file on specific path
-// GET /storage/app/preview/{path}?w={width}&h={height} - Get preview of image on specific path
-// POST /storage/app/media/{path} - Upload a file
-// DELETE /storage/app/media/{path}?recursive={true|false} - Delete a file/folder
-// POST /storage/app/folders - Create a folder
+// GET /storage/tree/{path...} - Get storage
+// GET /storage/media/{path...} - Get file on specific path
+// GET /storage/preview/{path...}?w={width}&h={height} - Get preview of image on specific path
+// PUT /storage/media/{path...} - Upload a file
+// DELETE /storage/media/{path...}?recursive={true|false} - Delete a file/folder
+// PUT /storage/folders/{path...} - Create a folder
 // ------------------------------------------------------------------
 type Handler struct {
 	Tree        http.Handler
@@ -43,11 +40,12 @@ func NewHandler(s *Manager) *Handler {
 	return &hndl
 }
 
-// GET /storage/app/tree/{path} - Get storage
+// GET /storage/tree/{path...} - Get storage
 func (h *Handler) tree(w http.ResponseWriter, r *http.Request) {
 	path, err := url.PathUnescape(r.PathValue("path"))
 	if err != nil {
 		http.Error(w, "Invalid path provided", http.StatusBadRequest)
+		return
 	}
 
 	var response struct {
@@ -57,22 +55,13 @@ func (h *Handler) tree(w http.ResponseWriter, r *http.Request) {
 
 	response.Files, err = h.fileService.GetFiles(path)
 	if err != nil {
-		if errors.Is(err, errs.ErrNotFound) {
-			http.Error(w, "Path does not exist", http.StatusNotFound)
-		} else {
-			logger.Error("File.Handler", "Failed to retrieve storage capacity information", err)
-			http.Error(w, "Internal server error", http.StatusInternalServerError)
-		}
+		errs.ServeMessage(w, "Path", err)
 		return
 	}
 
 	response.Info, err = h.fileService.GetInfo()
 	if err != nil {
-		if errors.Is(err, errs.ErrNotFound) {
-			http.Error(w, "Path does not exist", http.StatusNotFound)
-		} else {
-			http.Error(w, "Internal server error", http.StatusInternalServerError)
-		}
+		errs.ServeMessage(w, "Storage", err)
 		return
 	}
 
@@ -80,28 +69,32 @@ func (h *Handler) tree(w http.ResponseWriter, r *http.Request) {
 	_ = json.NewEncoder(w).Encode(&response)
 }
 
-// GET /storage/app/media/{path...} - Get storage
+// GET /storage/media/{path...} - Get file on specific path
 func (h *Handler) get(w http.ResponseWriter, r *http.Request) {
 	path, err := url.PathUnescape(r.PathValue("path"))
 	if err != nil {
 		http.Error(w, "Invalid path provided", http.StatusBadRequest)
-	}
-
-	file_out, err := h.fileService.Read(path)
-	if err != nil {
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
 
+	file_out, mime, err := h.fileService.Read(path)
+	if err != nil {
+		errs.ServeMessage(w, "File", err)
+		return
+	}
+	defer file_out.Close()
+
+	w.Header().Add("Content-Type", mime)
 	w.WriteHeader(http.StatusOK)
 	_, _ = io.Copy(w, file_out)
 }
 
-// GET /storage/app/preview/{path}?w={width}&h={height} - Get preview of image on specific path
+// GET /storage/preview/{path...}?w={width}&h={height} - Get preview of image on specific path
 func (h *Handler) preview(w http.ResponseWriter, r *http.Request) {
 	path, err := url.PathUnescape(r.PathValue("path"))
 	if err != nil {
 		http.Error(w, "Invalid path provided", http.StatusBadRequest)
+		return
 	}
 
 	width := 360
@@ -122,21 +115,16 @@ func (h *Handler) preview(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	file, err := h.fileService.Read(path)
+	file, _, err := h.fileService.Read(path)
 	if err != nil {
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		errs.ServeMessage(w, "File", err)
 		return
 	}
 	defer file.Close()
 
 	preview, err := GeneratePreview(file, width, height)
 	if err != nil {
-		if errors.Is(err, errs.ErrInval) {
-			http.Error(w, "File is not a supported image", http.StatusBadRequest)
-		} else {
-			logger.Error("File.Handler", "Failed to generate image preview", err)
-			http.Error(w, "Internal server error", http.StatusInternalServerError)
-		}
+		errs.ServeMessage(w, "File", err)
 		return
 	}
 
@@ -145,7 +133,7 @@ func (h *Handler) preview(w http.ResponseWriter, r *http.Request) {
 	w.Write(preview)
 }
 
-// POST /storage/app/media/{path} - Upload a file
+// PUT /storage/media/{path...} - Upload a file
 func (h *Handler) upload(w http.ResponseWriter, r *http.Request) {
 	path, err := url.PathUnescape(r.PathValue("path"))
 	if err != nil {
@@ -160,17 +148,18 @@ func (h *Handler) upload(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.fileService.Save(path, r.Body); err != nil {
-		http.Error(w, "Failed to read body", http.StatusBadRequest)
+		errs.ServeMessage(w, "File", err)
 		return
 	}
 	w.WriteHeader(http.StatusOK)
 }
 
-// DELETE /storage/app/media/{path}?recursive={true|false} - Delete a file/folder
+// DELETE /storage/media/{path...}?recursive={true|false} - Delete a file/folder
 func (h *Handler) delete(w http.ResponseWriter, r *http.Request) {
 	path, err := url.PathUnescape(r.PathValue("path"))
 	if err != nil {
 		http.Error(w, "Invalid path provided", http.StatusBadRequest)
+		return
 	}
 
 	recursive := false
@@ -178,35 +167,28 @@ func (h *Handler) delete(w http.ResponseWriter, r *http.Request) {
 		recursive = true
 	} else if r.URL.Query().Get("recursive") != "false" {
 		http.Error(w, "Invalid parameter value: recursive", http.StatusBadRequest)
+		return
 	}
 
 	err = h.fileService.Delete(path, recursive)
 	if err != nil {
-		if errors.Is(err, os.ErrNotExist) {
-			http.Error(w, "Path does not exist", http.StatusNotFound)
-		} else {
-			http.Error(w, "Path blocked or directory is not empty", http.StatusBadRequest)
-		}
+		errs.ServeMessage(w, "Path", err)
 		return
 	}
 	w.WriteHeader(http.StatusOK)
 }
 
-// POST /storage/app/folders - Create a folder
+// PUT /storage/folders/{path...} - Create a folder
 func (h *Handler) folder(w http.ResponseWriter, r *http.Request) {
-	path := r.URL.Query().Get("path")
-	if path == "" {
-		http.Error(w, "Missing 'path' query param", http.StatusBadRequest)
+	path, err := url.PathUnescape(r.PathValue("path"))
+	if err != nil {
+		http.Error(w, "Invalid path provided", http.StatusBadRequest)
 		return
 	}
 
-	err := h.fileService.CreateDir(path)
+	err = h.fileService.CreateDir(path)
 	if err != nil {
-		if errors.Is(err, os.ErrNotExist) {
-			http.Error(w, "Path does not exist", http.StatusNotFound)
-		} else {
-			http.Error(w, "Path blocked or directory already exists", http.StatusBadRequest)
-		}
+		errs.ServeMessage(w, "Folder", err)
 		return
 	}
 	w.WriteHeader(http.StatusOK)

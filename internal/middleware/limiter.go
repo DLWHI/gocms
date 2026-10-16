@@ -15,8 +15,5 @@ func NewRequestLimiter(limit int64) *RequestLimiter {
 }
 
 func (m *RequestLimiter) Wrap(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		r.Body = http.MaxBytesReader(w, r.Body, m.value)
-		next.ServeHTTP(w, r)
-	})
+	return http.MaxBytesHandler(next, m.value)
 }

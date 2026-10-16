@@ -22,7 +22,10 @@ const (
 )
 
 func ServeMessage(w http.ResponseWriter, entity string, err error) {
-	if errors.Is(err, ErrCred) {
+	var maxBytesErr *http.MaxBytesError
+	if errors.As(err, &maxBytesErr) {
+		http.Error(w, "Request payload is too large", http.StatusRequestEntityTooLarge)
+	} else if errors.Is(err, ErrCred) {
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 	} else if errors.Is(err, ErrPerm) {
 		http.Error(w, "Insufficent permissions", http.StatusUnauthorized)

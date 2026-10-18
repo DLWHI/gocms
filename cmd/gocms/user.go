@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"gocms/internal/auth"
 	"gocms/internal/errs"
 	"gocms/internal/logger"
 	"gocms/internal/user"
@@ -112,7 +113,10 @@ func CreateUser(ctx context.Context, app *Container) error {
 		Permissions: permissions,
 		Passwd:      passwd,
 	}
-	if err := svc.Create(ctx, &user); err != nil {
+
+	injected := context.WithValue(ctx, auth.UserPermissionKey, auth.OnEntityC("users"))
+
+	if err := svc.Create(injected, &user); err != nil {
 		logger.Error("User create", "Failed to register new user", err)
 		return err
 	}

@@ -53,11 +53,9 @@ func (s *Service) IsAllowedUsername(ctx context.Context, value string) error {
 }
 
 func (s *Service) Create(ctx context.Context, user *User) error {
-	level := ctx.Value("userperm")
-
-	if level == nil || !auth.HasPermission("users", "create", level.(uint32)) {
+	if !auth.HasPermission(ctx, "users", "create") {
 		clear(user.Passwd)
-		return errs.ErrPerm
+		return errs.ErrCred
 	}
 
 	user.Username = strings.TrimSpace(strings.ToLower(user.Username))
@@ -141,11 +139,10 @@ func (s *Service) All(ctx context.Context) ([]User, error) {
 }
 
 func (s *Service) Suspend(ctx context.Context, username string) error {
-	level := ctx.Value("userperm")
-
-	if level == nil || !auth.HasPermission("users", "delete", level.(uint32)) {
-		return errs.ErrPerm
+	if !auth.HasPermission(ctx, "users", "delete") {
+		return errs.ErrCred
 	}
+
 	if err := s.repo.Delete(ctx, username); err != nil {
 		logger.Error("User.Service", "Failed to suspend user", err)
 		return err
@@ -171,10 +168,13 @@ func (s *Service) PasswordMatches(ctx context.Context, username string, passwd P
 }
 
 func (s *Service) ChangeEmail(ctx context.Context, username string, email string) error {
-	initiator := ctx.Value("username")
+	initiator, ok := ctx.Value(auth.UserNameKey).(string)
+	if !ok {
+		return errs.ErrCred
+	}
 
-	if initiator == nil || initiator.(string) != username {
-		return errs.ErrPerm
+	if initiator != username && !auth.HasPermission(ctx, "users", "edit") {
+		return errs.ErrCred
 	}
 
 	diff := map[string]interface{}{
@@ -190,10 +190,13 @@ func (s *Service) ChangeEmail(ctx context.Context, username string, email string
 }
 
 func (s *Service) ChangePasswd(ctx context.Context, username string, passwd domain.Password) error {
-	level := ctx.Value("userperm")
+	initiator, ok := ctx.Value(auth.UserNameKey).(string)
+	if !ok {
+		return errs.ErrCred
+	}
 
-	if level == nil || !auth.HasPermission("users", "edit", level.(uint32)) {
-		return errs.ErrPerm
+	if initiator != username && !auth.HasPermission(ctx, "users", "edit") {
+		return errs.ErrCred
 	}
 
 	hash, err := bcrypt.GenerateFromPassword(passwd, 12)
@@ -213,10 +216,8 @@ func (s *Service) ChangePasswd(ctx context.Context, username string, passwd doma
 }
 
 func (s *Service) ChangePermissions(ctx context.Context, username string, perms uint32) error {
-	level := ctx.Value("userperm").(uint32)
-
-	if !auth.HasPermission("users", "edit", level) {
-		return errs.ErrPerm
+	if !auth.HasPermission(ctx, "users", "edit") {
+		return errs.ErrCred
 	}
 
 	diff := map[string]interface{}{

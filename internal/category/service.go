@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"gocms/internal/auth"
 	"gocms/internal/errs"
 	"gocms/internal/logger"
 	"gocms/internal/outbox"
@@ -46,9 +47,7 @@ func (s *Service) sanitize(ctx context.Context, category *Document) error {
 }
 
 func (s *Service) Create(ctx context.Context, category *Document) error {
-	level := ctx.Value("userperm")
-
-	if level == nil || !permissions.Has("categories", "create", level.(uint32)) {
+	if !auth.HasPermission(ctx, "categories", "create") {
 		return errs.ErrCred
 	}
 
@@ -70,9 +69,7 @@ func (s *Service) Create(ctx context.Context, category *Document) error {
 }
 
 func (s *Service) Edit(ctx context.Context, category *Document) (*Document, error) {
-	level := ctx.Value("userperm")
-
-	if level == nil || !permissions.Has("categories", "edit", level.(uint32)) {
+	if !auth.HasPermission(ctx, "categories", "edit") {
 		return nil, errs.ErrCred
 	}
 
@@ -139,9 +136,7 @@ func (s *Service) Search(ctx context.Context, filters *SearchParams) (*SearchRes
 }
 
 func (s *Service) Delete(ctx context.Context, slug string) error {
-	level := ctx.Value("userperm")
-
-	if level == nil || !permissions.Has("categories", "delete", level.(uint32)) {
+	if !auth.HasPermission(ctx, "categories", "delete") {
 		return errs.ErrCred
 	}
 

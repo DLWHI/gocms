@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"gocms/internal/auth"
 	"gocms/internal/errs"
 	"gocms/internal/logger"
 	"gocms/internal/outbox"
@@ -27,24 +28,22 @@ func NewService(repo Repository, se SearchEngine) *Service {
 }
 
 func (s *Service) hasPermissionsOnPost(ctx context.Context, action string, id uint) error {
-	initiator := ctx.Value("username")
-	level := ctx.Value("userperm")
+	initiator, ok := ctx.Value(auth.UserNameKey).(string)
+	if !ok {
+		return errs.ErrCred
+	}
 
-	if initiator != nil && level != nil {
-		if permissions.Has("posts", action, level.(uint32)) {
-			return nil
+	if !auth.HasPermission(ctx, "posts", action) {
+		return errs.ErrCred
+	}
+	post, err := s.repo.Get(ctx, id)
+	if err != nil {
+		if !errors.Is(err, errs.ErrNotFound) {
+			logger.Error("Post.Service", "Failed to verify post ownership", err)
 		}
-		post, err := s.repo.Get(ctx, id)
-		if err != nil {
-			if !errors.Is(err, errs.ErrNotFound) {
-				logger.Error("Post.Service", "Failed to verify post ownership", err)
-			}
-			return err
-		}
-		if post.Author != initiator.(string) {
-			return errs.ErrCred
-		}
-	} else {
+		return err
+	}
+	if post.Author != initiator {
 		return errs.ErrCred
 	}
 	return nil
@@ -73,10 +72,8 @@ func (s *Service) sanitize(ctx context.Context, post *Document) error {
 
 func (s *Service) Create(ctx context.Context, post *Document) error {
 	author := ctx.Value("username")
-	level := ctx.Value("userperm")
-
-	if author == nil || level == nil || !permissions.Has("posts", "create", level.(uint32)) {
-		return errs.ErrPerm
+	if !auth.HasPermission(ctx, "posts", "create") {
+		return errs.ErrCred
 	}
 
 	post.Author = author.(string)

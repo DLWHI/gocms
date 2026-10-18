@@ -2,6 +2,7 @@ package locale
 
 import (
 	"context"
+	"gocms/internal/auth"
 	"gocms/internal/errs"
 	"gocms/internal/logger"
 )
@@ -17,10 +18,8 @@ func NewService(repo Repository) *Service {
 }
 
 func (s *Service) Create(ctx context.Context, locale *Model) error {
-	level := ctx.Value("userperm")
-
-	if level == nil || !permissions.Has("locales", "create", level.(uint32)) {
-		return errs.ErrPerm
+	if !auth.HasPermission(ctx, "locales", "create") {
+		return errs.ErrCred
 	}
 
 	if err := s.repo.Create(ctx, locale); err != nil {
@@ -42,10 +41,8 @@ func (s *Service) GetAll(ctx context.Context) ([]Model, error) {
 }
 
 func (s *Service) Delete(ctx context.Context, locale string) error {
-	level := ctx.Value("userperm")
-
-	if level == nil || !permissions.Has("locales", "delete", level.(uint32)) {
-		return errs.ErrPerm
+	if !auth.HasPermission(ctx, "locales", "delete") {
+		return errs.ErrCred
 	}
 
 	if err := s.repo.Delete(ctx, locale); err != nil {

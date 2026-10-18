@@ -5,10 +5,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"gocms/internal/auth"
 	"gocms/internal/errs"
 	"gocms/internal/logger"
 	"gocms/internal/outbox"
-	"gocms/internal/permissions"
 	"gocms/internal/search"
 	"strings"
 )
@@ -26,9 +26,7 @@ func NewService(db Repository, se SearchEngine) *Service {
 }
 
 func (s *Service) Create(ctx context.Context, editor *Document) error {
-	level := ctx.Value("userperm")
-
-	if level == nil || !permissions.Has("editors", "create", level.(uint32)) {
+	if !auth.HasPermission(ctx, "editors", "create") {
 		return errs.ErrCred
 	}
 
@@ -127,11 +125,10 @@ func (s *Service) Search(ctx context.Context, filters *SearchParams) (*SearchRes
 }
 
 func (s *Service) Suspend(ctx context.Context, username string) error {
-	level := ctx.Value("userperm")
-
-	if level == nil || !permissions.Has("editors", "delete", level.(uint32)) {
+	if !auth.HasPermission(ctx, "editors", "delete") {
 		return errs.ErrCred
 	}
+
 	if err := s.repo.Delete(ctx, username); err != nil {
 		logger.Error("Editor.Service", "Failed to suspend editor profile", err)
 		return err

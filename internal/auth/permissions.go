@@ -1,5 +1,7 @@
 package auth
 
+import "context"
+
 var actions = map[string]uint32{
 	"delete": 0x04,
 	"edit":   0x02,
@@ -32,7 +34,12 @@ func GetActions() map[string]uint32 {
 	return actions
 }
 
-func HasPermission(entity string, action string, level uint32) bool {
+func HasPermission(ctx context.Context, entity string, action string) bool {
+	level, ok := ctx.Value(UserPermissionKey).(uint32)
+	if !ok {
+		return false
+	}
+
 	if offset, exists := entites[entity]; exists {
 		mask := actions[action]
 		if mask != 0 {

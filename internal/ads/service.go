@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"gocms/internal/auth"
 	"gocms/internal/errs"
 	"gocms/internal/logger"
 	"gocms/internal/outbox"
@@ -59,10 +60,8 @@ func (s *Service) sanitize(ad *Doc) error {
 }
 
 func (s *Service) Create(ctx context.Context, ad *Doc) error {
-	level := ctx.Value("userperm")
-
-	if level == nil || !permissions.Has("ads", "create", level.(uint32)) {
-		return errs.ErrPerm
+	if !auth.HasPermission(ctx, "ads", "create") {
+		return errs.ErrCred
 	}
 
 	if err := s.sanitize(ad); err != nil {
@@ -79,10 +78,8 @@ func (s *Service) Create(ctx context.Context, ad *Doc) error {
 }
 
 func (s *Service) Update(ctx context.Context, ad *Doc) (*Doc, error) {
-	level := ctx.Value("userperm")
-
-	if level == nil || !permissions.Has("ads", "edit", level.(uint32)) {
-		return nil, errs.ErrPerm
+	if !auth.HasPermission(ctx, "ads", "edit") {
+		return nil, errs.ErrCred
 	}
 
 	if err := s.sanitize(ad); err != nil {
@@ -169,10 +166,8 @@ func (s *Service) Search(ctx context.Context, filters *SearchParams) (*SearchRes
 }
 
 func (s *Service) Delete(ctx context.Context, id uint) error {
-	level := ctx.Value("userperm")
-
-	if level == nil || !permissions.Has("ads", "delete", level.(uint32)) {
-		return errs.ErrPerm
+	if !auth.HasPermission(ctx, "ads", "delete") {
+		return errs.ErrCred
 	}
 
 	if err := s.repo.Delete(ctx, id); err != nil {

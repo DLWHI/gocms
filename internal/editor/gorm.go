@@ -124,7 +124,7 @@ func (r *GORMRepository) Get(ctx context.Context, username string, locale string
 		Name:   res.Name,
 		User:   res.Username,
 		Bio:    res.Bio,
-		UserData: user.Model{
+		UserData: user.User{
 			Email:    res.Email,
 			Username: res.Username,
 		},
@@ -163,7 +163,7 @@ func (r *GORMRepository) GetAll(ctx context.Context, locale string, suspended *b
 			Locale: locale,
 			Name:   row.Name,
 			User:   row.Username,
-			UserData: user.Model{
+			UserData: user.User{
 				Email:    row.Email,
 				Username: row.Username,
 			},

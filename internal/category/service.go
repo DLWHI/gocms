@@ -8,7 +8,6 @@ import (
 	"gocms/internal/errs"
 	"gocms/internal/logger"
 	"gocms/internal/outbox"
-	"gocms/internal/permissions"
 	"gocms/internal/search"
 	"strings"
 	"unicode"

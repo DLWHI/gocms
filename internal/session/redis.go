@@ -1,4 +1,4 @@
-package user
+package session
 
 import (
 	"context"
@@ -7,22 +7,21 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"gocms/internal/domain"
 	"gocms/internal/errs"
 	"time"
 
 	"github.com/redis/go-redis/v9"
-	"golang.org/x/sync/singleflight"
 )
 
-type RedisSessionStorage struct {
+type RedisRepository struct {
 	rdb    *redis.Client
 	ttl    time.Duration
 	revoke *redis.Script
-	group  singleflight.Group
 }
 
-func NewRedisSessionStorage(client *redis.Client, ttl time.Duration) *RedisSessionStorage {
-	return &RedisSessionStorage{
+func NewRedisRepository(client *redis.Client, ttl time.Duration) *RedisRepository {
+	return &RedisRepository{
 		rdb: client,
 		ttl: ttl,
 		revoke: redis.NewScript(`
@@ -54,54 +53,36 @@ func GenerateSessionID() (string, error) {
 	return base64.RawURLEncoding.EncodeToString(b), nil
 }
 
-func (s *RedisSessionStorage) Create(ctx context.Context, user *Model) (*Session, error) {
-	ch := s.group.DoChan(user.Username, func() (any, error) {
-		bg, cancel := context.WithTimeout(context.Background(), 20*time.Second)
-		defer cancel()
-
-		suid, err := GenerateSessionID()
-		if err != nil {
-			s.group.Forget(user.Username)
-			return nil, err
-		}
-
-		session := Session{
-			ID:   suid,
-			User: *user,
-		}
-
-		json, err := json.Marshal(session)
-		if err != nil {
-			s.group.Forget(user.Username)
-			return nil, err
-		}
-
-		sessionKey := fmt.Sprintf("cms:sessions:%s", suid)
-		userKey := fmt.Sprintf("cms:users:%s:session", user.Username)
-
-		keys := []string{userKey, sessionKey}
-		args := []interface{}{json, suid, int(s.ttl.Seconds())}
-
-		if err := s.revoke.Run(bg, s.rdb, keys, args...).Err(); err != nil {
-			s.group.Forget(user.Username)
-			return nil, err
-		}
-
-		return &session, nil
-	})
-
-	select {
-	case <-ctx.Done():
-		return nil, ctx.Err()
-	case res := <-ch:
-		if res.Err != nil {
-			return nil, res.Err
-		}
-		return res.Val.(*Session), nil
+func (s *RedisRepository) Create(ctx context.Context, user *domain.User) (*Session, error) {
+	suid, err := GenerateSessionID()
+	if err != nil {
+		return nil, err
 	}
+
+	session := Session{
+		ID:   suid,
+		User: *user,
+	}
+
+	json, err := json.Marshal(session)
+	if err != nil {
+		return nil, err
+	}
+
+	sessionKey := fmt.Sprintf("cms:sessions:%s", suid)
+	userKey := fmt.Sprintf("cms:users:%s:session", user.Username)
+
+	keys := []string{userKey, sessionKey}
+	args := []interface{}{json, suid, int(s.ttl.Seconds())}
+
+	if err := s.revoke.Run(ctx, s.rdb, keys, args...).Err(); err != nil {
+		return nil, err
+	}
+
+	return &session, nil
 }
 
-func (s *RedisSessionStorage) Update(ctx context.Context, user *Model) (*Session, error) {
+func (s *RedisRepository) Update(ctx context.Context, user *domain.User) (*Session, error) {
 	userKey := fmt.Sprintf("cms:users:%s:session", user.Username)
 
 	cached, err := s.rdb.Get(ctx, userKey).Result()
@@ -126,7 +107,8 @@ func (s *RedisSessionStorage) Update(ctx context.Context, user *Model) (*Session
 
 	sessionKey := fmt.Sprintf("cms:sessions:%s", session.ID)
 
-	elapsed := time.Since(*session.User.LastLogin)
+	login := time.Unix(*session.User.LastLogin, 0)
+	elapsed := time.Since(login)
 	if elapsed >= s.ttl {
 		expire := time.Now().Add(elapsed)
 		pipe := s.rdb.Pipeline()
@@ -140,7 +122,7 @@ func (s *RedisSessionStorage) Update(ctx context.Context, user *Model) (*Session
 	return &session, nil
 }
 
-func (s *RedisSessionStorage) Revoke(ctx context.Context, username string, suid string) error {
+func (s *RedisRepository) Revoke(ctx context.Context, username string, suid string) error {
 	keys := []string{
 		fmt.Sprintf("cms:sessions:%s", suid),
 		fmt.Sprintf("cms:users:%s:session", username),
@@ -151,7 +133,7 @@ func (s *RedisSessionStorage) Revoke(ctx context.Context, username string, suid 
 	return nil
 }
 
-func (s *RedisSessionStorage) RevokeID(ctx context.Context, suid string) error {
+func (s *RedisRepository) RevokeID(ctx context.Context, suid string) error {
 	sessionKey := fmt.Sprintf("cms:sessions:%s", suid)
 	cached, err := s.rdb.Get(ctx, sessionKey).Result()
 	if err != nil {
@@ -172,7 +154,7 @@ func (s *RedisSessionStorage) RevokeID(ctx context.Context, suid string) error {
 	return nil
 }
 
-func (s *RedisSessionStorage) RevokeUser(ctx context.Context, username string) error {
+func (s *RedisRepository) RevokeUser(ctx context.Context, username string) error {
 	userKey := fmt.Sprintf("cms:users:%s:session", username)
 	suid, err := s.rdb.Get(ctx, userKey).Result()
 	if err != nil {
@@ -189,7 +171,7 @@ func (s *RedisSessionStorage) RevokeUser(ctx context.Context, username string) e
 	return nil
 }
 
-func (s *RedisSessionStorage) Validate(ctx context.Context, suid string) (*Session, error) {
+func (s *RedisRepository) Validate(ctx context.Context, suid string) (*Session, error) {
 	key := fmt.Sprintf("cms:sessions:%s", suid)
 	cached, err := s.rdb.Get(ctx, key).Result()
 	if err != nil {

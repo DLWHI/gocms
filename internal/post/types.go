@@ -16,7 +16,7 @@ type Meta struct {
 	Views       uint             `json:"views" gorm:"not null;default:0"`
 	Preview     string           `json:"preview"`
 	Author      string           `json:"author" gorm:"size:64;"`
-	AuthorUser  user.Model       `json:"-" gorm:"foreignKey:Author;references:Username;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	AuthorUser  user.User        `json:"-" gorm:"foreignKey:Author;references:Username;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 	Categories  []category.Model `json:"-" gorm:"many2many:post_categories;foreignKey:ID;joinForeignKey:PostID;references:Slug;joinReferences:CategorySlug;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;"`
 	Version     uint             `json:"-" gorm:"default:1"`
 }

@@ -5,10 +5,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"gocms/internal/auth"
+	"gocms/internal/domain"
 	"gocms/internal/errs"
 	"gocms/internal/logger"
 	"gocms/internal/outbox"
-	"gocms/internal/permissions"
 	"gocms/internal/search"
 	"strings"
 	"time"
@@ -17,19 +18,15 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-const ()
-
 type Service struct {
-	repo     Repository
-	se       SearchEngine
-	sessions SessionManager
+	repo Repository
+	se   SearchEngine
 }
 
-func NewService(db Repository, se SearchEngine, sm SessionManager) *Service {
+func NewService(db Repository, se SearchEngine) *Service {
 	return &Service{
-		repo:     db,
-		se:       se,
-		sessions: sm,
+		repo: db,
+		se:   se,
 	}
 }
 
@@ -55,10 +52,10 @@ func (s *Service) IsAllowedUsername(ctx context.Context, value string) error {
 	}
 }
 
-func (s *Service) Register(ctx context.Context, user *Model) error {
+func (s *Service) Create(ctx context.Context, user *User) error {
 	level := ctx.Value("userperm")
 
-	if level == nil || !permissions.Has("users", "create", level.(uint32)) {
+	if level == nil || !auth.HasPermission("users", "create", level.(uint32)) {
 		clear(user.Passwd)
 		return errs.ErrPerm
 	}
@@ -85,7 +82,7 @@ func (s *Service) Register(ctx context.Context, user *Model) error {
 	}
 
 	user.Passwd = hash
-	user.Permissions = permissions.RoleEditor
+	user.Permissions = auth.RoleEditor
 
 	err = s.repo.Create(ctx, user)
 	clear(hash)
@@ -98,71 +95,18 @@ func (s *Service) Register(ctx context.Context, user *Model) error {
 	return nil
 }
 
-func (s *Service) Login(ctx context.Context, username string, passwd Bytes) (*Session, error) {
-	hash, err := s.repo.GetPasswdHash(ctx, username)
-	if err != nil {
-		if errors.Is(err, errs.ErrNotFound) {
-			return nil, errs.ErrCred
-		}
-		logger.Error("User.Service", "Failed to retrieve user credentials for login", err)
-		return nil, err
-	}
-
-	err = bcrypt.CompareHashAndPassword(hash, passwd)
-	clear(passwd)
-	clear(hash)
-	if err != nil {
-		return nil, errs.ErrCred
-	}
-
+func (s *Service) UpdateLogin(ctx context.Context, username string) (*Document, error) {
 	user, err := s.repo.UpdateLogin(ctx, username, time.Now())
 	if err != nil {
 		logger.Error("User.Service", "Failed to update the user's last login time", err)
 		return nil, err
 	}
 
-	session, err := s.sessions.Create(ctx, user)
-	if err != nil {
-		logger.Error("User.Service", "Failed to create a user session", err)
-		return nil, err
-	}
-
-	return session, nil
+	val := user.ToDocument()
+	return &val, nil
 }
 
-func (s *Service) Logout(ctx context.Context) error {
-	username := ctx.Value("username")
-	session := ctx.Value("session")
-
-	if username == nil || session == nil {
-		return nil
-	}
-
-	if err := s.sessions.Revoke(ctx, username.(string), session.(string)); err != nil {
-		logger.Error("User.Service", "Failed to revoke the user session", err)
-		return err
-	}
-	return nil
-}
-
-func (s *Service) CurrentUser(ctx context.Context) (*Model, error) {
-	username := ctx.Value("username")
-
-	if username == nil {
-		return nil, errs.ErrExpired
-	}
-
-	user, err := s.repo.Get(ctx, username.(string))
-	if err != nil {
-		logger.Error("User.Service", "Failed to retrieve the current user", err)
-		return nil, err
-	}
-	clear(user.Passwd)
-
-	return user, nil
-}
-
-func (s *Service) Get(ctx context.Context, username string) (*Model, error) {
+func (s *Service) Get(ctx context.Context, username string) (*Document, error) {
 	user, err := s.repo.Get(ctx, username)
 	if err != nil {
 		logger.Error("User.Service", "Failed to retrieve user", err)
@@ -170,7 +114,8 @@ func (s *Service) Get(ctx context.Context, username string) (*Model, error) {
 	}
 	clear(user.Passwd)
 
-	return user, nil
+	val := user.ToDocument()
+	return &val, nil
 }
 
 func (s *Service) Search(ctx context.Context, filters *SearchParams) (*SearchResult, error) {
@@ -184,7 +129,7 @@ func (s *Service) Search(ctx context.Context, filters *SearchParams) (*SearchRes
 	return users, nil
 }
 
-func (s *Service) All(ctx context.Context) ([]Model, error) {
+func (s *Service) All(ctx context.Context) ([]User, error) {
 
 	users, err := s.repo.GetAll(ctx)
 	if err != nil {
@@ -198,7 +143,7 @@ func (s *Service) All(ctx context.Context) ([]Model, error) {
 func (s *Service) Suspend(ctx context.Context, username string) error {
 	level := ctx.Value("userperm")
 
-	if level == nil || !permissions.Has("users", "delete", level.(uint32)) {
+	if level == nil || !auth.HasPermission("users", "delete", level.(uint32)) {
 		return errs.ErrPerm
 	}
 	if err := s.repo.Delete(ctx, username); err != nil {
@@ -206,9 +151,20 @@ func (s *Service) Suspend(ctx context.Context, username string) error {
 		return err
 	}
 
-	if err := s.sessions.RevokeUser(ctx, username); err != nil {
-		logger.Error("User.Service", "Failed to revoke the user's sessions after suspension", err)
+	return nil
+}
+
+func (s *Service) PasswordMatches(ctx context.Context, username string, passwd Password) error {
+	hash, err := s.repo.GetPasswdHash(ctx, username)
+	if err != nil {
+		logger.Error("User.Service", "Failed to retreive user's password", err)
 		return err
+	}
+
+	err = bcrypt.CompareHashAndPassword(hash, passwd)
+	clear(hash)
+	if err != nil {
+		return errs.ErrCred
 	}
 
 	return nil
@@ -221,7 +177,11 @@ func (s *Service) ChangeEmail(ctx context.Context, username string, email string
 		return errs.ErrPerm
 	}
 
-	if err := s.repo.UpdateEmail(ctx, username, email); err != nil {
+	diff := map[string]interface{}{
+		"email": email,
+	}
+
+	if _, err := s.repo.Update(ctx, username, diff); err != nil {
 		logger.Error("User.Service", "Failed to update the user's email address", err)
 		return err
 	}
@@ -229,66 +189,23 @@ func (s *Service) ChangeEmail(ctx context.Context, username string, email string
 	return nil
 }
 
-func (s *Service) ChangePasswd(ctx context.Context, username string, oldPwd Bytes, newPwd Bytes) error {
-	initiator := ctx.Value("username")
-
-	if initiator == nil || initiator.(string) != username {
-		return errs.ErrPerm
-	}
-
-	oldHash, err := s.repo.GetPasswdHash(ctx, username)
-	if err != nil {
-		logger.Error("User.Service", "Failed to retrieve the user's password for password change", err)
-		return err
-	}
-
-	err = bcrypt.CompareHashAndPassword(oldHash, oldPwd)
-	clear(oldPwd)
-	clear(oldHash)
-	if err != nil {
-		return errs.ErrPerm
-	}
-
-	newHash, err := bcrypt.GenerateFromPassword(newPwd, 12)
-	clear(newPwd)
-	if err != nil {
-		logger.Error("User.Service", "Failed to hash the new password", err)
-		return err
-	}
-
-	err = s.repo.UpdatePasswd(ctx, username, newHash)
-	clear(newHash)
-	if err != nil {
-		logger.Error("User.Service", "Failed to update the user's password", err)
-		return err
-	}
-
-	return nil
-}
-
-func (s *Service) ResetPasswd(ctx context.Context, username string, newPwd Bytes) error {
+func (s *Service) ChangePasswd(ctx context.Context, username string, passwd domain.Password) error {
 	level := ctx.Value("userperm")
 
-	if level == nil || !permissions.Has("users", "edit", level.(uint32)) {
+	if level == nil || !auth.HasPermission("users", "edit", level.(uint32)) {
 		return errs.ErrPerm
 	}
 
-	newHash, err := bcrypt.GenerateFromPassword(newPwd, 12)
-	clear(newPwd)
+	hash, err := bcrypt.GenerateFromPassword(passwd, 12)
 	if err != nil {
 		logger.Error("User.Service", "Failed to hash the replacement password", err)
 		return err
 	}
 
-	err = s.repo.UpdatePasswd(ctx, username, newHash)
-	clear(newHash)
+	err = s.repo.UpdatePasswd(ctx, username, hash)
+	clear(hash)
 	if err != nil {
 		logger.Error("User.Service", "Failed to reset the user's password", err)
-		return err
-	}
-
-	if err := s.sessions.RevokeUser(ctx, username); err != nil {
-		logger.Error("User.Service", "Failed to revoke the user's sessions after password reset", err)
 		return err
 	}
 
@@ -298,22 +215,19 @@ func (s *Service) ResetPasswd(ctx context.Context, username string, newPwd Bytes
 func (s *Service) ChangePermissions(ctx context.Context, username string, perms uint32) error {
 	level := ctx.Value("userperm").(uint32)
 
-	if !permissions.Has("users", "edit", level) {
+	if !auth.HasPermission("users", "edit", level) {
 		return errs.ErrPerm
 	}
 
-	user, err := s.repo.UpdatePermissions(ctx, username, perms)
-	if err != nil {
-		logger.Error("User.Service", "Failed to update user permissions", err)
+	diff := map[string]interface{}{
+		"permissions": perms,
+	}
+
+	if _, err := s.repo.Update(ctx, username, diff); err != nil {
+		logger.Error("User.Service", "Failed to update the user's email address", err)
 		return err
 	}
 
-	if _, err := s.sessions.Update(ctx, user); err != nil {
-		if !errors.Is(err, errs.ErrExpired) {
-			logger.Error("User.Service", "Failed to update the user's active session permissions", err)
-			return err
-		}
-	}
 	return nil
 }
 
@@ -331,7 +245,7 @@ func (s *Service) SyncSearch(ctx context.Context, action outbox.Event, data []by
 		return err
 	}
 
-	doc := user.ToDoc()
+	doc := user.ToDocument()
 	switch payload.Action {
 	case "create", "update":
 		if user.SuspendedAt.Valid {

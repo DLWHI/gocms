@@ -4,7 +4,6 @@ import (
 	"context"
 	"gocms/internal/errs"
 	"gocms/internal/logger"
-	"gocms/internal/permissions"
 )
 
 type Service struct {

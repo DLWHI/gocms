@@ -3,11 +3,12 @@ package main
 import (
 	"context"
 	"gocms/internal/analytics"
+	"gocms/internal/auth"
 	"gocms/internal/logger"
 	"gocms/internal/outbox"
 	"gocms/internal/public"
 	"gocms/internal/runner"
-	"gocms/internal/user"
+	"gocms/internal/session"
 	"log/slog"
 	"sync"
 	"time"
@@ -71,16 +72,18 @@ func (app *Container) Init(ctx context.Context, cfg Config) error {
 		return err
 	}
 
-	sessions := user.NewRedisSessionStorage(redis, 24*time.Hour)
-
 	categories := NewCategoryBundle(db, search, redis)
-	users := NewUserBundle(db, search, redis, sessions)
+	users := NewUserBundle(db, search, redis)
 	posts := NewPostBundle(db, search, redis)
 	ads := NewAdsBundle(db, search, redis)
 	editors := NewEditorBundle(db, search, redis)
 	locales := NewLocaleBundle(db, redis)
 
 	views := analytics.NewRedisCounter(app.Redis, posts.Service)
+
+	sessions := session.NewRedisRepository(redis, 24*time.Hour)
+	authService := auth.NewService(users.Service, sessions)
+	authHandler := auth.NewHandler(authService)
 
 	publicHandler := public.NewHandler(
 		posts.Service,
@@ -95,6 +98,7 @@ func (app *Container) Init(ctx context.Context, cfg Config) error {
 
 	router := NewRouter(sessions)
 
+	router.AddAuthRoutes(authHandler)
 	router.AddPostRoutes(posts.Handler)
 	router.AddUserRoutes(users.Handler)
 	router.AddCategoryRoutes(categories.Handler)

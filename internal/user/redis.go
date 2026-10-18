@@ -37,7 +37,7 @@ func NewRedisRepository(db Repository, config *RedisConfig) *RedisRepository {
 	}
 }
 
-func (r *RedisRepository) Create(ctx context.Context, user *Model) error {
+func (r *RedisRepository) Create(ctx context.Context, user *User) error {
 	if err := r.origin.Create(ctx, user); err != nil {
 		return err
 	}
@@ -48,7 +48,7 @@ func (r *RedisRepository) Create(ctx context.Context, user *Model) error {
 	return nil
 }
 
-func (r *RedisRepository) UpdateLogin(ctx context.Context, username string, timestamp time.Time) (*Model, error) {
+func (r *RedisRepository) UpdateLogin(ctx context.Context, username string, timestamp time.Time) (*User, error) {
 	user, err := r.origin.UpdateLogin(ctx, username, timestamp)
 	if err != nil {
 		return nil, err
@@ -64,8 +64,12 @@ func (r *RedisRepository) UpdateLogin(ctx context.Context, username string, time
 	return user, nil
 }
 
-func (r *RedisRepository) UpdatePermissions(ctx context.Context, username string, permissions uint32) (*Model, error) {
-	user, err := r.origin.UpdatePermissions(ctx, username, permissions)
+func (r *RedisRepository) UpdatePasswd(ctx context.Context, username string, pwdhash Password) error {
+	return r.origin.UpdatePasswd(ctx, username, pwdhash)
+}
+
+func (r *RedisRepository) Update(ctx context.Context, username string, diff map[string]interface{}) (*User, error) {
+	user, err := r.origin.Update(ctx, username, diff)
 	if err != nil {
 		return nil, err
 	}
@@ -80,28 +84,8 @@ func (r *RedisRepository) UpdatePermissions(ctx context.Context, username string
 	return user, nil
 }
 
-func (r *RedisRepository) UpdatePasswd(ctx context.Context, username string, pwdhash Bytes) error {
-	return r.origin.UpdatePasswd(ctx, username, pwdhash)
-}
-
-func (r *RedisRepository) UpdateEmail(ctx context.Context, username string, email string) error {
-	err := r.origin.UpdateEmail(ctx, username, email)
-	if err != nil {
-		return err
-	}
-	key := fmt.Sprintf(r.keyFormat, username)
-	if _, err := r.rdb.Del(ctx, key).Result(); err != nil {
-		logger.Warn("User.Redis", "Failed to delete from cache.", err)
-	}
-	allKey := fmt.Sprintf(r.keyFormat, "__all")
-	if _, err := r.rdb.Del(ctx, allKey).Result(); err != nil {
-		logger.Warn("User.Redis", "Failed to delete from cache.", err)
-	}
-	return nil
-}
-
-func (r *RedisRepository) Get(ctx context.Context, username string) (*Model, error) {
-	var user Model
+func (r *RedisRepository) Get(ctx context.Context, username string) (*User, error) {
+	var user User
 	key := fmt.Sprintf(r.keyFormat, username)
 
 	if err := cache.UnmarshalRedisKey(r.rdb, ctx, key, &user); err != nil {
@@ -139,14 +123,14 @@ func (r *RedisRepository) Get(ctx context.Context, username string) (*Model, err
 		if res.Err != nil {
 			return nil, res.Err
 		}
-		user = *res.Val.(*Model)
+		user = *res.Val.(*User)
 	}
 
 	return &user, nil
 }
 
-func (r *RedisRepository) GetAll(ctx context.Context) ([]Model, error) {
-	var users []Model
+func (r *RedisRepository) GetAll(ctx context.Context) ([]User, error) {
+	var users []User
 	key := fmt.Sprintf(r.keyFormat, "__all")
 	ch := r.group.DoChan(key, func() (any, error) {
 		bg, cancel := context.WithTimeout(context.Background(), 20*time.Second)
@@ -171,13 +155,13 @@ func (r *RedisRepository) GetAll(ctx context.Context) ([]Model, error) {
 		if res.Err != nil {
 			return nil, res.Err
 		}
-		users = res.Val.([]Model)
+		users = res.Val.([]User)
 	}
 
 	return users, nil
 }
 
-func (r *RedisRepository) GetPasswdHash(ctx context.Context, username string) (Bytes, error) {
+func (r *RedisRepository) GetPasswdHash(ctx context.Context, username string) (Password, error) {
 	return r.origin.GetPasswdHash(ctx, username)
 }
 

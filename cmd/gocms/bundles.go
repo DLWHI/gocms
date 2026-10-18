@@ -61,7 +61,7 @@ type LocaleBundle struct {
 	GORMRepo  *locale.GORMRepository
 }
 
-func NewUserBundle(db *gorm.DB, search meilisearch.ServiceManager, redis *redis.Client, sessions user.SessionManager) *UserBundle {
+func NewUserBundle(db *gorm.DB, search meilisearch.ServiceManager, redis *redis.Client) *UserBundle {
 	redisCfg := user.RedisConfig{
 		Client:    redis,
 		Ttl:       30 * time.Minute,
@@ -71,7 +71,7 @@ func NewUserBundle(db *gorm.DB, search meilisearch.ServiceManager, redis *redis.
 	repo := user.NewGORMRepository(db)
 	cacheRepo := user.NewRedisRepository(repo, &redisCfg)
 	searchEngine := user.NewMeilisearchEngine(search, "users")
-	service := user.NewService(cacheRepo, searchEngine, sessions)
+	service := user.NewService(cacheRepo, searchEngine)
 	handler := user.NewHandler(service)
 	return &UserBundle{
 		Service:           service,

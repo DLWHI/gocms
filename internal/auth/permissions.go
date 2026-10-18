@@ -1,4 +1,4 @@
-package permissions
+package auth
 
 var actions = map[string]uint32{
 	"delete": 0x04,
@@ -32,7 +32,7 @@ func GetActions() map[string]uint32 {
 	return actions
 }
 
-func Has(entity string, action string, level uint32) bool {
+func HasPermission(entity string, action string, level uint32) bool {
 	if offset, exists := entites[entity]; exists {
 		mask := actions[action]
 		if mask != 0 {

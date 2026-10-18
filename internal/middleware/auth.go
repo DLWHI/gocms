@@ -7,8 +7,8 @@ import (
 	"fmt"
 	"gocms/internal/errs"
 	"gocms/internal/logger"
+	"gocms/internal/session"
 	"gocms/internal/tokens"
-	"gocms/internal/user"
 	"net/http"
 	"strings"
 
@@ -23,7 +23,7 @@ type JWTAuth struct {
 }
 
 type SessionAuth struct {
-	provider user.SessionManager
+	provider session.Repository
 }
 
 type TestAuth struct {
@@ -37,7 +37,7 @@ func NewJWTAuth(jwtSecret *rsa.PublicKey) *JWTAuth {
 	}
 }
 
-func NewSessionAuth(provider user.SessionManager) *SessionAuth {
+func NewSessionAuth(provider session.Repository) *SessionAuth {
 	return &SessionAuth{
 		provider: provider,
 	}

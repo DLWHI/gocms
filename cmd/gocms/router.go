@@ -2,12 +2,14 @@ package main
 
 import (
 	"gocms/internal/ads"
+	"gocms/internal/auth"
 	"gocms/internal/category"
 	"gocms/internal/editor"
 	"gocms/internal/locale"
 	"gocms/internal/middleware"
 	"gocms/internal/post"
 	"gocms/internal/public"
+	"gocms/internal/session"
 	"gocms/internal/storage"
 	"gocms/internal/user"
 	"net/http"
@@ -24,7 +26,7 @@ type Router struct {
 	auth middleware.Middleware
 }
 
-func NewRouter(provider user.SessionManager) *Router {
+func NewRouter(provider session.Repository) *Router {
 	return &Router{
 		mux:  http.NewServeMux(),
 		auth: middleware.NewSessionAuth(provider).Wrap,
@@ -35,7 +37,7 @@ func (router *Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	router.mux.ServeHTTP(w, r)
 }
 
-func (router *Router) AddUserRoutes(handler *user.Handler) {
+func (router *Router) AddAuthRoutes(handler *auth.Handler) {
 	limiter := middleware.NewRequestLimiter(RequestLimit)
 	m := middleware.Chain(
 		limiter.Wrap,
@@ -43,15 +45,25 @@ func (router *Router) AddUserRoutes(handler *user.Handler) {
 	)
 
 	router.mux.Handle("POST /cms/login", limiter.Wrap(handler.Login))
-	router.mux.Handle("POST /cms/register", m(handler.Register))
+	router.mux.Handle("PATCH /cms/passwd", m(handler.ChangePasswd))
 	router.mux.Handle("POST /cms/logout", m(handler.Logout))
 	router.mux.Handle("GET /cms/profile", m(handler.Profile))
+	// router.mux.Handle("POST /cms/profile", m(handler.Update))
 	router.mux.Handle("GET /cms/permissions", m(handler.Permissions))
+}
+
+func (router *Router) AddUserRoutes(handler *user.Handler) {
+	limiter := middleware.NewRequestLimiter(RequestLimit)
+	m := middleware.Chain(
+		limiter.Wrap,
+		router.auth,
+	)
+
+	router.mux.Handle("POST /cms/users", m(handler.Create))
 	router.mux.Handle("POST /cms/users/search", m(handler.Search))
 	router.mux.Handle("GET /cms/users", m(handler.All))
 	router.mux.Handle("GET /cms/users/{username}", m(handler.Get))
 	router.mux.Handle("PATCH /cms/users/{username}/email", m(handler.ChangeEmail))
-	router.mux.Handle("PATCH /cms/users/{username}/change", m(handler.ChangePasswd))
 	router.mux.Handle("PATCH /cms/users/{username}/reset", m(handler.ResetPasswd))
 	router.mux.Handle("PATCH /cms/users/{username}/permissions", m(handler.UpdatePermissions))
 	router.mux.Handle("DELETE /cms/users/{username}", m(handler.Suspend))

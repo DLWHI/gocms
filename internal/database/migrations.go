@@ -16,7 +16,7 @@ func SoftMigrate(db *gorm.DB) error {
 
 	err := db.AutoMigrate(
 		&ads.Model{},
-		&user.Model{},
+		&user.User{},
 		&editor.Model{},
 		&post.Meta{},
 		&post.Translation{},
@@ -46,7 +46,7 @@ func HardMigrate(db *gorm.DB) error {
 		&ads.Model{},
 		&locale.Model{},
 		&editor.Model{},
-		&user.Model{},
+		&user.User{},
 		&post.Meta{},
 		&post.Translation{},
 		&category.Model{},

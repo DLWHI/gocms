@@ -2,27 +2,18 @@ package user
 
 import (
 	"context"
-	"encoding/json"
+	"gocms/internal/domain"
 	"gocms/internal/search"
 	"time"
 
 	"gorm.io/gorm"
 )
 
-type Bytes []byte
+type Password = domain.Password
 
-func (p *Bytes) UnmarshalJSON(data []byte) error {
-	var s string
-	if err := json.Unmarshal(data, &s); err != nil {
-		return err
-	}
-	*p = Bytes(s)
-	return nil
-}
-
-type Model struct {
+type User struct {
 	Username    string         `json:"username" gorm:"primaryKey;size:64;"`
-	Passwd      Bytes          `json:"passwd,omitempty" gorm:"not null"`
+	Passwd      Password       `json:"passwd,omitempty" gorm:"not null"`
 	Email       string         `json:"email"`
 	Permissions uint32         `json:"permissions" gorm:"default:0"` // PermCreate
 	SuspendedAt gorm.DeletedAt `json:"suspended_at"`
@@ -30,18 +21,7 @@ type Model struct {
 	Version     uint           `json:"-" gorm:"default:0"`
 }
 
-type Session struct {
-	ID   string `json:"session_id"`
-	User Model  `json:"user"`
-}
-
-type Document struct {
-	Username    string `json:"username"`
-	Email       string `json:"email"`
-	Permissions uint32 `json:"permissions"`
-	SuspendedAt *int64 `json:"suspended_at"`
-	LastLogin   *int64 `json:"last_login"`
-}
+type Document = domain.User
 
 type MessagePayload struct {
 	Username string `json:"username"`
@@ -61,14 +41,13 @@ type SearchParams struct {
 type SearchResult = search.Result[Document]
 
 type Repository interface {
-	Create(ctx context.Context, user *Model) error
-	UpdateLogin(ctx context.Context, username string, timestamp time.Time) (*Model, error)
-	UpdatePermissions(ctx context.Context, username string, permissions uint32) (*Model, error)
-	UpdateEmail(ctx context.Context, username string, email string) error
-	UpdatePasswd(ctx context.Context, username string, pwdhash Bytes) error
-	Get(ctx context.Context, username string) (*Model, error)
-	GetAll(ctx context.Context) ([]Model, error)
-	GetPasswdHash(ctx context.Context, username string) (Bytes, error)
+	Create(ctx context.Context, user *User) error
+	UpdateLogin(ctx context.Context, username string, timestamp time.Time) (*User, error)
+	Update(ctx context.Context, username string, diff map[string]interface{}) (*User, error)
+	UpdatePasswd(ctx context.Context, username string, pwdhash Password) error
+	Get(ctx context.Context, username string) (*User, error)
+	GetAll(ctx context.Context) ([]User, error)
+	GetPasswdHash(ctx context.Context, username string) (Password, error)
 	Delete(ctx context.Context, username string) error
 }
 
@@ -79,20 +58,7 @@ type SearchEngine interface {
 	Delete(ctx context.Context, username string, timestamp int64) error
 }
 
-type SessionManager interface {
-	Create(ctx context.Context, user *Model) (*Session, error)
-	Update(ctx context.Context, user *Model) (*Session, error)
-	Revoke(ctx context.Context, username string, suid string) error
-	RevokeID(ctx context.Context, suid string) error
-	RevokeUser(ctx context.Context, username string) error
-	Validate(ctx context.Context, suid string) (*Session, error)
-}
-
-func (Model) TableName() string {
-	return "users"
-}
-
-func (um *Model) ToDoc() Document {
+func (um *User) ToDocument() Document {
 	var ud Document
 
 	if um.SuspendedAt.Valid {
@@ -111,8 +77,8 @@ func (um *Model) ToDoc() Document {
 	return ud
 }
 
-func (ud *Document) ToModel() Model {
-	var um Model
+func ToDomain(ud *Document) User {
+	var um User
 	if ud.SuspendedAt != nil {
 		um.SuspendedAt = gorm.DeletedAt{
 			Time:  time.Unix(*ud.SuspendedAt, 0).UTC(),
@@ -129,4 +95,8 @@ func (ud *Document) ToModel() Model {
 	um.Email = ud.Email
 	um.Permissions = ud.Permissions
 	return um
+}
+
+func (User) TableName() string {
+	return "users"
 }

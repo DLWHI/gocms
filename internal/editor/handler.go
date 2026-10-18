@@ -59,7 +59,7 @@ func (h *Handler) search(w http.ResponseWriter, r *http.Request) {
 
 // GET /editors - Get all editors
 func (h *Handler) all(w http.ResponseWriter, r *http.Request) {
-	editors, err := h.editorService.All(r.Context())
+	editors, err := h.editorService.All(r.Context(), nil)
 	if err != nil {
 		errs.ServeMessage(w, "Editor", err)
 		return

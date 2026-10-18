@@ -107,11 +107,11 @@ func CreateUser(ctx context.Context, app *Container) error {
 		}
 	}
 
-	if err := svc.Register(ctx, &user.Model{
+	user := user.Document{
 		Username:    username,
-		Passwd:      passwd,
 		Permissions: permissions,
-	}); err != nil {
+	}
+	if err := svc.Register(ctx, &user, passwd); err != nil {
 		logger.Error("User create", "Failed to register new user", err)
 		return err
 	}

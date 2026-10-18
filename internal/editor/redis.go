@@ -45,6 +45,14 @@ func (r *RedisRepository) Create(ctx context.Context, editor *Model) error {
 	if _, err := r.rdb.Del(ctx, allKey).Result(); err != nil {
 		logger.Warn("Editor.Redis", "Failed to delete from cache.", err)
 	}
+	suspendedKey := fmt.Sprintf(r.keyFormat, "__dead", "*")
+	if err := cache.EraseRedisKeyPattern(r.rdb, ctx, suspendedKey); err != nil {
+		logger.Warn("Editor.Redis", "Failed to invalidate cached entries.", err)
+	}
+	notSuspendedKey := fmt.Sprintf(r.keyFormat, "__!dead", "*")
+	if err := cache.EraseRedisKeyPattern(r.rdb, ctx, notSuspendedKey); err != nil {
+		logger.Warn("Editor.Redis", "Failed to invalidate cached entries.", err)
+	}
 	return nil
 }
 
@@ -60,6 +68,14 @@ func (r *RedisRepository) Update(ctx context.Context, editor *Model) error {
 	allKey := fmt.Sprintf(r.keyFormat, "__all", editor.Locale)
 	if _, err := r.rdb.Del(ctx, allKey).Result(); err != nil {
 		logger.Warn("Editor.Redis", "Failed to delete from cache.", err)
+	}
+	suspendedKey := fmt.Sprintf(r.keyFormat, "__dead", "*")
+	if err := cache.EraseRedisKeyPattern(r.rdb, ctx, suspendedKey); err != nil {
+		logger.Warn("Editor.Redis", "Failed to invalidate cached entries.", err)
+	}
+	notSuspendedKey := fmt.Sprintf(r.keyFormat, "__!dead", "*")
+	if err := cache.EraseRedisKeyPattern(r.rdb, ctx, notSuspendedKey); err != nil {
+		logger.Warn("Editor.Redis", "Failed to invalidate cached entries.", err)
 	}
 	return nil
 }
@@ -108,9 +124,18 @@ func (r *RedisRepository) Get(ctx context.Context, username string, locale strin
 	return &editor, nil
 }
 
-func (r *RedisRepository) GetAll(ctx context.Context, locale string) ([]Model, error) {
+func (r *RedisRepository) GetAll(ctx context.Context, locale string, suspended *bool) ([]Model, error) {
 	var editors []Model
-	key := fmt.Sprintf(r.keyFormat, "__all", locale)
+	key := ""
+	if suspended != nil {
+		if *suspended {
+			key = fmt.Sprintf(r.keyFormat, "__dead", locale)
+		} else {
+			key = fmt.Sprintf(r.keyFormat, "__!dead", locale)
+		}
+	} else {
+		key = fmt.Sprintf(r.keyFormat, "__all", locale)
+	}
 
 	if err := cache.UnmarshalRedisKey(r.rdb, ctx, key, &editors); err != nil {
 		if !errors.Is(err, redis.Nil) {
@@ -124,7 +149,7 @@ func (r *RedisRepository) GetAll(ctx context.Context, locale string) ([]Model, e
 		bg, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 		defer cancel()
 
-		editors, err := r.origin.GetAll(bg, locale)
+		editors, err := r.origin.GetAll(bg, locale, suspended)
 		if err != nil {
 			if !errors.Is(err, errs.ErrNotFound) {
 				r.group.Forget(key)
@@ -165,6 +190,14 @@ func (r *RedisRepository) Delete(ctx context.Context, username string) error {
 
 	allKey := fmt.Sprintf(r.keyFormat, "__all", "*")
 	if err := cache.EraseRedisKeyPattern(r.rdb, ctx, allKey); err != nil {
+		logger.Warn("Editor.Redis", "Failed to invalidate cached entries.", err)
+	}
+	suspendedKey := fmt.Sprintf(r.keyFormat, "__dead", "*")
+	if err := cache.EraseRedisKeyPattern(r.rdb, ctx, suspendedKey); err != nil {
+		logger.Warn("Editor.Redis", "Failed to invalidate cached entries.", err)
+	}
+	notSuspendedKey := fmt.Sprintf(r.keyFormat, "__!dead", "*")
+	if err := cache.EraseRedisKeyPattern(r.rdb, ctx, notSuspendedKey); err != nil {
 		logger.Warn("Editor.Redis", "Failed to invalidate cached entries.", err)
 	}
 

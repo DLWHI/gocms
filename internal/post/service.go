@@ -153,6 +153,28 @@ func (s *Service) SetViews(ctx context.Context, id uint, value uint) error {
 func (s *Service) Search(ctx context.Context, filters *SearchParams) (*SearchResult, error) {
 	search.ClampParams(&filters.Params)
 
+	if filters.Locale == "" {
+		locale := ctx.Value("locale")
+		if locale == nil {
+			return nil, fmt.Errorf("%w: empty locale", errs.ErrInval)
+		}
+
+		filters.Locale = locale.(string)
+	}
+
+	filters.Select = []string{
+		"post_id",
+		"title",
+		"description",
+		"slug",
+		"locale",
+		"published_at",
+		"views",
+		"preview",
+		"author",
+		"categories",
+	}
+
 	posts, err := s.se.Search(ctx, filters)
 	if err != nil {
 		logger.Error("Post.Service", "Failed to search posts", err)

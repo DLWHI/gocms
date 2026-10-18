@@ -201,23 +201,11 @@ func (r *MeilisearchEngine) DeleteTranslation(ctx context.Context, id uint, loca
 func (r *MeilisearchEngine) Search(ctx context.Context, params *SearchParams) (*SearchResult, error) {
 	var results SearchResult
 	req := &meilisearch.SearchRequest{
-		HitsPerPage: &params.Count,
-		Page:        params.Page,
-		Filter:      buildFilter(params),
-		Sort:        buildSort(params),
-		AttributesToRetrieve: []string{
-			"post_id",
-			"title",
-			"description",
-			"slug",
-			"locale",
-			"created_at",
-			"published_at",
-			"views",
-			"preview",
-			"author",
-			"categories",
-		},
+		HitsPerPage:          &params.Count,
+		Page:                 params.Page,
+		Filter:               buildFilter(params),
+		Sort:                 buildSort(params),
+		AttributesToRetrieve: params.Select,
 	}
 	index := r.se.Index(r.idx)
 

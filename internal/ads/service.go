@@ -118,26 +118,12 @@ func (s *Service) GetGroup(ctx context.Context, group string) ([]Doc, error) {
 	}
 
 	ads := make([]Doc, 0, len(model))
-
-	for _, ad := range model {
-		ads = append(ads, ad.ToDoc())
-	}
-
-	return ads, nil
-}
-
-func (s *Service) GetGroupUnexpired(ctx context.Context, group string) ([]Doc, error) {
-	model, err := s.repo.GetGroup(ctx, group)
-	if err != nil {
-		logger.Error("Ads.Service", "Failed to retrieve unexpired advertisements", err)
-		return nil, err
-	}
-
-	ads := make([]Doc, 0, len(model))
-
 	now := time.Now()
 	for _, ad := range model {
 		if ad.ExpiresAt == nil || ad.ExpiresAt.After(now) {
+			ad.ID = 0
+			ad.ExpiresAt = nil
+			ad.Description = ""
 			ads = append(ads, ad.ToDoc())
 		}
 	}

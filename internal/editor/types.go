@@ -19,13 +19,13 @@ type Model struct {
 }
 
 type Document struct {
-	ID          string `json:"id"`
-	User        string `json:"username"`
+	ID          string `json:"id,omitempty"`
+	User        string `json:"username,omitempty"`
 	Email       string `json:"email"`
-	Bio         string `json:"bio"`
+	Bio         string `json:"bio,omitempty"`
 	Name        string `json:"name"`
 	Locale      string `json:"locale"`
-	SuspendedAt *int64 `json:"suspended_at"`
+	SuspendedAt *int64 `json:"suspended_at,omitempty"`
 }
 
 type MessagePayload struct {
@@ -49,7 +49,7 @@ type Repository interface {
 	Create(ctx context.Context, editor *Model) error
 	Update(ctx context.Context, editor *Model) error
 	Get(ctx context.Context, username string, locale string) (*Model, error)
-	GetAll(ctx context.Context, locale string) ([]Model, error)
+	GetAll(ctx context.Context, locale string, suspended *bool) ([]Model, error)
 	Delete(ctx context.Context, username string) error
 }
 
@@ -76,6 +76,7 @@ func (em *Model) ToDoc() Document {
 	ed.Email = em.UserData.Email
 	ed.Name = em.Name
 	ed.Locale = em.Locale
+	ed.Bio = em.Bio
 	return ed
 }
 
@@ -92,6 +93,7 @@ func (ed *Document) ToModel() Model {
 	em.User = ed.User
 	em.Locale = ed.Locale
 	em.Name = ed.Name
+	em.Bio = ed.Bio
 	em.UserData.Username = ed.User
 	em.UserData.Email = ed.Email
 	return em

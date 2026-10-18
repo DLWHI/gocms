@@ -147,31 +147,18 @@ func (r *GORMRepository) Get(ctx context.Context, slug string, locale string) (*
 	}, nil
 }
 
-func (r *GORMRepository) GetAll(ctx context.Context, locale string) ([]Translation, error) {
+func (r *GORMRepository) GetAll(ctx context.Context, locale string, hidden *bool) ([]Translation, error) {
 	categories := make([]Translation, 0)
 
-	err := r.db.WithContext(ctx).Model(&Translation{}).
+	query := r.db.WithContext(ctx).Model(&Translation{}).
 		Preload("Category").
-		Where("locale = ?", locale).
-		Find(&categories).Error
-	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, errs.ErrNotFound
-		}
-		return nil, err
+		Where("locale = ?", locale)
+
+	if hidden != nil {
+		query = query.Where("hidden = ?", *hidden)
 	}
 
-	return categories, nil
-}
-
-func (r *GORMRepository) GetNotHidden(ctx context.Context, locale string) ([]Translation, error) {
-	categories := make([]Translation, 0)
-
-	err := r.db.WithContext(ctx).Model(&Translation{}).
-		Preload("Category").
-		Where("locale = ? AND hidden != FALSE", locale).
-		Find(&categories).Error
-	if err != nil {
+	if err := query.Find(&categories).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, errs.ErrNotFound
 		}

@@ -58,7 +58,7 @@ func (h *Handler) search(w http.ResponseWriter, r *http.Request) {
 
 // GET /categories - Get all categories
 func (h *Handler) all(w http.ResponseWriter, r *http.Request) {
-	categories, err := h.categoryService.All(r.Context())
+	categories, err := h.categoryService.All(r.Context(), nil)
 	if err != nil {
 		errs.ServeMessage(w, "Category", err)
 		return

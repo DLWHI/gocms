@@ -42,22 +42,22 @@ type MessagePayload struct {
 }
 
 type Document struct {
-	ID          string   `json:"id"`
+	ID          string   `json:"id,omitempty"`
 	PostID      uint     `json:"post_id"`
 	Title       string   `json:"title"`
-	Description string   `json:"description;omitempty"`
-	Markdown    string   `json:"markdown;omitempty"`
+	Description string   `json:"description,omitempty"`
+	Markdown    string   `json:"markdown,omitempty"`
 	Slug        string   `json:"slug"`
-	Keywords    string   `json:"keywords;omitempty"`
+	Keywords    string   `json:"keywords,omitempty"`
 	Locale      string   `json:"locale"`
-	CreatedAt   int64    `json:"created_at;omitempty"`
+	CreatedAt   int64    `json:"created_at,omitempty"`
 	PublishedAt *int64   `json:"published_at"`
 	Views       uint     `json:"views"`
 	Preview     string   `json:"preview"`
-	Media       string   `json:"media;omitempty"`
-	MediaSource string   `json:"media_source;omitempty"`
-	MediaType   string   `json:"media_type;omitempty"`
-	Author      string   `json:"author;omitempty"`
+	Media       string   `json:"media,omitempty"`
+	MediaSource string   `json:"media_source,omitempty"`
+	MediaType   string   `json:"media_type,omitempty"`
+	Author      string   `json:"author,omitempty"`
 	Categories  []string `json:"categories"`
 }
 
@@ -73,6 +73,7 @@ type SearchParams struct {
 	PublishedAfter    *time.Time `json:"published_after,omitempty"`
 	PublishedBefore   *time.Time `json:"published_before,omitempty"`
 	Published         *bool      `json:"published,omitempty"`
+	Select            []string   `json:"select,omitempty"`
 }
 
 type SearchResult = search.Result[Document]

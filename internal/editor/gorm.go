@@ -102,12 +102,13 @@ func (r *GORMRepository) Get(ctx context.Context, username string, locale string
 		Username string
 		Name     string
 		Locale   string
+		Bio      string
 		Email    string
 	}
 
 	err := r.db.WithContext(ctx).
 		Table("users AS u").
-		Select("u.username, u.email, e.name, e.locale").
+		Select("u.username, u.email, e.name, e.locale, e.bio").
 		Joins("INNER JOIN editors AS e ON e.user = u.username AND e.locale = ?", locale).
 		Where("u.username = ? AND u.suspended_at IS NULL", username).
 		Take(&res).Error
@@ -122,6 +123,7 @@ func (r *GORMRepository) Get(ctx context.Context, username string, locale string
 		Locale: locale,
 		Name:   res.Name,
 		User:   res.Username,
+		Bio:    res.Bio,
 		UserData: user.Model{
 			Email:    res.Email,
 			Username: res.Username,
@@ -129,22 +131,43 @@ func (r *GORMRepository) Get(ctx context.Context, username string, locale string
 	}, nil
 }
 
-func (r *GORMRepository) GetAll(ctx context.Context, locale string) ([]Model, error) {
-	editors := make([]Model, 0)
+func (r *GORMRepository) GetAll(ctx context.Context, locale string, suspended *bool) ([]Model, error) {
+	var res []struct {
+		Username string
+		Name     string
+		Locale   string
+		Email    string
+	}
 
-	err := r.db.WithContext(ctx).
-		Model(&Model{}).
-		Omit("version").
-		Preload("UserData", func(db *gorm.DB) *gorm.DB {
-			return db.Omit("passwd", "version")
-		}).
-		Where("locale = ?", locale).
-		Find(&editors).Error
-	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, errs.ErrNotFound
+	query := r.db.WithContext(ctx).
+		Table("users AS u").
+		Select("u.username, u.email, e.name, e.locale").
+		Joins("INNER JOIN editors AS e ON e.user = u.username AND e.locale = ?", locale)
+
+	if suspended != nil {
+		if *suspended {
+			query = query.Where("u.suspended_at IS NOT NULL", *suspended)
+		} else {
+			query = query.Where("u.suspended_at IS NULL", *suspended)
 		}
+	}
+
+	if err := query.Find(&res).Error; err != nil {
 		return nil, err
+	}
+
+	editors := make([]Model, 0, len(res))
+
+	for _, row := range res {
+		editors = append(editors, Model{
+			Locale: locale,
+			Name:   row.Name,
+			User:   row.Username,
+			UserData: user.Model{
+				Email:    row.Email,
+				Username: row.Username,
+			},
+		})
 	}
 
 	return editors, nil

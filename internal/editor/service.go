@@ -91,13 +91,13 @@ func (s *Service) Get(ctx context.Context, username string) (*Document, error) {
 	return &doc, nil
 }
 
-func (s *Service) All(ctx context.Context) ([]Document, error) {
+func (s *Service) All(ctx context.Context, suspended *bool) ([]Document, error) {
 	locale := ctx.Value("locale")
 	if locale == nil {
 		return nil, fmt.Errorf("%w: empty locale", errs.ErrInval)
 	}
 
-	model, err := s.repo.GetAll(ctx, locale.(string))
+	model, err := s.repo.GetAll(ctx, locale.(string), suspended)
 	if err != nil {
 		logger.Error("Editor.Service", "Failed to list editor profiles", err)
 		return nil, err

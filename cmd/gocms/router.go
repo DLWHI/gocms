@@ -152,8 +152,8 @@ func (router *Router) AddStorageRoutes(handler *storage.Handler) {
 	router.mux.Handle("GET /storage/media/{path...}", requestLimiter.Wrap(handler.Get))
 	router.mux.Handle("PUT /storage/media/{path...}", s(handler.Upload))
 	router.mux.Handle("DELETE /storage/media/{path...}", m(handler.Delete))
-	router.mux.Handle("POST /storage/folders", m(handler.Folder))
-	router.mux.Handle("GET /storage/preview/{path...}", requestLimiter.Wrap(handler.Get))
+	router.mux.Handle("PUT /storage/folders/{path...}", m(handler.Folder))
+	router.mux.Handle("GET /storage/preview/{path...}", requestLimiter.Wrap(handler.Preview))
 }
 
 func (router *Router) AddPublicoutes(handler *public.Handler) {

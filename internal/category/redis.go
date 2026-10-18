@@ -49,6 +49,10 @@ func (r *RedisRepository) Create(ctx context.Context, category *Translation) err
 	if err := cache.EraseRedisKeyPattern(r.rdb, ctx, notHiddenKey); err != nil {
 		logger.Warn("Category.Redis", "Failed to invalidate cached entries.", err)
 	}
+	hiddenKey := fmt.Sprintf(r.keyFormat, "__hidden", "*")
+	if err := cache.EraseRedisKeyPattern(r.rdb, ctx, hiddenKey); err != nil {
+		logger.Warn("Category.Redis", "Failed to invalidate cached entries.", err)
+	}
 	return nil
 }
 
@@ -69,6 +73,10 @@ func (r *RedisRepository) Update(ctx context.Context, category *Translation) err
 	notHiddenKey := fmt.Sprintf(r.keyFormat, "__!hidden", category.Locale)
 	if _, err := r.rdb.Del(ctx, notHiddenKey).Result(); err != nil {
 		logger.Warn("Category.Redis", "Failed to delete from cache.", err)
+	}
+	hiddenKey := fmt.Sprintf(r.keyFormat, "__hidden", "*")
+	if err := cache.EraseRedisKeyPattern(r.rdb, ctx, hiddenKey); err != nil {
+		logger.Warn("Category.Redis", "Failed to invalidate cached entries.", err)
 	}
 	return nil
 }
@@ -117,10 +125,19 @@ func (r *RedisRepository) Get(ctx context.Context, slug string, locale string) (
 	return &category, nil
 }
 
-func (r *RedisRepository) GetAll(ctx context.Context, locale string) ([]Translation, error) {
+func (r *RedisRepository) GetAll(ctx context.Context, locale string, hidden *bool) ([]Translation, error) {
 	var categories []Translation
 
-	key := fmt.Sprintf(r.keyFormat, "__all", locale)
+	key := ""
+	if hidden != nil {
+		if *hidden {
+			key = fmt.Sprintf(r.keyFormat, "__hidden", locale)
+		} else {
+			key = fmt.Sprintf(r.keyFormat, "__!hidden", locale)
+		}
+	} else {
+		key = fmt.Sprintf(r.keyFormat, "__all", locale)
+	}
 
 	if err := cache.UnmarshalRedisKey(r.rdb, ctx, key, &categories); err != nil {
 		if !errors.Is(err, redis.Nil) {
@@ -134,53 +151,7 @@ func (r *RedisRepository) GetAll(ctx context.Context, locale string) ([]Translat
 		bg, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 		defer cancel()
 
-		categories, err := r.origin.GetAll(bg, locale)
-		if err != nil {
-			if !errors.Is(err, errs.ErrNotFound) {
-				r.group.Forget(key)
-			}
-			return nil, err
-		}
-
-		if err := cache.MarshalRedisKey(r.rdb, bg, key, r.ttl, &categories); err != nil {
-			logger.Warn("Category.Redis", "Failed to write to cache.", err)
-		}
-
-		return categories, err
-	})
-
-	select {
-	case <-ctx.Done():
-		return nil, ctx.Err()
-
-	case res := <-ch:
-		if res.Err != nil {
-			return nil, res.Err
-		}
-		categories = res.Val.([]Translation)
-	}
-
-	return categories, nil
-}
-
-func (r *RedisRepository) GetNotHidden(ctx context.Context, locale string) ([]Translation, error) {
-	var categories []Translation
-
-	key := fmt.Sprintf(r.keyFormat, "__!hidden", locale)
-
-	if err := cache.UnmarshalRedisKey(r.rdb, ctx, key, &categories); err != nil {
-		if !errors.Is(err, redis.Nil) {
-			logger.Warn("Category.Redis", "Failed to read from cache.", err)
-		}
-	} else {
-		return categories, nil
-	}
-
-	ch := r.group.DoChan(key, func() (any, error) {
-		bg, cancel := context.WithTimeout(context.Background(), 20*time.Second)
-		defer cancel()
-
-		categories, err := r.origin.GetNotHidden(bg, locale)
+		categories, err := r.origin.GetAll(bg, locale, hidden)
 		if err != nil {
 			if !errors.Is(err, errs.ErrNotFound) {
 				r.group.Forget(key)
@@ -224,6 +195,10 @@ func (r *RedisRepository) Delete(ctx context.Context, slug string) error {
 	}
 	notHiddenKey := fmt.Sprintf(r.keyFormat, "__!hidden", "*")
 	if err := cache.EraseRedisKeyPattern(r.rdb, ctx, notHiddenKey); err != nil {
+		logger.Warn("Category.Redis", "Failed to invalidate cached entries.", err)
+	}
+	hiddenKey := fmt.Sprintf(r.keyFormat, "__hidden", "*")
+	if err := cache.EraseRedisKeyPattern(r.rdb, ctx, hiddenKey); err != nil {
 		logger.Warn("Category.Redis", "Failed to invalidate cached entries.", err)
 	}
 	return nil

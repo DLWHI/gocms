@@ -19,13 +19,13 @@ type Model struct {
 }
 
 type Doc struct {
-	ID          uint   `json:"id"`
+	ID          uint   `json:"id,omitempty"`
 	Name        string `json:"name"`
-	Description string `json:"description"`
+	Description string `json:"description,omitempty"`
 	URL         string `json:"url"`
 	Priority    uint   `json:"priority"`
 	Group       string `json:"group"`
-	ExpiresAt   *int64 `json:"expires_at"`
+	ExpiresAt   *int64 `json:"expires_at,omitempty"`
 	Banner      string `json:"banner"`
 }
 
@@ -38,10 +38,11 @@ type MessagePayload struct {
 type SearchParams struct {
 	search.Params
 	ID            uint       `json:"id"`
-	Expired       *bool      `json:"expired"`
-	ExpiresAfter  *time.Time `json:"expires_after"`
-	ExpiresBefore *time.Time `json:"expires_before"`
+	Expired       *bool      `json:"expired,omitempty"`
+	ExpiresAfter  *time.Time `json:"expires_after,omitempty"`
+	ExpiresBefore *time.Time `json:"expires_before,omitempty"`
 	Groups        []string   `json:"groups"`
+	Select        []string   `json:"select"`
 }
 
 type SearchResult = search.Result[Doc]

@@ -73,6 +73,9 @@ func (h *Handler) postsSearch(w http.ResponseWriter, r *http.Request) {
 	}
 	trueVal := true
 	params.Published = &trueVal
+	params.CreatedAfter = nil
+	params.CreatedBefore = nil
+	params.ID = 0
 
 	res, err := h.posts.Search(r.Context(), &params)
 	if err != nil {
@@ -93,7 +96,7 @@ func (h *Handler) postsGet(w http.ResponseWriter, r *http.Request) {
 	}
 
 	id, err := strconv.ParseUint(r.PathValue("id"), 10, 64)
-	if err != nil {
+	if err != nil || id == 0 {
 		http.Error(w, "Invalid ID", http.StatusBadRequest)
 		return
 	}
@@ -111,13 +114,17 @@ func (h *Handler) postsGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	post.CreatedAt = 0
+	post.ID = ""
+
 	w.Header().Set("Content-Type", "application/json")
 	_ = json.NewEncoder(w).Encode(&post)
 }
 
 // GET /categories - Get all categories
 func (h *Handler) categoriesAll(w http.ResponseWriter, r *http.Request) {
-	categories, err := h.categories.AllNotHidden(r.Context())
+	falseVal := false
+	categories, err := h.categories.All(r.Context(), &falseVal)
 	if err != nil {
 		errs.ServeMessage(w, "Categories", err)
 		return
@@ -141,7 +148,8 @@ func (h *Handler) localesAll(w http.ResponseWriter, r *http.Request) {
 
 // GET /editors - Get all editors
 func (h *Handler) editorsAll(w http.ResponseWriter, r *http.Request) {
-	res, err := h.editors.All(r.Context())
+	falseVal := false
+	res, err := h.editors.All(r.Context(), &falseVal)
 	if err != nil {
 		errs.ServeMessage(w, "Editor", err)
 		return
@@ -191,7 +199,7 @@ func (h *Handler) adsGet(w http.ResponseWriter, r *http.Request) {
 	advertisements := make(map[string][]ads.Doc, len(groups))
 
 	for _, group := range groups {
-		ads, err := h.ads.GetGroupUnexpired(r.Context(), group)
+		ads, err := h.ads.GetGroup(r.Context(), group)
 		if err != nil {
 			errs.ServeMessage(w, "Advertisement", err)
 			return

@@ -132,10 +132,11 @@ func (r *MeilisearchEngine) Delete(ctx context.Context, id uint) error {
 func (r *MeilisearchEngine) Search(ctx context.Context, params *SearchParams) (*SearchResult, error) {
 	var results SearchResult
 	req := &meilisearch.SearchRequest{
-		HitsPerPage: &params.Count,
-		Page:        params.Page,
-		Filter:      buildFilter(params),
-		Sort:        buildSort(params),
+		HitsPerPage:          &params.Count,
+		Page:                 params.Page,
+		Filter:               buildFilter(params),
+		Sort:                 buildSort(params),
+		AttributesToRetrieve: params.Select,
 	}
 	index := r.se.Index(r.idx)
 

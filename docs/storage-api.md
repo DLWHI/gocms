@@ -1,7 +1,6 @@
 # Storage API reference
 
-This document covers routes under `/storage`. It reflects the route
-registrations in `cmd/gocms/router.go` and the current handler behavior.
+This document covers CMS routes that are responsible for file storage access and management.
 Return to the [route index](README.md).
 
 ## Routes
@@ -13,7 +12,8 @@ Return to the [route index](README.md).
 List the contents of a directory and report storage capacity.
 
 - **Headers:**
-  - `Authorization` — `Bearer {token}` (required).
+  - `Authorization` — `Bearer <sessionID>` (required).
+  - `Content-Type` — `application/json`.
 - **Path parameters:**
   - `path` — target path
 - **Request body:** None.
@@ -64,7 +64,7 @@ Stream a stored file.
 Create or replace a file. Handler reads raw request bytes rather than a multipart form.
 
 - **Headers:**
-  - `Authorization` — `Bearer {token}` (required).
+  - `Authorization` — `Bearer <sessionID>` (required).
 - **Path parameter:**
   - `path` — target file path
 - **Request body:** Raw file bytes.
@@ -82,7 +82,7 @@ Create or replace a file. Handler reads raw request bytes rather than a multipar
 Delete a file or directory.
 
 - **Headers:**
-  - `Authorization` — `Bearer {token}` (required).
+  - `Authorization` — `Bearer <sessionID>` (required).
 - **Path parameter:**
   - `path` — target file path
 - **Query parameters:**
@@ -103,7 +103,7 @@ Delete a file or directory.
 Create a directory.
 
 - **Headers:**
-  - `Authorization` — `Bearer {token}` (required).
+  - `Authorization` — `Bearer <sessionID>` (required).
 - **Path parameter:**
   - `path` — destination directory path
 - **Request body:** None.

@@ -107,36 +107,15 @@ func (s *Service) Get(ctx context.Context, slug string) (*Document, error) {
 	return &doc, nil
 }
 
-func (s *Service) All(ctx context.Context) ([]Document, error) {
+func (s *Service) All(ctx context.Context, hidden *bool) ([]Document, error) {
 	locale := ctx.Value("locale")
 	if locale == nil {
 		return nil, fmt.Errorf("%w: empty locale", errs.ErrInval)
 	}
 
-	model, err := s.repo.GetAll(ctx, locale.(string))
+	model, err := s.repo.GetAll(ctx, locale.(string), hidden)
 	if err != nil {
 		logger.Error("Category.Service", "Failed to list categories", err)
-		return nil, err
-	}
-
-	categories := make([]Document, 0, len(model))
-
-	for _, category := range model {
-		categories = append(categories, category.ToDoc())
-	}
-
-	return categories, nil
-}
-
-func (s *Service) AllNotHidden(ctx context.Context) ([]Document, error) {
-	locale := ctx.Value("locale")
-	if locale == nil {
-		return nil, fmt.Errorf("%w: empty locale", errs.ErrInval)
-	}
-
-	model, err := s.repo.GetAll(ctx, locale.(string))
-	if err != nil {
-		logger.Error("Category.Service", "Failed to list visible categories", err)
 		return nil, err
 	}
 

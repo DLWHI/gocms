@@ -21,7 +21,7 @@ type Translation struct {
 }
 
 type Document struct {
-	ID     string `json:"id"`
+	ID     string `json:"id,omitempty"`
 	Slug   string `json:"slug"`
 	Hidden bool   `json:"hidden"`
 	Navbar bool   `json:"navbar"`
@@ -48,8 +48,7 @@ type Repository interface {
 	Create(ctx context.Context, category *Translation) error
 	Update(ctx context.Context, category *Translation) error
 	Get(ctx context.Context, slug string, locale string) (*Translation, error)
-	GetAll(ctx context.Context, locale string) ([]Translation, error)
-	GetNotHidden(ctx context.Context, locale string) ([]Translation, error)
+	GetAll(ctx context.Context, locale string, hidden *bool) ([]Translation, error)
 	Delete(ctx context.Context, slug string) error
 }
 

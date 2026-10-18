@@ -15,11 +15,11 @@ Use this page to jump directly to a route reference:
 | POST | `/cms/logout` | [Log out](admin-api.md#cms-logout) |
 | GET | `/cms/profile` | [Get current profile](admin-api.md#cms-profile) |
 | GET | `/cms/permissions` | [List permission names and values](admin-api.md#cms-permissions) |
+| PATCH | `/cms/password` | [Change password](admin-api.md#cms-password) |
 | POST | `/cms/users/search` | [Search users](admin-api.md#cms-users-search) |
 | GET | `/cms/users` | [List users](admin-api.md#cms-users) |
 | GET | `/cms/users/{username}` | [Get a user](admin-api.md#cms-users-username) |
 | PATCH | `/cms/users/{username}/email` | [Change email](admin-api.md#cms-users-username-email) |
-| PATCH | `/cms/users/{username}/change` | [Change password](admin-api.md#cms-users-username-change) |
 | PATCH | `/cms/users/{username}/reset` | [Reset a password](admin-api.md#cms-users-username-reset) |
 | PATCH | `/cms/users/{username}/permissions` | [Change permissions](admin-api.md#cms-users-username-permissions) |
 | DELETE | `/cms/users/{username}` | [Suspend a user](admin-api.md#cms-users-username-delete) |

@@ -5,8 +5,8 @@ import (
 	"gocms/internal/auth"
 	"gocms/internal/category"
 	"gocms/internal/editor"
+	"gocms/internal/httpserver"
 	"gocms/internal/locale"
-	"gocms/internal/middleware"
 	"gocms/internal/post"
 	"gocms/internal/public"
 	"gocms/internal/session"
@@ -23,13 +23,13 @@ const (
 
 type Router struct {
 	mux  *http.ServeMux
-	auth middleware.Middleware
+	auth httpserver.Middleware
 }
 
 func NewRouter(provider session.Repository) *Router {
 	return &Router{
 		mux:  http.NewServeMux(),
-		auth: middleware.NewSessionAuth(provider).Wrap,
+		auth: auth.NewSessionMiddleware(provider).Wrap,
 	}
 }
 
@@ -38,8 +38,8 @@ func (router *Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (router *Router) AddAuthRoutes(handler *auth.Handler) {
-	limiter := middleware.NewRequestLimiter(RequestLimit)
-	m := middleware.Chain(
+	limiter := httpserver.NewRequestLimiter(RequestLimit)
+	m := httpserver.ChainMiddleware(
 		limiter.Wrap,
 		router.auth,
 	)
@@ -48,13 +48,12 @@ func (router *Router) AddAuthRoutes(handler *auth.Handler) {
 	router.mux.Handle("PATCH /cms/passwd", m(handler.ChangePasswd))
 	router.mux.Handle("POST /cms/logout", m(handler.Logout))
 	router.mux.Handle("GET /cms/profile", m(handler.Profile))
-	// router.mux.Handle("POST /cms/profile", m(handler.Update))
 	router.mux.Handle("GET /cms/permissions", m(handler.Permissions))
 }
 
 func (router *Router) AddUserRoutes(handler *user.Handler) {
-	limiter := middleware.NewRequestLimiter(RequestLimit)
-	m := middleware.Chain(
+	limiter := httpserver.NewRequestLimiter(RequestLimit)
+	m := httpserver.ChainMiddleware(
 		limiter.Wrap,
 		router.auth,
 	)
@@ -70,11 +69,11 @@ func (router *Router) AddUserRoutes(handler *user.Handler) {
 }
 
 func (router *Router) AddEditorRoutes(handler *editor.Handler) {
-	streamLimiter := middleware.NewRequestLimiter(ContentLimit)
-	m := middleware.Chain(
+	streamLimiter := httpserver.NewRequestLimiter(ContentLimit)
+	m := httpserver.ChainMiddleware(
 		streamLimiter.Wrap,
 		router.auth,
-		middleware.Locale,
+		locale.Middleware,
 	)
 
 	router.mux.Handle("POST /cms/editors/search", m(handler.Search))
@@ -86,8 +85,8 @@ func (router *Router) AddEditorRoutes(handler *editor.Handler) {
 }
 
 func (router *Router) AddLocaleRoutes(handler *locale.Handler) {
-	limiter := middleware.NewRequestLimiter(RequestLimit)
-	m := middleware.Chain(
+	limiter := httpserver.NewRequestLimiter(RequestLimit)
+	m := httpserver.ChainMiddleware(
 		limiter.Wrap,
 		router.auth,
 	)
@@ -98,11 +97,11 @@ func (router *Router) AddLocaleRoutes(handler *locale.Handler) {
 }
 
 func (router *Router) AddPostRoutes(handler *post.Handler) {
-	streamLimiter := middleware.NewRequestLimiter(ContentLimit)
-	m := middleware.Chain(
+	streamLimiter := httpserver.NewRequestLimiter(ContentLimit)
+	m := httpserver.ChainMiddleware(
 		streamLimiter.Wrap,
 		router.auth,
-		middleware.Locale,
+		locale.Middleware,
 	)
 
 	router.mux.Handle("POST /cms/posts", m(handler.Create))
@@ -115,11 +114,11 @@ func (router *Router) AddPostRoutes(handler *post.Handler) {
 }
 
 func (router *Router) AddCategoryRoutes(handler *category.Handler) {
-	limiter := middleware.NewRequestLimiter(RequestLimit)
-	m := middleware.Chain(
+	limiter := httpserver.NewRequestLimiter(RequestLimit)
+	m := httpserver.ChainMiddleware(
 		limiter.Wrap,
 		router.auth,
-		middleware.Locale,
+		locale.Middleware,
 	)
 
 	router.mux.Handle("POST /cms/categories/search", m(handler.Search))
@@ -131,8 +130,8 @@ func (router *Router) AddCategoryRoutes(handler *category.Handler) {
 }
 
 func (router *Router) AddAdsRoutes(handler *ads.Handler) {
-	limiter := middleware.NewRequestLimiter(RequestLimit)
-	m := middleware.Chain(
+	limiter := httpserver.NewRequestLimiter(RequestLimit)
+	m := httpserver.ChainMiddleware(
 		limiter.Wrap,
 		router.auth,
 	)
@@ -149,13 +148,13 @@ func (router *Router) AddAdsRoutes(handler *ads.Handler) {
 }
 
 func (router *Router) AddStorageRoutes(handler *storage.Handler) {
-	requestLimiter := middleware.NewRequestLimiter(RequestLimit)
-	streamLimiter := middleware.NewRequestLimiter(FileLimit)
-	m := middleware.Chain(
+	requestLimiter := httpserver.NewRequestLimiter(RequestLimit)
+	streamLimiter := httpserver.NewRequestLimiter(FileLimit)
+	m := httpserver.ChainMiddleware(
 		requestLimiter.Wrap,
 		router.auth,
 	)
-	s := middleware.Chain(
+	s := httpserver.ChainMiddleware(
 		streamLimiter.Wrap,
 		router.auth,
 	)
@@ -169,10 +168,10 @@ func (router *Router) AddStorageRoutes(handler *storage.Handler) {
 }
 
 func (router *Router) AddPublicoutes(handler *public.Handler) {
-	limiter := middleware.NewRequestLimiter(RequestLimit)
-	m := middleware.Chain(
+	limiter := httpserver.NewRequestLimiter(RequestLimit)
+	m := httpserver.ChainMiddleware(
 		limiter.Wrap,
-		middleware.Locale,
+		locale.Middleware,
 	)
 
 	router.mux.Handle("GET /public/locales", limiter.Wrap(handler.LocalesAll))

@@ -1,4 +1,4 @@
-package runner
+package httpserver
 
 import (
 	"context"
@@ -13,7 +13,7 @@ type HttpRunner struct {
 	server http.Server
 }
 
-func NewHttp(addr string, port string, handler http.Handler) *HttpRunner {
+func NewHttpRunner(addr string, port string, handler http.Handler) *HttpRunner {
 	return &HttpRunner{
 		server: http.Server{
 			Addr:    fmt.Sprintf("%s:%s", addr, port),

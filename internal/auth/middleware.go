@@ -1,4 +1,4 @@
-package middleware
+package auth
 
 import (
 	"context"
@@ -15,42 +15,45 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-const UserIDKey string = "username"
-const UserRoleKey string = "userperm"
+const (
+	UserPermissionKey = "userperm"
+	UserNameKey       = "username"
+	SessionIDKey      = "session"
+)
 
-type JWTAuth struct {
+type JWTMiddleware struct {
 	jwtSecret *rsa.PublicKey
 }
 
-type SessionAuth struct {
+type SessionMiddleware struct {
 	provider session.Repository
 }
 
-type TestAuth struct {
+type TestMiddleware struct {
 	username string
 	level    uint32
 }
 
-func NewJWTAuth(jwtSecret *rsa.PublicKey) *JWTAuth {
-	return &JWTAuth{
+func NewJWTMiddleware(jwtSecret *rsa.PublicKey) *JWTMiddleware {
+	return &JWTMiddleware{
 		jwtSecret: jwtSecret,
 	}
 }
 
-func NewSessionAuth(provider session.Repository) *SessionAuth {
-	return &SessionAuth{
+func NewSessionMiddleware(provider session.Repository) *SessionMiddleware {
+	return &SessionMiddleware{
 		provider: provider,
 	}
 }
 
-func NewTestAuth(username string, level uint32) *TestAuth {
-	return &TestAuth{
+func NewTestMiddleware(username string, level uint32) *TestMiddleware {
+	return &TestMiddleware{
 		username: username,
 		level:    level,
 	}
 }
 
-func (m *JWTAuth) Wrap(next http.Handler) http.Handler {
+func (m *JWTMiddleware) Wrap(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		authHeader := r.Header.Get("Authorization")
 		if authHeader == "" {
@@ -83,13 +86,13 @@ func (m *JWTAuth) Wrap(next http.Handler) http.Handler {
 			return
 		}
 
-		ctx := context.WithValue(r.Context(), UserIDKey, claims.Username)
-		ctx = context.WithValue(ctx, UserRoleKey, claims.Permissions)
+		ctx := context.WithValue(r.Context(), UserNameKey, claims.Username)
+		ctx = context.WithValue(ctx, UserPermissionKey, claims.Permissions)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
 
-func (m *SessionAuth) Wrap(next http.Handler) http.Handler {
+func (m *SessionMiddleware) Wrap(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		authHeader := r.Header.Get("Authorization")
 		if authHeader == "" {
@@ -116,18 +119,18 @@ func (m *SessionAuth) Wrap(next http.Handler) http.Handler {
 			return
 		}
 
-		ctx = context.WithValue(ctx, UserIDKey, session.User.Username)
-		ctx = context.WithValue(ctx, UserRoleKey, session.User.Permissions)
-		ctx = context.WithValue(ctx, "session", session.ID)
+		ctx = context.WithValue(ctx, UserNameKey, session.User.Username)
+		ctx = context.WithValue(ctx, UserPermissionKey, session.User.Permissions)
+		ctx = context.WithValue(ctx, SessionIDKey, session.ID)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
 
-func (m *TestAuth) Wrap(next http.Handler) http.Handler {
+func (m *TestMiddleware) Wrap(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
-		ctx = context.WithValue(ctx, UserIDKey, m.username)
-		ctx = context.WithValue(ctx, UserRoleKey, m.level)
+		ctx = context.WithValue(ctx, UserNameKey, m.username)
+		ctx = context.WithValue(ctx, UserPermissionKey, m.level)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }

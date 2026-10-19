@@ -1,11 +1,11 @@
-package middleware
+package locale
 
 import (
 	"context"
 	"net/http"
 )
 
-func Locale(next http.Handler) http.Handler {
+func Middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		locale := r.Header.Get("Accept-Language")
 		if locale == "" {

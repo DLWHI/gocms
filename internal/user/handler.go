@@ -12,7 +12,6 @@ import (
 // GET /users?suspended={boolean} - Get all users
 // GET /users/{username} - Get user
 // PATCH /users/{username}/email - Update user's email
-// PATCH /users/{username}/change - Update user password
 // PATCH /users/{username}/reset - Reset user password
 // PATCH /users/{username}/permissions - Update user's permissions
 // DELETE /users/{username} - Suspend user
@@ -133,7 +132,7 @@ func (h *Handler) changeEmail(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-// PATCH /users/{username}/reset - Update user password
+// PATCH /users/{username}/reset - Reset user password
 func (h *Handler) resetPasswd(w http.ResponseWriter, r *http.Request) {
 	username := r.PathValue("username")
 	if username == "" {

@@ -5,12 +5,6 @@ import (
 	"gocms/internal/domain"
 )
 
-const (
-	UserPermissionKey = "userperm"
-	UserNameKey       = "userperm"
-	SessionIDKey      = "userperm"
-)
-
 type UserManager interface {
 	PasswordMatches(ctx context.Context, username string, passwd domain.Password) error
 	UpdateLogin(ctx context.Context, username string) (*domain.User, error)

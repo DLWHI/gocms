@@ -1,4 +1,4 @@
-package tokens
+package domain
 
 import (
 	"sync/atomic"

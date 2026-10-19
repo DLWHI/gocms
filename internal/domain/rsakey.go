@@ -1,4 +1,4 @@
-package keys
+package domain
 
 import (
 	"crypto/rsa"
@@ -11,7 +11,7 @@ import (
 	"os"
 )
 
-func GetPrivateRSA(name string) (*rsa.PrivateKey, error) {
+func GetPrivateRSAKey(name string) (*rsa.PrivateKey, error) {
 	pemBytes, err := os.ReadFile(filepath.Join(".ssh", name))
 	if err != nil {
 		return nil, fmt.Errorf("Failed to read key file: %w", err)
@@ -46,7 +46,7 @@ func GetPrivateRSA(name string) (*rsa.PrivateKey, error) {
 	}
 }
 
-func GetPublicRSA(name string) (*rsa.PublicKey, error) {
+func GetPublicRSAKey(name string) (*rsa.PublicKey, error) {
 	pemBytes, err := os.ReadFile(filepath.Join(".ssh", name))
 	if err != nil {
 		return nil, fmt.Errorf("Failed to read key file: %w", err)

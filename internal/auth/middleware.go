@@ -5,10 +5,10 @@ import (
 	"crypto/rsa"
 	"errors"
 	"fmt"
+	"gocms/internal/domain"
 	"gocms/internal/errs"
 	"gocms/internal/logger"
 	"gocms/internal/session"
-	"gocms/internal/tokens"
 	"net/http"
 	"strings"
 
@@ -68,7 +68,7 @@ func (m *JWTMiddleware) Wrap(next http.Handler) http.Handler {
 		}
 		tokenString := strings.TrimPrefix(authHeader, prefix)
 
-		var claims tokens.JWTClaims
+		var claims domain.JWTClaims
 		token, err := jwt.ParseWithClaims(tokenString, &claims, func(t *jwt.Token) (interface{}, error) {
 			if _, ok := t.Method.(*jwt.SigningMethodRSA); !ok {
 				return nil, fmt.Errorf("Unexpected signing method: %v", t.Header["alg"])

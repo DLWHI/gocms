@@ -1,4 +1,4 @@
-package tokens
+package domain
 
 import (
 	"crypto/rsa"
@@ -13,9 +13,9 @@ type JWTClaims struct {
 	jwt.RegisteredClaims
 }
 
-type Token string
+type JWTToken string
 
-func GenerateToken(username string, perm uint32, jwtSecret *rsa.PrivateKey, duration time.Duration) (Token, error) {
+func GenerateJWTToken(username string, perm uint32, jwtSecret *rsa.PrivateKey, duration time.Duration) (JWTToken, error) {
 	claims := JWTClaims{
 		Username:    username,
 		Permissions: perm,
@@ -34,5 +34,5 @@ func GenerateToken(username string, perm uint32, jwtSecret *rsa.PrivateKey, dura
 		return "", err
 	}
 
-	return Token(signed), nil
+	return JWTToken(signed), nil
 }

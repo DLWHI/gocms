@@ -2,11 +2,8 @@ package user
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"time"
-
-	"gocms/internal/errs"
 
 	"golang.org/x/sync/singleflight"
 )
@@ -63,14 +60,11 @@ func (r *SingleflightRepository) Get(ctx context.Context, username string) (*Use
 	var user User
 	key := fmt.Sprintf(r.keyFormat, username)
 	ch := r.group.DoChan(key, func() (any, error) {
-		bg, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+		bg, cancel := context.WithTimeout(context.WithoutCancel(ctx), 20*time.Second)
 		defer cancel()
 
 		retreived, err := r.origin.Get(bg, username)
 		if err != nil {
-			if !errors.Is(err, errs.ErrNotFound) {
-				r.group.Forget(key)
-			}
 			return nil, err
 		}
 
@@ -94,12 +88,11 @@ func (r *SingleflightRepository) Get(ctx context.Context, username string) (*Use
 func (r *SingleflightRepository) GetAll(ctx context.Context) ([]User, error) {
 	var users []User
 	ch := r.group.DoChan(r.allKey, func() (any, error) {
-		bg, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+		bg, cancel := context.WithTimeout(context.WithoutCancel(ctx), 20*time.Second)
 		defer cancel()
 
 		retreived, err := r.origin.GetAll(bg)
 		if err != nil {
-			r.group.Forget(r.allKey)
 			return nil, err
 		}
 

@@ -63,12 +63,6 @@ func (r *GORMRepository) UpdateLogin(ctx context.Context, username string, times
 
 		query := tx.Model(&User{}).Where("username = ?", user.Username)
 
-		if user.LastLogin == nil {
-			query = query.Where("last_login is NULL")
-		} else {
-			query = query.Where("last_login = ?", user.LastLogin)
-		}
-
 		result := query.Update("LastLogin", timestamp)
 		if result.Error != nil {
 			return result.Error
@@ -103,7 +97,7 @@ func (r *GORMRepository) Update(ctx context.Context, username string, diff map[s
 			if len(sanitized) > 0 {
 				result := tx.Model(&User{}).
 					Where("username = ? AND version = ?", user.Username, user.Version).
-					Updates(r.sanitize(sanitized))
+					Updates(sanitized)
 				if result.Error != nil {
 					return result.Error
 				}
@@ -129,7 +123,7 @@ func (r *GORMRepository) UpdatePasswd(ctx context.Context, username string, pwdh
 	for i := 0; i < 5; i++ {
 		err := r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 			var version uint
-			if err := tx.Select("Version").Where("username = ?", username).Take(&version).Error; err != nil {
+			if err := tx.Model(&User{}).Select("Version").Where("username = ?", username).Take(&version).Error; err != nil {
 				if errors.Is(err, gorm.ErrRecordNotFound) {
 					return errs.ErrNotFound
 				}
@@ -200,7 +194,7 @@ func (r *GORMRepository) GetPasswdHash(ctx context.Context, username string) (Pa
 		Take(&hash).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return []byte("dummy"), nil
+			return []byte("$2a$12$7TdOrMoog5F66cqstfuF7.GmPqMwgPC0iiLEXhlaHAkmJplQgi1oO"), nil
 		}
 		return nil, err
 	}

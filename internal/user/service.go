@@ -10,7 +10,6 @@ import (
 	"gocms/internal/logger"
 	"gocms/internal/search"
 	"net/mail"
-	"strings"
 	"time"
 
 	"golang.org/x/crypto/bcrypt"
@@ -29,36 +28,18 @@ func NewService(repo Repository, se SearchEngine) *Service {
 	}
 }
 
-func (s *Service) IsInvalidUsernameRune(r rune) bool {
-	isAlpha := 'a' <= r && r <= 'z'
-	isDigit := '0' <= r && r <= '9'
-	return !(isAlpha || isDigit || r == '-' || r == '_')
-}
-
-func (s *Service) NormalizeUsername(ctx context.Context, value string) (string, error) {
-	normalized := strings.TrimSpace(strings.ToLower(value))
-	if normalized == "" {
-		return "", fmt.Errorf("%w: username cannot be empty", errs.ErrInval)
-	} else if len(normalized) > 64 {
-		return "", fmt.Errorf("%w: username is longer than 64 chars", errs.ErrInval)
-	} else if strings.IndexFunc(normalized, s.IsInvalidUsernameRune) >= 0 {
-		return "", fmt.Errorf("%w: username must not contain spaces or periods", errs.ErrInval)
-	}
-
-	return normalized, nil
-}
-
 func (s *Service) Create(ctx context.Context, user *User) error {
 	if !auth.HasPermission(ctx, "users", "create") {
 		clear(user.Passwd)
 		return errs.ErrCred
 	}
 
-	if len(user.Passwd) == 0 || len(user.Passwd) >= 72 {
+	if len(user.Passwd) == 0 || len(user.Passwd) > 72 {
+		clear(user.Passwd)
 		return fmt.Errorf("%w: invalid password", errs.ErrInval)
 	}
 
-	username, err := s.NormalizeUsername(ctx, user.Username)
+	username, err := domain.NormalizeUsername(user.Username)
 	if err != nil {
 		return err
 	}
@@ -96,7 +77,7 @@ func (s *Service) Create(ctx context.Context, user *User) error {
 }
 
 func (s *Service) UpdateLogin(ctx context.Context, username string) (*Document, error) {
-	username, err := s.NormalizeUsername(ctx, username)
+	username, err := domain.NormalizeUsername(username)
 	if err != nil {
 		return nil, err
 	}
@@ -112,7 +93,7 @@ func (s *Service) UpdateLogin(ctx context.Context, username string) (*Document, 
 }
 
 func (s *Service) Get(ctx context.Context, username string) (*Document, error) {
-	username, err := s.NormalizeUsername(ctx, username)
+	username, err := domain.NormalizeUsername(username)
 	if err != nil {
 		return nil, err
 	}
@@ -158,13 +139,13 @@ func (s *Service) All(ctx context.Context) ([]Document, error) {
 }
 
 func (s *Service) Suspend(ctx context.Context, username string) error {
-	username, err := s.NormalizeUsername(ctx, username)
-	if err != nil {
-		return err
-	}
-
 	if !auth.HasPermission(ctx, "users", "delete") {
 		return errs.ErrCred
+	}
+
+	username, err := domain.NormalizeUsername(username)
+	if err != nil {
+		return err
 	}
 
 	if err := s.repo.Delete(ctx, username); err != nil {
@@ -176,9 +157,9 @@ func (s *Service) Suspend(ctx context.Context, username string) error {
 }
 
 func (s *Service) PasswordMatches(ctx context.Context, username string, passwd Password) error {
-	username, err := s.NormalizeUsername(ctx, username)
+	username, err := domain.NormalizeUsername(username)
 	if err != nil {
-		return err
+		return errs.ErrCred
 	}
 
 	hash, err := s.repo.GetPasswdHash(ctx, username)
@@ -197,7 +178,7 @@ func (s *Service) PasswordMatches(ctx context.Context, username string, passwd P
 }
 
 func (s *Service) ChangeEmail(ctx context.Context, username string, email string) error {
-	username, err := s.NormalizeUsername(ctx, username)
+	username, err := domain.NormalizeUsername(username)
 	if err != nil {
 		return err
 	}
@@ -229,7 +210,7 @@ func (s *Service) ChangeEmail(ctx context.Context, username string, email string
 }
 
 func (s *Service) ChangePasswd(ctx context.Context, username string, passwd domain.Password) error {
-	username, err := s.NormalizeUsername(ctx, username)
+	username, err := domain.NormalizeUsername(username)
 	if err != nil {
 		return err
 	}
@@ -243,7 +224,8 @@ func (s *Service) ChangePasswd(ctx context.Context, username string, passwd doma
 		return errs.ErrCred
 	}
 
-	if len(passwd) == 0 || len(passwd) >= 72 {
+	if len(passwd) == 0 || len(passwd) > 72 {
+		clear(passwd)
 		return fmt.Errorf("%w: invalid password", errs.ErrInval)
 	}
 
@@ -264,7 +246,7 @@ func (s *Service) ChangePasswd(ctx context.Context, username string, passwd doma
 }
 
 func (s *Service) ChangePermissions(ctx context.Context, username string, perms uint32) error {
-	username, err := s.NormalizeUsername(ctx, username)
+	username, err := domain.NormalizeUsername(username)
 	if err != nil {
 		return err
 	}

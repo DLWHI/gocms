@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"gocms/internal/auth"
+	"gocms/internal/domain"
 	"gocms/internal/errs"
 	"gocms/internal/logger"
 	"gocms/internal/user"
@@ -53,7 +54,7 @@ func CreateUser(ctx context.Context, app *Container) error {
 			return err
 		}
 
-		username, err = svc.NormalizeUsername(ctx, input)
+		username, err = domain.NormalizeUsername(input)
 		if err != nil {
 			if !errors.Is(err, errs.ErrInval) {
 				logger.Error("User create", "Failed to verify username", err)

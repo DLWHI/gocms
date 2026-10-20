@@ -30,14 +30,14 @@ func NewRedisCounter(client *redis.Client, service *post.Service) *RedisCounter 
 		service: service,
 		rdb:     client,
 		restore: redis.NewScript(`
-		local liveKey = KEYS[1]
-		local stagingKey = KEYS[2]
-		local amount = tonumber(ARGV[1])
-		
-		redis.call("INCRBY", liveKey, amount)
-		redis.call("DEL", stagingKey)
-		
-		return 1
+			local liveKey = KEYS[1]
+			local stagingKey = KEYS[2]
+			local amount = tonumber(ARGV[1])
+			
+			redis.call("INCRBY", liveKey, amount)
+			redis.call("DEL", stagingKey)
+			
+			return 1
 		`),
 	}
 }

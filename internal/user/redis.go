@@ -83,11 +83,11 @@ func (r *RedisRepository) Update(ctx context.Context, username string, diff map[
 }
 
 func (r *RedisRepository) Get(ctx context.Context, username string) (*User, error) {
+	var user User
 	key := fmt.Sprintf(r.keyFormat, username)
 
 	cached, err := r.rdb.Get(ctx, key).Result()
 	if err == nil {
-		var user User
 		if err := json.Unmarshal([]byte(cached), &user); err != nil {
 			r.logError("Invalid data on key %s, key will be deleted", key, err)
 			ictx := context.WithoutCancel(ctx)
@@ -101,25 +101,31 @@ func (r *RedisRepository) Get(ctx context.Context, username string) (*User, erro
 		r.logError("Failed to read key %s from cache.", key, err)
 	}
 
-	if _, err := r.rdb.Set(ctx, key, "", r.ttl).Result(); err != nil {
-		r.logError("Failed to write key %s to cache.", key, err)
-	}
+	err = r.rdb.Watch(ctx, func(tx *redis.Tx) error {
+		u, err := r.origin.Get(ctx, username)
+		if err != nil {
+			return err
+		}
+		user = *u
+		data, err := json.Marshal(u)
+		if err != nil {
+			return err
+		}
+		_, err = tx.TxPipelined(ctx, func(p redis.Pipeliner) error {
+			p.Set(ctx, key, data, r.ttl)
+			return nil
+		})
+		return err
+	}, key)
 
-	user, err := r.origin.Get(ctx, username)
 	if err != nil {
+		if errors.Is(err, redis.TxFailedErr) {
+			return &user, nil
+		}
+		r.logError("Failed to save key %s to cache.", key, err)
 		return nil, err
 	}
-
-	data, err := json.Marshal(user)
-	if err == nil {
-		if _, err := r.rdb.SetXX(ctx, key, data, r.ttl).Result(); err != nil {
-			r.logError("Failed to write key %s to cache.", key, err)
-		}
-	} else {
-		r.logError("Failed to encode key %s into json.", key, err)
-	}
-
-	return user, nil
+	return &user, nil
 }
 
 func (r *RedisRepository) GetAll(ctx context.Context) ([]User, error) {

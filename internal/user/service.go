@@ -2,7 +2,6 @@ package user
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"gocms/internal/auth"
@@ -259,26 +258,5 @@ func (s *Service) ChangePermissions(ctx context.Context, username string, perms 
 		return err
 	}
 
-	return nil
-}
-
-func (s *Service) SyncSearch(ctx context.Context, data []byte) error {
-	var username MessagePayload
-	if err := json.Unmarshal(data, &username); err != nil {
-		return err
-	}
-
-	user, err := s.repo.Get(ctx, username)
-	if err != nil {
-		if errors.Is(err, errs.ErrNotFound) {
-			return nil
-		}
-		return err
-	}
-
-	doc := user.ToDomain()
-	if err := s.se.Index(ctx, &doc); err != nil {
-		return err
-	}
 	return nil
 }

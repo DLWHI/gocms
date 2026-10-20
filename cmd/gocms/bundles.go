@@ -15,11 +15,12 @@ import (
 )
 
 type UserBundle struct {
+	Consumer          *user.EventConsumer
 	Service           *user.Service
 	Handler           *user.Handler
-	CacheRepo         *user.RedisRepository
-	DedupRepo         *user.SingleflightRepository
-	DBRepo            *user.GORMRepository
+	CacheRepo         user.Repository
+	DedupRepo         user.Repository
+	DBRepo            user.Repository
 	MeilisearchEngine *user.MeilisearchEngine
 }
 
@@ -73,9 +74,11 @@ func NewUserBundle(db *gorm.DB, search meilisearch.ServiceManager, redis *redis.
 	redisRepo := user.NewRedisRepository(repo, &redisCfg)
 	sfRepo := user.NewSingleflightRepository(redisRepo, redisCfg.KeyFormat)
 	searchEngine := user.NewMeilisearchEngine(search, "users")
+	consumer := user.NewEventConsumer(repo, searchEngine)
 	service := user.NewService(sfRepo, searchEngine)
 	handler := user.NewHandler(service)
 	return &UserBundle{
+		Consumer:          consumer,
 		Service:           service,
 		Handler:           handler,
 		CacheRepo:         redisRepo,

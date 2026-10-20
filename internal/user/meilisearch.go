@@ -27,8 +27,8 @@ func NewMeilisearchEngine(client meilisearch.ServiceManager, index string) *Meil
 func buildFilter(params *SearchParams) string {
 	var clauses []string
 
-	if params.Permissions != 0 {
-		clauses = append(clauses, fmt.Sprintf("permissions = %d", params.Permissions))
+	if params.Permissions != nil {
+		clauses = append(clauses, fmt.Sprintf("permissions = %d", *params.Permissions))
 	}
 
 	if params.Suspended != nil {

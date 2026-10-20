@@ -27,7 +27,7 @@ type MessagePayload = string
 
 type SearchParams struct {
 	search.Params
-	Permissions     uint32     `json:"permissions"`
+	Permissions     *uint32    `json:"permissions"`
 	Suspended       *bool      `json:"suspended"`
 	SuspendedAfter  *time.Time `json:"suspended_after"`
 	SuspendedBefore *time.Time `json:"suspended_before"`

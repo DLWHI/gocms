@@ -4,8 +4,8 @@ import (
 	"context"
 	"gocms/internal/analytics"
 	"gocms/internal/auth"
-	"gocms/internal/core"
 	"gocms/internal/domain"
+	"gocms/internal/httpserver"
 	"gocms/internal/logger"
 	"gocms/internal/outbox"
 	"gocms/internal/public"
@@ -109,7 +109,7 @@ func (app *Container) Init(ctx context.Context, cfg Config) error {
 	router.AddStorageRoutes(storageHandler)
 	router.AddPublicoutes(publicHandler)
 
-	server := core.NewHttp(cfg.Address, cfg.Port, router.mux)
+	server := httpserver.NewHttpRunner(cfg.Address, cfg.Port, router.mux)
 
 	dispatcher := outbox.NewDirectPublisher()
 	relay := outbox.NewRelay(db, dispatcher)

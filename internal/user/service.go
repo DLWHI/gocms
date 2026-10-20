@@ -22,9 +22,9 @@ type Service struct {
 	se   SearchEngine
 }
 
-func NewService(db Repository, se SearchEngine) *Service {
+func NewService(repo Repository, se SearchEngine) *Service {
 	return &Service{
-		repo: db,
+		repo: repo,
 		se:   se,
 	}
 }
@@ -35,20 +35,17 @@ func (s *Service) IsInvalidUsernameRune(r rune) bool {
 	return !(isAlpha || isDigit || r == '-' || r == '_')
 }
 
-func (s *Service) IsAllowedUsername(ctx context.Context, value string) error {
-	if strings.IndexFunc(value, s.IsInvalidUsernameRune) >= 0 {
-		return fmt.Errorf("%w: username must not contain spaces or periods", errs.ErrInval)
+func (s *Service) NormalizeUsername(ctx context.Context, value string) (string, error) {
+	normalized := strings.TrimSpace(strings.ToLower(value))
+	if normalized == "" {
+		return "", fmt.Errorf("%w: username cannot be empty", errs.ErrInval)
+	} else if len(normalized) > 64 {
+		return "", fmt.Errorf("%w: username is longer than 64 chars", errs.ErrInval)
+	} else if strings.IndexFunc(normalized, s.IsInvalidUsernameRune) >= 0 {
+		return "", fmt.Errorf("%w: username must not contain spaces or periods", errs.ErrInval)
 	}
 
-	_, err := s.repo.Get(ctx, value)
-	if err == nil {
-		return fmt.Errorf("%w: Username already exists", errs.ErrInval)
-	} else if errors.Is(err, errs.ErrNotFound) {
-		return nil
-	} else {
-		logger.Error("User.Service", "Failed to check username availability", err)
-		return err
-	}
+	return normalized, nil
 }
 
 func (s *Service) Create(ctx context.Context, user *User) error {
@@ -57,26 +54,22 @@ func (s *Service) Create(ctx context.Context, user *User) error {
 		return errs.ErrCred
 	}
 
-	if len(user.Passwd) == 0 || len(user.Passwd) == 72 {
+	if len(user.Passwd) == 0 || len(user.Passwd) >= 72 {
 		return fmt.Errorf("%w: invalid password", errs.ErrInval)
 	}
 
-	user.Username = strings.TrimSpace(strings.ToLower(user.Username))
-	if user.Username == "" {
-		clear(user.Passwd)
-		return fmt.Errorf("%w: username cannot be empty", errs.ErrInval)
-	} else if len(user.Username) > 64 {
-		clear(user.Passwd)
-		return fmt.Errorf("%w: username is longer than 64 chars", errs.ErrInval)
-	} else if strings.IndexFunc(user.Username, s.IsInvalidUsernameRune) >= 0 {
-		clear(user.Passwd)
-		return fmt.Errorf("%w: username must not contain spaces or periods", errs.ErrInval)
-	}
-
-	_, err := mail.ParseAddress(user.Email)
+	username, err := s.NormalizeUsername(ctx, user.Username)
 	if err != nil {
+		return err
+	}
+	user.Username = username
+
+	parsed, err := mail.ParseAddress(user.Email)
+	if err != nil || parsed.Name != "" {
+		clear(user.Passwd)
 		return fmt.Errorf("%w: invalid email", errs.ErrInval)
 	}
+	user.Email = parsed.Address
 
 	hash, err := bcrypt.GenerateFromPassword(user.Passwd, 12)
 	clear(user.Passwd)
@@ -103,6 +96,11 @@ func (s *Service) Create(ctx context.Context, user *User) error {
 }
 
 func (s *Service) UpdateLogin(ctx context.Context, username string) (*Document, error) {
+	username, err := s.NormalizeUsername(ctx, username)
+	if err != nil {
+		return nil, err
+	}
+
 	user, err := s.repo.UpdateLogin(ctx, username, time.Now())
 	if err != nil {
 		logger.Error("User.Service", "Failed to update the user's last login time", err)
@@ -114,10 +112,16 @@ func (s *Service) UpdateLogin(ctx context.Context, username string) (*Document, 
 }
 
 func (s *Service) Get(ctx context.Context, username string) (*Document, error) {
-	username = strings.TrimSpace(strings.ToLower(username))
+	username, err := s.NormalizeUsername(ctx, username)
+	if err != nil {
+		return nil, err
+	}
+
 	user, err := s.repo.Get(ctx, username)
 	if err != nil {
-		logger.Error("User.Service", "Failed to retrieve user", err)
+		if !errors.Is(err, errs.ErrNotFound) {
+			logger.Error("User.Service", "Failed to retrieve user", err)
+		}
 		return nil, err
 	}
 
@@ -154,6 +158,11 @@ func (s *Service) All(ctx context.Context) ([]Document, error) {
 }
 
 func (s *Service) Suspend(ctx context.Context, username string) error {
+	username, err := s.NormalizeUsername(ctx, username)
+	if err != nil {
+		return err
+	}
+
 	if !auth.HasPermission(ctx, "users", "delete") {
 		return errs.ErrCred
 	}
@@ -167,6 +176,11 @@ func (s *Service) Suspend(ctx context.Context, username string) error {
 }
 
 func (s *Service) PasswordMatches(ctx context.Context, username string, passwd Password) error {
+	username, err := s.NormalizeUsername(ctx, username)
+	if err != nil {
+		return err
+	}
+
 	hash, err := s.repo.GetPasswdHash(ctx, username)
 	if err != nil {
 		logger.Error("User.Service", "Failed to retreive user's password", err)
@@ -183,6 +197,11 @@ func (s *Service) PasswordMatches(ctx context.Context, username string, passwd P
 }
 
 func (s *Service) ChangeEmail(ctx context.Context, username string, email string) error {
+	username, err := s.NormalizeUsername(ctx, username)
+	if err != nil {
+		return err
+	}
+
 	initiator, ok := ctx.Value(auth.UserNameKey).(string)
 	if !ok {
 		return errs.ErrCred
@@ -192,13 +211,13 @@ func (s *Service) ChangeEmail(ctx context.Context, username string, email string
 		return errs.ErrCred
 	}
 
-	_, err := mail.ParseAddress(email)
-	if err != nil {
+	parsed, err := mail.ParseAddress(email)
+	if err != nil || parsed.Name != "" {
 		return fmt.Errorf("%w: invalid email", errs.ErrInval)
 	}
 
 	diff := map[string]interface{}{
-		"email": email,
+		"email": parsed.Address,
 	}
 
 	if err := s.repo.Update(ctx, username, diff); err != nil {
@@ -210,6 +229,11 @@ func (s *Service) ChangeEmail(ctx context.Context, username string, email string
 }
 
 func (s *Service) ChangePasswd(ctx context.Context, username string, passwd domain.Password) error {
+	username, err := s.NormalizeUsername(ctx, username)
+	if err != nil {
+		return err
+	}
+
 	initiator, ok := ctx.Value(auth.UserNameKey).(string)
 	if !ok {
 		return errs.ErrCred
@@ -219,7 +243,7 @@ func (s *Service) ChangePasswd(ctx context.Context, username string, passwd doma
 		return errs.ErrCred
 	}
 
-	if len(passwd) == 0 || len(passwd) == 72 {
+	if len(passwd) == 0 || len(passwd) >= 72 {
 		return fmt.Errorf("%w: invalid password", errs.ErrInval)
 	}
 
@@ -240,6 +264,11 @@ func (s *Service) ChangePasswd(ctx context.Context, username string, passwd doma
 }
 
 func (s *Service) ChangePermissions(ctx context.Context, username string, perms uint32) error {
+	username, err := s.NormalizeUsername(ctx, username)
+	if err != nil {
+		return err
+	}
+
 	intitiator, ok := ctx.Value(auth.UserNameKey).(string)
 	if !ok {
 		return errs.ErrCred

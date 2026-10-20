@@ -71,11 +71,11 @@ func NewUserBundle(db *gorm.DB, search meilisearch.ServiceManager, redis *redis.
 	}
 
 	repo := user.NewGORMRepository(db)
-	redisRepo := user.NewRedisRepository(repo, &redisCfg)
-	sfRepo := user.NewSingleflightRepository(redisRepo, redisCfg.KeyFormat)
+	sfRepo := user.NewSingleflightRepository(repo, redisCfg.KeyFormat)
+	redisRepo := user.NewRedisRepository(sfRepo, &redisCfg)
 	searchEngine := user.NewMeilisearchEngine(search, "users")
 	consumer := user.NewEventConsumer(repo, searchEngine)
-	service := user.NewService(sfRepo, searchEngine)
+	service := user.NewService(redisRepo, searchEngine)
 	handler := user.NewHandler(service)
 	return &UserBundle{
 		Consumer:          consumer,

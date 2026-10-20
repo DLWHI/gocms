@@ -52,7 +52,7 @@ type SearchEngine interface {
 	Index(ctx context.Context, user *Document) error
 	Get(ctx context.Context, username string) (*Document, error)
 	Search(ctx context.Context, filters *SearchParams) (*SearchResult, error)
-	Delete(ctx context.Context, username string, timestamp int64) error
+	Delete(ctx context.Context, username string) error
 }
 
 func (um *User) ToDomain() Document {

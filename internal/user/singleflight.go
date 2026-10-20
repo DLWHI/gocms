@@ -30,16 +30,18 @@ func (r *SingleflightRepository) Create(ctx context.Context, user *User) error {
 	if err := r.origin.Create(ctx, user); err != nil {
 		return err
 	}
+	r.group.Forget(r.allKey)
 	return nil
 }
 
 func (r *SingleflightRepository) UpdateLogin(ctx context.Context, username string, timestamp time.Time) (*User, error) {
 	key := fmt.Sprintf(r.keyFormat, username)
-	r.group.Forget(key)
 	user, err := r.origin.UpdateLogin(ctx, username, timestamp)
 	if err != nil {
 		return nil, err
 	}
+	r.group.Forget(key)
+	r.group.Forget(r.allKey)
 	return user, nil
 }
 
@@ -49,10 +51,11 @@ func (r *SingleflightRepository) UpdatePasswd(ctx context.Context, username stri
 
 func (r *SingleflightRepository) Update(ctx context.Context, username string, diff map[string]interface{}) error {
 	key := fmt.Sprintf(r.keyFormat, username)
-	r.group.Forget(key)
 	if err := r.origin.Update(ctx, username, diff); err != nil {
 		return err
 	}
+	r.group.Forget(key)
+	r.group.Forget(r.allKey)
 	return nil
 }
 
@@ -123,9 +126,10 @@ func (r *SingleflightRepository) GetPasswdHash(ctx context.Context, username str
 
 func (r *SingleflightRepository) Delete(ctx context.Context, username string) error {
 	key := fmt.Sprintf(r.keyFormat, username)
-	r.group.Forget(key)
 	if err := r.origin.Delete(ctx, username); err != nil {
 		return err
 	}
+	r.group.Forget(key)
+	r.group.Forget(r.allKey)
 	return nil
 }

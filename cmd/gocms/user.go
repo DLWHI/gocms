@@ -53,16 +53,13 @@ func CreateUser(ctx context.Context, app *Container) error {
 			return err
 		}
 
-		err = svc.IsAllowedUsername(ctx, input)
+		username, err = svc.NormalizeUsername(ctx, input)
 		if err != nil {
 			if !errors.Is(err, errs.ErrInval) {
 				logger.Error("User create", "Failed to verify username", err)
 				return err
 			}
 			fmt.Printf("%v", err)
-		} else {
-			username = input
-
 		}
 	}
 

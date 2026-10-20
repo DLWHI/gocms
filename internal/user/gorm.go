@@ -40,7 +40,7 @@ func (r *GORMRepository) Create(ctx context.Context, user *User) error {
 		if err := tx.Create(user).Error; err != nil {
 			return err
 		}
-		if err := r.writeMessage(tx, "create", user.Username); err != nil {
+		if err := r.writeMessage(tx, "user", user.Username); err != nil {
 			return err
 		}
 		return nil
@@ -54,7 +54,7 @@ func (r *GORMRepository) Create(ctx context.Context, user *User) error {
 func (r *GORMRepository) UpdateLogin(ctx context.Context, username string, timestamp time.Time) (*User, error) {
 	var user User
 	err := r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		if err := tx.Omit("Passwd").Where("username = ?", username).Take(&user).Error; err != nil {
+		if err := tx.Model(&User{}).Omit("Passwd").Where("username = ?", username).Take(&user).Error; err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 				return errs.ErrNotFound
 			}
@@ -92,6 +92,7 @@ func (r *GORMRepository) Update(ctx context.Context, username string, diff map[s
 	var user User
 	for i := 0; i < 5; i++ {
 		err := r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+			sanitized := r.sanitize(diff)
 			if err := tx.Omit("Passwd").Where("username = ?", username).Take(&user).Error; err != nil {
 				if errors.Is(err, gorm.ErrRecordNotFound) {
 					return errs.ErrNotFound
@@ -99,10 +100,10 @@ func (r *GORMRepository) Update(ctx context.Context, username string, diff map[s
 				return err
 			}
 
-			if len(diff) > 0 {
+			if len(sanitized) > 0 {
 				result := tx.Model(&User{}).
 					Where("username = ? AND version = ?", user.Username, user.Version).
-					Updates(r.sanitize(diff))
+					Updates(r.sanitize(sanitized))
 				if result.Error != nil {
 					return result.Error
 				}
@@ -191,7 +192,7 @@ func (r *GORMRepository) GetAll(ctx context.Context) ([]User, error) {
 }
 
 func (r *GORMRepository) GetPasswdHash(ctx context.Context, username string) (Password, error) {
-	hash := make([]byte, 0)
+	var hash []byte
 
 	err := r.db.WithContext(ctx).Model(&User{}).
 		Select("Passwd").
@@ -199,7 +200,7 @@ func (r *GORMRepository) GetPasswdHash(ctx context.Context, username string) (Pa
 		Take(&hash).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return hash, nil
+			return []byte("dummy"), nil
 		}
 		return nil, err
 	}

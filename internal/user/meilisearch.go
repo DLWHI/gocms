@@ -110,7 +110,7 @@ func (r *MeilisearchEngine) Get(ctx context.Context, username string) (*Document
 	return &user, nil
 }
 
-func (r *MeilisearchEngine) Delete(ctx context.Context, username string, timestamp int64) error {
+func (r *MeilisearchEngine) Delete(ctx context.Context, username string) error {
 	index := r.se.Index(r.idx)
 	task, err := index.DeleteDocumentWithContext(ctx, username, nil)
 	if err != nil {
@@ -139,8 +139,8 @@ func (r *MeilisearchEngine) Search(ctx context.Context, params *SearchParams) (*
 		var meiliErr *meilisearch.Error
 		if errors.As(err, &meiliErr) {
 			if meiliErr.StatusCode == http.StatusBadRequest &&
-				(meiliErr.MeilisearchApiError.Code == "invalid_document_sort" ||
-					meiliErr.MeilisearchApiError.Code == "invalid_document_filter") {
+				(meiliErr.MeilisearchApiError.Code == "invalid_search_filter" ||
+					meiliErr.MeilisearchApiError.Code == "invalid_search_sort") {
 				return nil, errs.ErrInval
 			}
 		}

@@ -90,7 +90,8 @@ func (r *RedisRepository) Get(ctx context.Context, username string) (*User, erro
 		var user User
 		if err := json.Unmarshal([]byte(cached), &user); err != nil {
 			r.logError("Invalid data on key %s, key will be deleted", key, err)
-			if _, err := r.rdb.Del(ctx, key).Result(); err != nil {
+			ictx := context.WithoutCancel(ctx)
+			if _, err := r.rdb.Del(ictx, key).Result(); err != nil {
 				r.logError("Failed to delete key %s from cache.", key, err)
 			}
 		} else {
@@ -100,6 +101,10 @@ func (r *RedisRepository) Get(ctx context.Context, username string) (*User, erro
 		r.logError("Failed to read key %s from cache.", key, err)
 	}
 
+	if _, err := r.rdb.Set(ctx, key, "", r.ttl).Result(); err != nil {
+		r.logError("Failed to write key %s to cache.", key, err)
+	}
+
 	user, err := r.origin.Get(ctx, username)
 	if err != nil {
 		return nil, err
@@ -107,7 +112,7 @@ func (r *RedisRepository) Get(ctx context.Context, username string) (*User, erro
 
 	data, err := json.Marshal(user)
 	if err == nil {
-		if _, err := r.rdb.Set(ctx, key, data, r.ttl).Result(); err != nil {
+		if _, err := r.rdb.SetXX(ctx, key, data, r.ttl).Result(); err != nil {
 			r.logError("Failed to write key %s to cache.", key, err)
 		}
 	} else {
@@ -123,14 +128,14 @@ func (r *RedisRepository) GetAll(ctx context.Context) ([]User, error) {
 		var users []User
 		if err := json.Unmarshal([]byte(cached), &users); err != nil {
 			r.logError("Invalid data on key %s, key will be deleted", r.allKey, err)
-			if _, err := r.rdb.Del(ctx, r.allKey).Result(); err != nil {
+			ictx := context.WithoutCancel(ctx)
+			if _, err := r.rdb.Del(ictx, r.allKey).Result(); err != nil {
 				r.logError("Failed to delete key %s from cache.", r.allKey, err)
 			}
 		} else {
 			return users, nil
 		}
-	}
-	if !errors.Is(err, redis.Nil) {
+	} else if !errors.Is(err, redis.Nil) {
 		r.logError("Failed to read key %s from cache.", r.allKey, err)
 	}
 
@@ -140,11 +145,12 @@ func (r *RedisRepository) GetAll(ctx context.Context) ([]User, error) {
 	}
 
 	data, err := json.Marshal(users)
-	if err != nil {
+	if err == nil {
+		if _, err := r.rdb.Set(ctx, r.allKey, data, r.ttl).Result(); err != nil {
+			r.logError("Failed to write key %s to cache.", r.allKey, err)
+		}
+	} else {
 		r.logError("Failed to encode key %s into json.", r.allKey, err)
-	}
-	if _, err := r.rdb.Set(ctx, r.allKey, data, r.ttl).Result(); err != nil {
-		r.logError("Failed to write key %s to cache.", r.allKey, err)
 	}
 
 	return users, nil

@@ -14,6 +14,7 @@ import (
 type SingleflightRepository struct {
 	origin    Repository
 	keyFormat string
+	allKey    string
 	group     singleflight.Group
 }
 
@@ -21,6 +22,7 @@ func NewSingleflightRepository(db Repository, keyFormat string) *SingleflightRep
 	return &SingleflightRepository{
 		origin:    db,
 		keyFormat: keyFormat,
+		allKey:    fmt.Sprintf(keyFormat, ":all"),
 	}
 }
 
@@ -85,14 +87,13 @@ func (r *SingleflightRepository) Get(ctx context.Context, username string) (*Use
 
 func (r *SingleflightRepository) GetAll(ctx context.Context) ([]User, error) {
 	var users []User
-	key := fmt.Sprintf(r.keyFormat, "__all")
-	ch := r.group.DoChan(key, func() (any, error) {
+	ch := r.group.DoChan(r.allKey, func() (any, error) {
 		bg, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 		defer cancel()
 
 		retreived, err := r.origin.GetAll(bg)
 		if err != nil {
-			r.group.Forget(key)
+			r.group.Forget(r.allKey)
 			return nil, err
 		}
 

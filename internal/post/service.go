@@ -158,19 +158,6 @@ func (s *Service) Search(ctx context.Context, filters *SearchParams) (*SearchRes
 		filters.Locale = locale.(string)
 	}
 
-	filters.Select = []string{
-		"post_id",
-		"title",
-		"description",
-		"slug",
-		"locale",
-		"published_at",
-		"views",
-		"preview",
-		"author",
-		"categories",
-	}
-
 	posts, err := s.se.Search(ctx, filters)
 	if err != nil {
 		logger.Error("Post.Service", "Failed to search posts", err)

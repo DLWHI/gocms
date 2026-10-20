@@ -6,6 +6,11 @@ Use this page to jump directly to a route reference:
 - [Storage API](storage-api.md) — routes under `/storage`
 - [Public API](public-api.md) — routes under `/public`
 
+- `400 Bad Request` — if path parameters, request body or request data is invalid. Returns a plain-text message.
+- `401 Unauthorized` — if session is invalid, missing or expired identity or if session has insufficient permissions. Returns a plain-text message.
+- `404 Not Found` — if target entity was not found. Returns a plain-text message.
+- `500 Internal Server Error` — if some other error occured on server. Returns a plain-text message.
+
 ## CMS — users
 
 | Method | Route | Reference |

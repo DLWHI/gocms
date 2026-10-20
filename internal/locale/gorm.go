@@ -15,12 +15,12 @@ func NewGORMRepository(db *gorm.DB) *GORMRepository {
 	return &GORMRepository{db: db}
 }
 
-func (r *GORMRepository) Create(ctx context.Context, locale *Model) error {
+func (r *GORMRepository) Create(ctx context.Context, locale *Locale) error {
 	return r.db.WithContext(ctx).Create(locale).Error
 }
 
-func (r *GORMRepository) GetAll(ctx context.Context) ([]Model, error) {
-	var locales []Model
+func (r *GORMRepository) GetAll(ctx context.Context) ([]Locale, error) {
+	locales := make([]Locale, 0)
 
 	err := r.db.WithContext(ctx).
 		Find(&locales).Error
@@ -34,7 +34,7 @@ func (r *GORMRepository) GetAll(ctx context.Context) ([]Model, error) {
 func (r *GORMRepository) Delete(ctx context.Context, locale string) error {
 	result := r.db.WithContext(ctx).
 		Where("code = ?", locale).
-		Delete(&Model{})
+		Delete(&Locale{})
 	if result.Error != nil {
 		return result.Error
 	}

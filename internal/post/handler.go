@@ -58,7 +58,6 @@ func (h *Handler) create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusCreated)
-	_ = json.NewEncoder(w).Encode(&post)
 }
 
 // POST /posts/search - Get/search posts
@@ -68,6 +67,17 @@ func (h *Handler) search(w http.ResponseWriter, r *http.Request) {
 	if err := json.NewDecoder(r.Body).Decode(&filters); err != nil {
 		http.Error(w, "Invalid JSON payload", http.StatusBadRequest)
 		return
+	}
+
+	filters.Select = []string{
+		"post_id",
+		"title",
+		"locale",
+		"published_at",
+		"created_at",
+		"views",
+		"author",
+		"categories",
 	}
 
 	posts, err := h.postService.Search(r.Context(), &filters)

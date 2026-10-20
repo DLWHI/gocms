@@ -17,7 +17,7 @@ func NewService(repo Repository) *Service {
 	}
 }
 
-func (s *Service) Create(ctx context.Context, locale *Model) error {
+func (s *Service) Create(ctx context.Context, locale *Locale) error {
 	if !auth.HasPermission(ctx, "locales", "create") {
 		return errs.ErrCred
 	}
@@ -30,7 +30,7 @@ func (s *Service) Create(ctx context.Context, locale *Model) error {
 	return nil
 }
 
-func (s *Service) GetAll(ctx context.Context) ([]Model, error) {
+func (s *Service) GetAll(ctx context.Context) ([]Locale, error) {
 	locales, err := s.repo.GetAll(ctx)
 	if err != nil {
 		logger.Error("Locale.Service", "Failed to list locales", err)

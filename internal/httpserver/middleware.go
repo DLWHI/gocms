@@ -1,4 +1,4 @@
-package domain
+package httpserver
 
 import "net/http"
 

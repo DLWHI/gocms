@@ -26,6 +26,7 @@ import (
 // GET /editors/{username}/bio - Read editor bio
 //
 // GET /advertisements - Get ad groups
+// GET /partners - Get partners group
 // ------------------------------------------------------------------
 
 type Handler struct {
@@ -37,6 +38,7 @@ type Handler struct {
 	EditorGet     http.Handler
 	EditorBio     http.Handler
 	Ads           http.Handler
+	Partners      http.Handler
 	posts         *post.Service
 	editors       *editor.Service
 	categories    *category.Service
@@ -60,6 +62,7 @@ func NewHandler(ps *post.Service, es *editor.Service, cs *category.Service, ls *
 	hndl.EditorAll = http.HandlerFunc(hndl.editorsAll)
 	hndl.EditorGet = http.HandlerFunc(hndl.editorsGet)
 	hndl.Ads = http.HandlerFunc(hndl.adsGet)
+	hndl.Partners = http.HandlerFunc(hndl.partners)
 	return &hndl
 }
 
@@ -76,6 +79,18 @@ func (h *Handler) postsSearch(w http.ResponseWriter, r *http.Request) {
 	params.CreatedAfter = nil
 	params.CreatedBefore = nil
 	params.ID = 0
+	params.Select = []string{
+		"post_id",
+		"title",
+		"description",
+		"slug",
+		"locale",
+		"published_at",
+		"views",
+		"preview",
+		"author",
+		"categories",
+	}
 
 	res, err := h.posts.Search(r.Context(), &params)
 	if err != nil {
@@ -209,4 +224,16 @@ func (h *Handler) adsGet(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	_ = json.NewEncoder(w).Encode(&advertisements)
+}
+
+// GET /partners - Get partners group
+func (h *Handler) partners(w http.ResponseWriter, r *http.Request) {
+	ads, err := h.ads.GetGroup(r.Context(), "partners")
+	if err != nil {
+		errs.ServeMessage(w, "Advertisement", err)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	_ = json.NewEncoder(w).Encode(&ads)
 }

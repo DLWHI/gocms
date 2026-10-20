@@ -137,22 +137,6 @@ func (s *Service) AllGroups(ctx context.Context) ([]string, error) {
 	return groups, nil
 }
 
-func (s *Service) GetPartners(ctx context.Context) ([]Doc, error) {
-	model, err := s.repo.GetGroup(ctx, "partners")
-	if err != nil {
-		logger.Error("Ads.Service", "Failed to retrieve partner advertisements", err)
-		return nil, err
-	}
-
-	ads := make([]Doc, 0, len(model))
-
-	for _, ad := range model {
-		ads = append(ads, ad.ToDoc())
-	}
-
-	return ads, nil
-}
-
 func (s *Service) Search(ctx context.Context, filters *SearchParams) (*SearchResult, error) {
 	search.ClampParams(&filters.Params)
 

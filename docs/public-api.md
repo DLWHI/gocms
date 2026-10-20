@@ -41,7 +41,7 @@ List configured locales.
 
 ### `POST /public/posts`
 
-Search published posts.
+Search published posts. The search is performed on post's title, description and keywords
 
 - **Headers:**
   - `Accept-Language` — Search language; required if the request body omits `locale`.
@@ -89,8 +89,8 @@ Search published posts.
   }
   ```
 
-  - `400 Bad Request` — if request body is malformed or a required locale is missing.
-  - `500 Internal Server Error` — if search operation failed.
+  - `400 Bad Request` — if request body is malformed or a target locale is missing. Returns a plain-text message.
+  - `500 Internal Server Error` — if search operation failed. Returns a plain-text message.
 
 <a id="public-posts-id"></a>
 
@@ -129,9 +129,9 @@ Get a published post by ID and slug.
   }
   ```
 
-  - `400 Bad Request` — if locale or slug is missing, or the ID is invalid.
-  - `404 Not Found` — if published post does not exist.
-  - `500 Internal Server Error` — if retrieving the post, its categories, or its view count failed.
+  - `400 Bad Request` — if locale or slug is missing, or the ID is invalid. Returns a plain-text message.
+  - `404 Not Found` — if published post does not exist. Returns a plain-text message.
+  - `500 Internal Server Error` — if retrieving the post, its categories, or its view count failed. Returns a plain-text message.
 
 <a id="public-categories"></a>
 
@@ -166,8 +166,8 @@ List all non-hidden categories at the requested locale.
   ]
   ```
 
-  - `400 Bad Request` — if locale is missing.
-  - `500 Internal Server Error` — if retrieving categories failed.
+  - `400 Bad Request` — if locale is missing. Returns a plain-text message.
+  - `500 Internal Server Error` — if retrieving categories failed. Returns a plain-text message.
 
 <a id="public-editors"></a>
 
@@ -200,8 +200,8 @@ List all active editor profiles for the requested locale.
   ]
   ```
 
-  - `400 Bad Request` — if locale is missing.
-  - `500 Internal Server Error` — if retrieving editors failed.
+  - `400 Bad Request` — if locale is missing. Returns a plain-text message.
+  - `500 Internal Server Error` — if retrieving editors failed. Returns a plain-text message.
 
 <a id="public-editors-username"></a>
 
@@ -228,9 +228,9 @@ Get an editor profile by account username for the requested locale.
   }
   ```
 
-  - `400 Bad Request` — if locale is missing or the username is invalid.
-  - `404 Not Found` — if editor does not exist.
-  - `500 Internal Server Error` — if retrieving the editor failed.
+  - `400 Bad Request` — if locale is missing or the username is invalid. Returns a plain-text message.
+  - `404 Not Found` — if editor does not exist. Returns a plain-text message.
+  - `500 Internal Server Error` — if retrieving the editor failed. Returns a plain-text message.
 
 <a id="public-advertisements"></a>
 
@@ -275,4 +275,36 @@ Return unexpired advertisements for the requested groups.
   }
   ```
 
-  - `500 Internal Server Error` — if retrieving a requested advertisement group failed.
+  - `500 Internal Server Error` — if retrieving a requested advertisement group failed. Returns a plain-text message.
+
+### `GET /cms/partners`
+
+Returns advertisement that are in `partners` group
+
+- **Headers:** Not required
+- **Path parameters:** None.
+- **Request body:** None.
+- **Request limit:** 4 KiB.
+- **Response:**
+  - `200 OK` — if retreival succeeds
+
+  ```json
+  [
+    {
+      "name": "Advertisement",
+      "url": "https://example.com",
+      "priority": 1,
+      "group": "partners",
+      "banner": "https://example.com/banner.jpg"
+    },
+    {
+      "name": "Advertisement",
+      "url": "https://example.com",
+      "priority": 1,
+      "group": "partners",
+      "banner": "https://example.com/banner.jpg"
+    }
+  ]
+  ```
+
+  - `500 Internal Server Error` — if advertisement retreival fails. Returns a plain-text message.

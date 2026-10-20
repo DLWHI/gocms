@@ -36,7 +36,7 @@ func NewRedisRepository(db Repository, config *RedisConfig) *RedisRepository {
 	}
 }
 
-func (r *RedisRepository) Create(ctx context.Context, locale *Model) error {
+func (r *RedisRepository) Create(ctx context.Context, locale *Locale) error {
 	if err := r.origin.Create(ctx, locale); err != nil {
 		return err
 	}
@@ -46,8 +46,8 @@ func (r *RedisRepository) Create(ctx context.Context, locale *Model) error {
 	return nil
 }
 
-func (r *RedisRepository) GetAll(ctx context.Context) ([]Model, error) {
-	var locales []Model
+func (r *RedisRepository) GetAll(ctx context.Context) ([]Locale, error) {
+	var locales []Locale
 
 	if err := cache.UnmarshalRedisKey(r.rdb, ctx, r.keyFormat, &locales); err != nil {
 		if !errors.Is(err, redis.Nil) {
@@ -84,7 +84,7 @@ func (r *RedisRepository) GetAll(ctx context.Context) ([]Model, error) {
 		if res.Err != nil {
 			return nil, res.Err
 		}
-		locales = res.Val.([]Model)
+		locales = res.Val.([]Locale)
 	}
 
 	return locales, nil

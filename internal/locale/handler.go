@@ -29,7 +29,7 @@ func NewHandler(s *Service) *Handler {
 
 // POST /locales - Add locale
 func (h *Handler) create(w http.ResponseWriter, r *http.Request) {
-	var locale Model
+	var locale Locale
 	if err := json.NewDecoder(r.Body).Decode(&locale); err != nil {
 		http.Error(w, "Invalid JSON payload", http.StatusBadRequest)
 		return

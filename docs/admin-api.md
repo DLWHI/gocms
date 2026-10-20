@@ -2,9 +2,9 @@
 
 This document covers CMS routes responsible for accessing and managing content on admin application. Return to the [route index](README.md).
 
-## CMS — users
+## CMS — auth
 
-These routes are responsible for user management, as well as login, registration and sessions.
+These routes are responsible for user authentication, sessions and profile management.
 
 <a id="cms-login"></a>
 
@@ -43,33 +43,6 @@ Log in and create a session.
   - `400 Bad Request` — if request body is invalid JSON. Returns a plain-text message.
   - `401 Unauthorized` — if credentials were wrong. Returns a plain-text message.
   - `500 Internal Server Error` — if login or session creation failure. Returns a plain-text message.
-
-<a id="cms-register"></a>
-
-### `POST /cms/register`
-
-Create a user.
-
-- **Headers:**
-  - `Authorization` — `Bearer <sessionID>` (required).
-  - `Content-Type` — `application/json`
-- **Path parameters:** None.
-- **Request body:**
-
-  ```json
-  {
-    "username": "string",
-    "passwd": "password",
-    "email": "example@email.com",
-  }
-  ```
-
-- **Request limit:** 4 KiB.
-- **Response:**
-  - `201 Created` — if user was created successfully. Returns empty body.
-  - `400 Bad Request` — if body or username is invalid. Returns a plain-text message.
-  - `401 Unauthorized` — is session is invalid, missing or expired identity or if session has insufficient permissions. Returns a plain-text message.
-  - `500 Internal Server Error` — if user creation fails. Returns a plain-text message.
 
 <a id="cms-logout"></a>
 
@@ -169,17 +142,48 @@ Change current user's password.
   - `401 Unauthorized` — if session is invalid, missing or expired identity, or if old credentials is invalid. Returns a plain-text message.
   - `500 Internal Server Error` — if change fails. Returns a plain-text message.
 
-<a id="cms-users-search"></a>
+## CMS — users
 
-### `POST /cms/users/search`
+These routes are responsible for user database management.
 
-Search user records.
+<a id="cms-users-create"></a>
+
+### `POST /cms/users`
+
+Create a user.
 
 - **Headers:**
   - `Authorization` — `Bearer <sessionID>` (required).
   - `Content-Type` — `application/json`
 - **Path parameters:** None.
 - **Request body:**
+
+  ```json
+  {
+    "username": "string",
+    "passwd": "password",
+    "email": "example@email.com",
+  }
+  ```
+
+- **Request limit:** 4 KiB.
+- **Response:**
+  - `201 Created` — if user was created successfully. Returns empty body.
+  - `400 Bad Request` — if body or username is invalid. Returns a plain-text message.
+  - `401 Unauthorized` — is session is invalid, missing or expired identity or if session has insufficient permissions. Returns a plain-text message.
+  - `500 Internal Server Error` — if user creation fails. Returns a plain-text message.
+
+<a id="cms-users-search"></a>
+
+### `POST /cms/users/search`
+
+Search user records. Search is performed on username and email
+
+- **Headers:**
+  - `Authorization` — `Bearer <sessionID>` (required).
+  - `Content-Type` — `application/json`
+- **Path parameters:** None.
+- **Request body:** Unknown fields are ignored. The request body may include:
 
 ```json
 {
@@ -334,7 +338,7 @@ Override user's password. Active sessions for that user are revoked after reset.
   - `400 Bad Request` — if username or body is invalid. Returns a plain-text message.
   - `401 Unauthorized` — is session is invalid, missing or expired identity or if session has insufficient permissions. Returns a plain-text message.
   - `404 Not Found` — if target user not found. Returns a plain-text message.
-  - `500 Internal Server Error` — is password/session service failure. Returns a plain-text message.
+  - `500 Internal Server Error` — if password/session service failure occurs. Returns a plain-text message.
 
 <a id="cms-users-username-permissions"></a>
 
@@ -344,139 +348,234 @@ Update a user's permissions.
 
 - **Headers:**
   - `Authorization` — `Bearer <sessionID>` (required).
-  - `Content-Type` — `application/json` recommended.
+  - `Content-Type` — `application/json`.
 - **Path parameters:**
-  - `username` — account to update.
-- **Request body:** Unsigned integer, for example `12`.
+  - `username` — target user.
+- **Request body:** Plain unsigned integer
+
+```json
+  65536
+```
+
 - **Request limit:** 4 KiB.
 - **Response:**
-  - `200 OK` — Empty body.
-  - `400 Bad Request` — Invalid JSON. Returns a plain-text message.
-  - `401 Unauthorized` — Missing or invalid session, or insufficient permission. Returns a plain-text message.
+  - `200 OK` — if permissions change successfully. Returns empty body.
+  - `400 Bad Request` — Invalid request JSON. Returns a plain-text message.
+  - `401 Unauthorized` — is session is invalid, missing or expired identity or if session has insufficient permissions. Returns a plain-text message.
   - `404 Not Found` — User not found. Returns a plain-text message.
-  - `500 Internal Server Error` — Service failure or request body exceeds 4 KiB. Returns a plain-text message.
+  - `404 Not Found` — if target user not found. Returns a plain-text message.
+  - `500 Internal Server Error` — if users service fails to change permissions. Returns a plain-text message.
 
 <a id="cms-users-username-delete"></a>
 
 ### `DELETE /cms/users/{username}`
 
-Suspend a user and revoke that user's sessions. Requires user-delete
-permission.
+Suspend a user and revoke that user's sessions. Note that this soft-deletes user from the database, menaing user data will still be available.
 
 - **Headers:**
   - `Authorization` — `Bearer <sessionID>` (required).
 - **Path parameters:**
-  - `username` — account to suspend.
+  - `username` — target user.
 - **Request body:** None.
 - **Request limit:** 4 KiB.
 - **Response:**
-  - `200 OK` — Empty body.
-  - `400 Bad Request` — Empty username. Returns a plain-text message.
-  - `401 Unauthorized` — Missing or invalid session, or insufficient permission. Returns a plain-text message.
-  - `404 Not Found` — User not found. Returns a plain-text message.
-  - `500 Internal Server Error` — Service failure. Returns a plain-text message.
+  - `200 OK` — if user suspended successfully. Empty body.
+  - `400 Bad Request` — if  username is invalid. Returns a plain-text message.
+  - `401 Unauthorized` — is session is invalid, missing or expired identity or if session has insufficient permissions. Returns a plain-text message.
+  - `404 Not Found` — target user was not found. Returns a plain-text message.
+  - `500 Internal Server Error` — if users service fails to suspend user. Returns a plain-text message.
 
 ## CMS — editors
 
-All editor routes require a Bearer session and `Accept-Language`. Request-body
-limit: 2 MiB.
+These routes are responsible for editor management.
 
 <a id="cms-editors-search"></a>
 
 ### `POST /cms/editors/search`
 
+Search editors. Search is performed on editor name, email and target username
+
 - **Headers:**
   - `Authorization` — `Bearer <sessionID>` (required).
-  - `Accept-Language` — required.
+  - `Accept-Language` — Search language; required if the request body omits `locale`.
 - **Path parameters:** None.
-- **Request body:** [Search request](#search-request) with editor fields.
+- **Request body:** Unknown fields are ignored. The request body may include:
+
+```json
+{
+  "query": "string",
+  "sort_by": "column:asc|desc",  // note that not all columns are sortable
+  "page": 1,
+  "count": 15,  // capped at 100
+  "locale": "string",  // optional, request requires `Accept-Language` header if this field is missing
+  "suspended": boolean,  // optional
+  "suspended_after": "2026-08-13T14:30:00Z",  // optional, must be RFC 3339 compliant
+  "suspended_before": "2026-08-13T14:30:00Z",  // optional, must be RFC 3339 compliant
+}
+```
+
 - **Request limit:** 2 MiB.
 - **Response:**
-  - `200 OK` — Search envelope of editor documents.
-  - `400 Bad Request` — Missing locale or invalid JSON. Returns a plain-text message.
-  - `401 Unauthorized` — Missing or invalid session, or insufficient permission. Returns a plain-text message.
-  - `404 Not Found` — Entity not found. Returns a plain-text message.
-  - `500 Internal Server Error` — Service failure or request body exceeds 2 MiB. Returns a plain-text message.
+  - `200 OK` — if search succeeds
+
+  ```json
+  {
+    "results": [
+      {
+        "username": "string",
+        "email": "email@example.com",
+        "bio": "Editor's bio in markdown",
+        "name": "string",
+        "locale": "strings",
+        "suspended_at": 2141453433,  // Unix timestamp
+      }
+    ],
+    "last_page": 1,
+    "total": 1
+  }
+  ```
+
+  - `400 Bad Request` — if request body is invalid. Returns a plain-text message.
+  - `401 Unauthorized` — is session is invalid, missing or expired identity. Returns a plain-text message.
+  - `500 Internal Server Error` — if search failure occurs. Returns a plain-text message.
 
 <a id="cms-editors"></a>
 
 ### `GET /cms/editors`
 
+Get all editors of specified locale.
+
 - **Headers:**
   - `Authorization` — `Bearer <sessionID>` (required).
-  - `Accept-Language` — required.
+  - `Accept-Language` — target language (required).
 - **Path parameters:** None.
 - **Request body:** None.
 - **Request limit:** 2 MiB.
 - **Response:**
-  - `200 OK` — JSON array of active editor documents in the requested locale.
-  - `400 Bad Request` — Missing locale. Returns a plain-text message.
-  - `401 Unauthorized` — Missing or invalid session. Returns a plain-text message.
-  - `500 Internal Server Error` — Service failure. Returns a plain-text message.
+  - `200 OK` — if editor retreival succeeds
+
+  ```json
+  [
+    {
+      "username": "string",
+      "email": "email@example.com",
+      "bio": "Editor's bio in markdown",
+      "name": "string",
+      "locale": "strings",
+      "suspended_at": 2141453433,  // Unix timestamp
+    },
+    {
+      "username": "string",
+      "email": "email@example.com",
+      "bio": "Editor's bio in markdown",
+      "name": "string",
+      "locale": "strings",
+      "suspended_at": 2141453433,  // Unix timestamp
+    }
+  ]
+  ```
+
+  - `400 Bad Request` — if target locale is missing. Returns a plain-text message.
+  - `401 Unauthorized` — if session is invalid, missing or expired identity. Returns a plain-text message.
+  - `500 Internal Server Error` — if editor service fails. Returns a plain-text message.
 
 <a id="cms-editors-create"></a>
 
 ### `POST /cms/editors`
 
-Create an editor profile. Requires editor-create permission.
+Create an editor profile.
 
 - **Headers:**
   - `Authorization` — `Bearer <sessionID>` (required).
-  - `Accept-Language` — required.
+  - `Accept-Language` — target language, required if the request body omits `locale`.
 - **Path parameters:** None.
-- **Request body:** [Editor document](#editor-document). If `locale` is empty,
-  the `Accept-Language` value is used.
+- **Request body:**
+
+```json
+{
+  "username": "string",
+  "email": "email@example.com",
+  "bio": "Editor's bio in markdown",
+  "name": "string",
+  "locale": "strings",  // optional, request requires `Accept-Language` header if this field is missing
+}
+```
+
 - **Request limit:** 2 MiB.
 - **Response:**
-  - `201 Created` — Empty body.
-  - `400 Bad Request` — Missing locale or invalid JSON. Returns a plain-text message.
-  - `401 Unauthorized` — Missing or invalid session, or insufficient permission. Returns a plain-text message.
-  - `500 Internal Server Error` — Repository failure or request body exceeds 2 MiB. Returns a plain-text message.
+  - `201 Created` — if editor created successfully. Returns empty body.
+  - `400 Bad Request` — if request body is malformed or a target locale is missing. Returns a plain-text message.
+  - `401 Unauthorized` — is session is invalid, missing or expired identity or if session has insufficient permissions. Returns a plain-text message.
+  - `500 Internal Server Error` — if editor service fails. Returns a plain-text message.
 
 <a id="cms-editors-username"></a>
 
 ### `GET /cms/editors/{username}`
 
+Get target username's editor profile.
+
 - **Headers:**
   - `Authorization` — `Bearer <sessionID>` (required).
-  - `Accept-Language` — required.
+  - `Accept-Language` — target language, required.
 - **Path parameters:**
   - `username` — account username.
 - **Request body:** None.
 - **Request limit:** 2 MiB.
 - **Response:**
-  - `200 OK` — JSON editor document for the requested locale.
-  - `400 Bad Request` — Missing locale. Returns a plain-text message.
-  - `401 Unauthorized` — Missing or invalid session, or insufficient permission. Returns a plain-text message.
-  - `404 Not Found` — Editor not found. Returns a plain-text message.
-  - `500 Internal Server Error` — Service failure. Returns a plain-text message.
+  - `200 OK` — if user retreival succeeds
+
+  ```json
+  {
+    "username": "string",
+    "email": "<email@example.com>",
+    "bio": "Editor's bio in markdown",
+    "name": "string",
+    "locale": "strings",  // optional, request requires `Accept-Language` header if this field is missing
+    "suspended_at": 2141453433,  // Unix timestamp
+  }
+  ```
+
+  - `400 Bad Request` — if username is invalid or target locale is missing. Returns a plain-text message.
+  - `401 Unauthorized` — if session is invalid, missing or expired identity. Returns a plain-text message.
+  - `404 Not Found` — Target editor not found. Returns a plain-text message.
+  - `500 Internal Server Error` — if editor service fails to retreive data. Returns a plain-text message.
 
 <a id="cms-editors-username-patch"></a>
 
 ### `PATCH /cms/editors/{username}`
 
-Update an editor profile. The authenticated user must match the username in
-the path.
+Update an editor profile. Currently, only editor himself has rights to update info.
 
 - **Headers:**
   - `Authorization` — `Bearer <sessionID>` (required).
-  - `Accept-Language` — required.
+  - `Accept-Language` —  target language, required if the request body omits `locale`.
 - **Path parameters:**
-  - `username` — account username.
-- **Request body:** [Editor document](#editor-document); body `username` must
-  equal the path parameter. Empty `locale` falls back to `Accept-Language`.
+  - `username` — target editor username.
+- **Request body:**
+
+```json
+{
+  "username": "string",
+  "email": "email@example.com",
+  "bio": "Editor's bio in markdown",
+  "name": "string",
+  "locale": "strings",  // optional, request requires `Accept-Language` header if this field is missing
+}
+```
+
 - **Request limit:** 2 MiB.
 - **Response:**
-  - `200 OK` — Empty body.
-  - `400 Bad Request` — Invalid JSON, missing locale, or path/body username mismatch. Returns a plain-text message.
-  - `401 Unauthorized` — Missing or invalid session, or caller mismatch. Returns a plain-text message.
-  - `500 Internal Server Error` — Service failure or request body exceeds 2 MiB. Returns a plain-text message.
+  - `200 OK` — if update succeeds. Returns empty body.
+  - `400 Bad Request` — if request body is malformed or a target locale is missing. Returns a plain-text message.
+  - `401 Unauthorized` — is session is invalid, missing or expired identity or if session has insufficient permissions. Returns a plain-text message.
+  - `404 Not Found` — if target editor was not found. Returns a plain-text message.
+  - `500 Internal Server Error` — if editor service fails to commit update. Returns a plain-text message.
 
 <a id="cms-editors-username-delete"></a>
 
 ### `DELETE /cms/editors/{username}`
 
-Suspend an editor profile. Requires editor-delete permission.
+Suspend an editor profile.
 
 - **Headers:**
   - `Authorization` — `Bearer <sessionID>` (required).
@@ -485,123 +584,227 @@ Suspend an editor profile. Requires editor-delete permission.
 - **Request body:** None.
 - **Request limit:** 2 MiB.
 - **Response:**
-  - `200 OK` — Empty body.
-  - `400 Bad Request` — Empty username. Returns a plain-text message.
-  - `401 Unauthorized` — Missing or invalid session, or insufficient permission. Returns a plain-text message.
-  - `404 Not Found` — Entity not found. Returns a plain-text message.
-  - `500 Internal Server Error` — Service failure. Returns a plain-text message.
+  - `200 OK` — if delete succeeds. Returns empty body.
+  - `400 Bad Request` — if username is invalid. Returns a plain-text message.
+  - `401 Unauthorized` — is session is invalid, missing or expired identity or if session has insufficient permissions. Returns a plain-text message.
+  - `404 Not Found` — if target editor was not found. Returns a plain-text message.
+  - `500 Internal Server Error` — if editor service fails delete. Returns a plain-text message.
 
 ## CMS — locales
 
-All locale routes require a Bearer session. Request-body limit: 4 KiB.
+These routes are responsible for content locale management.
 
 <a id="cms-locales"></a>
 
 ### `GET /cms/locales`
 
+Get all current locales supported by CMS.
+
 - **Headers:**
   - `Authorization` — `Bearer <sessionID>` (required).
 - **Path parameters:** None.
 - **Request body:** None.
 - **Request limit:** 4 KiB.
 - **Response:**
-  - `200 OK` — JSON array of `{"name":"English","code":"en"}` locale objects.
-  - `401 Unauthorized` — Missing or invalid session. Returns a plain-text message.
-  - `404 Not Found` — Entity not found. Returns a plain-text message.
-  - `500 Internal Server Error` — Service failure. Returns a plain-text message.
+  - `200 OK` —
+
+  ```json
+  [
+    {
+    "name": "English",
+    "code":"en"
+    },
+    {
+      "name": "Deutsch",
+      "code":"de"
+    },
+    {
+      "name": "Русский",
+      "code":"ru"
+    }
+  ]
+  ```
+
+  - `401 Unauthorized` — if session is invalid, missing or expired identity. Returns a plain-text message.
+  - `500 Internal Server Error` — if locale service fails. Returns a plain-text message.
 
 <a id="cms-locales-create"></a>
 
 ### `POST /cms/locales`
 
+Create locale. Entites will be available to be edited in that locale
+
 - **Headers:**
   - `Authorization` — `Bearer <sessionID>` (required).
 - **Path parameters:** None.
-- **Request body:** `{"name":"English","code":"en"}`.
+- **Request body:**
+
+```json
+{
+  "name": "string",
+  "code": "string", // ISO 639-1 compliant code
+}
+```
+
 - **Request limit:** 4 KiB.
 - **Response:**
-  - `201 Created` — Empty body.
-  - `400 Bad Request` — Invalid JSON or locale. Returns a plain-text message.
-  - `401 Unauthorized` — Missing or invalid session. Returns a plain-text message.
-  - `404 Not Found` — Entity not found. Returns a plain-text message.
-  - `500 Internal Server Error` — Service failure or request body exceeds 4 KiB. Returns a plain-text message.
+  - `201 Created` — if creation succeeds. Returns empty body.
+  - `400 Bad Request` — if request JSON is invalid. Returns a plain-text message.
+  - `401 Unauthorized` — is session is invalid, missing or expired identity or if session has insufficient permissions. Returns a plain-text message.
+  - `500 Internal Server Error` — if locales service fails to create locale. Returns a plain-text message.
 
 <a id="cms-locales-code-delete"></a>
 
 ### `DELETE /cms/locales/{code}`
 
+Create locale. Entites will be available to be edited in that locale
+
 - **Headers:**
   - `Authorization` — `Bearer <sessionID>` (required).
 - **Path parameters:**
-  - `code` — locale code.
+  - `code` — target locale code.
 - **Request body:** None.
 - **Request limit:** 4 KiB.
 - **Response:**
-  - `200 OK` — Empty body.
-  - `400 Bad Request` — Missing code. Returns a plain-text message.
-  - `401 Unauthorized` — Missing or invalid session. Returns a plain-text message.
-  - `404 Not Found` — Locale not found. Returns a plain-text message.
-  - `500 Internal Server Error` — Service failure. Returns a plain-text message.
+  - `200 OK` — if deletion succeeds. Returns empty body.
+  - `400 Bad Request` — if code is invalid. Returns a plain-text message.
+  - `401 Unauthorized` — is session is invalid, missing or expired identity or if session has insufficient permissions. Returns a plain-text message.
+  - `404 Not Found` — if target locale was not found. Returns a plain-text message.
+  - `500 Internal Server Error` — if locales service fails to delete locale. Returns a plain-text message.
 
 ## CMS — posts
-
-All post routes require a Bearer session and `Accept-Language`. Request-body
-limit: 2 MiB.
 
 <a id="cms-posts-create"></a>
 
 ### `POST /cms/posts`
 
-Create a post translation. Requires post-create permission; the authenticated
-user becomes the author.
+Create a post along with translation. The authenticated user becomes the author.
 
 - **Headers:**
   - `Authorization` — `Bearer <sessionID>` (required).
-  - `Accept-Language` — required.
+  - `Accept-Language` — target post language, required if the request body omits `locale`.
 - **Path parameters:** None.
-- **Request body:** [Post document](#post-document). `slug` must be non-empty
-  and contain no whitespace. If `locale` is empty, `Accept-Language` is used.
+- **Request body:** Unknown fields are ignored. Optional fields replaced by zero-values. The request body may include:
+
+```json
+  {
+    "title": "string",
+    "description": "string",
+    "markdown": "Post content in markdown",
+    "slug": "non-empty-string-without-space",
+    "keywords": "non-empty-string-without-space",
+    "locale": "string", // optional, request requires `Accept-Language` header if this field is missing
+    "published_at": 2141453433,  // Unix timestamp, provide, if post needs to be published as created
+    "preview": "https://example.com/preview.jpg",
+    "media": "https://example.com/post_main_media.jpg",
+    "media_source": "string",
+    "media_type": "video|image",
+    "categories": ["string", "array"],
+  }
+```
+
 - **Request limit:** 2 MiB.
 - **Response:**
-  - `201 Created` — JSON post document, including its assigned `post_id`.
-  - `400 Bad Request` — Missing locale, invalid slug, or invalid JSON. Returns a plain-text message.
-  - `401 Unauthorized` — Missing or invalid session, or insufficient permission. Returns a plain-text message.
-  - `500 Internal Server Error` — Repository failure or request body exceeds 2 MiB. Returns a plain-text message.
+  - `201 Created` — if creation was successful. Returns empty body
+  - `400 Bad Request` — if request body is malformed or a target locale is missing. Returns a plain-text message.
+  - `401 Unauthorized` — if session is invalid, missing or expired identity or if session has insufficient permissions. Returns a plain-text message.
+  - `500 Internal Server Error` — if posts service fails to create. Returns a plain-text message.
 
 <a id="cms-posts-search"></a>
 
 ### `POST /cms/posts/search`
 
+Performs post search. The search is performed on post's title, description and keywords
+
 - **Headers:**
   - `Authorization` — `Bearer <sessionID>` (required).
-  - `Accept-Language` — required.
+  - `Accept-Language` — Search language; required if the request body omits `locale`.
+  - `Content-Type` — `application/json`.
 - **Path parameters:** None.
-- **Request body:** [Search request](#search-request) with post fields.
-- **Request limit:** 2 MiB.
+- **Request body:** Unknown fields are ignored. The request body may include:
+
+  ```json
+  {
+    "query": "string",
+    "sort_by": "column:asc|desc",  // note that not all columns are sortable
+    "page": 1,
+    "count": 15,  // capped at 100
+    "locale": "string", // optional, request requires `Accept-Language` header if this field is missing
+    "categories": ["string", "array"], // optional
+    "exclude_categories": ["string", "array"], // optional
+    "authors": ["string", "array"], // optional
+    "published_after": "2026-08-13T14:30:00Z", // optional, must be RFC 3339 compliant
+    "published_before": "2026-08-13T14:30:00Z", // optional, must be RFC 3339 compliant
+  }
+  ```
+
+- **Request limit:** 4 KiB.
 - **Response:**
-  - `200 OK` — Search envelope of post documents.
-  - `400 Bad Request` — Missing locale or invalid JSON. Returns a plain-text message.
-  - `401 Unauthorized` — Missing or invalid session, or insufficient permission. Returns a plain-text message.
-  - `404 Not Found` — Entity not found. Returns a plain-text message.
-  - `500 Internal Server Error` — Service failure or request body exceeds 2 MiB. Returns a plain-text message.
+  - `200 OK` — if search completed successfully.
+
+  ```json
+  {
+    "results": [
+      {
+        "post_id": 1,
+        "title": "string",
+        "locale": "en",
+        "created_at": 2141453433,  // Unix timestamp
+        "published_at": 2141453433,  // Unix timestamp
+        "views": 1,
+        "author": "username",
+        "categories": ["category-slug"]
+      }
+    ],
+    "last_page": 1,
+    "total": 1
+  }
+  ```
+
+  - `400 Bad Request` — if request body is malformed or a target locale is missing. Returns a plain-text message.
+  - `500 Internal Server Error` — if search operation failed. Returns a plain-text message.
 
 <a id="cms-posts-id"></a>
 
 ### `GET /cms/posts/{id}`
 
+Get particular post by id
+
 - **Headers:**
   - `Authorization` — `Bearer <sessionID>` (required).
-  - `Accept-Language` — required.
+  - `Accept-Language` — target language, required if the request body omits `locale`.
 - **Path parameters:**
   - `id` — unsigned decimal post ID.
 - **Request body:** None.
 - **Request limit:** 2 MiB.
 - **Response:**
-  - `200 OK` — JSON post translation with categories.
-  - `400 Bad Request` — Invalid ID or missing locale. Returns a plain-text message.
-  - `401 Unauthorized` — Missing or invalid session, insufficient permission, or unauthorized author. Returns a plain-text message.
-  - `404 Not Found` — Post not found. Returns a plain-text message.
-  - `500 Internal Server Error` — Service failure. Returns a plain-text message.
+  - `200 OK` — if post retreival succeeds
+
+  ```json
+  {
+    "post_id": 1,
+    "title": "string",
+    "description": "string",
+    "markdown": "Post content in Markdown format",
+    "slug": "post-slug",
+    "keywords": "string",
+    "locale": "en",
+    "created_at": 2141453433, // Unix timestamp
+    "published_at": 2141453433, // Unix timestamp
+    "views": 1,
+    "preview": "https://example.com/preview.jpg",
+    "media": "https://example.com/media.jpg",
+    "media_source": "https://example.com/source.jpg",
+    "media_type": "image",
+    "author": "username",
+    "categories": ["category-slug"]
+  }
+  ```
+
+  - `400 Bad Request` — if id is invalid or locale is missing. Returns a plain-text message.
+  - `401 Unauthorized` — if session is invalid, missing or expired identity or if session has insufficient permissions. Returns a plain-text message.
+  - `404 Not Found` — if target post or post translation were not found. Returns a plain-text message.
+  - `500 Internal Server Error` — if post service fails to retreive post. Returns a plain-text message.
 
 <a id="cms-posts-id-patch"></a>
 
@@ -612,40 +815,61 @@ perform the update.
 
 - **Headers:**
   - `Authorization` — `Bearer <sessionID>` (required).
-  - `Accept-Language` — required.
+  - `Accept-Language` — target language, required.
 - **Path parameters:**
-  - `id` — unsigned decimal post ID; it overrides `post_id` supplied in the body.
-- **Request body:** [Post document](#post-document); `slug` must be non-empty
-  and contain no whitespace. Empty `locale` uses `Accept-Language`.
+  - `id` — unsigned decimal post ID
+- **Request body:**
+
+```json
+{
+  "title": "string",
+  "description": "string",
+  "markdown": "Post content in Markdown format",
+  "slug": "post-slug",
+  "keywords": "string",
+  "locale": "en",
+  "published_at": 2141453433, // Unix timestamp
+  "preview": "https://example.com/preview.jpg",
+  "media": "https://example.com/media.jpg",
+  "media_source": "https://example.com/source.jpg",
+  "media_type": "image",
+  "author": "username",
+  "categories": ["category-slug"]
+}
+```
+
 - **Request limit:** 2 MiB.
 - **Response:**
-  - `200 OK` — Empty body.
-  - `400 Bad Request` — Invalid ID, invalid JSON, missing locale, or invalid slug. Returns a plain-text message.
-  - `401 Unauthorized` — Missing or invalid session, insufficient permission, or unauthorized author. Returns a plain-text message.
-  - `404 Not Found` — Post not found. Returns a plain-text message.
-  - `500 Internal Server Error` — Repository failure or request body exceeds 2 MiB. Returns a plain-text message.
+  - `200 OK` — if update succeeds. Returns empty body.
+  - `400 Bad Request` — if id, request body or post data is invalid, or if target locale is missing. Returns a plain-text message.
+  - `401 Unauthorized` — if session is invalid, missing or expired identity or if session has insufficient permissions. Returns a plain-text message.
+  - `404 Not Found` — if target post was not found. Returns a plain-text message.
+  - `500 Internal Server Error` — if posts service fails to update. Returns a plain-text message.
 
 <a id="cms-posts-id-views"></a>
 
 ### `PATCH /cms/posts/{id}/views`
 
-Set the post's view count. Requires the post to exist; route middleware also
-requires `Accept-Language`, although the handler does not use it.
+Set the post's view count. Requires special priveleges
 
 - **Headers:**
   - `Authorization` — `Bearer <sessionID>` (required).
-  - `Accept-Language` — required.
 - **Path parameters:**
   - `id` — unsigned decimal post ID.
-- **Request body:** Unsigned integer, for example `25`.
+- **Request body:** Plain unsigned integer
+
+```json
+25
+```
+
 - **Request limit:** 2 MiB.
 - **Response:**
-  - `200 OK` — Empty body.
-  - `400 Bad Request` — Invalid ID or invalid JSON. Returns a plain-text message.
-  - `401 Unauthorized` — Missing or invalid session. Returns a plain-text message.
-  - `404 Not Found` — Post not found. Returns a plain-text message.
-  - `500 Internal Server Error` — Service failure or request body exceeds 2 MiB. Returns a plain-text message.
-
+  - `200 OK` — if update succeeds. Returns empty body.
+  - `400 Bad Request` — if id or request body. Returns a plain-text message.
+  - `401 Unauthorized` — if session is invalid, missing or expired identity or if session has insufficient permissions. Returns a plain-text message.
+  - `404 Not Found` — if target post was not found. Returns a plain-text message.
+  - `500 Internal Server Error` — if posts service fails to update. Returns a plain-text message.
+  
 <a id="cms-posts-id-delete"></a>
 
 ### `DELETE /cms/posts/{id}`
@@ -655,17 +879,16 @@ permission may perform the operation.
 
 - **Headers:**
   - `Authorization` — `Bearer <sessionID>` (required).
-  - `Accept-Language` — required.
 - **Path parameters:**
   - `id` — unsigned decimal post ID.
 - **Request body:** None.
 - **Request limit:** 2 MiB.
 - **Response:**
-  - `200 OK` — Empty body.
-  - `400 Bad Request` — Invalid ID or missing locale header. Returns a plain-text message.
-  - `401 Unauthorized` — Missing or invalid session, insufficient permission, or unauthorized author. Returns a plain-text message.
-  - `404 Not Found` — Post not found. Returns a plain-text message.
-  - `500 Internal Server Error` — Service failure. Returns a plain-text message.
+  - `200 OK` — if delete succeeds. Returns empty body.
+  - `400 Bad Request` — if id is invalid. Returns a plain-text message.
+  - `401 Unauthorized` — if session is invalid, missing or expired identity or if session has insufficient permissions. Returns a plain-text message.
+  - `404 Not Found` — if target post was not found. Returns a plain-text message.
+  - `500 Internal Server Error` — if posts service fails to delete. Returns a plain-text message.
 
 <a id="cms-posts-id-locale-delete"></a>
 
@@ -676,137 +899,221 @@ perform the operation.
 
 - **Headers:**
   - `Authorization` — `Bearer <sessionID>` (required).
-  - `Accept-Language` — required.
 - **Path parameters:**
   - `id` — unsigned decimal post ID.
-  - `locale` — translation locale code.
+  - `locale` — target language.
 - **Request body:** None.
 - **Request limit:** 2 MiB.
 - **Response:**
-  - `200 OK` — Empty body.
-  - `400 Bad Request` — Invalid ID. Returns a plain-text message.
-  - `401 Unauthorized` — Missing or invalid session, insufficient permission, or unauthorized author. Returns a plain-text message.
-  - `404 Not Found` — Post not found. Returns a plain-text message.
-  - `500 Internal Server Error` — Service failure. Returns a plain-text message.
+  - `200 OK` — if delete succeeds. Returns empty body.
+  - `400 Bad Request` — if id or locale is invalid. Returns a plain-text message.
+  - `401 Unauthorized` — if session is invalid, missing or expired identity or if session has insufficient permissions. Returns a plain-text message.
+  - `404 Not Found` — if target post translation was not found. Returns a plain-text message.
+  - `500 Internal Server Error` — if posts service fails to delete. Returns a plain-text message.
 
 ## CMS — categories
 
-All category routes require a Bearer session and `Accept-Language`. Request
-body limit: 4 KiB.
+This section decribes routes that are responsible for category management.
 
 <a id="cms-categories-search"></a>
 
 ### `POST /cms/categories/search`
 
+Searches categories. Search is performed on category name and slug.
+
 - **Headers:**
   - `Authorization` — `Bearer <sessionID>` (required).
-  - `Accept-Language` — required.
+  - `Accept-Language` — Search language, required if the request body omits `locale`..
 - **Path parameters:** None.
-- **Request body:** [Search request](#search-request) with category fields.
+- **Request body:** Unknown parameters are ignored. Request may include:
+
+```json
+{
+  "query": "string",
+  "sort_by": "column:asc|desc",  // note that not all columns are sortable
+  "page": 1,
+  "count": 15,  // capped at 100
+  "locale": "string",  // optional, request requires `Accept-Language` header if this field is missing
+  "hidden": boolean,  // optional
+  "navbar": boolean,  // optional
+}
+```
+
 - **Request limit:** 4 KiB.
 - **Response:**
-  - `200 OK` — Search envelope of category documents.
-  - `400 Bad Request` — Missing locale or invalid JSON. Returns a plain-text message.
-  - `401 Unauthorized` — Missing or invalid session, or insufficient permission. Returns a plain-text message.
-  - `404 Not Found` — Entity not found. Returns a plain-text message.
-  - `500 Internal Server Error` — Service failure or request body exceeds 4 KiB. Returns a plain-text message.
+  - `200 OK` — if seach succeeds succeeds
+
+  ```json
+  {
+    "results": [
+      {
+        "slug": "string",
+        "name": "string",
+        "navbar": boolean,
+        "hidden": boolean,
+      }
+    ],
+    "last_page": 1,
+    "total": 1
+  }
+  ```
+
+  - `400 Bad Request` — if id, request body or post data is invalid, or if target locale is missing. Returns a plain-text message.
+  - `401 Unauthorized` — if session is invalid, missing or expired identity. Returns a plain-text message.
+  - `500 Internal Server Error` — if search service fails. Returns a plain-text message.
 
 <a id="cms-categories"></a>
 
 ### `GET /cms/categories`
 
+Get all categories for specified locale
+
 - **Headers:**
   - `Authorization` — `Bearer <sessionID>` (required).
-  - `Accept-Language` — required.
+  - `Accept-Language` — target language (required).
 - **Path parameters:** None.
 - **Request body:** None.
 - **Request limit:** 4 KiB.
 - **Response:**
-  - `200 OK` — JSON array of categories in the requested locale.
-  - `400 Bad Request` — Missing locale. Returns a plain-text message.
-  - `401 Unauthorized` — Missing or invalid session. Returns a plain-text message.
-  - `500 Internal Server Error` — Service failure. Returns a plain-text message.
 
+  - `200 OK` — if retreival succeeds
+
+  ```json
+  [
+    {
+      "slug": "string",
+      "name": "string",
+      "locale": "string",
+      "navbar": boolean,
+      "hidden": boolean,
+    },
+    {
+      "slug": "string",
+      "name": "string",
+      "locale": "string",
+      "navbar": boolean,
+      "hidden": boolean,
+    }
+  ]
+  ```
+
+  - `400 Bad Request` — if locale is missing. Returns a plain-text message.
+  - `401 Unauthorized` — if session is invalid, missing or expired identity. Returns a plain-text message.
+  - `500 Internal Server Error` — if category service fails to retreive data. Returns a plain-text message.
+  
 <a id="cms-categories-create"></a>
 
 ### `POST /cms/categories`
 
-Create a category; requires category-create permission.
+Create a category.
 
 - **Headers:**
   - `Authorization` — `Bearer <sessionID>` (required).
+  - `Accept-Language` — target language, required if body omits `locale`.
 - **Path parameters:** None.
-- **Request body:** [Category document](#category-document). `slug` must be
-  non-empty and contain no whitespace. Empty `locale` uses `Accept-Language`.
-- **Request limit:** 4 KiB.
+- **Request body:**
+
+  ```json
+  {
+    "slug": "string",
+    "name": "string",
+    "locale": "string", // optional, request requires `Accept-Language` header if this field is missing
+    "navbar": boolean,
+    "hidden": boolean,
+  }
+  ```
+
 - **Response:**
-  - `201 Created` — Empty body (the handler sets JSON content type but writes no JSON payload).
-  - `400 Bad Request` — Invalid JSON, missing locale, or invalid slug. Returns a plain-text message.
-  - `401 Unauthorized` — Missing or invalid session, or insufficient permission. Returns a plain-text message.
-  - `500 Internal Server Error` — Service failure or request body exceeds 4 KiB. Returns a plain-text message.
+  - `201 Created` — if creation succeeds. Returns empty body.
+  - `400 Bad Request` — if request or request data is invalid. Returns a plain-text message.
+  - `401 Unauthorized` — if session is invalid, missing or expired identity or if session has insufficient permissions. Returns a plain-text message.
+  - `404 Not Found` — if target post translation was not found. Returns a plain-text message.
+  - `500 Internal Server Error` — if posts service fails to delete. Returns a plain-text message.
 
 <a id="cms-categories-slug"></a>
 
 ### `GET /cms/categories/{slug}`
 
+Retreive particular category.
+
 - **Headers:**
   - `Authorization` — `Bearer <sessionID>` (required).
-  - `Accept-Language` — required.
+  - `Accept-Language` — target language (required).
 - **Path parameters:**
   - `slug` — category slug.
 - **Request body:** None.
 - **Request limit:** 4 KiB.
 - **Response:**
-  - `200 OK` — JSON category document.
-  - `400 Bad Request` — Missing locale or slug. Returns a plain-text message.
-  - `401 Unauthorized` — Missing or invalid session, or insufficient permission. Returns a plain-text message.
-  - `404 Not Found` — Category not found. Returns a plain-text message.
-  - `500 Internal Server Error` — Service failure. Returns a plain-text message.
+  - `200 OK` — if retreival succeeds
+
+  ```json
+  {
+    "slug": "string",
+    "name": "string",
+    "locale": "string",
+    "navbar": boolean,
+    "hidden": boolean,
+  }
+  ```
+
+  - `400 Bad Request` — if slug is invalid or target locale is missing. Returns a plain-text message.
+  - `401 Unauthorized` — if session is invalid, missing or expired identity or if session has insufficient permissions. Returns a plain-text message.
+  - `404 Not Found` — if target category translation was not found. Returns a plain-text message.
+  - `500 Internal Server Error` — if category service fails to retreive data. Returns a plain-text message.
 
 <a id="cms-categories-slug-patch"></a>
 
 ### `PATCH /cms/categories/{slug}`
 
-Update a category; requires category-edit permission.
+Update a category. Note that `slug` can be updated, despite it is being primary key.
 
 - **Headers:**
   - `Authorization` — `Bearer <sessionID>` (required).
+  - `Accept-Language` — target language, required if body omits `locale`.
 - **Path parameters:**
-  - `slug` — route selector. The handler updates from the
-  request document; it does not copy the path slug into the body.
-- **Request body:** [Category document](#category-document). Supply the target
-  `slug`; empty `locale` uses `Accept-Language`.
+  - `slug` — target slug.
+- **Request body:**
+
+```json
+  {
+    "slug": "string",
+    "name": "string",
+    "locale": "string",  // optional, request requires `Accept-Language` header if this field is missing
+    "navbar": boolean,
+    "hidden": boolean,
+  }
+  ```
+
 - **Request limit:** 4 KiB.
 - **Response:**
-  - `200 OK` — JSON category document.
-  - `400 Bad Request` — Invalid JSON, missing locale, or invalid slug. Returns a plain-text message.
-  - `401 Unauthorized` — Missing or invalid session, or insufficient permission. Returns a plain-text message.
-  - `404 Not Found` — Category not found. Returns a plain-text message.
-  - `500 Internal Server Error` — Service failure or request body exceeds 4 KiB. Returns a plain-text message.
+  - `200 OK` — if update succeeds. Returns empty body.
+  - `400 Bad Request` — if slug is invalid or target locale is missing. Returns a plain-text message.
+  - `401 Unauthorized` — if session is invalid, missing or expired identity or if session has insufficient permissions. Returns a plain-text message.
+  - `404 Not Found` — if target category translation was not found. Returns a plain-text message.
+  - `500 Internal Server Error` — if category service fails to update. Returns a plain-text message.
 
 <a id="cms-categories-slug-delete"></a>
 
 ### `DELETE /cms/categories/{slug}`
 
-Delete a category; requires category-delete permission.
+Delete a category.
 
 - **Headers:**
   - `Authorization` — `Bearer <sessionID>` (required).
-  - `Accept-Language` — required.
 - **Path parameters:**
-  - `slug` — category slug.
+  - `slug` — target category slug.
 - **Request body:** None.
 - **Request limit:** 4 KiB.
 - **Response:**
-  - `200 OK` — Empty body.
-  - `400 Bad Request` — Missing slug or locale header. Returns a plain-text message.
-  - `401 Unauthorized` — Missing or invalid session, or insufficient permission. Returns a plain-text message.
-  - `404 Not Found` — Category not found. Returns a plain-text message.
-  - `500 Internal Server Error` — Service failure. Returns a plain-text message.
+  - `200 OK` — if deletion succeeds. Returns empty body.
+  - `400 Bad Request` — if slug is invalid. Returns a plain-text message.
+  - `401 Unauthorized` — if session is invalid, missing or expired identity or if session has insufficient permissions. Returns a plain-text message.
+  - `404 Not Found` — if target category was not found. Returns a plain-text message.
+  - `500 Internal Server Error` — if category service fails to delete. Returns a plain-text message.
 
 ## CMS — advertisements
 
-All advertisement routes require a Bearer session. Request-body limit: 4 KiB.
+This section decribes routes that are responsible for advertisement management.
 
 <a id="cms-ads-search"></a>
 
@@ -815,38 +1122,84 @@ All advertisement routes require a Bearer session. Request-body limit: 4 KiB.
 - **Headers:**
   - `Authorization` — `Bearer <sessionID>` (required).
 - **Path parameters:** None.
-- **Request body:** [Search request](#search-request) with advertisement fields.
+- **Request body:** Unknown parameters are ignored. Request may include:
+
+```json
+{
+  "query": "string",
+  "sort_by": "column:asc|desc",  // note that not all columns are sortable
+  "page": 1,
+  "count": 15,  // capped at 100
+  "expired": boolean,  // optional
+  "expires_after": "2026-08-13T14:30:00Z",  // optional, must be RFC 3339 compliant
+  "expires_before": "2026-08-13T14:30:00Z",  // optional, must be RFC 3339 compliant
+  "groups": ["string", "array"],
+}
+```
+
 - **Request limit:** 4 KiB.
 - **Response:**
-  - `200 OK` — Search envelope of [advertisement documents](#advertisement-document).
-  - `400 Bad Request` — Invalid JSON. Returns a plain-text message.
-  - `401 Unauthorized` — Missing or invalid session, or insufficient permission. Returns a plain-text message.
-  - `404 Not Found` — Entity not found. Returns a plain-text message.
-  - `500 Internal Server Error` — Service failure or request body exceeds 4 KiB. Returns a plain-text message.
+  - `200 OK` — if retreival succeeds
+
+  ```json
+  {
+    "results": [
+      {
+        "id": 1,
+        "name": "string",
+        "description": "string",
+        "url": "https://example.com/preview.jpg",
+        "priority": 1,
+        "group": "string",
+        "expires_at": 2141453433,  // Unix timestamp, provide, if advertisement in temporary
+        "banner": "https://example.com/post_main_media.jpg",
+      }
+    ],
+    "last_page": 1,
+    "total": 1
+  }
+  ```
+
+  - `400 Bad Request` — if request body is invalid. Returns a plain-text message.
+  - `401 Unauthorized` — is session is invalid, missing or expired identity. Returns a plain-text message.
+  - `500 Internal Server Error` — if search failure occurs. Returns a plain-text message.
 
 <a id="cms-ads-create"></a>
 
 ### `POST /cms/ads`
 
-Create an advertisement; requires advertisement-create permission.
+Create an advertisement.
 
 - **Headers:**
   - `Authorization` — `Bearer <sessionID>` (required).
 - **Path parameters:** None.
-- **Request body:** [Advertisement document](#advertisement-document). `url`
-  must be an absolute HTTP or HTTPS URL. `group` is lowercased and must not
-  contain whitespace.
+- **Request body:**
+
+```json
+{
+  "name": "string",
+  "description": "string",
+  "url": "https://example.com/preview.jpg",
+  "priority": 1,
+  "group": "string",
+  "expires_at": 2141453433,  // Unix timestamp, provide, if advertisement in temporary
+  "banner": "https://example.com/post_main_media.jpg",
+}
+```
+
 - **Request limit:** 4 KiB.
 - **Response:**
-  - `201 Created` — Empty body.
-  - `400 Bad Request` — Invalid JSON, URL, or group. Returns a plain-text message.
-  - `401 Unauthorized` — Missing or invalid session, or insufficient permission. Returns a plain-text message.
-  - `500 Internal Server Error` — Service failure or request body exceeds 4 KiB. Returns a plain-text message.
+  - `201 Created` — if advertisement created successfully. Returns empty body.
+  - `400 Bad Request` — if request body is malformed or group is invalid. Returns a plain-text message.
+  - `401 Unauthorized` — if session is invalid, missing or expired identity or if session has insufficient permissions. Returns a plain-text message.
+  - `500 Internal Server Error` — if advertisement service fails. Returns a plain-text message.
 
 <a id="cms-ads-id"></a>
 
 ### `GET /cms/ads/{id}`
 
+Retreive specific advertisement.
+
 - **Headers:**
   - `Authorization` — `Bearer <sessionID>` (required).
 - **Path parameters:**
@@ -854,40 +1207,64 @@ Create an advertisement; requires advertisement-create permission.
 - **Request body:** None.
 - **Request limit:** 4 KiB.
 - **Response:**
-  - `200 OK` — JSON advertisement document.
-  - `400 Bad Request` — Invalid ID. Returns a plain-text message.
-  - `401 Unauthorized` — Missing or invalid session, or insufficient permission. Returns a plain-text message.
-  - `404 Not Found` — Advertisement not found. Returns a plain-text message.
-  - `500 Internal Server Error` — Service failure. Returns a plain-text message.
+  - `200 OK` — if advertisement retreival succeeds
+
+  ```json
+  {
+    "id": 1,
+    "name": "string",
+    "description": "string",
+    "url": "https://example.com/preview.jpg",
+    "priority": 1,
+    "group": "string",
+    "expires_at": 2141453433,  // Unix timestamp, provide, if advertisement is temporary
+    "banner": "https://example.com/post_main_media.jpg",
+  }
+  ```
+
+  - `400 Bad Request` — if id is invalid. Returns a plain-text message.
+  - `401 Unauthorized` — if session is invalid, missing or expired identity. Returns a plain-text message.
+  - `404 Not Found` — if target advertisement was not found. Returns a plain-text message.
+  - `500 Internal Server Error` — if advertisement service fails to retreive data. Returns a plain-text message.
 
 <a id="cms-ads-id-patch"></a>
 
 ### `PATCH /cms/ads/{id}`
 
-Update an advertisement; requires advertisement-edit permission.
+Update an advertisement
 
 - **Headers:**
   - `Authorization` — `Bearer <sessionID>` (required).
 - **Path parameters:**
   - `id` — unsigned decimal advertisement ID.
-- **Request body:** [Advertisement document](#advertisement-document). Its
-  `id` is expected to match the path ID. `url` and `group` follow the same
-  validation as create.
+- **Request body:**
+
+  ```json
+  {
+    "name": "string",
+    "description": "string",
+    "url": "https://example.com/preview.jpg",
+    "priority": 1,
+    "group": "string",
+    "expires_at": 2141453433,  // Unix timestamp, provide, if advertisement is temporary
+    "banner": "https://example.com/post_main_media.jpg",
+  }
+  ```
+
 - **Request limit:** 4 KiB.
 - **Response:**
-  - `200 OK` — Empty body.
-  - `400 Bad Request` — Invalid ID or JSON, path/body ID mismatch, or invalid URL or group. Returns a plain-text message.
-  - `401 Unauthorized` — Missing or invalid session, or insufficient permission. Returns a plain-text message.
-  - `404 Not Found` — Advertisement not found. Returns a plain-text message.
-  - `500 Internal Server Error` — Service failure or request body exceeds 4 KiB. Returns a plain-text message.
-- **Implementation note:** on a path/body ID mismatch, the handler writes
-  `400` but currently does not return before calling the update service. Do
-  not rely on this mismatch check to prevent a mutation.
+  - `200 OK` — if update succeeds. Returns empty body.
+  - `400 Bad Request` — if request body is malformed or id is invalid. Returns a plain-text message.
+  - `401 Unauthorized` — is session is invalid, missing or expired identity or if session has insufficient permissions. Returns a plain-text message.
+  - `404 Not Found` — if target advertisement was not found. Returns a plain-text message.
+  - `500 Internal Server Error` — if advertisement service fails to commit update. Returns a plain-text message.
 
 <a id="cms-ads-id-delete"></a>
 
 ### `DELETE /cms/ads/{id}`
 
+Delete advertisement
+
 - **Headers:**
   - `Authorization` — `Bearer <sessionID>` (required).
 - **Path parameters:**
@@ -895,76 +1272,35 @@ Update an advertisement; requires advertisement-edit permission.
 - **Request body:** None.
 - **Request limit:** 4 KiB.
 - **Response:**
-  - `200 OK` — Empty body.
-  - `400 Bad Request` — Invalid ID. Returns a plain-text message.
-  - `401 Unauthorized` — Missing or invalid session, or insufficient permission. Returns a plain-text message.
-  - `404 Not Found` — Advertisement not found. Returns a plain-text message.
-  - `500 Internal Server Error` — Service failure. Returns a plain-text message.
+  - `200 OK` — if delete succeeds. Returns empty body.
+  - `400 Bad Request` — if id  is invalid. Returns a plain-text message.
+  - `401 Unauthorized` — is session is invalid, missing or expired identity or if session has insufficient permissions. Returns a plain-text message.
+  - `404 Not Found` — if target advertisement was not found. Returns a plain-text message.
+  - `500 Internal Server Error` — if advertisement service fails delete. Returns a plain-text message.
 
 <a id="cms-ads-groups"></a>
 
 ### `GET /cms/ads/groups`
 
+Get list of all `group` values that are currently in advertisements table.
+
 - **Headers:**
   - `Authorization` — `Bearer <sessionID>` (required).
 - **Path parameters:** None.
 - **Request body:** None.
 - **Request limit:** 4 KiB.
 - **Response:**
-  - `200 OK` — JSON array of group names.
+  - `200 OK` — if retreival succeeds.
+
+  ```json
+  [
+    "string",
+    "array",
+    "of",
+    "groups"
+  ]
+  ```
+
   - `401 Unauthorized` — Missing or invalid session. Returns a plain-text message.
-  - `404 Not Found` — Entity not found. Returns a plain-text message.
-  - `500 Internal Server Error` — Service failure. Returns a plain-text message.
-
-<a id="cms-ads-groups-group"></a>
-
-### `GET /cms/ads/groups/{group}`
-
-- **Headers:**
-  - `Authorization` — `Bearer <sessionID>` (required).
-- **Path parameters:**
-  - `group` — group name.
-- **Request body:** None.
-- **Request limit:** 4 KiB.
-- **Response:**
-  - `200 OK` — JSON array of advertisement documents in the group.
-  - `400 Bad Request` — Empty group. Returns a plain-text message.
-  - `401 Unauthorized` — Missing or invalid session, or insufficient permission. Returns a plain-text message.
-  - `404 Not Found` — Advertisement group not found. Returns a plain-text message.
-  - `500 Internal Server Error` — Service failure. Returns a plain-text message.
-
-<a id="cms-groups-search"></a>
-
-### `POST /cms/groups/search`
-
-Fetch advertisements for a list of groups. Note that the registered route is
-`/cms/groups/search`, not `/cms/ads/groups/search`.
-
-- **Headers:**
-  - `Authorization` — `Bearer <sessionID>` (required).
-- **Path parameters:** None.
-- **Request body:** JSON string array, for example `["partners","sidebar"]`.
-- **Request limit:** 4 KiB.
-- **Response:**
-  - `200 OK` — For non-empty input, JSON object mapping group names to
-  advertisement arrays. For empty input, the handler returns an empty JSON
-  array (`[]`) instead of an object.
-  - `400 Bad Request` — Invalid JSON. Returns a plain-text message.
-  - `401 Unauthorized` — Missing or invalid session, or insufficient permission. Returns a plain-text message.
-  - `404 Not Found` — Entity not found. Returns a plain-text message.
-  - `500 Internal Server Error` — Service failure or request body exceeds 4 KiB. Returns a plain-text message.
-
-<a id="cms-partners"></a>
-
-### `GET /cms/partners`
-
-- **Headers:**
-  - `Authorization` — `Bearer <sessionID>` (required).
-- **Path parameters:** None.
-- **Request body:** None.
-- **Request limit:** 4 KiB.
-- **Response:**
-  - `200 OK` — JSON array of advertisements in the `partners` group.
-  - `401 Unauthorized` — Missing or invalid session. Returns a plain-text message.
-  - `404 Not Found` — Entity not found. Returns a plain-text message.
-  - `500 Internal Server Error` — Service failure. Returns a plain-text message.
+  - `401 Unauthorized` — is session is invalid, missing or expired identity. Returns a plain-text message.
+  - `500 Internal Server Error` — if advertisement service fails. Returns a plain-text message.

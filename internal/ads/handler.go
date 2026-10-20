@@ -14,9 +14,6 @@ import (
 // PATCH /ads/{id} - Update ad
 // DELETE /ads/{id} - Delete ad
 // GET /ads/groups - Get ad groups
-// GET /ads/groups/{group} - Get ad group
-// POST /ads/groups/search - Get multiple ad groups
-// GET /partners - Get partners group
 // ------------------------------------------------------------------
 
 type Handler struct {
@@ -26,9 +23,6 @@ type Handler struct {
 	Update    http.Handler
 	Delete    http.Handler
 	Groups    http.Handler
-	GetGroup  http.Handler
-	GetGroups http.Handler
-	Partners  http.Handler
 	adService *Service
 }
 
@@ -41,9 +35,6 @@ func NewHandler(s *Service) *Handler {
 	hndl.Update = http.HandlerFunc(hndl.update)
 	hndl.Delete = http.HandlerFunc(hndl.delete)
 	hndl.Groups = http.HandlerFunc(hndl.groups)
-	hndl.GetGroup = http.HandlerFunc(hndl.getGroup)
-	hndl.GetGroups = http.HandlerFunc(hndl.getGroups)
-	hndl.Partners = http.HandlerFunc(hndl.partners)
 	return &hndl
 }
 
@@ -116,9 +107,7 @@ func (h *Handler) update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if uint(id) != ad.ID {
-		http.Error(w, "Dolbaeb", http.StatusBadRequest)
-	}
+	ad.ID = uint(id)
 
 	_, err = h.adService.Update(r.Context(), &ad)
 	if err != nil {
@@ -203,16 +192,4 @@ func (h *Handler) getGroups(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	_ = json.NewEncoder(w).Encode(&advertisements)
-}
-
-// GET /partners - Get partners group
-func (h *Handler) partners(w http.ResponseWriter, r *http.Request) {
-	ads, err := h.adService.GetPartners(r.Context())
-	if err != nil {
-		errs.ServeMessage(w, "Advertisement", err)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	_ = json.NewEncoder(w).Encode(&ads)
 }

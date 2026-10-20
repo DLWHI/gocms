@@ -8,7 +8,6 @@ import (
 	"gocms/internal/auth"
 	"gocms/internal/errs"
 	"gocms/internal/logger"
-	"gocms/internal/outbox"
 	"gocms/internal/search"
 	"strings"
 	"unicode"
@@ -148,7 +147,7 @@ func (s *Service) Delete(ctx context.Context, slug string) error {
 	return nil
 }
 
-func (s *Service) SyncSearch(ctx context.Context, action outbox.Event, data []byte) error {
+func (s *Service) SyncSearch(ctx context.Context, data []byte) error {
 	var payload MessagePayload
 	if err := json.Unmarshal(data, &payload); err != nil {
 		return err

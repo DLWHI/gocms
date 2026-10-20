@@ -37,7 +37,7 @@ func (b *DirectPublisher) Publish(ctx context.Context, messages []Message) ([]Me
 			return messages, err
 		}
 
-		if err := handler(ctx, messages[i].Type, messages[i].Data); err != nil {
+		if err := handler(ctx, messages[i].Data); err != nil {
 			logger.Error(
 				"Outbox.DirectPublisher",
 				fmt.Sprintf("Handler for event %q failed", messages[i].Type),

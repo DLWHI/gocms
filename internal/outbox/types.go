@@ -6,7 +6,7 @@ import (
 )
 
 type Event string
-type EventHandler func(context.Context, Event, []byte) error
+type EventHandler func(context.Context, []byte) error
 
 type Status int
 

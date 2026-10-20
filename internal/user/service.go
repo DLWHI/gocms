@@ -9,7 +9,6 @@ import (
 	"gocms/internal/domain"
 	"gocms/internal/errs"
 	"gocms/internal/logger"
-	"gocms/internal/outbox"
 	"gocms/internal/search"
 	"strings"
 	"time"
@@ -238,7 +237,7 @@ func (s *Service) ChangePermissions(ctx context.Context, username string, perms 
 	return nil
 }
 
-func (s *Service) SyncSearch(ctx context.Context, action outbox.Event, data []byte) error {
+func (s *Service) SyncSearch(ctx context.Context, data []byte) error {
 	var payload MessagePayload
 	if err := json.Unmarshal(data, &payload); err != nil {
 		return err

@@ -127,7 +127,7 @@ func (s *Service) Search(ctx context.Context, filters *SearchParams) (*SearchRes
 	return users, nil
 }
 
-func (s *Service) All(ctx context.Context) ([]User, error) {
+func (s *Service) All(ctx context.Context) ([]Document, error) {
 
 	users, err := s.repo.GetAll(ctx)
 	if err != nil {
@@ -135,7 +135,13 @@ func (s *Service) All(ctx context.Context) ([]User, error) {
 		return nil, err
 	}
 
-	return users, nil
+	vals := make([]Document, 0, len(users))
+
+	for _, user := range users {
+		vals = append(vals, user.ToDocument())
+	}
+
+	return vals, nil
 }
 
 func (s *Service) Suspend(ctx context.Context, username string) error {

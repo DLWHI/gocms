@@ -103,7 +103,7 @@ func (r *MeilisearchEngine) Index(ctx context.Context, category *Document) error
 	if err != nil {
 		return err
 	}
-	if err := search.WaitForMeilisearchTask(r.se, task); err != nil {
+	if err := search.WaitForMeilisearchTask(ctx, r.se, task); err != nil {
 		return err
 	}
 	return nil
@@ -133,7 +133,7 @@ func (r *MeilisearchEngine) Delete(ctx context.Context, slug string) error {
 	if err != nil {
 		return err
 	}
-	if err := search.WaitForMeilisearchTask(r.se, task); err != nil {
+	if err := search.WaitForMeilisearchTask(ctx, r.se, task); err != nil {
 		return err
 	}
 	return nil

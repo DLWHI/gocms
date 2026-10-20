@@ -57,11 +57,11 @@ func run(cfg Config) int {
 	defer app.TearDown()
 
 	if cfg.Init {
-		if err := Migrate(app); err != nil {
+		if err := Migrate(ctx, app); err != nil {
 			return CodeErrorOperation
 		}
 	} else if cfg.Wipe {
-		if err := Wipe(app); err != nil {
+		if err := Wipe(ctx, app); err != nil {
 			return CodeErrorOperation
 		}
 	} else if cfg.User {

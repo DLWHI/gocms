@@ -107,7 +107,7 @@ func (r *MeilisearchEngine) Index(ctx context.Context, editor *Document) error {
 	if err != nil {
 		return err
 	}
-	if err := search.WaitForMeilisearchTask(r.se, task); err != nil {
+	if err := search.WaitForMeilisearchTask(ctx, r.se, task); err != nil {
 		return err
 	}
 	return err
@@ -137,7 +137,7 @@ func (r *MeilisearchEngine) Delete(ctx context.Context, username string, timesta
 	if err != nil {
 		return err
 	}
-	if err := search.WaitForMeilisearchTask(r.se, task); err != nil {
+	if err := search.WaitForMeilisearchTask(ctx, r.se, task); err != nil {
 		return err
 	}
 	return err

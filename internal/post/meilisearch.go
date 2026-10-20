@@ -152,7 +152,7 @@ func (r *MeilisearchEngine) Index(ctx context.Context, post *Document) error {
 	if err != nil {
 		return err
 	}
-	if err := search.WaitForMeilisearchTask(r.se, task); err != nil {
+	if err := search.WaitForMeilisearchTask(ctx, r.se, task); err != nil {
 		return err
 	}
 	return err
@@ -179,7 +179,7 @@ func (r *MeilisearchEngine) Delete(ctx context.Context, id uint) error {
 	if err != nil {
 		return err
 	}
-	if err := search.WaitForMeilisearchTask(r.se, task); err != nil {
+	if err := search.WaitForMeilisearchTask(ctx, r.se, task); err != nil {
 		return err
 	}
 	return nil
@@ -192,7 +192,7 @@ func (r *MeilisearchEngine) DeleteTranslation(ctx context.Context, id uint, loca
 	if err != nil {
 		return err
 	}
-	if err := search.WaitForMeilisearchTask(r.se, task); err != nil {
+	if err := search.WaitForMeilisearchTask(ctx, r.se, task); err != nil {
 		return err
 	}
 	return nil

@@ -10,11 +10,12 @@ import (
 	"gocms/internal/errs"
 	"gocms/internal/logger"
 	"gocms/internal/search"
+	"net/mail"
 	"strings"
 	"time"
-	"unicode"
 
 	"golang.org/x/crypto/bcrypt"
+	"gorm.io/gorm"
 )
 
 type Service struct {
@@ -29,20 +30,20 @@ func NewService(db Repository, se SearchEngine) *Service {
 	}
 }
 
-func (s *Service) IsAllowedUsernameRune(r rune) bool {
-	return strings.ContainsRune(".", r) || unicode.IsSpace(r)
+func (s *Service) IsInvalidUsernameRune(r rune) bool {
+	isAlpha := 'a' <= r && r <= 'z'
+	isDigit := '0' <= r && r <= '9'
+	return !(isAlpha || isDigit || r == '-' || r == '_')
 }
 
 func (s *Service) IsAllowedUsername(ctx context.Context, value string) error {
-	if strings.IndexFunc(value, s.IsAllowedUsernameRune) >= 0 {
-		err := fmt.Errorf("%w: username must not contain spaces or periods", errs.ErrInval)
-		logger.Warn("User.Service", "Username must not contain spaces or periods", err)
-		return err
+	if strings.IndexFunc(value, s.IsInvalidUsernameRune) >= 0 {
+		return fmt.Errorf("%w: username must not contain spaces or periods", errs.ErrInval)
 	}
 
 	_, err := s.repo.Get(ctx, value)
 	if err == nil {
-		return fmt.Errorf("%v: Username already exists", errs.ErrInval)
+		return fmt.Errorf("%w: Username already exists", errs.ErrInval)
 	} else if errors.Is(err, errs.ErrNotFound) {
 		return nil
 	} else {
@@ -57,17 +58,25 @@ func (s *Service) Create(ctx context.Context, user *User) error {
 		return errs.ErrCred
 	}
 
+	if len(user.Passwd) == 0 || len(user.Passwd) == 72 {
+		return fmt.Errorf("%w: invalid password", errs.ErrInval)
+	}
+
 	user.Username = strings.TrimSpace(strings.ToLower(user.Username))
 	if user.Username == "" {
 		clear(user.Passwd)
-		err := fmt.Errorf("%w: username cannot be empty", errs.ErrInval)
-		logger.Warn("User.Service", "Username is required to create a user", err)
-		return err
-	} else if strings.IndexFunc(user.Username, s.IsAllowedUsernameRune) >= 0 {
+		return fmt.Errorf("%w: username cannot be empty", errs.ErrInval)
+	} else if len(user.Username) > 64 {
 		clear(user.Passwd)
-		err := fmt.Errorf("%w: username must not contain spaces or periods", errs.ErrInval)
-		logger.Warn("User.Service", "Username must not contain spaces or periods", err)
-		return err
+		return fmt.Errorf("%w: username is longer than 64 chars", errs.ErrInval)
+	} else if strings.IndexFunc(user.Username, s.IsInvalidUsernameRune) >= 0 {
+		clear(user.Passwd)
+		return fmt.Errorf("%w: username must not contain spaces or periods", errs.ErrInval)
+	}
+
+	_, err := mail.ParseAddress(user.Email)
+	if err != nil {
+		return fmt.Errorf("%w: invalid email", errs.ErrInval)
 	}
 
 	hash, err := bcrypt.GenerateFromPassword(user.Passwd, 12)
@@ -80,6 +89,8 @@ func (s *Service) Create(ctx context.Context, user *User) error {
 
 	user.Passwd = hash
 	user.Permissions = auth.RoleEditor
+	user.LastLogin = nil
+	user.SuspendedAt = gorm.DeletedAt{Valid: false}
 
 	err = s.repo.Create(ctx, user)
 	clear(hash)
@@ -99,19 +110,19 @@ func (s *Service) UpdateLogin(ctx context.Context, username string) (*Document, 
 		return nil, err
 	}
 
-	val := user.ToDocument()
+	val := user.ToDomain()
 	return &val, nil
 }
 
 func (s *Service) Get(ctx context.Context, username string) (*Document, error) {
+	username = strings.TrimSpace(strings.ToLower(username))
 	user, err := s.repo.Get(ctx, username)
 	if err != nil {
 		logger.Error("User.Service", "Failed to retrieve user", err)
 		return nil, err
 	}
-	clear(user.Passwd)
 
-	val := user.ToDocument()
+	val := user.ToDomain()
 	return &val, nil
 }
 
@@ -137,7 +148,7 @@ func (s *Service) All(ctx context.Context) ([]Document, error) {
 	vals := make([]Document, 0, len(users))
 
 	for _, user := range users {
-		vals = append(vals, user.ToDocument())
+		vals = append(vals, user.ToDomain())
 	}
 
 	return vals, nil
@@ -182,11 +193,16 @@ func (s *Service) ChangeEmail(ctx context.Context, username string, email string
 		return errs.ErrCred
 	}
 
+	_, err := mail.ParseAddress(email)
+	if err != nil {
+		return fmt.Errorf("%w: invalid email", errs.ErrInval)
+	}
+
 	diff := map[string]interface{}{
 		"email": email,
 	}
 
-	if _, err := s.repo.Update(ctx, username, diff); err != nil {
+	if err := s.repo.Update(ctx, username, diff); err != nil {
 		logger.Error("User.Service", "Failed to update the user's email address", err)
 		return err
 	}
@@ -202,6 +218,10 @@ func (s *Service) ChangePasswd(ctx context.Context, username string, passwd doma
 
 	if initiator != username && !auth.HasPermission(ctx, "users", "edit") {
 		return errs.ErrCred
+	}
+
+	if len(passwd) == 0 || len(passwd) == 72 {
+		return fmt.Errorf("%w: invalid password", errs.ErrInval)
 	}
 
 	hash, err := bcrypt.GenerateFromPassword(passwd, 12)
@@ -221,7 +241,12 @@ func (s *Service) ChangePasswd(ctx context.Context, username string, passwd doma
 }
 
 func (s *Service) ChangePermissions(ctx context.Context, username string, perms uint32) error {
-	if !auth.HasPermission(ctx, "users", "edit") {
+	intitiator, ok := ctx.Value(auth.UserNameKey).(string)
+	if !ok {
+		return errs.ErrCred
+	}
+
+	if intitiator == username || !auth.HasPermission(ctx, "users", "edit") {
 		return errs.ErrCred
 	}
 
@@ -229,8 +254,8 @@ func (s *Service) ChangePermissions(ctx context.Context, username string, perms 
 		"permissions": perms,
 	}
 
-	if _, err := s.repo.Update(ctx, username, diff); err != nil {
-		logger.Error("User.Service", "Failed to update the user's email address", err)
+	if err := s.repo.Update(ctx, username, diff); err != nil {
+		logger.Error("User.Service", "Failed to update the user's permissions", err)
 		return err
 	}
 
@@ -238,12 +263,12 @@ func (s *Service) ChangePermissions(ctx context.Context, username string, perms 
 }
 
 func (s *Service) SyncSearch(ctx context.Context, data []byte) error {
-	var payload MessagePayload
-	if err := json.Unmarshal(data, &payload); err != nil {
+	var username MessagePayload
+	if err := json.Unmarshal(data, &username); err != nil {
 		return err
 	}
 
-	user, err := s.repo.Get(ctx, payload.Username)
+	user, err := s.repo.Get(ctx, username)
 	if err != nil {
 		if errors.Is(err, errs.ErrNotFound) {
 			return nil
@@ -251,21 +276,9 @@ func (s *Service) SyncSearch(ctx context.Context, data []byte) error {
 		return err
 	}
 
-	doc := user.ToDocument()
-	switch payload.Action {
-	case "create", "update":
-		if user.SuspendedAt.Valid {
-			return nil
-		}
-		if err := s.se.Index(ctx, &doc); err != nil {
-			return err
-		}
-		return nil
-	case "delete":
-		if err := s.se.Delete(ctx, doc.Username, *doc.SuspendedAt); err != nil {
-			return err
-		}
-		return nil
+	doc := user.ToDomain()
+	if err := s.se.Index(ctx, &doc); err != nil {
+		return err
 	}
-	return fmt.Errorf("%w: unkown action", errs.ErrInval)
+	return nil
 }

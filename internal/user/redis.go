@@ -10,7 +10,6 @@ import (
 	"gocms/internal/logger"
 
 	"github.com/redis/go-redis/v9"
-	"golang.org/x/sync/singleflight"
 )
 
 type RedisRepository struct {
@@ -19,7 +18,6 @@ type RedisRepository struct {
 	ttl       time.Duration
 	keyFormat string
 	allKey    string
-	group     singleflight.Group
 }
 
 type RedisConfig struct {
@@ -42,7 +40,8 @@ func (r *RedisRepository) Create(ctx context.Context, user *User) error {
 	if err := r.origin.Create(ctx, user); err != nil {
 		return err
 	}
-	if _, err := r.rdb.Del(ctx, r.allKey).Result(); err != nil {
+	ictx := context.WithoutCancel(ctx)
+	if _, err := r.rdb.Del(ictx, r.allKey).Result(); err != nil {
 		r.logError("Failed to delete key %s from cache.", r.allKey, err)
 	}
 	return nil
@@ -53,11 +52,12 @@ func (r *RedisRepository) UpdateLogin(ctx context.Context, username string, time
 	if err != nil {
 		return nil, err
 	}
+	ictx := context.WithoutCancel(ctx)
 	key := fmt.Sprintf(r.keyFormat, username)
-	if _, err := r.rdb.Del(ctx, key).Result(); err != nil {
+	if _, err := r.rdb.Del(ictx, key).Result(); err != nil {
 		r.logError("Failed to delete key %s from cache.", key, err)
 	}
-	if _, err := r.rdb.Del(ctx, r.allKey).Result(); err != nil {
+	if _, err := r.rdb.Del(ictx, r.allKey).Result(); err != nil {
 		r.logError("Failed to delete key %s from cache.", r.allKey, err)
 	}
 	return user, nil
@@ -67,19 +67,19 @@ func (r *RedisRepository) UpdatePasswd(ctx context.Context, username string, pwd
 	return r.origin.UpdatePasswd(ctx, username, pwdhash)
 }
 
-func (r *RedisRepository) Update(ctx context.Context, username string, diff map[string]interface{}) (*User, error) {
-	user, err := r.origin.Update(ctx, username, diff)
-	if err != nil {
-		return nil, err
+func (r *RedisRepository) Update(ctx context.Context, username string, diff map[string]interface{}) error {
+	if err := r.origin.Update(ctx, username, diff); err != nil {
+		return err
 	}
+	ictx := context.WithoutCancel(ctx)
 	key := fmt.Sprintf(r.keyFormat, username)
-	if _, err := r.rdb.Del(ctx, key).Result(); err != nil {
+	if _, err := r.rdb.Del(ictx, key).Result(); err != nil {
 		r.logError("Failed to delete key %s from cache.", key, err)
 	}
-	if _, err := r.rdb.Del(ctx, r.allKey).Result(); err != nil {
+	if _, err := r.rdb.Del(ictx, r.allKey).Result(); err != nil {
 		r.logError("Failed to delete key %s from cache.", r.allKey, err)
 	}
-	return user, nil
+	return nil
 }
 
 func (r *RedisRepository) Get(ctx context.Context, username string) (*User, error) {
@@ -96,8 +96,7 @@ func (r *RedisRepository) Get(ctx context.Context, username string) (*User, erro
 		} else {
 			return &user, nil
 		}
-	}
-	if !errors.Is(err, redis.Nil) {
+	} else if !errors.Is(err, redis.Nil) {
 		r.logError("Failed to read key %s from cache.", key, err)
 	}
 
@@ -107,11 +106,12 @@ func (r *RedisRepository) Get(ctx context.Context, username string) (*User, erro
 	}
 
 	data, err := json.Marshal(user)
-	if err != nil {
+	if err == nil {
+		if _, err := r.rdb.Set(ctx, key, data, r.ttl).Result(); err != nil {
+			r.logError("Failed to write key %s to cache.", key, err)
+		}
+	} else {
 		r.logError("Failed to encode key %s into json.", key, err)
-	}
-	if _, err := r.rdb.Set(ctx, key, data, r.ttl).Result(); err != nil {
-		r.logError("Failed to write key %s to cache.", key, err)
 	}
 
 	return user, nil
@@ -158,11 +158,12 @@ func (r *RedisRepository) Delete(ctx context.Context, username string) error {
 	if err := r.origin.Delete(ctx, username); err != nil {
 		return err
 	}
+	ictx := context.WithoutCancel(ctx)
 	key := fmt.Sprintf(r.keyFormat, username)
-	if _, err := r.rdb.Del(ctx, key).Result(); err != nil {
+	if _, err := r.rdb.Del(ictx, key).Result(); err != nil {
 		r.logError("Failed to delete key %s from cache.", key, err)
 	}
-	if _, err := r.rdb.Del(ctx, r.allKey).Result(); err != nil {
+	if _, err := r.rdb.Del(ictx, r.allKey).Result(); err != nil {
 		r.logError("Failed to delete key %s from cache.", r.allKey, err)
 	}
 	return nil

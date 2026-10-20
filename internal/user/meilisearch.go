@@ -89,7 +89,7 @@ func (r *MeilisearchEngine) Index(ctx context.Context, user *Document) error {
 	if err != nil {
 		return err
 	}
-	if err := search.WaitForMeilisearchTask(r.se, task); err != nil {
+	if err := search.WaitForMeilisearchTask(ctx, r.se, task); err != nil {
 		return err
 	}
 	return nil
@@ -101,7 +101,7 @@ func (r *MeilisearchEngine) Get(ctx context.Context, username string) (*Document
 	if err != nil {
 		var meiliErr *meilisearch.Error
 		if errors.As(err, &meiliErr) {
-			if meiliErr.StatusCode == http.StatusNotFound {
+			if meiliErr.StatusCode == http.StatusNotFound && meiliErr.MeilisearchApiError.Code == "document_not_found" {
 				return nil, errs.ErrNotFound
 			}
 		}
@@ -111,24 +111,12 @@ func (r *MeilisearchEngine) Get(ctx context.Context, username string) (*Document
 }
 
 func (r *MeilisearchEngine) Delete(ctx context.Context, username string, timestamp int64) error {
-	var user Document
 	index := r.se.Index(r.idx)
-	err := r.se.Index(r.idx).GetDocumentWithContext(ctx, username, nil, &user)
-	if err != nil {
-		var meiliErr *meilisearch.Error
-		if errors.As(err, &meiliErr) {
-			if meiliErr.StatusCode == http.StatusNotFound {
-				return errs.ErrNotFound
-			}
-		}
-		return err
-	}
-	user.SuspendedAt = &timestamp
-	task, err := index.AddDocumentsWithContext(ctx, user, nil)
+	task, err := index.DeleteDocumentWithContext(ctx, username, nil)
 	if err != nil {
 		return err
 	}
-	if err := search.WaitForMeilisearchTask(r.se, task); err != nil {
+	if err := search.WaitForMeilisearchTask(ctx, r.se, task); err != nil {
 		return err
 	}
 	return nil
@@ -148,8 +136,13 @@ func (r *MeilisearchEngine) Search(ctx context.Context, params *SearchParams) (*
 
 	res, err := index.SearchWithContext(ctx, params.Query, req)
 	if err != nil {
-		if errors.Is(err, meilisearch.ErrInvalidRequestMethod) {
-			return nil, errs.ErrInval
+		var meiliErr *meilisearch.Error
+		if errors.As(err, &meiliErr) {
+			if meiliErr.StatusCode == http.StatusBadRequest &&
+				(meiliErr.MeilisearchApiError.Code == "invalid_document_sort" ||
+					meiliErr.MeilisearchApiError.Code == "invalid_document_filter") {
+				return nil, errs.ErrInval
+			}
 		}
 		return nil, err
 	}

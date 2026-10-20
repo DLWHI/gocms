@@ -9,7 +9,7 @@ import (
 // ------------------------------------------------------------------
 // POST /users - Register new user
 // POST /users/search - Search users
-// GET /users?suspended={boolean} - Get all users
+// GET /users - Get all users
 // GET /users/{username} - Get user
 // PATCH /users/{username}/email - Update user's email
 // PATCH /users/{username}/reset - Reset user password
@@ -159,7 +159,7 @@ func (h *Handler) resetPasswd(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) updatePermissions(w http.ResponseWriter, r *http.Request) {
 	username := r.PathValue("username")
 	if username == "" {
-		http.Error(w, "Username was not provided", http.StatusInternalServerError)
+		http.Error(w, "Username was not provided", http.StatusBadRequest)
 		return
 	}
 

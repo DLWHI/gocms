@@ -28,7 +28,9 @@ func (r *GORMRepository) sanitize(diff map[string]interface{}) map[string]interf
 		toUpdate["email"] = val
 	}
 
-	toUpdate["version"] = gorm.Expr("version + 1")
+	if len(toUpdate) > 0 {
+		toUpdate["version"] = gorm.Expr("version + 1")
+	}
 
 	return toUpdate
 }
@@ -62,9 +64,9 @@ func (r *GORMRepository) UpdateLogin(ctx context.Context, username string, times
 		query := tx.Model(&User{}).Where("username = ?", user.Username)
 
 		if user.LastLogin == nil {
-			query.Where("last_login is NULL")
+			query = query.Where("last_login is NULL")
 		} else {
-			query.Where("last_login = ?", user.LastLogin)
+			query = query.Where("last_login = ?", user.LastLogin)
 		}
 
 		result := query.Update("LastLogin", timestamp)
@@ -75,7 +77,7 @@ func (r *GORMRepository) UpdateLogin(ctx context.Context, username string, times
 			return errs.ErrLock
 		}
 		user.LastLogin = &timestamp
-		if err := r.writeMessage(tx, "update", username); err != nil {
+		if err := r.writeMessage(tx, "user", username); err != nil {
 			return err
 		}
 		return nil
@@ -86,7 +88,7 @@ func (r *GORMRepository) UpdateLogin(ctx context.Context, username string, times
 	return &user, nil
 }
 
-func (r *GORMRepository) Update(ctx context.Context, username string, diff map[string]interface{}) (*User, error) {
+func (r *GORMRepository) Update(ctx context.Context, username string, diff map[string]interface{}) error {
 	var user User
 	for i := 0; i < 5; i++ {
 		err := r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
@@ -107,34 +109,34 @@ func (r *GORMRepository) Update(ctx context.Context, username string, diff map[s
 				if result.RowsAffected == 0 {
 					return errs.ErrLock
 				}
-				if err := r.writeMessage(tx, "update", username); err != nil {
+				if err := r.writeMessage(tx, "user", username); err != nil {
 					return err
 				}
 			}
 			return nil
 		})
 		if err == nil {
-			return &user, nil
+			return nil
 		} else if !errors.Is(err, errs.ErrLock) {
-			return nil, err
+			return err
 		}
 	}
-	return nil, errs.ErrLock
+	return errs.ErrLock
 }
 
 func (r *GORMRepository) UpdatePasswd(ctx context.Context, username string, pwdhash Password) error {
-	var user User
 	for i := 0; i < 5; i++ {
 		err := r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-			if err := tx.Omit("Passwd").Where("username = ?", username).Take(&user).Error; err != nil {
+			var version uint
+			if err := tx.Select("Version").Where("username = ?", username).Take(&version).Error; err != nil {
 				if errors.Is(err, gorm.ErrRecordNotFound) {
 					return errs.ErrNotFound
 				}
 				return err
 			}
 
-			result := tx.Model(&user).Model(&User{}).
-				Where("username = ? AND version = ?", user.Username, user.Version).
+			result := tx.Model(&User{}).
+				Where("username = ? AND version = ?", username, version).
 				Updates(map[string]any{
 					"passwd":  pwdhash,
 					"version": gorm.Expr("version + 1"),
@@ -145,7 +147,7 @@ func (r *GORMRepository) UpdatePasswd(ctx context.Context, username string, pwdh
 			if result.RowsAffected == 0 {
 				return errs.ErrLock
 			}
-			if err := r.writeMessage(tx, "update", username); err != nil {
+			if err := r.writeMessage(tx, "passwd", username); err != nil {
 				return err
 			}
 			return nil
@@ -182,9 +184,6 @@ func (r *GORMRepository) GetAll(ctx context.Context) ([]User, error) {
 
 	err := r.db.WithContext(ctx).Omit("Passwd").Find(&users).Error
 	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, errs.ErrNotFound
-		}
 		return nil, err
 	}
 
@@ -192,7 +191,7 @@ func (r *GORMRepository) GetAll(ctx context.Context) ([]User, error) {
 }
 
 func (r *GORMRepository) GetPasswdHash(ctx context.Context, username string) (Password, error) {
-	var hash Password
+	hash := make([]byte, 0)
 
 	err := r.db.WithContext(ctx).Model(&User{}).
 		Select("Passwd").
@@ -200,7 +199,7 @@ func (r *GORMRepository) GetPasswdHash(ctx context.Context, username string) (Pa
 		Take(&hash).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, errs.ErrNotFound
+			return hash, nil
 		}
 		return nil, err
 	}
@@ -218,7 +217,7 @@ func (r *GORMRepository) Delete(ctx context.Context, username string) error {
 		if result.RowsAffected == 0 {
 			return errs.ErrNotFound
 		}
-		if err := r.writeMessage(tx, "delete", username); err != nil {
+		if err := r.writeMessage(tx, "user", username); err != nil {
 			return err
 		}
 		return nil
@@ -229,12 +228,8 @@ func (r *GORMRepository) Delete(ctx context.Context, username string) error {
 	return nil
 }
 
-func (r *GORMRepository) writeMessage(tx *gorm.DB, action string, username string) error {
-	payload := MessagePayload{
-		Username: username,
-		Action:   action,
-	}
-	if err := outbox.WriteMessage(tx, "user", "User.Repository", &payload); err != nil {
+func (r *GORMRepository) writeMessage(tx *gorm.DB, event outbox.Event, username string) error {
+	if err := outbox.WriteMessage(tx, event, "User.Repository", &username); err != nil {
 		return err
 	}
 	return nil

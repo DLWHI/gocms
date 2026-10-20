@@ -23,10 +23,7 @@ type User struct {
 
 type Document = domain.User
 
-type MessagePayload struct {
-	Username string `json:"username"`
-	Action   string `json:"action"`
-}
+type MessagePayload = string
 
 type SearchParams struct {
 	search.Params
@@ -43,7 +40,7 @@ type SearchResult = search.Result[Document]
 type Repository interface {
 	Create(ctx context.Context, user *User) error
 	UpdateLogin(ctx context.Context, username string, timestamp time.Time) (*User, error)
-	Update(ctx context.Context, username string, diff map[string]interface{}) (*User, error)
+	Update(ctx context.Context, username string, diff map[string]interface{}) error
 	UpdatePasswd(ctx context.Context, username string, pwdhash Password) error
 	Get(ctx context.Context, username string) (*User, error)
 	GetAll(ctx context.Context) ([]User, error)
@@ -58,7 +55,7 @@ type SearchEngine interface {
 	Delete(ctx context.Context, username string, timestamp int64) error
 }
 
-func (um *User) ToDocument() Document {
+func (um *User) ToDomain() Document {
 	var ud Document
 
 	if um.SuspendedAt.Valid {
@@ -77,7 +74,7 @@ func (um *User) ToDocument() Document {
 	return ud
 }
 
-func ToDomain(ud *Document) User {
+func ToModel(ud *Document) User {
 	var um User
 	if ud.SuspendedAt != nil {
 		um.SuspendedAt = gorm.DeletedAt{

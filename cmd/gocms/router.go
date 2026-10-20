@@ -142,9 +142,6 @@ func (router *Router) AddAdsRoutes(handler *ads.Handler) {
 	router.mux.Handle("PATCH /cms/ads/{id}", m(handler.Update))
 	router.mux.Handle("DELETE /cms/ads/{id}", m(handler.Delete))
 	router.mux.Handle("GET /cms/ads/groups", m(handler.Groups))
-	router.mux.Handle("GET /cms/ads/groups/{group}", m(handler.GetGroup))
-	router.mux.Handle("POST /cms/groups/search", m(handler.GetGroups))
-	router.mux.Handle("GET /cms/partners", m(handler.Partners))
 }
 
 func (router *Router) AddStorageRoutes(handler *storage.Handler) {
@@ -181,4 +178,5 @@ func (router *Router) AddPublicoutes(handler *public.Handler) {
 	router.mux.Handle("GET /public/editors", m(handler.EditorAll))
 	router.mux.Handle("GET /public/editors/{username}", m(handler.EditorGet))
 	router.mux.Handle("GET /public/advertisements", m(handler.Ads))
+	router.mux.Handle("GET /cms/partners", m(handler.Partners))
 }

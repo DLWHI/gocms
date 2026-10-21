@@ -4,10 +4,28 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"gocms/internal/errs"
+	"math/rand/v2"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/redis/go-redis/v9"
 )
+
+var (
+	leasePrefix = "lease:"
+	fillScript  = redis.NewScript(`
+		if redis.call("GET", KEYS[1]) == ARGV[1] then
+			return redis.call("SET", KEYS[1], ARGV[2], "PX", ARGV[3])
+		end
+		return nil
+	`)
+)
+
+type RedisDecorator struct {
+	Client *redis.Client
+}
 
 func NewRedisConnection(host string, port string) (*redis.Client, error) {
 	rdb := redis.NewClient(&redis.Options{
@@ -32,6 +50,48 @@ func NewRedisConnection(host string, port string) (*redis.Client, error) {
 	})
 
 	return rdb, nil
+}
+
+func (r *RedisDecorator) Get(ctx context.Context, key string, ptr any) error {
+	cached, err := r.Client.Get(ctx, key).Result()
+	if err != nil {
+		return err
+	}
+	if strings.HasPrefix(cached, leasePrefix) {
+		return redis.Nil
+	}
+	if err := json.Unmarshal([]byte(cached), ptr); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (r *RedisDecorator) Lease(ctx context.Context, key string, ttl time.Duration) (string, error) {
+	token := strconv.FormatUint(rand.Uint64(), 36)
+	if _, err := r.Client.Set(ctx, key, token, ttl).Result(); err != nil {
+		return "", err
+	}
+	return token, nil
+}
+
+func (r *RedisDecorator) Return(ctx context.Context, key string, token string, ptrval any, ttl time.Duration) error {
+	data, err := json.Marshal(ptrval)
+	if err != nil {
+		return errs.ErrInval
+	}
+
+	err = fillScript.Run(ctx, r.Client, []string{key}, token, data, ttl.Milliseconds()).Err()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (r *RedisDecorator) Delete(ctx context.Context, key string) error {
+	if _, err := r.Client.Del(ctx, key).Result(); err != nil {
+		return err
+	}
+	return nil
 }
 
 func UnmarshalRedisKey(rdb *redis.Client, ctx context.Context, key string, ptr any) error {

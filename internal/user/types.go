@@ -11,7 +11,7 @@ import (
 
 type Password = domain.Password
 
-type User struct {
+type Record struct {
 	Username    string         `json:"username" gorm:"primaryKey;size:64;"`
 	Passwd      Password       `json:"passwd,omitempty" gorm:"not null"`
 	Email       string         `json:"email"`
@@ -38,12 +38,12 @@ type SearchParams struct {
 type SearchResult = search.Result[Document]
 
 type Repository interface {
-	Create(ctx context.Context, user *User) error
-	UpdateLogin(ctx context.Context, username string, timestamp time.Time) (*User, error)
+	Create(ctx context.Context, user *Record) error
+	UpdateLogin(ctx context.Context, username string, timestamp time.Time) (*Record, error)
 	Update(ctx context.Context, username string, diff map[string]interface{}) error
 	UpdatePasswd(ctx context.Context, username string, pwdhash Password) error
-	Get(ctx context.Context, username string) (*User, error)
-	GetAll(ctx context.Context) ([]User, error)
+	Get(ctx context.Context, username string) (*Record, error)
+	GetAll(ctx context.Context) ([]Record, error)
 	GetPasswdHash(ctx context.Context, username string) (Password, error)
 	Delete(ctx context.Context, username string) error
 }
@@ -55,7 +55,7 @@ type SearchEngine interface {
 	Delete(ctx context.Context, username string) error
 }
 
-func (um *User) ToDomain() Document {
+func (um *Record) ToDomain() Document {
 	var ud Document
 
 	if um.SuspendedAt.Valid {
@@ -74,8 +74,8 @@ func (um *User) ToDomain() Document {
 	return ud
 }
 
-func ToModel(ud *Document) User {
-	var um User
+func ToModel(ud *Document) Record {
+	var um Record
 	if ud.SuspendedAt != nil {
 		um.SuspendedAt = gorm.DeletedAt{
 			Time:  time.Unix(*ud.SuspendedAt, 0).UTC(),
@@ -94,6 +94,6 @@ func ToModel(ud *Document) User {
 	return um
 }
 
-func (User) TableName() string {
+func (Record) TableName() string {
 	return "users"
 }

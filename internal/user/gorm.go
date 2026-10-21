@@ -35,7 +35,7 @@ func (r *GORMRepository) sanitize(diff map[string]interface{}) map[string]interf
 	return toUpdate
 }
 
-func (r *GORMRepository) Create(ctx context.Context, user *User) error {
+func (r *GORMRepository) Create(ctx context.Context, user *Record) error {
 	err := r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		if err := tx.Create(user).Error; err != nil {
 			return err
@@ -51,17 +51,17 @@ func (r *GORMRepository) Create(ctx context.Context, user *User) error {
 	return nil
 }
 
-func (r *GORMRepository) UpdateLogin(ctx context.Context, username string, timestamp time.Time) (*User, error) {
-	var user User
+func (r *GORMRepository) UpdateLogin(ctx context.Context, username string, timestamp time.Time) (*Record, error) {
+	var user Record
 	err := r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		if err := tx.Model(&User{}).Omit("Passwd").Where("username = ?", username).Take(&user).Error; err != nil {
+		if err := tx.Model(&Record{}).Omit("Passwd").Where("username = ?", username).Take(&user).Error; err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 				return errs.ErrNotFound
 			}
 			return err
 		}
 
-		query := tx.Model(&User{}).Where("username = ?", user.Username)
+		query := tx.Model(&Record{}).Where("username = ?", user.Username)
 
 		result := query.Update("LastLogin", timestamp)
 		if result.Error != nil {
@@ -83,7 +83,7 @@ func (r *GORMRepository) UpdateLogin(ctx context.Context, username string, times
 }
 
 func (r *GORMRepository) Update(ctx context.Context, username string, diff map[string]interface{}) error {
-	var user User
+	var user Record
 	for i := 0; i < 5; i++ {
 		err := r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 			sanitized := r.sanitize(diff)
@@ -95,7 +95,7 @@ func (r *GORMRepository) Update(ctx context.Context, username string, diff map[s
 			}
 
 			if len(sanitized) > 0 {
-				result := tx.Model(&User{}).
+				result := tx.Model(&Record{}).
 					Where("username = ? AND version = ?", user.Username, user.Version).
 					Updates(sanitized)
 				if result.Error != nil {
@@ -123,14 +123,14 @@ func (r *GORMRepository) UpdatePasswd(ctx context.Context, username string, pwdh
 	for i := 0; i < 5; i++ {
 		err := r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 			var version uint
-			if err := tx.Model(&User{}).Select("Version").Where("username = ?", username).Take(&version).Error; err != nil {
+			if err := tx.Model(&Record{}).Select("Version").Where("username = ?", username).Take(&version).Error; err != nil {
 				if errors.Is(err, gorm.ErrRecordNotFound) {
 					return errs.ErrNotFound
 				}
 				return err
 			}
 
-			result := tx.Model(&User{}).
+			result := tx.Model(&Record{}).
 				Where("username = ? AND version = ?", username, version).
 				Updates(map[string]any{
 					"passwd":  pwdhash,
@@ -156,8 +156,8 @@ func (r *GORMRepository) UpdatePasswd(ctx context.Context, username string, pwdh
 	return errs.ErrLock
 }
 
-func (r *GORMRepository) Get(ctx context.Context, username string) (*User, error) {
-	var user User
+func (r *GORMRepository) Get(ctx context.Context, username string) (*Record, error) {
+	var user Record
 
 	err := r.db.WithContext(ctx).
 		Unscoped().
@@ -174,8 +174,8 @@ func (r *GORMRepository) Get(ctx context.Context, username string) (*User, error
 	return &user, nil
 }
 
-func (r *GORMRepository) GetAll(ctx context.Context) ([]User, error) {
-	users := make([]User, 0)
+func (r *GORMRepository) GetAll(ctx context.Context) ([]Record, error) {
+	users := make([]Record, 0)
 
 	err := r.db.WithContext(ctx).Omit("Passwd").Find(&users).Error
 	if err != nil {
@@ -188,7 +188,7 @@ func (r *GORMRepository) GetAll(ctx context.Context) ([]User, error) {
 func (r *GORMRepository) GetPasswdHash(ctx context.Context, username string) (Password, error) {
 	var hash []byte
 
-	err := r.db.WithContext(ctx).Model(&User{}).
+	err := r.db.WithContext(ctx).Model(&Record{}).
 		Select("Passwd").
 		Where("username = ?", username).
 		Take(&hash).Error
@@ -205,7 +205,7 @@ func (r *GORMRepository) GetPasswdHash(ctx context.Context, username string) (Pa
 func (r *GORMRepository) Delete(ctx context.Context, username string) error {
 	err := r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		result := tx.Where("username = ?", username).
-			Delete(&User{})
+			Delete(&Record{})
 		if result.Error != nil {
 			return result.Error
 		}

@@ -45,7 +45,7 @@ func NewHandler(s *Service) *Handler {
 
 // POST /users - Register new user
 func (h *Handler) create(w http.ResponseWriter, r *http.Request) {
-	var userData User
+	var userData Record
 
 	if err := json.NewDecoder(r.Body).Decode(&userData); err != nil {
 		http.Error(w, "Invalid JSON payload", http.StatusBadRequest)

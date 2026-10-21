@@ -23,7 +23,7 @@ func NewSingleflightRepository(db Repository, keyFormat string) *SingleflightRep
 	}
 }
 
-func (r *SingleflightRepository) Create(ctx context.Context, user *User) error {
+func (r *SingleflightRepository) Create(ctx context.Context, user *Record) error {
 	if err := r.origin.Create(ctx, user); err != nil {
 		return err
 	}
@@ -31,7 +31,7 @@ func (r *SingleflightRepository) Create(ctx context.Context, user *User) error {
 	return nil
 }
 
-func (r *SingleflightRepository) UpdateLogin(ctx context.Context, username string, timestamp time.Time) (*User, error) {
+func (r *SingleflightRepository) UpdateLogin(ctx context.Context, username string, timestamp time.Time) (*Record, error) {
 	key := fmt.Sprintf(r.keyFormat, username)
 	user, err := r.origin.UpdateLogin(ctx, username, timestamp)
 	if err != nil {
@@ -56,8 +56,8 @@ func (r *SingleflightRepository) Update(ctx context.Context, username string, di
 	return nil
 }
 
-func (r *SingleflightRepository) Get(ctx context.Context, username string) (*User, error) {
-	var user User
+func (r *SingleflightRepository) Get(ctx context.Context, username string) (*Record, error) {
+	var user Record
 	key := fmt.Sprintf(r.keyFormat, username)
 	ch := r.group.DoChan(key, func() (any, error) {
 		bg, cancel := context.WithTimeout(context.WithoutCancel(ctx), 20*time.Second)
@@ -79,14 +79,14 @@ func (r *SingleflightRepository) Get(ctx context.Context, username string) (*Use
 		if res.Err != nil {
 			return nil, res.Err
 		}
-		user = *res.Val.(*User)
+		user = *res.Val.(*Record)
 	}
 
 	return &user, nil
 }
 
-func (r *SingleflightRepository) GetAll(ctx context.Context) ([]User, error) {
-	var users []User
+func (r *SingleflightRepository) GetAll(ctx context.Context) ([]Record, error) {
+	var users []Record
 	ch := r.group.DoChan(r.allKey, func() (any, error) {
 		bg, cancel := context.WithTimeout(context.WithoutCancel(ctx), 20*time.Second)
 		defer cancel()
@@ -107,7 +107,7 @@ func (r *SingleflightRepository) GetAll(ctx context.Context) ([]User, error) {
 		if res.Err != nil {
 			return nil, res.Err
 		}
-		users = res.Val.([]User)
+		users = res.Val.([]Record)
 	}
 
 	return users, nil

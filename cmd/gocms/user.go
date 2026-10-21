@@ -106,7 +106,7 @@ func CreateUser(ctx context.Context, app *Container) error {
 		}
 	}
 
-	user := user.User{
+	user := user.Record{
 		Username:    username,
 		Permissions: permissions,
 		Passwd:      passwd,

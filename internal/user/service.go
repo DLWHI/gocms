@@ -28,7 +28,7 @@ func NewService(repo Repository, se SearchEngine) *Service {
 	}
 }
 
-func (s *Service) Create(ctx context.Context, user *User) error {
+func (s *Service) Create(ctx context.Context, user *Record) error {
 	if !auth.HasPermission(ctx, "users", "create") {
 		clear(user.Passwd)
 		return errs.ErrCred

@@ -31,7 +31,7 @@ func buildFilter(params *SearchParams) string {
 		clauses = append(clauses, fmt.Sprintf("locale = %q", params.Locale))
 	}
 	if params.Suspended != nil {
-		if *params.Suspended == true {
+		if *params.Suspended {
 			clauses = append(clauses, "suspended_at IS NOT NULL")
 		} else {
 			clauses = append(clauses, "suspended_at IS NULL")

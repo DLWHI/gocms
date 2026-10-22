@@ -1,60 +1,47 @@
 package tests
 
-import (
-	"context"
-	"gocms/internal/cache"
-	"gocms/internal/database"
-	"gocms/internal/search"
-	"gocms/internal/storage"
-	"os"
+// func MySQLDatabase(app *Container) (*gorm.DB, error) {
+// 	dbCfg := database.DBConfig{
+// 		User:     "test",
+// 		Password: "",
+// 		Host:     "localhost",
+// 		Port:     "3306",
+// 		Name:     "",
+// 	}
 
-	"github.com/meilisearch/meilisearch-go"
-	"github.com/redis/go-redis/v9"
-	"gorm.io/gorm"
-)
+// 	DB, err := database.NewMySQLConnection(&dbCfg)
+// 	if err != nil {
+// 		return nil, err
+// 	}
 
-func MySQLDatabase(app *Container) (*gorm.DB, error) {
-	dbCfg := database.DBConfig{
-		User:     "test",
-		Password: "",
-		Host:     "localhost",
-		Port:     "3306",
-		Name:     "",
-	}
+// 	return DB, nil
+// }
 
-	DB, err := database.NewMySQLConnection(&dbCfg)
-	if err != nil {
-		return nil, err
-	}
+// func RedisClient(ctx context.Context, app *Container) (*redis.Client, error) {
+// 	rdb, err := cache.NewRedisConnection("localhost", "6379")
+// 	if err != nil {
+// 		return nil, err
+// 	}
 
-	return DB, nil
-}
+// 	_, err = rdb.Ping(ctx).Result()
+// 	if err != nil {
+// 		return nil, err
+// 	}
 
-func RedisClient(ctx context.Context, app *Container) (*redis.Client, error) {
-	rdb, err := cache.NewRedisConnection("localhost", "6379")
-	if err != nil {
-		return nil, err
-	}
+// 	return rdb, nil
+// }
 
-	_, err = rdb.Ping(ctx).Result()
-	if err != nil {
-		return nil, err
-	}
+// func MeilisearchClient(app *Container) (meilisearch.ServiceManager, error) {
+// 	host := os.Getenv("MEILISEARCH_HOST")
+// 	port := os.Getenv("MEILISEARCH_PORT")
+// 	key := os.Getenv("MEILISEARCH_API")
 
-	return rdb, nil
-}
+// 	client := search.NewMeilisearchConnection(host, port, key)
 
-func MeilisearchClient(app *Container) (meilisearch.ServiceManager, error) {
-	host := os.Getenv("MEILISEARCH_HOST")
-	port := os.Getenv("MEILISEARCH_PORT")
-	key := os.Getenv("MEILISEARCH_API")
+// 	return client, nil
+// }
 
-	client := search.NewMeilisearchConnection(host, port, key)
-
-	return client, nil
-}
-
-func DefaultStorageHandler() *storage.Handler {
-	service := storage.NewManager("./test_storage")
-	return storage.NewHandler(service)
-}
+// func DefaultStorageHandler() *storage.Handler {
+// 	service := storage.NewManager("./test_storage")
+// 	return storage.NewHandler(service)
+// }

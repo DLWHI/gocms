@@ -3,6 +3,7 @@ package user
 import (
 	"encoding/json"
 	"gocms/internal/domain"
+	"gocms/internal/hash"
 	"gocms/internal/server"
 	"net/http"
 )
@@ -31,10 +32,10 @@ type Handler struct {
 }
 
 type DTO struct {
-	Username    *string         `json:"username,omitempty"`
-	Email       *string         `json:"email,omitempty"`
-	Permissions *uint32         `json:"permissions,omitempty"`
-	Passwd      domain.Password `json:"passwd,omitempty"`
+	Username    *string       `json:"username,omitempty"`
+	Email       *string       `json:"email,omitempty"`
+	Permissions *uint32       `json:"permissions,omitempty"`
+	Passwd      hash.Password `json:"passwd,omitempty"`
 }
 
 func NewHandler(s *Service) *Handler {

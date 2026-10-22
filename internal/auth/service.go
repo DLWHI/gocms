@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"gocms/internal/domain"
+	"gocms/internal/hash"
 	"gocms/internal/logger"
 	"gocms/internal/session"
 )
@@ -20,7 +21,7 @@ func NewService(users UserManager, sessions session.Repository) *Service {
 	}
 }
 
-func (s *Service) Login(ctx context.Context, username string, passwd domain.Password) (*session.Session, error) {
+func (s *Service) Login(ctx context.Context, username string, passwd hash.Password) (*session.Session, error) {
 	if err := s.users.PasswordMatches(ctx, username, passwd); err != nil {
 		if !errors.Is(err, domain.ErrCred) {
 			logger.Error("User.Service", "Failed to retrieve user credentials for login", err)
@@ -86,7 +87,7 @@ func (s *Service) CurrentUser(ctx context.Context) (*session.Session, error) {
 	return user, nil
 }
 
-func (s *Service) ChangePasswd(ctx context.Context, username string, oldPwd domain.Password, newPwd domain.Password) error {
+func (s *Service) ChangePasswd(ctx context.Context, username string, oldPwd hash.Password, newPwd hash.Password) error {
 	initiator := ctx.Value("username")
 
 	if initiator == nil || initiator.(string) != username {

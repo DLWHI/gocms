@@ -12,18 +12,6 @@ import (
 	"github.com/meilisearch/meilisearch-go"
 )
 
-type SearchParams struct {
-	search.Params
-	Permissions     *uint32 `json:"permissions"`
-	Suspended       *bool   `json:"suspended"`
-	SuspendedAfter  *int64  `json:"suspended_after"`
-	SuspendedBefore *int64  `json:"suspended_before"`
-	LastLoginAfter  *int64  `json:"last_login_after"`
-	LastLoginBefore *int64  `json:"last_login_before"`
-}
-
-type SearchResult = search.Result[domain.User]
-
 type MeilisearchEngine struct {
 	client meilisearch.ServiceManager
 	idx    string

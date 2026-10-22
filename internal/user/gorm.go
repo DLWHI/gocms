@@ -13,13 +13,13 @@ import (
 )
 
 type Record struct {
-	Username    string          `json:"username" gorm:"primaryKey;size:64;"`
-	Passwd      domain.Password `json:"passwd,omitempty" gorm:"not null"`
-	Email       string          `json:"email"`
-	Permissions uint32          `json:"permissions" gorm:"default:0"` // PermCreate
-	SuspendedAt gorm.DeletedAt  `json:"suspended_at"`
-	LastLogin   *time.Time      `json:"last_login"`
-	Version     uint            `json:"-" gorm:"default:0"`
+	Username    string         `gorm:"primaryKey;size:64;"`
+	Passwd      []byte         `gorm:"not null"`
+	Email       string         ``
+	Permissions uint32         `gorm:"default:0"` // PermCreate
+	SuspendedAt gorm.DeletedAt ``
+	LastLogin   *time.Time     ``
+	Version     uint           `gorm:"default:0"`
 }
 
 func (Record) TableName() string {
@@ -40,7 +40,7 @@ func NewGORMRepository(db *gorm.DB) *GORMRepository {
 	}
 }
 
-func (r *GORMRepository) Create(ctx context.Context, user *domain.User, pwdhash domain.Password) error {
+func (r *GORMRepository) Create(ctx context.Context, user *domain.User, pwdhash []byte) error {
 	record := ToRecord(user)
 	record.Passwd = pwdhash
 	err := r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
@@ -121,7 +121,7 @@ func (r *GORMRepository) Update(ctx context.Context, username string, update *do
 	return r.mapErr(err)
 }
 
-func (r *GORMRepository) UpdatePasswd(ctx context.Context, username string, pwdhash domain.Password) error {
+func (r *GORMRepository) UpdatePasswd(ctx context.Context, username string, pwdhash []byte) error {
 	if len(pwdhash) == 0 {
 		return fmt.Errorf("%w: empty password", domain.ErrInval)
 	}
@@ -189,7 +189,7 @@ func (r *GORMRepository) GetActive(ctx context.Context) ([]domain.User, error) {
 	return vals, nil
 }
 
-func (r *GORMRepository) GetPasswdHash(ctx context.Context, username string) (domain.Password, error) {
+func (r *GORMRepository) GetPasswdHash(ctx context.Context, username string) ([]byte, error) {
 	var user Record
 
 	err := r.db.WithContext(ctx).Model(&Record{}).

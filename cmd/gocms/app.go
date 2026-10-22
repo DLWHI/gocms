@@ -5,6 +5,7 @@ import (
 	"gocms/internal/analytics"
 	"gocms/internal/domain"
 	"gocms/internal/flow"
+	"gocms/internal/hash"
 	"gocms/internal/logger"
 	"gocms/internal/outbox"
 	"gocms/internal/public"
@@ -76,10 +77,11 @@ func (app *Container) Init(ctx context.Context, cfg Config) error {
 		return err
 	}
 
+	passwords := hash.NewBCryptGenerator(12)
 	sessions := session.NewRedisRepository(redis, 24*time.Hour)
 
 	categories := NewCategoryBundle(db, search, redis)
-	users := NewUserBundle(db, search, redis)
+	users := NewUserBundle(db, search, redis, passwords)
 	posts := NewPostBundle(db, search, redis)
 	ads := NewAdsBundle(db, search, redis)
 	editors := NewEditorBundle(db, search, redis)

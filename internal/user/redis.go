@@ -15,7 +15,7 @@ import (
 
 type RedisRepository struct {
 	Repository
-	cache.RedisDecorator
+	cache     cache.RedisDecorator
 	ttl       time.Duration
 	keyFormat string
 	allKey    string
@@ -33,14 +33,14 @@ func NewRedisRepository(db Repository, config *RedisConfig) *RedisRepository {
 		ttl:        config.Ttl,
 		keyFormat:  config.KeyFormat,
 		allKey:     fmt.Sprintf(config.KeyFormat, ":all"),
-		RedisDecorator: cache.RedisDecorator{
+		cache: cache.RedisDecorator{
 			Client:   config.Client,
 			LeaseTTL: 5 * time.Second,
 		},
 	}
 }
 
-func (r *RedisRepository) Create(ctx context.Context, user *domain.User, pwdhash domain.Password) error {
+func (r *RedisRepository) Create(ctx context.Context, user *domain.User, pwdhash []byte) error {
 	if err := r.Repository.Create(ctx, user, pwdhash); err != nil {
 		return err
 	}
@@ -69,19 +69,18 @@ func (r *RedisRepository) Update(ctx context.Context, username string, user *dom
 
 func (r *RedisRepository) Get(ctx context.Context, username string) (*domain.User, error) {
 	var user domain.User
+	var token string
 	key := fmt.Sprintf(r.keyFormat, username)
 
-	if err := r.RedisDecorator.Get(ctx, key, &user); err == nil {
+	if err := r.cache.Get(ctx, key, &user); err == nil {
 		return &user, nil
+	} else if !errors.Is(err, redis.Nil) {
+		logger.Warn("User.Redis", "Redis error while trying to retrieve key", err, "key", key)
 	} else {
-		if !errors.Is(err, redis.Nil) {
-			logger.Warn("User.Redis", "Redis error while trying to retrieve key", err, "key", key)
+		token, err = r.cache.Lease(ctx, key)
+		if err != nil {
+			logger.Warn("User.Redis", "Redis error while trying to lease key", err, "key", key)
 		}
-	}
-
-	token, err := r.RedisDecorator.Lease(ctx, key)
-	if err != nil {
-		logger.Warn("User.Redis", "Redis error while trying to lease key", err, "key", key)
 	}
 
 	u, err := r.Repository.Get(ctx, username)
@@ -91,8 +90,10 @@ func (r *RedisRepository) Get(ctx context.Context, username string) (*domain.Use
 	user = *u
 
 	if token != "" {
-		if err := r.RedisDecorator.Return(ctx, key, token, u, r.ttl); err != nil {
-			logger.Warn("User.Redis", "Redis error while trying to store key", err, "key", key)
+		if err := r.cache.Return(ctx, key, token, u, r.ttl); err != nil {
+			if !errors.Is(err, redis.Nil) {
+				logger.Warn("User.Redis", "Redis error while trying to store key", err, "key", key)
+			}
 		}
 	}
 
@@ -101,26 +102,26 @@ func (r *RedisRepository) Get(ctx context.Context, username string) (*domain.Use
 
 func (r *RedisRepository) GetActive(ctx context.Context) ([]domain.User, error) {
 	var users []domain.User
-	if err := r.RedisDecorator.Get(ctx, r.allKey, &users); err == nil {
+	var token string
+	if err := r.cache.Get(ctx, r.allKey, &users); err == nil {
 		return users, nil
+	} else if !errors.Is(err, redis.Nil) {
+		logger.Warn("User.Redis", "Redis error while trying to retrieve key", err, "key", r.allKey)
 	} else {
-		if !errors.Is(err, redis.Nil) {
-			logger.Warn("User.Redis", "Redis error while trying to retrieve key", err, "key", r.allKey)
+		token, err = r.cache.Lease(ctx, r.allKey)
+		if err != nil {
+			logger.Warn("User.Redis", "Redis error while trying to lease key", err, "key", r.allKey)
 		}
 	}
 
-	token, err := r.RedisDecorator.Lease(ctx, r.allKey)
-	if err != nil {
-		logger.Warn("User.Redis", "Redis error while trying to lease key", err, "key", r.allKey)
-	}
-
-	users, err = r.Repository.GetActive(ctx)
+	u, err := r.Repository.GetActive(ctx)
 	if err != nil {
 		return nil, err
 	}
+	users = u
 
 	if token != "" {
-		if err := r.RedisDecorator.Return(ctx, r.allKey, token, users, r.ttl); err != nil {
+		if err := r.cache.Return(ctx, r.allKey, token, u, r.ttl); err != nil {
 			if !errors.Is(err, redis.Nil) {
 				logger.Warn("User.Redis", "Redis error while trying to store key", err, "key", r.allKey)
 			}
@@ -141,7 +142,7 @@ func (r *RedisRepository) Suspend(ctx context.Context, username string) error {
 
 func (r *RedisRepository) invalidate(ctx context.Context, keys ...string) {
 	ictx := context.WithoutCancel(ctx)
-	if _, err := r.Client.Unlink(ictx, keys...).Result(); err != nil {
+	if _, err := r.cache.Client.Unlink(ictx, keys...).Result(); err != nil {
 		logger.Warn("User.Redis", "Redis error while trying to delete keys", err, "keys", keys)
 	}
 }

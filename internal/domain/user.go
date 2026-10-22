@@ -1,10 +1,7 @@
 package domain
 
 import (
-	"crypto/rand"
-	"encoding/json"
 	"fmt"
-	"math/big"
 	"net/mail"
 	"strings"
 )
@@ -20,11 +17,7 @@ const (
 	UserEntityName = "users"
 
 	MaxUsernameLength = 64
-	MaxPasswordLength = 72
-	charset           = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()-_=+[]{}|;:,.<>?"
 )
-
-type Password []byte
 
 type User struct {
 	Username    string `json:"username"`
@@ -37,23 +30,6 @@ type User struct {
 type UserEvent struct {
 	Action   int    `json:"action"`
 	Username string `json:"username"`
-}
-
-func (p *Password) UnmarshalJSON(data []byte) error {
-	var s string
-	if err := json.Unmarshal(data, &s); err != nil {
-		return err
-	}
-	*p = Password(s)
-	return nil
-}
-
-func (Password) MarshalJSON() ([]byte, error) {
-	return []byte(`"[REDACTED]"`), nil
-}
-
-func (Password) String() string {
-	return "[NOT_YOUR_BUSINESS]"
 }
 
 func IsInvalidUsernameRune(r rune) bool {
@@ -73,27 +49,6 @@ func NormalizeUsername(value string) (string, error) {
 	}
 
 	return normalized, nil
-}
-
-func GeneratePassword(length int) (Password, error) {
-	bytes := make([]byte, length)
-
-	for i := range bytes {
-		randomIndex, err := rand.Int(rand.Reader, big.NewInt(int64(len(charset))))
-		if err != nil {
-			return nil, err
-		}
-		bytes[i] = charset[randomIndex.Int64()]
-	}
-
-	return bytes, nil
-}
-
-func IsValidPassword(passwd Password) bool {
-	if len(passwd) == 0 || len(passwd) > MaxPasswordLength {
-		return false
-	}
-	return true
 }
 
 func ParseEmail(email string) (string, error) {

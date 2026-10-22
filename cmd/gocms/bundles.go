@@ -5,6 +5,7 @@ import (
 	"gocms/internal/auth"
 	"gocms/internal/category"
 	"gocms/internal/editor"
+	"gocms/internal/hash"
 	"gocms/internal/locale"
 	"gocms/internal/post"
 	"gocms/internal/session"
@@ -82,7 +83,7 @@ func NewAuthBundle(users auth.UserManager, sessions session.Repository) *AuthBun
 	}
 }
 
-func NewUserBundle(db *gorm.DB, search meilisearch.ServiceManager, redis *redis.Client) *UserBundle {
+func NewUserBundle(db *gorm.DB, search meilisearch.ServiceManager, redis *redis.Client, pwd hash.PasswordService) *UserBundle {
 	redisCfg := user.RedisConfig{
 		Client:    redis,
 		Ttl:       30 * time.Minute,
@@ -94,7 +95,7 @@ func NewUserBundle(db *gorm.DB, search meilisearch.ServiceManager, redis *redis.
 	redisRepo := user.NewRedisRepository(sfRepo, &redisCfg)
 	searchEngine := user.NewMeilisearchEngine(search, "users")
 	consumer := user.NewEventConsumer(repo, searchEngine)
-	service := user.NewService(redisRepo, searchEngine)
+	service := user.NewService(redisRepo, searchEngine, pwd)
 	handler := user.NewHandler(service)
 	return &UserBundle{
 		Consumer:          consumer,

@@ -26,7 +26,7 @@ func NewSingleflightRepository(db Repository, keyFormat string) *SingleflightRep
 	}
 }
 
-func (r *SingleflightRepository) Create(ctx context.Context, user *domain.User, pwdhash domain.Password) error {
+func (r *SingleflightRepository) Create(ctx context.Context, user *domain.User, pwdhash []byte) error {
 	if err := r.Repository.Create(ctx, user, pwdhash); err != nil {
 		return err
 	}

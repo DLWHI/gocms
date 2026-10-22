@@ -7,12 +7,12 @@ func (e Constant) Error() string {
 }
 
 const (
-	ErrNotFound = Constant("Entity not found")
-	ErrInval    = Constant("Invalid argument")
-	ErrCred     = Constant("Invalid username or password")
-	ErrExpired  = Constant("Session expired")
-	ErrPerm     = Constant("Insufficient permissions")
-	ErrLock     = Constant("Record is locked")
-	ErrRetry    = Constant("Retry operation")
-	ErrExists   = Constant("Entity with same key exists")
+	ErrNotFound  = Constant("Entity not found")
+	ErrInval     = Constant("Invalid argument")
+	ErrCred      = Constant("Invalid username or password")
+	ErrExpired   = Constant("Session expired")
+	ErrPerm      = Constant("Insufficient permissions")
+	ErrLock      = Constant("Record is locked")
+	ErrRetry     = Constant("Retry operation")
+	ErrDuplicate = Constant("Entity with same key exists")
 )

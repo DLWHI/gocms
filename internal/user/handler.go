@@ -60,10 +60,7 @@ func (h *Handler) create(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid JSON payload", http.StatusBadRequest)
 		return
 	}
-	if payload.Passwd == nil {
-		http.Error(w, "Password must not be empty", http.StatusBadRequest)
-		return
-	}
+	defer clear(payload.Passwd)
 
 	if _, err := h.userService.Create(r.Context(), payload.ToDomain(), payload.Passwd); err != nil {
 		server.ServeMessage(w, "User", err)
@@ -159,6 +156,7 @@ func (h *Handler) resetPasswd(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid JSON payload", http.StatusBadRequest)
 		return
 	}
+	defer clear(payload.Passwd)
 
 	if err := h.userService.ChangePasswd(r.Context(), username, payload.Passwd); err != nil {
 		server.ServeMessage(w, "User", err)

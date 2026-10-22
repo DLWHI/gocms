@@ -68,8 +68,8 @@ func (r *RedisDecorator) Get(ctx context.Context, key string, ptr any) error {
 }
 
 func (r *RedisDecorator) Lease(ctx context.Context, key string) (string, error) {
-	token := strconv.FormatUint(rand.Uint64(), 36)
-	if _, err := r.Client.Set(ctx, key, token, r.LeaseTTL).Result(); err != nil {
+	token := leasePrefix + strconv.FormatUint(rand.Uint64(), 36)
+	if _, err := r.Client.SetNX(ctx, key, token, r.LeaseTTL).Result(); err != nil {
 		return "", err
 	}
 	return token, nil
@@ -78,18 +78,11 @@ func (r *RedisDecorator) Lease(ctx context.Context, key string) (string, error) 
 func (r *RedisDecorator) Return(ctx context.Context, key string, token string, ptrval any, ttl time.Duration) error {
 	data, err := json.Marshal(ptrval)
 	if err != nil {
-		return domain.ErrInval
+		return fmt.Errorf("%w: %v", domain.ErrInval, err)
 	}
 
 	err = fillScript.Run(ctx, r.Client, []string{key}, token, data, ttl.Milliseconds()).Err()
 	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func (r *RedisDecorator) Delete(ctx context.Context, key string) error {
-	if _, err := r.Client.Del(ctx, key).Result(); err != nil {
 		return err
 	}
 	return nil

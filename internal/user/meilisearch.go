@@ -71,7 +71,7 @@ func buildSort(params *SearchParams) []string {
 	if params.SortBy != "" {
 		sortParams = append(sortParams, params.SortBy)
 	}
-	if !strings.HasPrefix(params.SortBy, "username") {
+	if !strings.HasPrefix(params.SortBy, "username:") {
 		sortParams = append(sortParams, "username:asc")
 	}
 	return sortParams
@@ -140,7 +140,7 @@ func (r *MeilisearchEngine) Search(ctx context.Context, params *SearchParams) (*
 		}
 		return nil, err
 	}
-
+	results.Results = make([]domain.User, 0, len(res.Hits))
 	if err := res.Hits.DecodeInto(&results.Results); err != nil {
 		return nil, err
 	}

@@ -54,7 +54,7 @@ func (r *GORMRepository) Create(ctx context.Context, user *domain.User, pwdhash 
 	})
 	if err != nil {
 		if errors.Is(err, gorm.ErrDuplicatedKey) {
-			return domain.ErrExists
+			return domain.ErrDuplicate
 		}
 		return err
 	}
@@ -64,7 +64,11 @@ func (r *GORMRepository) Create(ctx context.Context, user *domain.User, pwdhash 
 func (r *GORMRepository) UpdateLogin(ctx context.Context, username string, timestamp time.Time) (*domain.User, error) {
 	var user Record
 	err := r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		if err := tx.Model(&Record{}).Omit("Passwd").Where("username = ?", username).Take(&user).Error; err != nil {
+		err := tx.Model(&Record{}).
+			Omit("Passwd").
+			Where("username = ?", username).
+			Take(&user).Error
+		if err != nil {
 			return err
 		}
 
@@ -74,7 +78,9 @@ func (r *GORMRepository) UpdateLogin(ctx context.Context, username string, times
 			}
 		}
 
-		result := tx.Model(&Record{}).Where("username = ?", user.Username).Update("LastLogin", timestamp)
+		result := tx.Model(&Record{}).
+			Where("username = ? AND (last_login IS NULL OR last_login <= ?)", user.Username, timestamp).
+			Update("LastLogin", timestamp)
 		if result.Error != nil {
 			return result.Error
 		}
@@ -96,7 +102,7 @@ func (r *GORMRepository) Update(ctx context.Context, username string, update *do
 	err := flow.DoWithRetry(ctx, r.retries, r.backoff, func() error {
 		return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 			var user Record
-			if err := tx.Select("Version").Where("username = ?", username).Take(&user).Error; err != nil {
+			if err := tx.Omit("Passwd").Where("username = ?", username).Take(&user).Error; err != nil {
 				return err
 			}
 			diff := user.Diff(&upd)
@@ -263,40 +269,40 @@ func (this *Record) Diff(other *Record) map[string]interface{} {
 	return diff
 }
 
-func (ur *Record) ToDomain() domain.User {
-	var ud domain.User
-	ud.Username = ur.Username
+func (this *Record) ToDomain() domain.User {
+	var res domain.User
+	res.Username = this.Username
 
-	if ur.SuspendedAt.Valid {
-		ud.SuspendedAt = ur.SuspendedAt.Time.Unix()
+	if this.SuspendedAt.Valid {
+		res.SuspendedAt = this.SuspendedAt.Time.Unix()
 	}
 
-	if ur.LastLogin != nil {
-		ud.LastLogin = ur.LastLogin.Unix()
+	if this.LastLogin != nil {
+		res.LastLogin = this.LastLogin.Unix()
 	}
 
-	ud.Email = ur.Email
-	ud.Permissions = ur.Permissions
-	return ud
+	res.Email = this.Email
+	res.Permissions = this.Permissions
+	return res
 }
 
-func ToRecord(ud *domain.User) Record {
-	var um Record
+func ToRecord(this *domain.User) Record {
+	var res Record
 
-	if ud.SuspendedAt != 0 {
-		um.SuspendedAt = gorm.DeletedAt{
-			Time:  time.Unix(ud.SuspendedAt, 0).UTC(),
+	if this.SuspendedAt != 0 {
+		res.SuspendedAt = gorm.DeletedAt{
+			Time:  time.Unix(this.SuspendedAt, 0).UTC(),
 			Valid: true,
 		}
 	}
 
-	if ud.LastLogin != 0 {
-		t := time.Unix(ud.LastLogin, 0)
-		um.LastLogin = &t
+	if this.LastLogin != 0 {
+		t := time.Unix(this.LastLogin, 0).UTC()
+		res.LastLogin = &t
 	}
 
-	um.Username = ud.Username
-	um.Email = ud.Email
-	um.Permissions = ud.Permissions
-	return um
+	res.Username = this.Username
+	res.Email = this.Email
+	res.Permissions = this.Permissions
+	return res
 }

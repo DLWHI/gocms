@@ -21,10 +21,10 @@ const (
 
 type User struct {
 	Username    string `json:"username"`
-	Email       string `json:"email,omitempty"`
-	Permissions uint32 `json:"permissions,omitempty"`
-	SuspendedAt int64  `json:"suspended_at,omitempty"`
-	LastLogin   int64  `json:"last_login,omitempty"`
+	Email       string `json:"email"`
+	Permissions uint32 `json:"permissions"`
+	SuspendedAt int64  `json:"suspended_at"`
+	LastLogin   int64  `json:"last_login"`
 }
 
 type UserEvent struct {

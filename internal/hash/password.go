@@ -1,7 +1,9 @@
 package hash
 
 import (
-	"encoding/json"
+	"bytes"
+	"fmt"
+	"gocms/internal/domain"
 )
 
 const ()
@@ -16,12 +18,18 @@ type PasswordService interface {
 }
 
 func (p *Password) UnmarshalJSON(data []byte) error {
-	var s string
-	if err := json.Unmarshal(data, &s); err != nil {
-		return err
+	defer clear(data)
+	if bytes.Equal(data, []byte("null")) {
+		*p = nil
+		return nil
 	}
-	*p = Password(s)
-	return nil
+
+	if len(data) >= 2 && data[0] == '"' && data[len(data)-1] == '"' {
+		content := data[1 : len(data)-1]
+		*p = append([]byte(nil), content...)
+		return nil
+	}
+	return fmt.Errorf("%w: expected string for password, got %s", domain.ErrInval, string(data))
 }
 
 func (Password) MarshalJSON() ([]byte, error) {

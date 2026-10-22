@@ -17,7 +17,7 @@ type BCryptService struct {
 func NewBCryptGenerator(cost uint) *BCryptService {
 	gen := BCryptService{
 		cost:      cost,
-		maxLength: 0,
+		maxLength: 72,
 		charset:   "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()-_=+[]{}|;:,.<>?",
 	}
 	pwd, err := gen.GeneratePassword(16)
@@ -33,8 +33,7 @@ func NewBCryptGenerator(cost uint) *BCryptService {
 }
 
 func (h *BCryptService) Hash(pwd Password) ([]byte, error) {
-	hash, err := bcrypt.GenerateFromPassword(pwd, 12)
-	clear(pwd)
+	hash, err := bcrypt.GenerateFromPassword(pwd, int(h.cost))
 	if err != nil {
 		return nil, err
 	}
@@ -43,8 +42,11 @@ func (h *BCryptService) Hash(pwd Password) ([]byte, error) {
 }
 
 func (h *BCryptService) PasswordMatches(pwd Password, hash []byte) bool {
-	if pwd == nil {
-		pwd = h.dummy
+	if len(hash) == 0 {
+		if len(h.dummy) == 0 {
+			return false
+		}
+		hash = h.dummy
 	}
 	if err := bcrypt.CompareHashAndPassword(hash, pwd); err != nil {
 		return false

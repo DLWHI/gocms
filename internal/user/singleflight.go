@@ -56,7 +56,7 @@ func (r *SingleflightRepository) Update(ctx context.Context, username string, us
 }
 
 func (r *SingleflightRepository) Get(ctx context.Context, username string) (*domain.User, error) {
-	var user domain.User
+	var user *domain.User
 	key := fmt.Sprintf(r.keyFormat, username)
 	ch := r.group.DoChan(key, func() (any, error) {
 		bg, cancel := context.WithTimeout(context.WithoutCancel(ctx), r.timeout)
@@ -78,10 +78,10 @@ func (r *SingleflightRepository) Get(ctx context.Context, username string) (*dom
 		if res.Err != nil {
 			return nil, res.Err
 		}
-		user = *res.Val.(*domain.User)
+		user = res.Val.(*domain.User)
 	}
 
-	return &user, nil
+	return user, nil
 }
 
 func (r *SingleflightRepository) GetActive(ctx context.Context) ([]domain.User, error) {

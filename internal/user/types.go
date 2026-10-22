@@ -25,7 +25,10 @@ type Record struct {
 	Version     uint           `json:"-" gorm:"default:0"`
 }
 
-type Document = domain.User
+type DTO struct {
+	domain.User
+	Passwd Password `json:"passwd,omitempty"`
+}
 
 type SearchParams struct {
 	search.Params
@@ -37,7 +40,7 @@ type SearchParams struct {
 	LastLoginBefore *time.Time `json:"last_login_before"`
 }
 
-type SearchResult = search.Result[Document]
+type SearchResult = search.Result[domain.User]
 
 type Repository interface {
 	Create(ctx context.Context, user *Record) error
@@ -51,14 +54,14 @@ type Repository interface {
 }
 
 type SearchEngine interface {
-	Index(ctx context.Context, user *Document) error
-	Get(ctx context.Context, username string) (*Document, error)
+	Index(ctx context.Context, user *domain.User) error
+	Get(ctx context.Context, username string) (*domain.User, error)
 	Search(ctx context.Context, filters *SearchParams) (*SearchResult, error)
 	Delete(ctx context.Context, username string) error
 }
 
-func (um *Record) ToDomain() Document {
-	var ud Document
+func (um *Record) ToDomain() domain.User {
+	var ud domain.User
 
 	if um.SuspendedAt.Valid {
 		ts := um.SuspendedAt.Time.Unix()
@@ -76,7 +79,7 @@ func (um *Record) ToDomain() Document {
 	return ud
 }
 
-func ToModel(ud *Document) Record {
+func ToRecord(ud *domain.User) Record {
 	var um Record
 	if ud.SuspendedAt != nil {
 		um.SuspendedAt = gorm.DeletedAt{

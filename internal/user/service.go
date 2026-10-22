@@ -41,44 +41,47 @@ func NewService(repo Repository, se SearchEngine) *Service {
 	}
 }
 
-func (s *Service) Create(ctx context.Context, user *Record) error {
+func (s *Service) Create(ctx context.Context, user *domain.User, passwd Password) error {
 	if !auth.HasPermission(ctx, "users", "create") {
-		clear(user.Passwd)
+		clear(passwd)
 		return domain.ErrCred
 	}
 
-	if !domain.IsValidPassword(user.Passwd) {
-		clear(user.Passwd)
+	if !domain.IsValidPassword(passwd) {
+		clear(passwd)
 		return fmt.Errorf("%w: invalid password", domain.ErrInval)
 	}
 
+	record := ToRecord(user)
 	username, err := domain.NormalizeUsername(user.Username)
 	if err != nil {
-		clear(user.Passwd)
+		clear(passwd)
 		return err
 	}
-	user.Username = username
+	record.Username = username
 
-	user.Email, err = domain.ParseEmail(user.Email)
+	email, err := domain.ParseEmail(user.Email)
 	if err != nil {
+		clear(passwd)
 		return err
 	}
+	record.Email = email
 
-	hash, err := bcrypt.GenerateFromPassword(user.Passwd, 12)
-	clear(user.Passwd)
+	hash, err := bcrypt.GenerateFromPassword(passwd, 12)
+	clear(passwd)
 	if err != nil {
 		logger.Error("User.Service", "Failed to hash the user password", err)
 		return err
 	}
 
-	user.Passwd = hash
-	user.Permissions = domain.RoleEditor
-	user.LastLogin = nil
-	user.SuspendedAt = gorm.DeletedAt{Valid: false}
+	record.Passwd = hash
+	record.Permissions = domain.RoleEditor
+	record.LastLogin = nil
+	record.SuspendedAt = gorm.DeletedAt{Valid: false}
 
-	err = s.repo.Create(ctx, user)
+	err = s.repo.Create(ctx, &record)
 	clear(hash)
-	clear(user.Passwd)
+	clear(record.Passwd)
 	if err != nil {
 		logger.Error("User.Service", "Failed to create user", err)
 		return err
@@ -87,7 +90,7 @@ func (s *Service) Create(ctx context.Context, user *Record) error {
 	return nil
 }
 
-func (s *Service) UpdateLogin(ctx context.Context, username string) (*Document, error) {
+func (s *Service) UpdateLogin(ctx context.Context, username string) (*domain.User, error) {
 	username, err := domain.NormalizeUsername(username)
 	if err != nil {
 		return nil, err
@@ -103,7 +106,7 @@ func (s *Service) UpdateLogin(ctx context.Context, username string) (*Document, 
 	return &val, nil
 }
 
-func (s *Service) Get(ctx context.Context, username string) (*Document, error) {
+func (s *Service) Get(ctx context.Context, username string) (*domain.User, error) {
 	username, err := domain.NormalizeUsername(username)
 	if err != nil {
 		return nil, err
@@ -132,7 +135,7 @@ func (s *Service) Search(ctx context.Context, filters *SearchParams) (*SearchRes
 	return users, nil
 }
 
-func (s *Service) AllActive(ctx context.Context) ([]Document, error) {
+func (s *Service) AllActive(ctx context.Context) ([]domain.User, error) {
 
 	users, err := s.repo.GetActive(ctx)
 	if err != nil {
@@ -140,7 +143,7 @@ func (s *Service) AllActive(ctx context.Context) ([]Document, error) {
 		return nil, err
 	}
 
-	vals := make([]Document, 0, len(users))
+	vals := make([]domain.User, 0, len(users))
 
 	for _, user := range users {
 		vals = append(vals, user.ToDomain())
@@ -267,12 +270,16 @@ func (s *Service) ChangePermissions(ctx context.Context, username string, perms 
 		return err
 	}
 
+	level, ok := ctx.Value(auth.UserPermissionKey).(uint32)
+	if !ok {
+		return domain.ErrCred
+	}
 	initiator, ok := ctx.Value(auth.UserNameKey).(string)
 	if !ok {
 		return domain.ErrCred
 	}
 
-	if initiator == username || !auth.HasPermission(ctx, EntityName, "edit") {
+	if initiator == username || !auth.HasPermission(ctx, EntityName, "edit") || (level&perms) != perms {
 		return domain.ErrCred
 	}
 

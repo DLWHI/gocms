@@ -46,8 +46,12 @@ func (p *Password) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (Password) MarshalJSON() ([]byte, error) {
+	return []byte("[NOT_YOUR_BUISNESS]"), nil
+}
+
 func (Password) String() string {
-	return "[UNKNOWN]"
+	return "[NOT_YOUR_BUISNESS]"
 }
 
 func IsInvalidUsernameRune(r rune) bool {

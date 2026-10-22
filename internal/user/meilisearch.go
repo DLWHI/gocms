@@ -83,7 +83,7 @@ func (r *MeilisearchEngine) Settings() meilisearch.Settings {
 	}
 }
 
-func (r *MeilisearchEngine) Index(ctx context.Context, user *Document) error {
+func (r *MeilisearchEngine) Index(ctx context.Context, user *domain.User) error {
 	index := r.client.Index(r.idx)
 	task, err := index.AddDocumentsWithContext(ctx, user, nil)
 	if err != nil {
@@ -95,8 +95,8 @@ func (r *MeilisearchEngine) Index(ctx context.Context, user *Document) error {
 	return nil
 }
 
-func (r *MeilisearchEngine) Get(ctx context.Context, username string) (*Document, error) {
-	var user Document
+func (r *MeilisearchEngine) Get(ctx context.Context, username string) (*domain.User, error) {
+	var user domain.User
 	err := r.client.Index(r.idx).GetDocumentWithContext(ctx, username, nil, &user)
 	if err != nil {
 		var meiliErr *meilisearch.Error

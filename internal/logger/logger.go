@@ -2,15 +2,17 @@ package logger
 
 import "log/slog"
 
-func Error(source, message string, reason error) {
-	slog.Default().With("source", source).Error(message, "reason", reason)
+func Error(source, message string, reason error, attrs ...any) {
+	args := append([]any{"reason", reason}, attrs...)
+	slog.Default().With("source", source).Error(message, args...)
 }
 
-func Warn(source, message string, reason error) {
+func Warn(source, message string, reason error, attrs ...any) {
 	if reason == nil {
-		slog.Default().With("source", source).Warn(message)
+		slog.Default().With("source", source).Warn(message, attrs...)
 	} else {
-		slog.Default().With("source", source).Warn(message, "reason", reason)
+		args := append([]any{"reason", reason}, attrs...)
+		slog.Default().With("source", source).Warn(message, args...)
 	}
 }
 

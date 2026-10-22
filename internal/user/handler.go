@@ -45,14 +45,14 @@ func NewHandler(s *Service) *Handler {
 
 // POST /users - Register new user
 func (h *Handler) create(w http.ResponseWriter, r *http.Request) {
-	var userData Record
+	var payload DTO
 
-	if err := json.NewDecoder(r.Body).Decode(&userData); err != nil {
+	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
 		http.Error(w, "Invalid JSON payload", http.StatusBadRequest)
 		return
 	}
 
-	if err := h.userService.Create(r.Context(), &userData); err != nil {
+	if err := h.userService.Create(r.Context(), &payload.User, payload.Passwd); err != nil {
 		server.ServeMessage(w, "User", err)
 		return
 	}
@@ -117,14 +117,14 @@ func (h *Handler) changeEmail(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var email string
+	var payload DTO
 
-	if err := json.NewDecoder(r.Body).Decode(&email); err != nil {
+	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
 		http.Error(w, "Invalid JSON payload", http.StatusBadRequest)
 		return
 	}
 
-	if err := h.userService.ChangeEmail(r.Context(), username, email); err != nil {
+	if err := h.userService.ChangeEmail(r.Context(), username, payload.Email); err != nil {
 		server.ServeMessage(w, "User", err)
 		return
 	}
@@ -140,14 +140,14 @@ func (h *Handler) resetPasswd(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var paswd Password
+	var payload DTO
 
-	if err := json.NewDecoder(r.Body).Decode(&paswd); err != nil {
+	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
 		http.Error(w, "Invalid JSON payload", http.StatusBadRequest)
 		return
 	}
 
-	if err := h.userService.ChangePasswd(r.Context(), username, paswd); err != nil {
+	if err := h.userService.ChangePasswd(r.Context(), username, payload.Passwd); err != nil {
 		server.ServeMessage(w, "User", err)
 		return
 	}
@@ -163,13 +163,13 @@ func (h *Handler) updatePermissions(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var permissions uint32
-	if err := json.NewDecoder(r.Body).Decode(&permissions); err != nil {
+	var payload DTO
+	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
 		http.Error(w, "Invalid JSON payload", http.StatusBadRequest)
 		return
 	}
 
-	if err := h.userService.ChangePermissions(r.Context(), username, permissions); err != nil {
+	if err := h.userService.ChangePermissions(r.Context(), username, payload.Permissions); err != nil {
 		server.ServeMessage(w, "User", err)
 		return
 	}

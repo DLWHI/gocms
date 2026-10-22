@@ -9,9 +9,10 @@ import (
 	"github.com/meilisearch/meilisearch-go"
 )
 
-type MeilisearchIndex interface {
-	Config() meilisearch.IndexConfig
-	Settings() meilisearch.Settings
+type MeilisearchDecorator struct {
+	Client   meilisearch.ServiceManager
+	Config   meilisearch.IndexConfig
+	Settings meilisearch.Settings
 }
 
 func NewMeilisearchConnection(host string, port string, apiKey string) meilisearch.ServiceManager {
@@ -30,53 +31,53 @@ func NewMeilisearchConnection(host string, port string, apiKey string) meilisear
 	return client
 }
 
-func CreateMeilisearchIndex(ctx context.Context, se meilisearch.ServiceManager, idx MeilisearchIndex) error {
-	config := idx.Config()
-	task, err := se.CreateIndexWithContext(ctx, &config)
+func (d *MeilisearchDecorator) CreateMeilisearchIndex(ctx context.Context) error {
+	config := d.Config
+	task, err := d.Client.CreateIndexWithContext(ctx, &config)
 	if err != nil {
 		return err
 	}
 	logger.Info("Search.Meilisearch", "Search index creation enqueued")
-	if err := WaitForMeilisearchTask(ctx, se, task); err != nil {
+	if err := d.WaitForMeilisearchTask(ctx, task); err != nil {
 		return err
 	}
 
-	err = ConfigureMeilisearchIndex(ctx, se, idx)
+	err = d.ConfigureMeilisearchIndex(ctx)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func WipeMeilisearchIndex(ctx context.Context, se meilisearch.ServiceManager, idx MeilisearchIndex) error {
-	config := idx.Config()
-	task, err := se.DeleteIndexWithContext(ctx, config.Uid)
+func (d *MeilisearchDecorator) WipeMeilisearchIndex(ctx context.Context) error {
+	config := d.Config
+	task, err := d.Client.DeleteIndexWithContext(ctx, config.Uid)
 	if err != nil {
 		return err
 	}
 	logger.Info("Search.Meilisearch", "Search index deletion enqueued")
-	if err := WaitForMeilisearchTask(ctx, se, task); err != nil {
+	if err := d.WaitForMeilisearchTask(ctx, task); err != nil {
 		return err
 	}
 	return nil
 }
 
-func ConfigureMeilisearchIndex(ctx context.Context, se meilisearch.ServiceManager, idx MeilisearchIndex) error {
-	config := idx.Config()
-	settings := idx.Settings()
-	task, err := se.Index(config.Uid).UpdateSettingsWithContext(ctx, &settings)
+func (d *MeilisearchDecorator) ConfigureMeilisearchIndex(ctx context.Context) error {
+	config := d.Config
+	settings := d.Settings
+	task, err := d.Client.Index(config.Uid).UpdateSettingsWithContext(ctx, &settings)
 	if err != nil {
 		return err
 	}
 	logger.Info("Search.Meilisearch", "Search index settings update enqueued")
-	if err := WaitForMeilisearchTask(ctx, se, task); err != nil {
+	if err := d.WaitForMeilisearchTask(ctx, task); err != nil {
 		return err
 	}
 	return nil
 }
 
-func WaitForMeilisearchTask(ctx context.Context, se meilisearch.ServiceManager, info *meilisearch.TaskInfo) error {
-	task, err := se.TaskManager().WaitForTaskWithContext(ctx, info.TaskUID, 100*time.Millisecond)
+func (d *MeilisearchDecorator) WaitForMeilisearchTask(ctx context.Context, info *meilisearch.TaskInfo) error {
+	task, err := d.Client.TaskManager().WaitForTaskWithContext(ctx, info.TaskUID, 100*time.Millisecond)
 	if err != nil {
 		return err
 	}

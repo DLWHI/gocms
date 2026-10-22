@@ -13,14 +13,23 @@ import (
 )
 
 type MeilisearchEngine struct {
-	client meilisearch.ServiceManager
-	idx    string
+	search search.MeilisearchDecorator
 }
 
 func NewMeilisearchEngine(client meilisearch.ServiceManager, index string) *MeilisearchEngine {
 	return &MeilisearchEngine{
-		client: client,
-		idx:    index,
+		search: search.MeilisearchDecorator{
+			Client: client,
+			Config: meilisearch.IndexConfig{
+				Uid:        index,
+				PrimaryKey: "id",
+			},
+			Settings: meilisearch.Settings{
+				SearchableAttributes: []string{"title", "description", "keywords"},
+				FilterableAttributes: []string{"post_id", "locale", "author", "created_at", "published_at", "categories"},
+				SortableAttributes:   []string{"post_id", "title", "author", "created_at", "published_at", "views"},
+			},
+		},
 	}
 }
 
@@ -98,30 +107,15 @@ func buildSort(params *SearchParams) []string {
 	return sortParams
 }
 
-func (r *MeilisearchEngine) Config() meilisearch.IndexConfig {
-	return meilisearch.IndexConfig{
-		Uid:        r.idx,
-		PrimaryKey: "id",
-	}
-}
-
-func (r *MeilisearchEngine) Settings() meilisearch.Settings {
-	return meilisearch.Settings{
-		SearchableAttributes: []string{"title", "description", "keywords"},
-		FilterableAttributes: []string{"post_id", "locale", "author", "created_at", "published_at", "categories"},
-		SortableAttributes:   []string{"post_id", "title", "author", "created_at", "published_at", "views"},
-	}
-}
-
 func (r *MeilisearchEngine) Index(ctx context.Context, post *Document) error {
-	index := r.client.Index(r.idx)
+	index := r.search.Client.Index(r.search.Config.Uid)
 	post.ID = fmt.Sprintf("%d-%s", post.PostID, post.Locale)
 	req := &meilisearch.DocumentsQuery{
 		Filter: fmt.Sprintf("post_id = %d AND locale != %q", post.PostID, post.Locale),
 	}
 
 	var res meilisearch.DocumentsResult
-	err := r.client.Index(r.idx).GetDocumentsWithContext(ctx, req, &res)
+	err := r.search.Client.Index(r.search.Config.Uid).GetDocumentsWithContext(ctx, req, &res)
 	if err != nil {
 		var meiliErr *meilisearch.Error
 		if errors.As(err, &meiliErr) {
@@ -152,7 +146,7 @@ func (r *MeilisearchEngine) Index(ctx context.Context, post *Document) error {
 	if err != nil {
 		return err
 	}
-	if err := search.WaitForMeilisearchTask(ctx, r.client, task); err != nil {
+	if err := r.search.WaitForMeilisearchTask(ctx, task); err != nil {
 		return err
 	}
 	return err
@@ -161,7 +155,7 @@ func (r *MeilisearchEngine) Index(ctx context.Context, post *Document) error {
 func (r *MeilisearchEngine) Get(ctx context.Context, id uint, locale string) (*Document, error) {
 	var post Document
 	docID := fmt.Sprintf("%d-%s", id, locale)
-	err := r.client.Index(r.idx).GetDocumentWithContext(ctx, docID, nil, &post)
+	err := r.search.Client.Index(r.search.Config.Uid).GetDocumentWithContext(ctx, docID, nil, &post)
 	if err != nil {
 		if errors.Is(err, meilisearch.ErrInvalidRequestMethod) {
 			return nil, domain.ErrNotFound
@@ -173,13 +167,13 @@ func (r *MeilisearchEngine) Get(ctx context.Context, id uint, locale string) (*D
 
 func (r *MeilisearchEngine) Delete(ctx context.Context, id uint) error {
 	filter := fmt.Sprintf("post_id = %d", id)
-	index := r.client.Index(r.idx)
+	index := r.search.Client.Index(r.search.Config.Uid)
 
 	task, err := index.DeleteDocumentsByFilterWithContext(ctx, filter, nil)
 	if err != nil {
 		return err
 	}
-	if err := search.WaitForMeilisearchTask(ctx, r.client, task); err != nil {
+	if err := r.search.WaitForMeilisearchTask(ctx, task); err != nil {
 		return err
 	}
 	return nil
@@ -187,12 +181,12 @@ func (r *MeilisearchEngine) Delete(ctx context.Context, id uint) error {
 
 func (r *MeilisearchEngine) DeleteTranslation(ctx context.Context, id uint, locale string) error {
 	docID := fmt.Sprintf("%d-%s", id, locale)
-	index := r.client.Index(r.idx)
+	index := r.search.Client.Index(r.search.Config.Uid)
 	task, err := index.DeleteDocumentWithContext(ctx, docID, nil)
 	if err != nil {
 		return err
 	}
-	if err := search.WaitForMeilisearchTask(ctx, r.client, task); err != nil {
+	if err := r.search.WaitForMeilisearchTask(ctx, task); err != nil {
 		return err
 	}
 	return nil
@@ -207,7 +201,7 @@ func (r *MeilisearchEngine) Search(ctx context.Context, params *SearchParams) (*
 		Sort:                 buildSort(params),
 		AttributesToRetrieve: params.Select,
 	}
-	index := r.client.Index(r.idx)
+	index := r.search.Client.Index(r.search.Config.Uid)
 
 	params.Query = strings.TrimSpace(params.Query)
 
@@ -226,4 +220,16 @@ func (r *MeilisearchEngine) Search(ctx context.Context, params *SearchParams) (*
 	results.LastPage = res.TotalPages
 
 	return &results, nil
+}
+
+func (r *MeilisearchEngine) CreateMeilisearchIndex(ctx context.Context) error {
+	return r.search.CreateMeilisearchIndex(ctx)
+}
+
+func (r *MeilisearchEngine) WipeMeilisearchIndex(ctx context.Context) error {
+	return r.search.WipeMeilisearchIndex(ctx)
+}
+
+func (r *MeilisearchEngine) ConfigureMeilisearchIndex(ctx context.Context) error {
+	return r.search.ConfigureMeilisearchIndex(ctx)
 }

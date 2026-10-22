@@ -18,13 +18,26 @@ type Service struct {
 	repo       Repository
 	se         SearchEngine
 	bcryptCost int
+	dummyHash  []byte
 }
 
 func NewService(repo Repository, se SearchEngine) *Service {
+	pwd, err := domain.GeneratePassword(16)
+	if err != nil {
+		logger.Error("User.Service", "Failed to generate dummy password", err)
+		return nil
+	}
+	dummyHash, err := bcrypt.GenerateFromPassword(pwd, 12)
+	clear(pwd)
+	if err != nil {
+		logger.Error("User.Service", "Failed to hash the dummy password", err)
+		return nil
+	}
 	return &Service{
 		repo:       repo,
 		se:         se,
 		bcryptCost: 12,
+		dummyHash:  dummyHash,
 	}
 }
 
@@ -54,13 +67,12 @@ func (s *Service) Create(ctx context.Context, user *Record) error {
 	hash, err := bcrypt.GenerateFromPassword(user.Passwd, 12)
 	clear(user.Passwd)
 	if err != nil {
-		clear(hash)
 		logger.Error("User.Service", "Failed to hash the user password", err)
 		return err
 	}
 
 	user.Passwd = hash
-	user.Permissions = auth.RoleEditor
+	user.Permissions = domain.RoleEditor
 	user.LastLogin = nil
 	user.SuspendedAt = gorm.DeletedAt{Valid: false}
 
@@ -163,8 +175,12 @@ func (s *Service) PasswordMatches(ctx context.Context, username string, passwd P
 
 	hash, err := s.repo.GetPasswdHash(ctx, username)
 	if err != nil {
-		logger.Error("User.Service", "Failed to retrieve user's password", err)
-		return err
+		if errors.Is(err, domain.ErrNotFound) {
+			hash = s.dummyHash
+		} else {
+			logger.Error("User.Service", "Failed to retrieve user's password", err)
+			return err
+		}
 	}
 
 	err = bcrypt.CompareHashAndPassword(hash, passwd)

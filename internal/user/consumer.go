@@ -20,12 +20,16 @@ func NewEventConsumer(db Repository, se SearchEngine) *EventConsumer {
 }
 
 func (s *EventConsumer) SyncSearch(ctx context.Context, data []byte) error {
-	var username MessagePayload
-	if err := json.Unmarshal(data, &username); err != nil {
+	var payload domain.UserEvent
+	if err := json.Unmarshal(data, &payload); err != nil {
 		return err
 	}
 
-	user, err := s.db.Get(ctx, username)
+	if payload.Action == domain.UserActionPasswd {
+		return nil
+	}
+
+	user, err := s.db.Get(ctx, payload.Username)
 	if err != nil {
 		if errors.Is(err, domain.ErrNotFound) {
 			return nil

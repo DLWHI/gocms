@@ -2,10 +2,12 @@ package main
 
 import (
 	"gocms/internal/ads"
+	"gocms/internal/auth"
 	"gocms/internal/category"
 	"gocms/internal/editor"
 	"gocms/internal/locale"
 	"gocms/internal/post"
+	"gocms/internal/session"
 	"gocms/internal/user"
 	"time"
 
@@ -13,6 +15,12 @@ import (
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 )
+
+type AuthBundle struct {
+	Consumer *auth.EventConsumer
+	Service  *auth.Service
+	Handler  *auth.Handler
+}
 
 type UserBundle struct {
 	Consumer          *user.EventConsumer
@@ -61,6 +69,17 @@ type LocaleBundle struct {
 	Handler   *locale.Handler
 	RedisRepo *locale.RedisRepository
 	GORMRepo  *locale.GORMRepository
+}
+
+func NewAuthBundle(users auth.UserManager, sessions session.Repository) *AuthBundle {
+	consumer := auth.NewEventConsumer(sessions)
+	service := auth.NewService(users, sessions)
+	handler := auth.NewHandler(service)
+	return &AuthBundle{
+		Consumer: consumer,
+		Service:  service,
+		Handler:  handler,
+	}
 }
 
 func NewUserBundle(db *gorm.DB, search meilisearch.ServiceManager, redis *redis.Client) *UserBundle {

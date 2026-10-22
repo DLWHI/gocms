@@ -3,6 +3,7 @@ package user
 import (
 	"context"
 	"errors"
+	"fmt"
 	"gocms/internal/domain"
 	"gocms/internal/flow"
 	"gocms/internal/outbox"
@@ -47,12 +48,17 @@ func (r *GORMRepository) Create(ctx context.Context, user *Record) error {
 		if err := tx.Create(user).Error; err != nil {
 			return err
 		}
-		if err := r.writeMessage(tx, "user", user.Username); err != nil {
+		if err := r.writeMessage(tx, domain.UserActionCreate, user.Username); err != nil {
 			return err
 		}
 		return nil
 	})
 	if err != nil {
+		if errors.Is(err, gorm.ErrDuplicatedKey) {
+			return domain.ErrExists
+		} else if errors.Is(err, gorm.ErrForeignKeyViolated) {
+			return fmt.Errorf("%w: referenced entity does not exist", domain.ErrInval)
+		}
 		return err
 	}
 	return nil
@@ -62,9 +68,6 @@ func (r *GORMRepository) UpdateLogin(ctx context.Context, username string, times
 	var user Record
 	err := r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		if err := tx.Model(&Record{}).Omit("Passwd").Where("username = ?", username).Take(&user).Error; err != nil {
-			if errors.Is(err, gorm.ErrRecordNotFound) {
-				return domain.ErrNotFound
-			}
 			return err
 		}
 
@@ -73,12 +76,15 @@ func (r *GORMRepository) UpdateLogin(ctx context.Context, username string, times
 			return result.Error
 		}
 		user.LastLogin = &timestamp
-		if err := r.writeMessage(tx, "user", username); err != nil {
+		if err := r.writeMessage(tx, domain.UserActionLogin, username); err != nil {
 			return err
 		}
 		return nil
 	})
 	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, domain.ErrNotFound
+		}
 		return nil, err
 	}
 	return &user, nil
@@ -90,9 +96,6 @@ func (r *GORMRepository) Update(ctx context.Context, username string, diff map[s
 			var user Record
 			sanitized := r.sanitize(diff)
 			if err := tx.Omit("Passwd").Where("username = ?", username).Take(&user).Error; err != nil {
-				if errors.Is(err, gorm.ErrRecordNotFound) {
-					return domain.ErrNotFound
-				}
 				return err
 			}
 
@@ -106,7 +109,7 @@ func (r *GORMRepository) Update(ctx context.Context, username string, diff map[s
 				if result.RowsAffected == 0 {
 					return domain.ErrLock
 				}
-				if err := r.writeMessage(tx, "user", username); err != nil {
+				if err := r.writeMessage(tx, domain.UserActionUpdate, username); err != nil {
 					return err
 				}
 			}
@@ -116,6 +119,10 @@ func (r *GORMRepository) Update(ctx context.Context, username string, diff map[s
 	if err != nil {
 		if errors.Is(err, domain.ErrRetry) {
 			return domain.ErrLock
+		} else if errors.Is(err, gorm.ErrRecordNotFound) {
+			return domain.ErrNotFound
+		} else if errors.Is(err, gorm.ErrForeignKeyViolated) {
+			return fmt.Errorf("%w: referenced entity does not exist", domain.ErrInval)
 		}
 		return err
 	}
@@ -127,9 +134,6 @@ func (r *GORMRepository) UpdatePasswd(ctx context.Context, username string, pwdh
 		return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 			var version uint
 			if err := tx.Model(&Record{}).Select("Version").Where("username = ?", username).Take(&version).Error; err != nil {
-				if errors.Is(err, gorm.ErrRecordNotFound) {
-					return domain.ErrNotFound
-				}
 				return err
 			}
 
@@ -145,7 +149,7 @@ func (r *GORMRepository) UpdatePasswd(ctx context.Context, username string, pwdh
 			if result.RowsAffected == 0 {
 				return domain.ErrRetry
 			}
-			if err := r.writeMessage(tx, "passwd", username); err != nil {
+			if err := r.writeMessage(tx, domain.UserActionPasswd, username); err != nil {
 				return err
 			}
 			return nil
@@ -154,6 +158,8 @@ func (r *GORMRepository) UpdatePasswd(ctx context.Context, username string, pwdh
 	if err != nil {
 		if errors.Is(err, domain.ErrRetry) {
 			return domain.ErrLock
+		} else if errors.Is(err, gorm.ErrRecordNotFound) {
+			return domain.ErrNotFound
 		}
 		return err
 	}
@@ -217,7 +223,7 @@ func (r *GORMRepository) Suspend(ctx context.Context, username string) error {
 		if result.RowsAffected == 0 {
 			return domain.ErrNotFound
 		}
-		if err := r.writeMessage(tx, "user", username); err != nil {
+		if err := r.writeMessage(tx, domain.UserActionSuspend, username); err != nil {
 			return err
 		}
 		return nil
@@ -228,8 +234,12 @@ func (r *GORMRepository) Suspend(ctx context.Context, username string) error {
 	return nil
 }
 
-func (r *GORMRepository) writeMessage(tx *gorm.DB, event outbox.Event, username string) error {
-	if err := outbox.WriteMessage(tx, event, "User.Repository", &username); err != nil {
+func (r *GORMRepository) writeMessage(tx *gorm.DB, action int, username string) error {
+	payload := domain.UserEvent{
+		Username: username,
+		Action:   action,
+	}
+	if err := outbox.WriteMessage(tx, "user", "User.Repository", &payload); err != nil {
 		return err
 	}
 	return nil

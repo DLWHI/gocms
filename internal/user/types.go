@@ -27,8 +27,6 @@ type Record struct {
 
 type Document = domain.User
 
-type MessagePayload = string
-
 type SearchParams struct {
 	search.Params
 	Permissions     *uint32    `json:"permissions"`

@@ -1,17 +1,41 @@
 package domain
 
 import (
+	"crypto/rand"
 	"encoding/json"
 	"fmt"
+	"math/big"
 	"net/mail"
 	"strings"
 )
 
 const (
 	MaxUsernameLength = 64
+	charset           = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()-_=+[]{}|;:,.<>?"
+
+	UserActionCreate = 1 << iota
+	UserActionUpdate
+	UserActionSuspend
+	UserActionLogin
+	UserActionPasswd
+
+	UserEventName = "user"
 )
 
 type Password []byte
+
+type User struct {
+	Username    string `json:"username"`
+	Email       string `json:"email"`
+	Permissions uint32 `json:"permissions"`
+	SuspendedAt *int64 `json:"suspended_at"`
+	LastLogin   *int64 `json:"last_login"`
+}
+
+type UserEvent struct {
+	Action   int    `json:"action"`
+	Username string `json:"username"`
+}
 
 func (p *Password) UnmarshalJSON(data []byte) error {
 	var s string
@@ -24,14 +48,6 @@ func (p *Password) UnmarshalJSON(data []byte) error {
 
 func (Password) String() string {
 	return "[UNKNOWN]"
-}
-
-type User struct {
-	Username    string `json:"username"`
-	Email       string `json:"email"`
-	Permissions uint32 `json:"permissions"`
-	SuspendedAt *int64 `json:"suspended_at"`
-	LastLogin   *int64 `json:"last_login"`
 }
 
 func IsInvalidUsernameRune(r rune) bool {
@@ -51,6 +67,20 @@ func NormalizeUsername(value string) (string, error) {
 	}
 
 	return normalized, nil
+}
+
+func GeneratePassword(length int) (Password, error) {
+	bytes := make([]byte, length)
+
+	for i := range bytes {
+		randomIndex, err := rand.Int(rand.Reader, big.NewInt(int64(len(charset))))
+		if err != nil {
+			return nil, err
+		}
+		bytes[i] = charset[randomIndex.Int64()]
+	}
+
+	return bytes, nil
 }
 
 func IsValidPassword(passwd Password) bool {

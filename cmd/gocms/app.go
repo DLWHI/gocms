@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"gocms/internal/analytics"
-	"gocms/internal/auth"
 	"gocms/internal/flow"
 	"gocms/internal/logger"
 	"gocms/internal/outbox"
@@ -42,10 +41,13 @@ type Container struct {
 	Ads        *AdsBundle
 	Editors    *EditorBundle
 	Locales    *LocaleBundle
+	Auth       *AuthBundle
 
 	Server       flow.Runner
 	ViewsCounter flow.Runner
 	MessageRelay flow.Runner
+
+	Subscriptions []*outbox.Subscription
 }
 
 func NewContainer() *Container {
@@ -73,18 +75,17 @@ func (app *Container) Init(ctx context.Context, cfg Config) error {
 		return err
 	}
 
+	sessions := session.NewRedisRepository(redis, 24*time.Hour)
+
 	categories := NewCategoryBundle(db, search, redis)
 	users := NewUserBundle(db, search, redis)
 	posts := NewPostBundle(db, search, redis)
 	ads := NewAdsBundle(db, search, redis)
 	editors := NewEditorBundle(db, search, redis)
 	locales := NewLocaleBundle(db, redis)
+	auth := NewAuthBundle(users.Service, sessions)
 
 	views := analytics.NewRedisCounter(app.Redis, posts.Service)
-
-	sessions := session.NewRedisRepository(redis, 24*time.Hour)
-	authService := auth.NewService(users.Service, sessions)
-	authHandler := auth.NewHandler(authService)
 
 	publicHandler := public.NewHandler(
 		posts.Service,
@@ -99,7 +100,7 @@ func (app *Container) Init(ctx context.Context, cfg Config) error {
 
 	router := NewRouter(sessions)
 
-	router.AddAuthRoutes(authHandler)
+	router.AddAuthRoutes(auth.Handler)
 	router.AddPostRoutes(posts.Handler)
 	router.AddUserRoutes(users.Handler)
 	router.AddCategoryRoutes(categories.Handler)
@@ -124,6 +125,7 @@ func (app *Container) Init(ctx context.Context, cfg Config) error {
 	app.Ads = ads
 	app.Editors = editors
 	app.Locales = locales
+	app.Auth = auth
 
 	app.Server = server
 	app.ViewsCounter = views
@@ -134,14 +136,20 @@ func (app *Container) Init(ctx context.Context, cfg Config) error {
 }
 
 func (app *Container) WireEvents(dispatcher outbox.Publisher) {
-	dispatcher.Subscribe("post", app.Posts.Service.SyncSearch)
-	dispatcher.Subscribe("user", app.Users.Consumer.SyncSearch)
-	dispatcher.Subscribe("category", app.Categories.Service.SyncSearch)
-	dispatcher.Subscribe("editor", app.Editors.Service.SyncSearch)
-	dispatcher.Subscribe("ads", app.Ads.Service.SyncSearch)
+	app.Subscriptions = make([]*outbox.Subscription, 0, 6)
+	app.Subscriptions = append(app.Subscriptions, dispatcher.Subscribe("post", app.Posts.Service.SyncSearch))
+	app.Subscriptions = append(app.Subscriptions, dispatcher.Subscribe("user", app.Users.Consumer.SyncSearch))
+	app.Subscriptions = append(app.Subscriptions, dispatcher.Subscribe("user", app.Auth.Consumer.RevokeSessions))
+	app.Subscriptions = append(app.Subscriptions, dispatcher.Subscribe("category", app.Categories.Service.SyncSearch))
+	app.Subscriptions = append(app.Subscriptions, dispatcher.Subscribe("editor", app.Editors.Service.SyncSearch))
+	app.Subscriptions = append(app.Subscriptions, dispatcher.Subscribe("ads", app.Ads.Service.SyncSearch))
 }
 
 func (app *Container) TearDown() {
+	for _, sub := range app.Subscriptions {
+		sub.Unsubscribe()
+	}
+
 	sqlDB, err := app.DB.DB()
 	if err != nil {
 		logger.Error("Init", "Failed to close DB pool", err)

@@ -5,11 +5,6 @@ import (
 	"time"
 )
 
-type Event string
-type EventHandler func(context.Context, []byte) error
-
-type Status int
-
 const (
 	StatusIdle = 1 << iota
 	StatusPending
@@ -17,6 +12,17 @@ const (
 	StatusFailed
 	StatusDead
 )
+
+type Event string
+type EventHandler func(context.Context, []byte) error
+
+type Status int
+
+type Subscription struct {
+	Event       Event
+	Unsubscribe func()
+	handler     EventHandler
+}
 
 type Message struct {
 	SpecVersion string     `json:"specversion" gorm:"not null"`
@@ -37,8 +43,8 @@ type MessageRepository interface {
 
 type Publisher interface {
 	Publish(ctx context.Context, messages []Message) ([]Message, error)
-	Subscribe(event Event, handler EventHandler)
-	Unsubscribe(event Event) bool
+	Subscribe(event Event, handler EventHandler) *Subscription
+	Unsubscribe(sub *Subscription)
 }
 
 func (Message) TableName() string {

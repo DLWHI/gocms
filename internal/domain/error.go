@@ -14,4 +14,5 @@ const (
 	ErrPerm     = Constant("Insufficient permissions")
 	ErrLock     = Constant("Record is locked")
 	ErrRetry    = Constant("Retry operation")
+	ErrExists   = Constant("Entity with same key exists")
 )

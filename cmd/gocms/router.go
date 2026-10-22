@@ -63,7 +63,7 @@ func (router *Router) AddUserRoutes(handler *user.Handler) {
 	router.mux.Handle("GET /cms/users", m(handler.All))
 	router.mux.Handle("GET /cms/users/{username}", m(handler.Get))
 	router.mux.Handle("PATCH /cms/users/{username}/email", m(handler.ChangeEmail))
-	router.mux.Handle("PATCH /cms/users/{username}/reset", m(handler.ResetPasswd))
+	router.mux.Handle("PATCH /cms/users/{username}/password", m(handler.ResetPasswd))
 	router.mux.Handle("PATCH /cms/users/{username}/permissions", m(handler.UpdatePermissions))
 	router.mux.Handle("DELETE /cms/users/{username}", m(handler.Suspend))
 }

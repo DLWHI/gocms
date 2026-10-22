@@ -9,7 +9,6 @@ import (
 	"gocms/internal/auth"
 	"gocms/internal/domain"
 	"gocms/internal/logger"
-	"gocms/internal/user"
 	"os"
 	"strconv"
 	"strings"
@@ -105,15 +104,14 @@ func CreateUser(ctx context.Context, app *Container) error {
 		}
 	}
 
-	user := user.Record{
+	user := domain.User{
 		Username:    username,
-		Permissions: permissions,
-		Passwd:      passwd,
+		Permissions: &permissions,
 	}
 
 	injected := context.WithValue(ctx, auth.UserPermissionKey, domain.OnEntityC("users"))
 
-	if err := svc.Create(injected, &user); err != nil {
+	if _, err := svc.Create(injected, &user, passwd); err != nil {
 		logger.Error("User create", "Failed to register new user", err)
 		return err
 	}

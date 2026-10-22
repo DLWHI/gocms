@@ -41,37 +41,39 @@ func NewService(repo Repository, se SearchEngine) *Service {
 	}
 }
 
-func (s *Service) Create(ctx context.Context, user *domain.User, passwd Password) error {
+func (s *Service) Create(ctx context.Context, user *domain.User, passwd Password) (string, error) {
 	if !auth.HasPermission(ctx, "users", "create") {
 		clear(passwd)
-		return domain.ErrCred
+		return "", domain.ErrCred
 	}
 
 	if !domain.IsValidPassword(passwd) {
 		clear(passwd)
-		return fmt.Errorf("%w: invalid password", domain.ErrInval)
+		return "", fmt.Errorf("%w: invalid password", domain.ErrInval)
 	}
 
 	record := ToRecord(user)
 	username, err := domain.NormalizeUsername(user.Username)
 	if err != nil {
 		clear(passwd)
-		return err
+		return "", err
 	}
 	record.Username = username
 
-	email, err := domain.ParseEmail(user.Email)
-	if err != nil {
-		clear(passwd)
-		return err
+	if user.Email != nil {
+		email, err := domain.ParseEmail(*user.Email)
+		if err != nil {
+			clear(passwd)
+			return "", err
+		}
+		record.Email = email
 	}
-	record.Email = email
 
 	hash, err := bcrypt.GenerateFromPassword(passwd, 12)
 	clear(passwd)
 	if err != nil {
 		logger.Error("User.Service", "Failed to hash the user password", err)
-		return err
+		return "", err
 	}
 
 	record.Passwd = hash
@@ -84,10 +86,10 @@ func (s *Service) Create(ctx context.Context, user *domain.User, passwd Password
 	clear(record.Passwd)
 	if err != nil {
 		logger.Error("User.Service", "Failed to create user", err)
-		return err
+		return "", err
 	}
 
-	return nil
+	return record.Username, nil
 }
 
 func (s *Service) UpdateLogin(ctx context.Context, username string) (*domain.User, error) {
@@ -210,9 +212,11 @@ func (s *Service) ChangeEmail(ctx context.Context, username string, email string
 		return domain.ErrCred
 	}
 
-	email, err = domain.ParseEmail(email)
-	if err != nil {
-		return err
+	if email != "" {
+		email, err = domain.ParseEmail(email)
+		if err != nil {
+			return err
+		}
 	}
 
 	diff := map[string]interface{}{

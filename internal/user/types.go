@@ -60,23 +60,38 @@ type SearchEngine interface {
 	Delete(ctx context.Context, username string) error
 }
 
-func (um *Record) ToDomain() domain.User {
+func (ur *Record) ToDomain() domain.User {
 	var ud domain.User
 
-	if um.SuspendedAt.Valid {
-		ts := um.SuspendedAt.Time.Unix()
+	if ur.SuspendedAt.Valid {
+		ts := ur.SuspendedAt.Time.Unix()
 		ud.SuspendedAt = &ts
 	}
 
-	if um.LastLogin != nil {
-		ts := um.LastLogin.Unix()
+	if ur.LastLogin != nil {
+		ts := ur.LastLogin.Unix()
 		ud.LastLogin = &ts
 	}
 
-	ud.Username = um.Username
-	ud.Email = um.Email
-	ud.Permissions = um.Permissions
+	email := ur.Email
+	perms := ur.Permissions
+
+	ud.Username = ur.Username
+	ud.Email = &email
+	ud.Permissions = &perms
 	return ud
+}
+
+func (ur *DTO) ToDiff(ud *domain.User) map[string]interface{} {
+	diff := make(map[string]interface{})
+
+	if ur.Permissions != nil {
+		diff["permissions"] = *ur.Permissions
+	}
+	if ur.Email != nil {
+		diff["email"] = *ur.Email
+	}
+	return diff
 }
 
 func ToRecord(ud *domain.User) Record {
@@ -94,8 +109,12 @@ func ToRecord(ud *domain.User) Record {
 	}
 
 	um.Username = ud.Username
-	um.Email = ud.Email
-	um.Permissions = ud.Permissions
+	if ud.Email != nil {
+		um.Email = *ud.Email
+	}
+	if ud.Permissions != nil {
+		um.Permissions = *ud.Permissions
+	}
 	return um
 }
 

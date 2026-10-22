@@ -26,23 +26,6 @@ func NewGORMRepository(db *gorm.DB) *GORMRepository {
 	}
 }
 
-func (r *GORMRepository) sanitize(diff map[string]interface{}) map[string]interface{} {
-	toUpdate := make(map[string]interface{})
-
-	if val, ok := diff["permissions"]; ok {
-		toUpdate["permissions"] = val
-	}
-	if val, ok := diff["email"]; ok {
-		toUpdate["email"] = val
-	}
-
-	if len(toUpdate) > 0 {
-		toUpdate["version"] = gorm.Expr("version + 1")
-	}
-
-	return toUpdate
-}
-
 func (r *GORMRepository) Create(ctx context.Context, user *Record) error {
 	err := r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		if err := tx.Create(user).Error; err != nil {
@@ -94,15 +77,15 @@ func (r *GORMRepository) Update(ctx context.Context, username string, diff map[s
 	err := flow.DoWithRetry(ctx, r.retries, r.backoff, func() error {
 		return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 			var user Record
-			sanitized := r.sanitize(diff)
 			if err := tx.Omit("Passwd").Where("username = ?", username).Take(&user).Error; err != nil {
 				return err
 			}
 
-			if len(sanitized) > 0 {
+			if len(diff) > 0 {
+				diff["version"] = gorm.Expr("version + 1")
 				result := tx.Model(&Record{}).
 					Where("username = ? AND version = ?", user.Username, user.Version).
-					Updates(sanitized)
+					Updates(diff)
 				if result.Error != nil {
 					return result.Error
 				}

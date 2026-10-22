@@ -52,7 +52,7 @@ func (h *Handler) create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.userService.Create(r.Context(), &payload.User, payload.Passwd); err != nil {
+	if _, err := h.userService.Create(r.Context(), &payload.User, payload.Passwd); err != nil {
 		server.ServeMessage(w, "User", err)
 		return
 	}
@@ -119,12 +119,12 @@ func (h *Handler) changeEmail(w http.ResponseWriter, r *http.Request) {
 
 	var payload DTO
 
-	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil || payload.Email == nil {
 		http.Error(w, "Invalid JSON payload", http.StatusBadRequest)
 		return
 	}
 
-	if err := h.userService.ChangeEmail(r.Context(), username, payload.Email); err != nil {
+	if err := h.userService.ChangeEmail(r.Context(), username, *payload.Email); err != nil {
 		server.ServeMessage(w, "User", err)
 		return
 	}
@@ -164,12 +164,12 @@ func (h *Handler) updatePermissions(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var payload DTO
-	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil || payload.Permissions == nil {
 		http.Error(w, "Invalid JSON payload", http.StatusBadRequest)
 		return
 	}
 
-	if err := h.userService.ChangePermissions(r.Context(), username, payload.Permissions); err != nil {
+	if err := h.userService.ChangePermissions(r.Context(), username, *payload.Permissions); err != nil {
 		server.ServeMessage(w, "User", err)
 		return
 	}

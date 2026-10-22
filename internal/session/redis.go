@@ -8,7 +8,6 @@ import (
 	"errors"
 	"fmt"
 	"gocms/internal/domain"
-	"gocms/internal/errs"
 	"time"
 
 	"github.com/redis/go-redis/v9"
@@ -88,7 +87,7 @@ func (s *RedisRepository) Update(ctx context.Context, user *domain.User) (*Sessi
 	cached, err := s.rdb.Get(ctx, userKey).Result()
 	if err != nil {
 		if errors.Is(err, redis.Nil) {
-			return nil, errs.ErrExpired
+			return nil, domain.ErrExpired
 		}
 		return nil, err
 	}
@@ -176,7 +175,7 @@ func (s *RedisRepository) Validate(ctx context.Context, suid string) (*Session, 
 	cached, err := s.rdb.Get(ctx, key).Result()
 	if err != nil {
 		if errors.Is(err, redis.Nil) {
-			return nil, errs.ErrExpired
+			return nil, domain.ErrExpired
 		}
 		return nil, err
 	}

@@ -6,10 +6,8 @@ import (
 	"fmt"
 	"gocms/internal/auth"
 	"gocms/internal/domain"
-	"gocms/internal/errs"
 	"gocms/internal/logger"
 	"gocms/internal/search"
-	"net/mail"
 	"time"
 
 	"golang.org/x/crypto/bcrypt"
@@ -17,40 +15,41 @@ import (
 )
 
 type Service struct {
-	repo Repository
-	se   SearchEngine
+	repo       Repository
+	se         SearchEngine
+	bcryptCost int
 }
 
 func NewService(repo Repository, se SearchEngine) *Service {
 	return &Service{
-		repo: repo,
-		se:   se,
+		repo:       repo,
+		se:         se,
+		bcryptCost: 12,
 	}
 }
 
 func (s *Service) Create(ctx context.Context, user *Record) error {
 	if !auth.HasPermission(ctx, "users", "create") {
 		clear(user.Passwd)
-		return errs.ErrCred
+		return domain.ErrCred
 	}
 
-	if len(user.Passwd) == 0 || len(user.Passwd) > 72 {
+	if !domain.IsValidPassword(user.Passwd) {
 		clear(user.Passwd)
-		return fmt.Errorf("%w: invalid password", errs.ErrInval)
+		return fmt.Errorf("%w: invalid password", domain.ErrInval)
 	}
 
 	username, err := domain.NormalizeUsername(user.Username)
 	if err != nil {
+		clear(user.Passwd)
 		return err
 	}
 	user.Username = username
 
-	parsed, err := mail.ParseAddress(user.Email)
-	if err != nil || parsed.Name != "" {
-		clear(user.Passwd)
-		return fmt.Errorf("%w: invalid email", errs.ErrInval)
+	user.Email, err = domain.ParseEmail(user.Email)
+	if err != nil {
+		return err
 	}
-	user.Email = parsed.Address
 
 	hash, err := bcrypt.GenerateFromPassword(user.Passwd, 12)
 	clear(user.Passwd)
@@ -100,7 +99,7 @@ func (s *Service) Get(ctx context.Context, username string) (*Document, error) {
 
 	user, err := s.repo.Get(ctx, username)
 	if err != nil {
-		if !errors.Is(err, errs.ErrNotFound) {
+		if !errors.Is(err, domain.ErrNotFound) {
 			logger.Error("User.Service", "Failed to retrieve user", err)
 		}
 		return nil, err
@@ -121,9 +120,9 @@ func (s *Service) Search(ctx context.Context, filters *SearchParams) (*SearchRes
 	return users, nil
 }
 
-func (s *Service) All(ctx context.Context) ([]Document, error) {
+func (s *Service) AllActive(ctx context.Context) ([]Document, error) {
 
-	users, err := s.repo.GetAll(ctx)
+	users, err := s.repo.GetActive(ctx)
 	if err != nil {
 		logger.Error("User.Service", "Failed to list users", err)
 		return nil, err
@@ -139,8 +138,8 @@ func (s *Service) All(ctx context.Context) ([]Document, error) {
 }
 
 func (s *Service) Suspend(ctx context.Context, username string) error {
-	if !auth.HasPermission(ctx, "users", "delete") {
-		return errs.ErrCred
+	if !auth.HasPermission(ctx, EntityName, "delete") {
+		return domain.ErrCred
 	}
 
 	username, err := domain.NormalizeUsername(username)
@@ -148,7 +147,7 @@ func (s *Service) Suspend(ctx context.Context, username string) error {
 		return err
 	}
 
-	if err := s.repo.Delete(ctx, username); err != nil {
+	if err := s.repo.Suspend(ctx, username); err != nil {
 		logger.Error("User.Service", "Failed to suspend user", err)
 		return err
 	}
@@ -159,19 +158,19 @@ func (s *Service) Suspend(ctx context.Context, username string) error {
 func (s *Service) PasswordMatches(ctx context.Context, username string, passwd Password) error {
 	username, err := domain.NormalizeUsername(username)
 	if err != nil {
-		return errs.ErrCred
+		return domain.ErrCred
 	}
 
 	hash, err := s.repo.GetPasswdHash(ctx, username)
 	if err != nil {
-		logger.Error("User.Service", "Failed to retreive user's password", err)
+		logger.Error("User.Service", "Failed to retrieve user's password", err)
 		return err
 	}
 
 	err = bcrypt.CompareHashAndPassword(hash, passwd)
 	clear(hash)
 	if err != nil {
-		return errs.ErrCred
+		return domain.ErrCred
 	}
 
 	return nil
@@ -185,20 +184,20 @@ func (s *Service) ChangeEmail(ctx context.Context, username string, email string
 
 	initiator, ok := ctx.Value(auth.UserNameKey).(string)
 	if !ok {
-		return errs.ErrCred
+		return domain.ErrCred
 	}
 
-	if initiator != username && !auth.HasPermission(ctx, "users", "edit") {
-		return errs.ErrCred
+	if initiator != username && !auth.HasPermission(ctx, EntityName, "edit") {
+		return domain.ErrCred
 	}
 
-	parsed, err := mail.ParseAddress(email)
-	if err != nil || parsed.Name != "" {
-		return fmt.Errorf("%w: invalid email", errs.ErrInval)
+	email, err = domain.ParseEmail(email)
+	if err != nil {
+		return err
 	}
 
 	diff := map[string]interface{}{
-		"email": parsed.Address,
+		"email": email,
 	}
 
 	if err := s.repo.Update(ctx, username, diff); err != nil {
@@ -217,19 +216,20 @@ func (s *Service) ChangePasswd(ctx context.Context, username string, passwd doma
 
 	initiator, ok := ctx.Value(auth.UserNameKey).(string)
 	if !ok {
-		return errs.ErrCred
+		return domain.ErrCred
 	}
 
-	if initiator != username && !auth.HasPermission(ctx, "users", "edit") {
-		return errs.ErrCred
+	if initiator != username && !auth.HasPermission(ctx, EntityName, "edit") {
+		return domain.ErrCred
 	}
 
-	if len(passwd) == 0 || len(passwd) > 72 {
+	if !domain.IsValidPassword(passwd) {
 		clear(passwd)
-		return fmt.Errorf("%w: invalid password", errs.ErrInval)
+		return fmt.Errorf("%w: invalid password", domain.ErrInval)
 	}
 
-	hash, err := bcrypt.GenerateFromPassword(passwd, 12)
+	hash, err := bcrypt.GenerateFromPassword(passwd, s.bcryptCost)
+	clear(passwd)
 	if err != nil {
 		logger.Error("User.Service", "Failed to hash the replacement password", err)
 		return err
@@ -251,13 +251,13 @@ func (s *Service) ChangePermissions(ctx context.Context, username string, perms 
 		return err
 	}
 
-	intitiator, ok := ctx.Value(auth.UserNameKey).(string)
+	initiator, ok := ctx.Value(auth.UserNameKey).(string)
 	if !ok {
-		return errs.ErrCred
+		return domain.ErrCred
 	}
 
-	if intitiator == username || !auth.HasPermission(ctx, "users", "edit") {
-		return errs.ErrCred
+	if initiator == username || !auth.HasPermission(ctx, EntityName, "edit") {
+		return domain.ErrCred
 	}
 
 	diff := map[string]interface{}{

@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"gocms/internal/errs"
+	"gocms/internal/domain"
 	"math/rand/v2"
 	"strconv"
 	"strings"
@@ -77,7 +77,7 @@ func (r *RedisDecorator) Lease(ctx context.Context, key string, ttl time.Duratio
 func (r *RedisDecorator) Return(ctx context.Context, key string, token string, ptrval any, ttl time.Duration) error {
 	data, err := json.Marshal(ptrval)
 	if err != nil {
-		return errs.ErrInval
+		return domain.ErrInval
 	}
 
 	err = fillScript.Run(ctx, r.Client, []string{key}, token, data, ttl.Milliseconds()).Err()

@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"gocms/internal/errs"
+	"gocms/internal/domain"
 )
 
 type EventConsumer struct {
@@ -27,7 +27,7 @@ func (s *EventConsumer) SyncSearch(ctx context.Context, data []byte) error {
 
 	user, err := s.db.Get(ctx, username)
 	if err != nil {
-		if errors.Is(err, errs.ErrNotFound) {
+		if errors.Is(err, domain.ErrNotFound) {
 			return nil
 		}
 		return err

@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"gocms/internal/domain"
-	"gocms/internal/errs"
+	"gocms/internal/server"
 	"net/http"
 )
 
@@ -50,7 +50,7 @@ func (h *Handler) login(w http.ResponseWriter, r *http.Request) {
 
 	session, err := h.userService.Login(r.Context(), payload.Username, payload.Passwd)
 	if err != nil {
-		if errors.Is(err, errs.ErrCred) {
+		if errors.Is(err, domain.ErrCred) {
 			http.Error(w, "Invalid username or password", http.StatusUnauthorized)
 		} else {
 			http.Error(w, "Internal server error", http.StatusInternalServerError)
@@ -75,7 +75,7 @@ func (h *Handler) logout(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) profile(w http.ResponseWriter, r *http.Request) {
 	user, err := h.userService.CurrentUser(r.Context())
 	if err != nil {
-		errs.ServeMessage(w, "User", err)
+		server.ServeMessage(w, "User", err)
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
@@ -90,8 +90,8 @@ func (h *Handler) perms(w http.ResponseWriter, r *http.Request) {
 		Entities map[string]uint32 `json:"entities"`
 		Actions  map[string]uint32 `json:"actions"`
 	}{
-		Entities: GetEntities(),
-		Actions:  GetActions(),
+		Entities: domain.GetEntities(),
+		Actions:  domain.GetActions(),
 	}
 
 	_ = json.NewEncoder(w).Encode(&permissionData)
@@ -116,7 +116,7 @@ func (h *Handler) changePasswd(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.userService.ChangePasswd(r.Context(), username, payload.OldPasswd, payload.NewPaswd); err != nil {
-		errs.ServeMessage(w, "User", err)
+		server.ServeMessage(w, "User", err)
 		return
 	}
 

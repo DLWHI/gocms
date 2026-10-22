@@ -2,7 +2,7 @@ package locale
 
 import (
 	"encoding/json"
-	"gocms/internal/errs"
+	"gocms/internal/server"
 	"net/http"
 )
 
@@ -36,7 +36,7 @@ func (h *Handler) create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.localeService.Create(r.Context(), &locale); err != nil {
-		errs.ServeMessage(w, "Locale", err)
+		server.ServeMessage(w, "Locale", err)
 		return
 	}
 
@@ -47,7 +47,7 @@ func (h *Handler) create(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) get(w http.ResponseWriter, r *http.Request) {
 	locales, err := h.localeService.GetAll(r.Context())
 	if err != nil {
-		errs.ServeMessage(w, "Locale", err)
+		server.ServeMessage(w, "Locale", err)
 		return
 	}
 
@@ -65,7 +65,7 @@ func (h *Handler) delete(w http.ResponseWriter, r *http.Request) {
 
 	err := h.localeService.Delete(r.Context(), code)
 	if err != nil {
-		errs.ServeMessage(w, "Locale", err)
+		server.ServeMessage(w, "Locale", err)
 		return
 	}
 

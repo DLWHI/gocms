@@ -2,7 +2,7 @@ package locale
 
 import (
 	"context"
-	"gocms/internal/errs"
+	"gocms/internal/domain"
 
 	"gorm.io/gorm"
 )
@@ -39,7 +39,7 @@ func (r *GORMRepository) Delete(ctx context.Context, locale string) error {
 		return result.Error
 	}
 	if result.RowsAffected == 0 {
-		return errs.ErrNotFound
+		return domain.ErrNotFound
 	}
 	return nil
 }

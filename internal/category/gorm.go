@@ -3,7 +3,7 @@ package category
 import (
 	"context"
 	"errors"
-	"gocms/internal/errs"
+	"gocms/internal/domain"
 	"gocms/internal/outbox"
 
 	"gorm.io/gorm"
@@ -70,7 +70,7 @@ func (r *GORMRepository) Update(ctx context.Context, diff *Translation) error {
 				Take(&version).Error
 			if err != nil {
 				if errors.Is(err, gorm.ErrRecordNotFound) {
-					return errs.ErrNotFound
+					return domain.ErrNotFound
 				}
 				return err
 			}
@@ -83,7 +83,7 @@ func (r *GORMRepository) Update(ctx context.Context, diff *Translation) error {
 				return result.Error
 			}
 			if result.RowsAffected == 0 {
-				return errs.ErrLock
+				return domain.ErrLock
 			}
 
 			if len(ctdiff) > 0 {
@@ -101,7 +101,7 @@ func (r *GORMRepository) Update(ctx context.Context, diff *Translation) error {
 						return result.Error
 					}
 					if result.RowsAffected == 0 {
-						return errs.ErrLock
+						return domain.ErrLock
 					}
 				}
 			}
@@ -112,11 +112,11 @@ func (r *GORMRepository) Update(ctx context.Context, diff *Translation) error {
 		})
 		if err == nil {
 			return nil
-		} else if !errors.Is(err, errs.ErrLock) {
+		} else if !errors.Is(err, domain.ErrLock) {
 			return err
 		}
 	}
-	return errs.ErrLock
+	return domain.ErrLock
 }
 
 func (r *GORMRepository) Get(ctx context.Context, slug string, locale string) (*Translation, error) {
@@ -134,7 +134,7 @@ func (r *GORMRepository) Get(ctx context.Context, slug string, locale string) (*
 		Take(&res).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, errs.ErrNotFound
+			return nil, domain.ErrNotFound
 		}
 		return nil, err
 	}
@@ -160,7 +160,7 @@ func (r *GORMRepository) GetAll(ctx context.Context, locale string, hidden *bool
 
 	if err := query.Find(&categories).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, errs.ErrNotFound
+			return nil, domain.ErrNotFound
 		}
 		return nil, err
 	}
@@ -176,7 +176,7 @@ func (r *GORMRepository) Delete(ctx context.Context, slug string) error {
 			return result.Error
 		}
 		if result.RowsAffected == 0 {
-			return errs.ErrNotFound
+			return domain.ErrNotFound
 		}
 		if err := writeMessage(tx, "delete", slug, ""); err != nil {
 			return err

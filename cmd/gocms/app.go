@@ -4,11 +4,11 @@ import (
 	"context"
 	"gocms/internal/analytics"
 	"gocms/internal/auth"
-	"gocms/internal/domain"
-	"gocms/internal/httpserver"
+	"gocms/internal/flow"
 	"gocms/internal/logger"
 	"gocms/internal/outbox"
 	"gocms/internal/public"
+	"gocms/internal/server"
 	"gocms/internal/session"
 	"log/slog"
 	"sync"
@@ -43,9 +43,9 @@ type Container struct {
 	Editors    *EditorBundle
 	Locales    *LocaleBundle
 
-	Server       domain.Runner
-	ViewsCounter domain.Runner
-	MessageRelay domain.Runner
+	Server       flow.Runner
+	ViewsCounter flow.Runner
+	MessageRelay flow.Runner
 }
 
 func NewContainer() *Container {
@@ -109,7 +109,7 @@ func (app *Container) Init(ctx context.Context, cfg Config) error {
 	router.AddStorageRoutes(storageHandler)
 	router.AddPublicoutes(publicHandler)
 
-	server := httpserver.NewHttpRunner(cfg.Address, cfg.Port, router.mux)
+	server := server.NewHttpRunner(cfg.Address, cfg.Port, router.mux)
 
 	dispatcher := outbox.NewDirectPublisher()
 	relay := outbox.NewRelay(db, dispatcher)

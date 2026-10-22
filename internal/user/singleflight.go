@@ -9,22 +9,24 @@ import (
 )
 
 type SingleflightRepository struct {
-	origin    Repository
+	Repository
 	keyFormat string
 	allKey    string
 	group     singleflight.Group
+	timeout   time.Duration
 }
 
 func NewSingleflightRepository(db Repository, keyFormat string) *SingleflightRepository {
 	return &SingleflightRepository{
-		origin:    db,
-		keyFormat: keyFormat,
-		allKey:    fmt.Sprintf(keyFormat, ":all"),
+		Repository: db,
+		keyFormat:  keyFormat,
+		allKey:     fmt.Sprintf(keyFormat, ":all"),
+		timeout:    20 * time.Second,
 	}
 }
 
 func (r *SingleflightRepository) Create(ctx context.Context, user *Record) error {
-	if err := r.origin.Create(ctx, user); err != nil {
+	if err := r.Repository.Create(ctx, user); err != nil {
 		return err
 	}
 	r.group.Forget(r.allKey)
@@ -33,7 +35,7 @@ func (r *SingleflightRepository) Create(ctx context.Context, user *Record) error
 
 func (r *SingleflightRepository) UpdateLogin(ctx context.Context, username string, timestamp time.Time) (*Record, error) {
 	key := fmt.Sprintf(r.keyFormat, username)
-	user, err := r.origin.UpdateLogin(ctx, username, timestamp)
+	user, err := r.Repository.UpdateLogin(ctx, username, timestamp)
 	if err != nil {
 		return nil, err
 	}
@@ -42,13 +44,9 @@ func (r *SingleflightRepository) UpdateLogin(ctx context.Context, username strin
 	return user, nil
 }
 
-func (r *SingleflightRepository) UpdatePasswd(ctx context.Context, username string, pwdhash Password) error {
-	return r.origin.UpdatePasswd(ctx, username, pwdhash)
-}
-
 func (r *SingleflightRepository) Update(ctx context.Context, username string, diff map[string]interface{}) error {
 	key := fmt.Sprintf(r.keyFormat, username)
-	if err := r.origin.Update(ctx, username, diff); err != nil {
+	if err := r.Repository.Update(ctx, username, diff); err != nil {
 		return err
 	}
 	r.group.Forget(key)
@@ -60,15 +58,15 @@ func (r *SingleflightRepository) Get(ctx context.Context, username string) (*Rec
 	var user Record
 	key := fmt.Sprintf(r.keyFormat, username)
 	ch := r.group.DoChan(key, func() (any, error) {
-		bg, cancel := context.WithTimeout(context.WithoutCancel(ctx), 20*time.Second)
+		bg, cancel := context.WithTimeout(context.WithoutCancel(ctx), r.timeout)
 		defer cancel()
 
-		retreived, err := r.origin.Get(bg, username)
+		retrieved, err := r.Repository.Get(bg, username)
 		if err != nil {
 			return nil, err
 		}
 
-		return retreived, err
+		return retrieved, err
 	})
 
 	select {
@@ -85,18 +83,18 @@ func (r *SingleflightRepository) Get(ctx context.Context, username string) (*Rec
 	return &user, nil
 }
 
-func (r *SingleflightRepository) GetAll(ctx context.Context) ([]Record, error) {
+func (r *SingleflightRepository) GetActive(ctx context.Context) ([]Record, error) {
 	var users []Record
 	ch := r.group.DoChan(r.allKey, func() (any, error) {
-		bg, cancel := context.WithTimeout(context.WithoutCancel(ctx), 20*time.Second)
+		bg, cancel := context.WithTimeout(context.WithoutCancel(ctx), r.timeout)
 		defer cancel()
 
-		retreived, err := r.origin.GetAll(bg)
+		retrieved, err := r.Repository.GetActive(bg)
 		if err != nil {
 			return nil, err
 		}
 
-		return retreived, err
+		return retrieved, err
 	})
 
 	select {
@@ -113,13 +111,9 @@ func (r *SingleflightRepository) GetAll(ctx context.Context) ([]Record, error) {
 	return users, nil
 }
 
-func (r *SingleflightRepository) GetPasswdHash(ctx context.Context, username string) (Password, error) {
-	return r.origin.GetPasswdHash(ctx, username)
-}
-
-func (r *SingleflightRepository) Delete(ctx context.Context, username string) error {
+func (r *SingleflightRepository) Suspend(ctx context.Context, username string) error {
 	key := fmt.Sprintf(r.keyFormat, username)
-	if err := r.origin.Delete(ctx, username); err != nil {
+	if err := r.Repository.Suspend(ctx, username); err != nil {
 		return err
 	}
 	r.group.Forget(key)

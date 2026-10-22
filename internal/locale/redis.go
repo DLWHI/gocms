@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"gocms/internal/cache"
-	"gocms/internal/errs"
+	"gocms/internal/domain"
 	"gocms/internal/logger"
 
 	"github.com/redis/go-redis/v9"
@@ -63,7 +63,7 @@ func (r *RedisRepository) GetAll(ctx context.Context) ([]Locale, error) {
 
 		locales, err := r.origin.GetAll(bg)
 		if err != nil {
-			if errors.Is(err, errs.ErrNotFound) {
+			if errors.Is(err, domain.ErrNotFound) {
 				r.group.Forget(r.keyFormat)
 			}
 			return nil, err

@@ -6,7 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"gocms/internal/auth"
-	"gocms/internal/errs"
+	"gocms/internal/domain"
 	"gocms/internal/logger"
 	"gocms/internal/search"
 	"strings"
@@ -26,14 +26,14 @@ func NewService(db Repository, se SearchEngine) *Service {
 
 func (s *Service) Create(ctx context.Context, editor *Document) error {
 	if !auth.HasPermission(ctx, "editors", "create") {
-		return errs.ErrCred
+		return domain.ErrCred
 	}
 
 	editor.Locale = strings.TrimSpace(strings.ToLower(editor.Locale))
 	if editor.Locale == "" {
 		locale := ctx.Value("locale")
 		if locale == nil {
-			return fmt.Errorf("%w: empty locale", errs.ErrInval)
+			return fmt.Errorf("%w: empty locale", domain.ErrInval)
 		}
 		editor.Locale = locale.(string)
 	}
@@ -51,14 +51,14 @@ func (s *Service) Edit(ctx context.Context, editor *Document) error {
 	initiator := ctx.Value("username")
 
 	if initiator == nil || initiator.(string) != editor.User {
-		return errs.ErrCred
+		return domain.ErrCred
 	}
 
 	editor.Locale = strings.TrimSpace(strings.ToLower(editor.Locale))
 	if editor.Locale == "" {
 		locale := ctx.Value("locale")
 		if locale == nil {
-			return fmt.Errorf("%w: empty locale", errs.ErrInval)
+			return fmt.Errorf("%w: empty locale", domain.ErrInval)
 		}
 		editor.Locale = locale.(string)
 	}
@@ -75,7 +75,7 @@ func (s *Service) Edit(ctx context.Context, editor *Document) error {
 func (s *Service) Get(ctx context.Context, username string) (*Document, error) {
 	locale := ctx.Value("locale")
 	if locale == nil {
-		return nil, fmt.Errorf("%w: empty locale", errs.ErrInval)
+		return nil, fmt.Errorf("%w: empty locale", domain.ErrInval)
 	}
 
 	editor, err := s.repo.Get(ctx, username, locale.(string))
@@ -91,7 +91,7 @@ func (s *Service) Get(ctx context.Context, username string) (*Document, error) {
 func (s *Service) All(ctx context.Context, suspended *bool) ([]Document, error) {
 	locale := ctx.Value("locale")
 	if locale == nil {
-		return nil, fmt.Errorf("%w: empty locale", errs.ErrInval)
+		return nil, fmt.Errorf("%w: empty locale", domain.ErrInval)
 	}
 
 	model, err := s.repo.GetAll(ctx, locale.(string), suspended)
@@ -125,7 +125,7 @@ func (s *Service) Search(ctx context.Context, filters *SearchParams) (*SearchRes
 
 func (s *Service) Suspend(ctx context.Context, username string) error {
 	if !auth.HasPermission(ctx, "editors", "delete") {
-		return errs.ErrCred
+		return domain.ErrCred
 	}
 
 	if err := s.repo.Delete(ctx, username); err != nil {
@@ -146,7 +146,7 @@ func (s *Service) SyncSearch(ctx context.Context, data []byte) error {
 	case "create", "update":
 		editor, err := s.repo.Get(ctx, payload.Username, payload.Locale)
 		if err != nil {
-			if errors.Is(err, errs.ErrNotFound) {
+			if errors.Is(err, domain.ErrNotFound) {
 				return nil
 			}
 			return err
@@ -163,5 +163,5 @@ func (s *Service) SyncSearch(ctx context.Context, data []byte) error {
 		}
 		return nil
 	}
-	return fmt.Errorf("%w: unkown action", errs.ErrInval)
+	return fmt.Errorf("%w: unknown action", domain.ErrInval)
 }

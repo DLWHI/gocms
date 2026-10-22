@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"gocms/internal/domain"
-	"gocms/internal/errs"
 	"gocms/internal/logger"
 	"gocms/internal/session"
 	"net/http"
@@ -63,12 +62,12 @@ func (m *JWTMiddleware) Wrap(next http.Handler) http.Handler {
 
 		const prefix = "Bearer "
 		if !strings.HasPrefix(authHeader, prefix) {
-			http.Error(w, "Unauthorized: unkown bearer", http.StatusUnauthorized)
+			http.Error(w, "Unauthorized: unknown bearer", http.StatusUnauthorized)
 			return
 		}
 		tokenString := strings.TrimPrefix(authHeader, prefix)
 
-		var claims domain.JWTClaims
+		var claims JWTClaims
 		token, err := jwt.ParseWithClaims(tokenString, &claims, func(t *jwt.Token) (interface{}, error) {
 			if _, ok := t.Method.(*jwt.SigningMethodRSA); !ok {
 				return nil, fmt.Errorf("Unexpected signing method: %v", t.Header["alg"])
@@ -102,7 +101,7 @@ func (m *SessionMiddleware) Wrap(next http.Handler) http.Handler {
 
 		const prefix = "Bearer "
 		if !strings.HasPrefix(authHeader, prefix) {
-			http.Error(w, "Unauthorized: unkown bearer", http.StatusUnauthorized)
+			http.Error(w, "Unauthorized: unknown bearer", http.StatusUnauthorized)
 			return
 		}
 		sessionID := strings.TrimPrefix(authHeader, prefix)
@@ -110,7 +109,7 @@ func (m *SessionMiddleware) Wrap(next http.Handler) http.Handler {
 
 		session, err := m.provider.Validate(ctx, sessionID)
 		if err != nil {
-			if errors.Is(err, errs.ErrExpired) {
+			if errors.Is(err, domain.ErrExpired) {
 				http.Error(w, "Unauthorized: Expired or invalid session", http.StatusUnauthorized)
 			} else {
 				http.Error(w, "Internal server error", http.StatusInternalServerError)
@@ -133,4 +132,13 @@ func (m *TestMiddleware) Wrap(next http.Handler) http.Handler {
 		ctx = context.WithValue(ctx, UserPermissionKey, m.level)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
+}
+
+func HasPermission(ctx context.Context, entity string, action string) bool {
+	level, ok := ctx.Value(UserPermissionKey).(uint32)
+	if !ok {
+		return false
+	}
+
+	return domain.HasPermission(level, entity, action)
 }

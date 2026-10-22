@@ -6,9 +6,9 @@ import (
 	"gocms/internal/analytics"
 	"gocms/internal/category"
 	"gocms/internal/editor"
-	"gocms/internal/errs"
 	"gocms/internal/locale"
 	"gocms/internal/post"
+	"gocms/internal/server"
 	"net/http"
 	"strconv"
 	"strings"
@@ -94,7 +94,7 @@ func (h *Handler) postsSearch(w http.ResponseWriter, r *http.Request) {
 
 	res, err := h.posts.Search(r.Context(), &params)
 	if err != nil {
-		errs.ServeMessage(w, "Post", err)
+		server.ServeMessage(w, "Post", err)
 		return
 	}
 
@@ -119,13 +119,13 @@ func (h *Handler) postsGet(w http.ResponseWriter, r *http.Request) {
 
 	post, err := h.posts.Read(ctx, uint(id), slug)
 	if err != nil {
-		errs.ServeMessage(w, "Post", err)
+		server.ServeMessage(w, "Post", err)
 		return
 	}
 
 	post.Views, err = h.views.Get(ctx, uint(id))
 	if err != nil {
-		errs.ServeMessage(w, "Post", err)
+		server.ServeMessage(w, "Post", err)
 		return
 	}
 
@@ -141,7 +141,7 @@ func (h *Handler) categoriesAll(w http.ResponseWriter, r *http.Request) {
 	falseVal := false
 	categories, err := h.categories.All(r.Context(), &falseVal)
 	if err != nil {
-		errs.ServeMessage(w, "Categories", err)
+		server.ServeMessage(w, "Categories", err)
 		return
 	}
 
@@ -153,7 +153,7 @@ func (h *Handler) categoriesAll(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) localesAll(w http.ResponseWriter, r *http.Request) {
 	locales, err := h.locales.GetAll(r.Context())
 	if err != nil {
-		errs.ServeMessage(w, "Categories", err)
+		server.ServeMessage(w, "Categories", err)
 		return
 	}
 
@@ -166,7 +166,7 @@ func (h *Handler) editorsAll(w http.ResponseWriter, r *http.Request) {
 	falseVal := false
 	res, err := h.editors.All(r.Context(), &falseVal)
 	if err != nil {
-		errs.ServeMessage(w, "Editor", err)
+		server.ServeMessage(w, "Editor", err)
 		return
 	}
 
@@ -184,7 +184,7 @@ func (h *Handler) editorsGet(w http.ResponseWriter, r *http.Request) {
 
 	editor, err := h.editors.Get(r.Context(), username)
 	if err != nil {
-		errs.ServeMessage(w, "Editor", err)
+		server.ServeMessage(w, "Editor", err)
 		return
 	}
 
@@ -216,7 +216,7 @@ func (h *Handler) adsGet(w http.ResponseWriter, r *http.Request) {
 	for _, group := range groups {
 		ads, err := h.ads.GetGroup(r.Context(), group)
 		if err != nil {
-			errs.ServeMessage(w, "Advertisement", err)
+			server.ServeMessage(w, "Advertisement", err)
 			return
 		}
 		advertisements[group] = ads
@@ -230,7 +230,7 @@ func (h *Handler) adsGet(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) partners(w http.ResponseWriter, r *http.Request) {
 	ads, err := h.ads.GetGroup(r.Context(), "partners")
 	if err != nil {
-		errs.ServeMessage(w, "Advertisement", err)
+		server.ServeMessage(w, "Advertisement", err)
 		return
 	}
 

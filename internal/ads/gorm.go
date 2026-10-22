@@ -3,7 +3,7 @@ package ads
 import (
 	"context"
 	"errors"
-	"gocms/internal/errs"
+	"gocms/internal/domain"
 	"gocms/internal/outbox"
 
 	"gorm.io/gorm"
@@ -80,7 +80,7 @@ func (r *GORMRepository) Update(ctx context.Context, diff *Model) error {
 				return result.Error
 			}
 			if result.RowsAffected == 0 {
-				return errs.ErrLock
+				return domain.ErrLock
 			}
 			if err := writeMessage(tx, "update", diff.ID, ""); err != nil {
 				return err
@@ -89,11 +89,11 @@ func (r *GORMRepository) Update(ctx context.Context, diff *Model) error {
 		})
 		if err == nil {
 			return nil
-		} else if !errors.Is(err, errs.ErrLock) {
+		} else if !errors.Is(err, domain.ErrLock) {
 			return err
 		}
 	}
-	return errs.ErrLock
+	return domain.ErrLock
 }
 
 func (r *GORMRepository) Get(ctx context.Context, id uint) (*Model, error) {
@@ -104,7 +104,7 @@ func (r *GORMRepository) Get(ctx context.Context, id uint) (*Model, error) {
 		Take(&ad).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, errs.ErrNotFound
+			return nil, domain.ErrNotFound
 		}
 		return nil, err
 	}
@@ -148,7 +148,7 @@ func (r *GORMRepository) Delete(ctx context.Context, id uint) error {
 			return result.Error
 		}
 		if result.RowsAffected == 0 {
-			return errs.ErrNotFound
+			return domain.ErrNotFound
 		}
 		if err := writeMessage(tx, "delete", id, ""); err != nil {
 			return err
@@ -169,7 +169,7 @@ func (r *GORMRepository) DeleteGroup(ctx context.Context, group string) error {
 			return result.Error
 		}
 		if result.RowsAffected == 0 {
-			return errs.ErrNotFound
+			return domain.ErrNotFound
 		}
 		if err := writeMessage(tx, "delete.group", 0, group); err != nil {
 			return err

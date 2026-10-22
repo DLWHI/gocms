@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"gocms/internal/cache"
-	"gocms/internal/errs"
+	"gocms/internal/domain"
 	"gocms/internal/logger"
 
 	"github.com/redis/go-redis/v9"
@@ -85,7 +85,7 @@ func (r *RedisRepository) Get(ctx context.Context, id uint) (*Meta, error) {
 
 		post, err := r.origin.Get(bg, id)
 		if err != nil {
-			if !errors.Is(err, errs.ErrNotFound) {
+			if !errors.Is(err, domain.ErrNotFound) {
 				r.group.Forget(key)
 			}
 			return nil, err
@@ -130,7 +130,7 @@ func (r *RedisRepository) GetTranslation(ctx context.Context, id uint, locale st
 
 		post, err := r.origin.GetTranslation(bg, id, locale)
 		if err != nil {
-			if !errors.Is(err, errs.ErrNotFound) {
+			if !errors.Is(err, domain.ErrNotFound) {
 				r.group.Forget(key)
 			}
 			return nil, err
@@ -176,7 +176,7 @@ func (r *RedisRepository) GetCategories(ctx context.Context, id uint) ([]string,
 
 		post, err := r.origin.GetCategories(bg, id)
 		if err != nil {
-			if !errors.Is(err, errs.ErrNotFound) {
+			if !errors.Is(err, domain.ErrNotFound) {
 				r.group.Forget(key)
 			}
 			return nil, err

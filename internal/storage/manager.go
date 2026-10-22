@@ -12,7 +12,7 @@ import (
 	"sync"
 	"syscall"
 
-	"gocms/internal/errs"
+	"gocms/internal/domain"
 	"gocms/internal/logger"
 )
 
@@ -34,7 +34,7 @@ func (s *Manager) safePath(path string) (string, string, error) {
 
 	rel, err := filepath.Rel(s.root, fullPath)
 	if err != nil || strings.HasPrefix(rel, "..") {
-		return "", "", errs.ErrInval
+		return "", "", domain.ErrInval
 	}
 	return fullPath, cleaned, nil
 }
@@ -95,7 +95,7 @@ func (s *Manager) GetFiles(path string) ([]Item, error) {
 	files, err := os.ReadDir(fullPath)
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
-			return nil, errs.ErrNotFound
+			return nil, domain.ErrNotFound
 		}
 		logger.Error("Storage.Manager", "Failed to list files.", err)
 		return nil, err
@@ -265,7 +265,7 @@ func (s *Manager) Read(path string) (io.ReadCloser, string, error) {
 	dst, err := os.Open(fullPath)
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
-			return nil, "", errs.ErrNotFound
+			return nil, "", domain.ErrNotFound
 		}
 		logger.Error("Storage.Manager", "Failed to read a file.", err)
 		return nil, "", err
@@ -325,7 +325,7 @@ func (s *Manager) MimeTypeOf(path string) (string, error) {
 	file, err := os.Open(fullPath)
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
-			return "", errs.ErrNotFound
+			return "", domain.ErrNotFound
 		}
 		logger.Error("Storage.Manager", "Failed to detect file mime.", err)
 		return "", err
@@ -375,12 +375,12 @@ func (s *Manager) Delete(path string, recursive bool) error {
 			var errno syscall.Errno
 			if errors.As(pathErr.Err, &errno) {
 				if errno == syscall.ERROR_DIR_NOT_EMPTY || errno == syscall.ENOTEMPTY {
-					return fmt.Errorf("%w: directory not empty", errs.ErrInval)
+					return fmt.Errorf("%w: directory not empty", domain.ErrInval)
 				}
 			}
 		}
 		if errors.Is(err, os.ErrNotExist) {
-			return errs.ErrNotFound
+			return domain.ErrNotFound
 		}
 		logger.Error("Storage.Manager", "Failed to delete a file.", err)
 		return err

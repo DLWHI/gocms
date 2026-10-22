@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"gocms/internal/auth"
 	"gocms/internal/domain"
-	"gocms/internal/errs"
 	"gocms/internal/logger"
 	"gocms/internal/user"
 	"os"
@@ -56,7 +55,7 @@ func CreateUser(ctx context.Context, app *Container) error {
 
 		username, err = domain.NormalizeUsername(input)
 		if err != nil {
-			if !errors.Is(err, errs.ErrInval) {
+			if !errors.Is(err, domain.ErrInval) {
 				logger.Error("User create", "Failed to verify username", err)
 				return err
 			}
@@ -112,7 +111,7 @@ func CreateUser(ctx context.Context, app *Container) error {
 		Passwd:      passwd,
 	}
 
-	injected := context.WithValue(ctx, auth.UserPermissionKey, auth.OnEntityC("users"))
+	injected := context.WithValue(ctx, auth.UserPermissionKey, domain.OnEntityC("users"))
 
 	if err := svc.Create(injected, &user); err != nil {
 		logger.Error("User create", "Failed to register new user", err)

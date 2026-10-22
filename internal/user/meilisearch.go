@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"gocms/internal/errs"
+	"gocms/internal/domain"
 	"gocms/internal/search"
 	"net/http"
 	"strings"
@@ -13,14 +13,14 @@ import (
 )
 
 type MeilisearchEngine struct {
-	se  meilisearch.ServiceManager
-	idx string
+	client meilisearch.ServiceManager
+	idx    string
 }
 
 func NewMeilisearchEngine(client meilisearch.ServiceManager, index string) *MeilisearchEngine {
 	return &MeilisearchEngine{
-		se:  client,
-		idx: index,
+		client: client,
+		idx:    index,
 	}
 }
 
@@ -32,7 +32,7 @@ func buildFilter(params *SearchParams) string {
 	}
 
 	if params.Suspended != nil {
-		if *params.Suspended == true {
+		if *params.Suspended {
 			clauses = append(clauses, "suspended_at IS NOT NULL")
 		} else {
 			clauses = append(clauses, "suspended_at IS NULL")
@@ -84,12 +84,12 @@ func (r *MeilisearchEngine) Settings() meilisearch.Settings {
 }
 
 func (r *MeilisearchEngine) Index(ctx context.Context, user *Document) error {
-	index := r.se.Index(r.idx)
+	index := r.client.Index(r.idx)
 	task, err := index.AddDocumentsWithContext(ctx, user, nil)
 	if err != nil {
 		return err
 	}
-	if err := search.WaitForMeilisearchTask(ctx, r.se, task); err != nil {
+	if err := search.WaitForMeilisearchTask(ctx, r.client, task); err != nil {
 		return err
 	}
 	return nil
@@ -97,12 +97,12 @@ func (r *MeilisearchEngine) Index(ctx context.Context, user *Document) error {
 
 func (r *MeilisearchEngine) Get(ctx context.Context, username string) (*Document, error) {
 	var user Document
-	err := r.se.Index(r.idx).GetDocumentWithContext(ctx, username, nil, &user)
+	err := r.client.Index(r.idx).GetDocumentWithContext(ctx, username, nil, &user)
 	if err != nil {
 		var meiliErr *meilisearch.Error
 		if errors.As(err, &meiliErr) {
 			if meiliErr.StatusCode == http.StatusNotFound && meiliErr.MeilisearchApiError.Code == "document_not_found" {
-				return nil, errs.ErrNotFound
+				return nil, domain.ErrNotFound
 			}
 		}
 		return nil, err
@@ -111,12 +111,12 @@ func (r *MeilisearchEngine) Get(ctx context.Context, username string) (*Document
 }
 
 func (r *MeilisearchEngine) Delete(ctx context.Context, username string) error {
-	index := r.se.Index(r.idx)
+	index := r.client.Index(r.idx)
 	task, err := index.DeleteDocumentWithContext(ctx, username, nil)
 	if err != nil {
 		return err
 	}
-	if err := search.WaitForMeilisearchTask(ctx, r.se, task); err != nil {
+	if err := search.WaitForMeilisearchTask(ctx, r.client, task); err != nil {
 		return err
 	}
 	return nil
@@ -130,7 +130,7 @@ func (r *MeilisearchEngine) Search(ctx context.Context, params *SearchParams) (*
 		Filter:      buildFilter(params),
 		Sort:        buildSort(params),
 	}
-	index := r.se.Index(r.idx)
+	index := r.client.Index(r.idx)
 
 	params.Query = strings.TrimSpace(params.Query)
 
@@ -141,7 +141,7 @@ func (r *MeilisearchEngine) Search(ctx context.Context, params *SearchParams) (*
 			if meiliErr.StatusCode == http.StatusBadRequest &&
 				(meiliErr.MeilisearchApiError.Code == "invalid_search_filter" ||
 					meiliErr.MeilisearchApiError.Code == "invalid_search_sort") {
-				return nil, errs.ErrInval
+				return nil, domain.ErrInval
 			}
 		}
 		return nil, err

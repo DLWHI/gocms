@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"gocms/internal/errs"
+	"gocms/internal/domain"
 	"gocms/internal/logger"
 	"gocms/internal/post"
 	"strings"
@@ -44,12 +44,12 @@ func NewRedisCounter(client *redis.Client, service *post.Service) *RedisCounter 
 
 func (c *RedisCounter) ParseStartArgs(params ...any) (time.Duration, error) {
 	if len(params) != 1 {
-		return 0, fmt.Errorf("%v: invalid argument count", errs.ErrInval)
+		return 0, fmt.Errorf("%v: invalid argument count", domain.ErrInval)
 	}
 
 	interval, ok := params[0].(time.Duration)
 	if !ok || interval <= 0 {
-		return 0, fmt.Errorf("%v: invalid duration", errs.ErrInval)
+		return 0, fmt.Errorf("%v: invalid duration", domain.ErrInval)
 	}
 	return interval, nil
 }

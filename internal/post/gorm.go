@@ -3,7 +3,7 @@ package post
 import (
 	"context"
 	"errors"
-	"gocms/internal/errs"
+	"gocms/internal/domain"
 	"gocms/internal/outbox"
 
 	"gorm.io/gorm"
@@ -89,7 +89,7 @@ func (r *GORMRepository) Update(ctx context.Context, diff *Meta) error {
 				Take(&version).Error
 			if err != nil {
 				if errors.Is(err, gorm.ErrRecordNotFound) {
-					return errs.ErrNotFound
+					return domain.ErrNotFound
 				}
 				return err
 			}
@@ -101,7 +101,7 @@ func (r *GORMRepository) Update(ctx context.Context, diff *Meta) error {
 				return result.Error
 			}
 			if result.RowsAffected == 0 {
-				return errs.ErrLock
+				return domain.ErrLock
 			}
 
 			if err := tx.Model(diff).Association("Categories").Replace(&diff.Categories); err != nil {
@@ -116,11 +116,11 @@ func (r *GORMRepository) Update(ctx context.Context, diff *Meta) error {
 		})
 		if err == nil {
 			return nil
-		} else if !errors.Is(err, errs.ErrLock) {
+		} else if !errors.Is(err, domain.ErrLock) {
 			return err
 		}
 	}
-	return errs.ErrLock
+	return domain.ErrLock
 }
 
 func (r *GORMRepository) UpdateTranslation(ctx context.Context, diff *Translation) error {
@@ -139,7 +139,7 @@ func (r *GORMRepository) UpdateTranslation(ctx context.Context, diff *Translatio
 				Take(&version).Error
 			if err != nil {
 				if errors.Is(err, gorm.ErrRecordNotFound) {
-					return errs.ErrNotFound
+					return domain.ErrNotFound
 				}
 				return err
 			}
@@ -151,7 +151,7 @@ func (r *GORMRepository) UpdateTranslation(ctx context.Context, diff *Translatio
 				return result.Error
 			}
 			if result.RowsAffected == 0 {
-				return errs.ErrLock
+				return domain.ErrLock
 			}
 
 			if err := tx.Model(&diff.Post).Association("Categories").Replace(&diff.Post.Categories); err != nil {
@@ -172,7 +172,7 @@ func (r *GORMRepository) UpdateTranslation(ctx context.Context, diff *Translatio
 						return result.Error
 					}
 					if result.RowsAffected == 0 {
-						return errs.ErrLock
+						return domain.ErrLock
 					}
 				}
 			}
@@ -185,11 +185,11 @@ func (r *GORMRepository) UpdateTranslation(ctx context.Context, diff *Translatio
 		})
 		if err == nil {
 			return nil
-		} else if !errors.Is(err, errs.ErrLock) {
+		} else if !errors.Is(err, domain.ErrLock) {
 			return err
 		}
 	}
-	return errs.ErrLock
+	return domain.ErrLock
 }
 
 func (r *GORMRepository) IncrementViews(ctx context.Context, id uint, value uint) error {
@@ -198,7 +198,7 @@ func (r *GORMRepository) IncrementViews(ctx context.Context, id uint, value uint
 		err := r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 			if err := tx.Table("posts").Where("id = ?", id).Take(&post).Error; err != nil {
 				if errors.Is(err, gorm.ErrRecordNotFound) {
-					return errs.ErrNotFound
+					return domain.ErrNotFound
 				}
 				return err
 			}
@@ -210,7 +210,7 @@ func (r *GORMRepository) IncrementViews(ctx context.Context, id uint, value uint
 				return result.Error
 			}
 			if result.RowsAffected == 0 {
-				return errs.ErrLock
+				return domain.ErrLock
 			}
 
 			if err := writeMessage(tx, "update", id, ""); err != nil {
@@ -221,11 +221,11 @@ func (r *GORMRepository) IncrementViews(ctx context.Context, id uint, value uint
 		})
 		if err == nil {
 			return nil
-		} else if !errors.Is(err, errs.ErrLock) {
+		} else if !errors.Is(err, domain.ErrLock) {
 			return err
 		}
 	}
-	return errs.ErrLock
+	return domain.ErrLock
 }
 
 func (r *GORMRepository) Get(ctx context.Context, id uint) (*Meta, error) {
@@ -236,7 +236,7 @@ func (r *GORMRepository) Get(ctx context.Context, id uint) (*Meta, error) {
 		Take(&post)
 	if result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-			return nil, errs.ErrNotFound
+			return nil, domain.ErrNotFound
 		}
 		return nil, result.Error
 	}
@@ -264,7 +264,7 @@ func (r *GORMRepository) GetTranslation(ctx context.Context, id uint, locale str
 		Take(&res).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, errs.ErrNotFound
+			return nil, domain.ErrNotFound
 		}
 		return nil, err
 	}
@@ -305,7 +305,7 @@ func (r *GORMRepository) Delete(ctx context.Context, id uint) error {
 			return result.Error
 		}
 		if result.RowsAffected == 0 {
-			return errs.ErrNotFound
+			return domain.ErrNotFound
 		}
 		if err := writeMessage(tx, "delete", id, ""); err != nil {
 			return err
@@ -319,7 +319,7 @@ func (r *GORMRepository) DeleteTranslation(ctx context.Context, id uint, locale 
 		result := tx.Where("post_id = ? AND locale = ?", id, locale).
 			Delete(&Translation{})
 		if result.RowsAffected == 0 {
-			return errs.ErrNotFound
+			return domain.ErrNotFound
 		}
 		if err := writeMessage(tx, "delete.translation", id, locale); err != nil {
 			return err

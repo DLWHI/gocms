@@ -6,7 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"gocms/internal/auth"
-	"gocms/internal/errs"
+	"gocms/internal/domain"
 	"gocms/internal/logger"
 	"gocms/internal/search"
 	"strings"
@@ -29,21 +29,21 @@ func NewService(repo Repository, se SearchEngine) *Service {
 func (s *Service) hasPermissionsOnPost(ctx context.Context, action string, id uint) error {
 	initiator, ok := ctx.Value(auth.UserNameKey).(string)
 	if !ok {
-		return errs.ErrCred
+		return domain.ErrCred
 	}
 
 	if !auth.HasPermission(ctx, "posts", action) {
-		return errs.ErrCred
+		return domain.ErrCred
 	}
 	post, err := s.repo.Get(ctx, id)
 	if err != nil {
-		if !errors.Is(err, errs.ErrNotFound) {
+		if !errors.Is(err, domain.ErrNotFound) {
 			logger.Error("Post.Service", "Failed to verify post ownership", err)
 		}
 		return err
 	}
 	if post.Author != initiator {
-		return errs.ErrCred
+		return domain.ErrCred
 	}
 	return nil
 }
@@ -51,16 +51,16 @@ func (s *Service) hasPermissionsOnPost(ctx context.Context, action string, id ui
 func (s *Service) sanitize(ctx context.Context, post *Document) error {
 	post.Slug = strings.TrimSpace(strings.ToLower(post.Slug))
 	if post.Slug == "" {
-		return fmt.Errorf("%w: slug cannot be empty", errs.ErrInval)
+		return fmt.Errorf("%w: slug cannot be empty", domain.ErrInval)
 	} else if strings.IndexFunc(post.Slug, unicode.IsSpace) >= 0 {
-		return fmt.Errorf("%w: no spaces allowed in slug", errs.ErrInval)
+		return fmt.Errorf("%w: no spaces allowed in slug", domain.ErrInval)
 	}
 
 	post.Locale = strings.TrimSpace(strings.ToLower(post.Locale))
 	if post.Locale == "" {
 		locale := ctx.Value("locale")
 		if locale == nil {
-			return fmt.Errorf("%w: empty locale", errs.ErrInval)
+			return fmt.Errorf("%w: empty locale", domain.ErrInval)
 		}
 		post.Locale = locale.(string)
 	}
@@ -72,7 +72,7 @@ func (s *Service) sanitize(ctx context.Context, post *Document) error {
 func (s *Service) Create(ctx context.Context, post *Document) error {
 	author := ctx.Value("username")
 	if !auth.HasPermission(ctx, "posts", "create") {
-		return errs.ErrCred
+		return domain.ErrCred
 	}
 
 	post.Author = author.(string)
@@ -151,7 +151,7 @@ func (s *Service) Search(ctx context.Context, filters *SearchParams) (*SearchRes
 	if filters.Locale == "" {
 		locale := ctx.Value("locale")
 		if locale == nil {
-			return nil, fmt.Errorf("%w: empty locale", errs.ErrInval)
+			return nil, fmt.Errorf("%w: empty locale", domain.ErrInval)
 		}
 
 		filters.Locale = locale.(string)
@@ -168,7 +168,7 @@ func (s *Service) Search(ctx context.Context, filters *SearchParams) (*SearchRes
 func (s *Service) Get(ctx context.Context, id uint) (*Document, error) {
 	locale := ctx.Value("locale")
 	if locale == nil {
-		return nil, fmt.Errorf("%w: empty locale", errs.ErrInval)
+		return nil, fmt.Errorf("%w: empty locale", domain.ErrInval)
 	}
 
 	post, err := s.repo.GetTranslation(ctx, id, locale.(string))
@@ -190,7 +190,7 @@ func (s *Service) Get(ctx context.Context, id uint) (*Document, error) {
 func (s *Service) Read(ctx context.Context, id uint, slug string) (*Document, error) {
 	locale := ctx.Value("locale")
 	if locale == nil {
-		return nil, fmt.Errorf("%w: empty locale", errs.ErrInval)
+		return nil, fmt.Errorf("%w: empty locale", domain.ErrInval)
 	}
 
 	post, err := s.repo.GetTranslation(ctx, id, locale.(string))
@@ -199,10 +199,10 @@ func (s *Service) Read(ctx context.Context, id uint, slug string) (*Document, er
 		return nil, err
 	}
 	if post.Post.Slug != slug {
-		return nil, errs.ErrNotFound
+		return nil, domain.ErrNotFound
 	}
 	if post.Post.PublishedAt == nil {
-		return nil, errs.ErrNotFound
+		return nil, domain.ErrNotFound
 	}
 
 	doc := post.ToDoc()
@@ -242,7 +242,7 @@ func (s *Service) DeleteTranslation(ctx context.Context, id uint, locale string)
 	if locale == "" {
 		l := ctx.Value("locale")
 		if l == nil {
-			return fmt.Errorf("%w: empty locale", errs.ErrInval)
+			return fmt.Errorf("%w: empty locale", domain.ErrInval)
 		}
 		locale = l.(string)
 	}
@@ -271,7 +271,7 @@ func (s *Service) SyncSearch(ctx context.Context, data []byte) error {
 		if payload.Locale == "" {
 			post, err := s.repo.Get(ctx, payload.ID)
 			if err != nil {
-				if errors.Is(err, errs.ErrNotFound) {
+				if errors.Is(err, domain.ErrNotFound) {
 					return nil
 				}
 				return err
@@ -280,7 +280,7 @@ func (s *Service) SyncSearch(ctx context.Context, data []byte) error {
 		} else {
 			post, err := s.repo.GetTranslation(ctx, payload.ID, payload.Locale)
 			if err != nil {
-				if errors.Is(err, errs.ErrNotFound) {
+				if errors.Is(err, domain.ErrNotFound) {
 					return nil
 				}
 				return err
@@ -307,5 +307,5 @@ func (s *Service) SyncSearch(ctx context.Context, data []byte) error {
 		}
 		return nil
 	}
-	return fmt.Errorf("%w: unkown action", errs.ErrInval)
+	return fmt.Errorf("%w: unknown action", domain.ErrInval)
 }

@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"gocms/internal/errs"
+	"gocms/internal/domain"
 	"gocms/internal/search"
 	"net/http"
 	"strings"
@@ -13,14 +13,14 @@ import (
 )
 
 type MeilisearchEngine struct {
-	se  meilisearch.ServiceManager
-	idx string
+	client meilisearch.ServiceManager
+	idx    string
 }
 
 func NewMeilisearchEngine(client meilisearch.ServiceManager, index string) *MeilisearchEngine {
 	return &MeilisearchEngine{
-		se:  client,
-		idx: index,
+		client: client,
+		idx:    index,
 	}
 }
 
@@ -69,19 +69,19 @@ func (r *MeilisearchEngine) Settings() meilisearch.Settings {
 }
 
 func (r *MeilisearchEngine) Index(ctx context.Context, category *Document) error {
-	index := r.se.Index(r.idx)
+	index := r.client.Index(r.idx)
 	category.ID = fmt.Sprintf("%s-%s", category.Slug, category.Locale)
 	req := &meilisearch.DocumentsQuery{
 		Filter: fmt.Sprintf("slug = %q AND locale != %q", category.Slug, category.Locale),
 	}
 
 	var res meilisearch.DocumentsResult
-	err := r.se.Index(r.idx).GetDocumentsWithContext(ctx, req, &res)
+	err := r.client.Index(r.idx).GetDocumentsWithContext(ctx, req, &res)
 	if err != nil {
 		var meiliErr *meilisearch.Error
 		if errors.As(err, &meiliErr) {
 			if meiliErr.StatusCode == http.StatusNotFound {
-				return errs.ErrNotFound
+				return domain.ErrNotFound
 			}
 		}
 		return err
@@ -103,7 +103,7 @@ func (r *MeilisearchEngine) Index(ctx context.Context, category *Document) error
 	if err != nil {
 		return err
 	}
-	if err := search.WaitForMeilisearchTask(ctx, r.se, task); err != nil {
+	if err := search.WaitForMeilisearchTask(ctx, r.client, task); err != nil {
 		return err
 	}
 	return nil
@@ -112,12 +112,12 @@ func (r *MeilisearchEngine) Index(ctx context.Context, category *Document) error
 func (r *MeilisearchEngine) Get(ctx context.Context, slug string, locale string) (*Document, error) {
 	var category Document
 	docID := fmt.Sprintf("%s-%s", slug, locale)
-	err := r.se.Index(r.idx).GetDocumentWithContext(ctx, docID, nil, &category)
+	err := r.client.Index(r.idx).GetDocumentWithContext(ctx, docID, nil, &category)
 	if err != nil {
 		var meiliErr *meilisearch.Error
 		if errors.As(err, &meiliErr) {
 			if meiliErr.StatusCode == http.StatusNotFound {
-				return nil, errs.ErrNotFound
+				return nil, domain.ErrNotFound
 			}
 		}
 		return nil, err
@@ -127,13 +127,13 @@ func (r *MeilisearchEngine) Get(ctx context.Context, slug string, locale string)
 
 func (r *MeilisearchEngine) Delete(ctx context.Context, slug string) error {
 	filter := fmt.Sprintf("slug = %q", slug)
-	index := r.se.Index(r.idx)
+	index := r.client.Index(r.idx)
 
 	task, err := index.DeleteDocumentsByFilterWithContext(ctx, filter, nil)
 	if err != nil {
 		return err
 	}
-	if err := search.WaitForMeilisearchTask(ctx, r.se, task); err != nil {
+	if err := search.WaitForMeilisearchTask(ctx, r.client, task); err != nil {
 		return err
 	}
 	return nil
@@ -154,14 +154,14 @@ func (r *MeilisearchEngine) Search(ctx context.Context, params *SearchParams) (*
 			"locale",
 		},
 	}
-	index := r.se.Index(r.idx)
+	index := r.client.Index(r.idx)
 
 	params.Query = strings.TrimSpace(params.Query)
 
 	res, err := index.SearchWithContext(ctx, params.Query, req)
 	if err != nil {
 		if errors.Is(err, meilisearch.ErrInvalidRequestMethod) {
-			return nil, errs.ErrInval
+			return nil, domain.ErrInval
 		}
 		return nil, err
 	}

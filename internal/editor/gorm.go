@@ -3,7 +3,7 @@ package editor
 import (
 	"context"
 	"errors"
-	"gocms/internal/errs"
+	"gocms/internal/domain"
 	"gocms/internal/outbox"
 	"gocms/internal/user"
 	"time"
@@ -58,7 +58,7 @@ func (r *GORMRepository) Update(ctx context.Context, diff *Model) error {
 				Take(&version).Error
 			if err != nil {
 				if errors.Is(err, gorm.ErrRecordNotFound) {
-					return errs.ErrNotFound
+					return domain.ErrNotFound
 				}
 				return err
 			}
@@ -78,7 +78,7 @@ func (r *GORMRepository) Update(ctx context.Context, diff *Model) error {
 						return result.Error
 					}
 					if result.RowsAffected == 0 {
-						return errs.ErrLock
+						return domain.ErrLock
 					}
 				}
 			}
@@ -90,11 +90,11 @@ func (r *GORMRepository) Update(ctx context.Context, diff *Model) error {
 		})
 		if err == nil {
 			return nil
-		} else if !errors.Is(err, errs.ErrLock) {
+		} else if !errors.Is(err, domain.ErrLock) {
 			return err
 		}
 	}
-	return errs.ErrLock
+	return domain.ErrLock
 }
 
 func (r *GORMRepository) Get(ctx context.Context, username string, locale string) (*Model, error) {
@@ -114,7 +114,7 @@ func (r *GORMRepository) Get(ctx context.Context, username string, locale string
 		Take(&res).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, errs.ErrNotFound
+			return nil, domain.ErrNotFound
 		}
 		return nil, err
 	}
@@ -182,7 +182,7 @@ func (r *GORMRepository) Delete(ctx context.Context, username string) error {
 			return result.Error
 		}
 		if result.RowsAffected == 0 {
-			return errs.ErrNotFound
+			return domain.ErrNotFound
 		}
 		if err := writeMessage(tx, "delete", username, "", &now); err != nil {
 			return err

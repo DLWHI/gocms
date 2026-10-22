@@ -3,8 +3,12 @@ package domain
 import (
 	"encoding/json"
 	"fmt"
-	"gocms/internal/errs"
+	"net/mail"
 	"strings"
+)
+
+const (
+	MaxUsernameLength = 64
 )
 
 type Password []byte
@@ -16,6 +20,10 @@ func (p *Password) UnmarshalJSON(data []byte) error {
 	}
 	*p = Password(s)
 	return nil
+}
+
+func (Password) String() string {
+	return "[UNKNOWN]"
 }
 
 type User struct {
@@ -35,12 +43,27 @@ func IsInvalidUsernameRune(r rune) bool {
 func NormalizeUsername(value string) (string, error) {
 	normalized := strings.TrimSpace(strings.ToLower(value))
 	if normalized == "" {
-		return "", fmt.Errorf("%w: username cannot be empty", errs.ErrInval)
-	} else if len(normalized) > 64 {
-		return "", fmt.Errorf("%w: username is longer than 64 chars", errs.ErrInval)
+		return "", fmt.Errorf("%w: username cannot be empty", ErrInval)
+	} else if len(normalized) > MaxUsernameLength {
+		return "", fmt.Errorf("%w: username is longer than %d chars", ErrInval, MaxUsernameLength)
 	} else if strings.IndexFunc(normalized, IsInvalidUsernameRune) >= 0 {
-		return "", fmt.Errorf("%w: username must not contain spaces or periods", errs.ErrInval)
+		return "", fmt.Errorf("%w: username must contain only letters, numbers, dashes or underscores", ErrInval)
 	}
 
 	return normalized, nil
+}
+
+func IsValidPassword(passwd Password) bool {
+	if len(passwd) == 0 || len(passwd) > 72 {
+		return false
+	}
+	return true
+}
+
+func ParseEmail(email string) (string, error) {
+	parsed, err := mail.ParseAddress(email)
+	if err != nil || parsed.Name != "" {
+		return "", fmt.Errorf("%w: invalid email", ErrInval)
+	}
+	return parsed.Address, nil
 }

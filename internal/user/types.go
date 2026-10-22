@@ -9,6 +9,10 @@ import (
 	"gorm.io/gorm"
 )
 
+const (
+	EntityName = "users"
+)
+
 type Password = domain.Password
 
 type Record struct {
@@ -43,9 +47,9 @@ type Repository interface {
 	Update(ctx context.Context, username string, diff map[string]interface{}) error
 	UpdatePasswd(ctx context.Context, username string, pwdhash Password) error
 	Get(ctx context.Context, username string) (*Record, error)
-	GetAll(ctx context.Context) ([]Record, error)
+	GetActive(ctx context.Context) ([]Record, error)
 	GetPasswdHash(ctx context.Context, username string) (Password, error)
-	Delete(ctx context.Context, username string) error
+	Suspend(ctx context.Context, username string) error
 }
 
 type SearchEngine interface {

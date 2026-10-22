@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"gocms/internal/domain"
-	"gocms/internal/errs"
 	"gocms/internal/logger"
 	"gocms/internal/session"
 )
@@ -23,7 +22,7 @@ func NewService(users UserManager, sessions session.Repository) *Service {
 
 func (s *Service) Login(ctx context.Context, username string, passwd domain.Password) (*session.Session, error) {
 	if err := s.users.PasswordMatches(ctx, username, passwd); err != nil {
-		if !errors.Is(err, errs.ErrCred) {
+		if !errors.Is(err, domain.ErrCred) {
 			logger.Error("User.Service", "Failed to retrieve user credentials for login", err)
 		}
 		return nil, err
@@ -60,7 +59,7 @@ func (s *Service) Logout(ctx context.Context) error {
 func (s *Service) UpdateProfile(ctx context.Context) (*session.Session, error) {
 	session, ok := ctx.Value("username").(string)
 	if !ok {
-		return nil, errs.ErrExpired
+		return nil, domain.ErrExpired
 	}
 
 	user, err := s.sessions.Validate(ctx, session)
@@ -75,7 +74,7 @@ func (s *Service) UpdateProfile(ctx context.Context) (*session.Session, error) {
 func (s *Service) CurrentUser(ctx context.Context) (*session.Session, error) {
 	session, ok := ctx.Value("username").(string)
 	if !ok {
-		return nil, errs.ErrExpired
+		return nil, domain.ErrExpired
 	}
 
 	user, err := s.sessions.Validate(ctx, session)
@@ -91,7 +90,7 @@ func (s *Service) ChangePasswd(ctx context.Context, username string, oldPwd doma
 	initiator := ctx.Value("username")
 
 	if initiator == nil || initiator.(string) != username {
-		return errs.ErrPerm
+		return domain.ErrPerm
 	}
 
 	err := s.users.PasswordMatches(ctx, username, oldPwd)

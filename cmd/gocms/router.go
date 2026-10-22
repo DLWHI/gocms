@@ -5,10 +5,10 @@ import (
 	"gocms/internal/auth"
 	"gocms/internal/category"
 	"gocms/internal/editor"
-	"gocms/internal/httpserver"
 	"gocms/internal/locale"
 	"gocms/internal/post"
 	"gocms/internal/public"
+	"gocms/internal/server"
 	"gocms/internal/session"
 	"gocms/internal/storage"
 	"gocms/internal/user"
@@ -23,7 +23,7 @@ const (
 
 type Router struct {
 	mux  *http.ServeMux
-	auth httpserver.Middleware
+	auth server.Middleware
 }
 
 func NewRouter(provider session.Repository) *Router {
@@ -38,8 +38,8 @@ func (router *Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (router *Router) AddAuthRoutes(handler *auth.Handler) {
-	limiter := httpserver.NewRequestLimiter(RequestLimit)
-	m := httpserver.ChainMiddleware(
+	limiter := server.NewRequestLimiter(RequestLimit)
+	m := server.ChainMiddleware(
 		limiter.Wrap,
 		router.auth,
 	)
@@ -52,8 +52,8 @@ func (router *Router) AddAuthRoutes(handler *auth.Handler) {
 }
 
 func (router *Router) AddUserRoutes(handler *user.Handler) {
-	limiter := httpserver.NewRequestLimiter(RequestLimit)
-	m := httpserver.ChainMiddleware(
+	limiter := server.NewRequestLimiter(RequestLimit)
+	m := server.ChainMiddleware(
 		limiter.Wrap,
 		router.auth,
 	)
@@ -69,8 +69,8 @@ func (router *Router) AddUserRoutes(handler *user.Handler) {
 }
 
 func (router *Router) AddEditorRoutes(handler *editor.Handler) {
-	streamLimiter := httpserver.NewRequestLimiter(ContentLimit)
-	m := httpserver.ChainMiddleware(
+	streamLimiter := server.NewRequestLimiter(ContentLimit)
+	m := server.ChainMiddleware(
 		streamLimiter.Wrap,
 		router.auth,
 		locale.Middleware,
@@ -85,8 +85,8 @@ func (router *Router) AddEditorRoutes(handler *editor.Handler) {
 }
 
 func (router *Router) AddLocaleRoutes(handler *locale.Handler) {
-	limiter := httpserver.NewRequestLimiter(RequestLimit)
-	m := httpserver.ChainMiddleware(
+	limiter := server.NewRequestLimiter(RequestLimit)
+	m := server.ChainMiddleware(
 		limiter.Wrap,
 		router.auth,
 	)
@@ -97,8 +97,8 @@ func (router *Router) AddLocaleRoutes(handler *locale.Handler) {
 }
 
 func (router *Router) AddPostRoutes(handler *post.Handler) {
-	streamLimiter := httpserver.NewRequestLimiter(ContentLimit)
-	m := httpserver.ChainMiddleware(
+	streamLimiter := server.NewRequestLimiter(ContentLimit)
+	m := server.ChainMiddleware(
 		streamLimiter.Wrap,
 		router.auth,
 		locale.Middleware,
@@ -114,8 +114,8 @@ func (router *Router) AddPostRoutes(handler *post.Handler) {
 }
 
 func (router *Router) AddCategoryRoutes(handler *category.Handler) {
-	limiter := httpserver.NewRequestLimiter(RequestLimit)
-	m := httpserver.ChainMiddleware(
+	limiter := server.NewRequestLimiter(RequestLimit)
+	m := server.ChainMiddleware(
 		limiter.Wrap,
 		router.auth,
 		locale.Middleware,
@@ -130,8 +130,8 @@ func (router *Router) AddCategoryRoutes(handler *category.Handler) {
 }
 
 func (router *Router) AddAdsRoutes(handler *ads.Handler) {
-	limiter := httpserver.NewRequestLimiter(RequestLimit)
-	m := httpserver.ChainMiddleware(
+	limiter := server.NewRequestLimiter(RequestLimit)
+	m := server.ChainMiddleware(
 		limiter.Wrap,
 		router.auth,
 	)
@@ -145,13 +145,13 @@ func (router *Router) AddAdsRoutes(handler *ads.Handler) {
 }
 
 func (router *Router) AddStorageRoutes(handler *storage.Handler) {
-	requestLimiter := httpserver.NewRequestLimiter(RequestLimit)
-	streamLimiter := httpserver.NewRequestLimiter(FileLimit)
-	m := httpserver.ChainMiddleware(
+	requestLimiter := server.NewRequestLimiter(RequestLimit)
+	streamLimiter := server.NewRequestLimiter(FileLimit)
+	m := server.ChainMiddleware(
 		requestLimiter.Wrap,
 		router.auth,
 	)
-	s := httpserver.ChainMiddleware(
+	s := server.ChainMiddleware(
 		streamLimiter.Wrap,
 		router.auth,
 	)
@@ -165,8 +165,8 @@ func (router *Router) AddStorageRoutes(handler *storage.Handler) {
 }
 
 func (router *Router) AddPublicoutes(handler *public.Handler) {
-	limiter := httpserver.NewRequestLimiter(RequestLimit)
-	m := httpserver.ChainMiddleware(
+	limiter := server.NewRequestLimiter(RequestLimit)
+	m := server.ChainMiddleware(
 		limiter.Wrap,
 		locale.Middleware,
 	)

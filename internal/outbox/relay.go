@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"gocms/internal/errs"
+	"gocms/internal/domain"
 	"gocms/internal/logger"
 	"sync"
 	"time"
@@ -109,17 +109,17 @@ func (d *Relay) GetUnprocessed(ctx context.Context, limit int) ([]Message, error
 				return result.Error
 			}
 			if result.RowsAffected != int64(len(messages)) {
-				return errs.ErrLock
+				return domain.ErrLock
 			}
 			return nil
 		})
 		if err == nil {
 			return messages, nil
-		} else if !errors.Is(err, errs.ErrLock) {
+		} else if !errors.Is(err, domain.ErrLock) {
 			return nil, err
 		}
 	}
-	return nil, errs.ErrLock
+	return nil, domain.ErrLock
 }
 
 func (d *Relay) RecoverStale(ctx context.Context) error {
@@ -138,12 +138,12 @@ func (d *Relay) RecoverStale(ctx context.Context) error {
 
 func (d *Relay) ParseStartArgs(params ...any) (time.Duration, error) {
 	if len(params) != 1 {
-		return 0, fmt.Errorf("%v: invalid argument count", errs.ErrInval)
+		return 0, fmt.Errorf("%v: invalid argument count", domain.ErrInval)
 	}
 
 	interval, ok := params[0].(time.Duration)
 	if !ok || interval <= 0 {
-		return 0, fmt.Errorf("%v: invalid duration", errs.ErrInval)
+		return 0, fmt.Errorf("%v: invalid duration", domain.ErrInval)
 	}
 	return interval, nil
 }

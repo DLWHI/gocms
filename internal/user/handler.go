@@ -2,7 +2,7 @@ package user
 
 import (
 	"encoding/json"
-	"gocms/internal/errs"
+	"gocms/internal/server"
 	"net/http"
 )
 
@@ -12,7 +12,7 @@ import (
 // GET /users - Get all users
 // GET /users/{username} - Get user
 // PATCH /users/{username}/email - Update user's email
-// PATCH /users/{username}/reset - Reset user password
+// PATCH /users/{username}/password - Reset user password
 // PATCH /users/{username}/permissions - Update user's permissions
 // DELETE /users/{username} - Suspend user
 // ------------------------------------------------------------------
@@ -53,7 +53,7 @@ func (h *Handler) create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.userService.Create(r.Context(), &userData); err != nil {
-		errs.ServeMessage(w, "User", err)
+		server.ServeMessage(w, "User", err)
 		return
 	}
 
@@ -62,9 +62,9 @@ func (h *Handler) create(w http.ResponseWriter, r *http.Request) {
 
 // GET /users - Get all users
 func (h *Handler) all(w http.ResponseWriter, r *http.Request) {
-	users, err := h.userService.All(r.Context())
+	users, err := h.userService.AllActive(r.Context())
 	if err != nil {
-		errs.ServeMessage(w, "User", err)
+		server.ServeMessage(w, "User", err)
 		return
 	}
 
@@ -82,7 +82,7 @@ func (h *Handler) search(w http.ResponseWriter, r *http.Request) {
 	}
 	users, err := h.userService.Search(r.Context(), &filters)
 	if err != nil {
-		errs.ServeMessage(w, "User", err)
+		server.ServeMessage(w, "User", err)
 		return
 	}
 
@@ -101,7 +101,7 @@ func (h *Handler) get(w http.ResponseWriter, r *http.Request) {
 
 	user, err := h.userService.Get(r.Context(), username)
 	if err != nil {
-		errs.ServeMessage(w, "User", err)
+		server.ServeMessage(w, "User", err)
 		return
 	}
 
@@ -125,11 +125,11 @@ func (h *Handler) changeEmail(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.userService.ChangeEmail(r.Context(), username, email); err != nil {
-		errs.ServeMessage(w, "User", err)
+		server.ServeMessage(w, "User", err)
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
+	w.WriteHeader(http.StatusNoContent)
 }
 
 // PATCH /users/{username}/reset - Reset user password
@@ -148,11 +148,11 @@ func (h *Handler) resetPasswd(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.userService.ChangePasswd(r.Context(), username, paswd); err != nil {
-		errs.ServeMessage(w, "User", err)
+		server.ServeMessage(w, "User", err)
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
+	w.WriteHeader(http.StatusNoContent)
 }
 
 // PATCH /users/{username}/permissions - Update user's permissions
@@ -170,11 +170,11 @@ func (h *Handler) updatePermissions(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.userService.ChangePermissions(r.Context(), username, permissions); err != nil {
-		errs.ServeMessage(w, "User", err)
+		server.ServeMessage(w, "User", err)
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
+	w.WriteHeader(http.StatusNoContent)
 }
 
 // DELETE /users/{username} - Suspend user
@@ -186,9 +186,9 @@ func (h *Handler) suspend(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.userService.Suspend(r.Context(), username); err != nil {
-		errs.ServeMessage(w, "User", err)
+		server.ServeMessage(w, "User", err)
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
+	w.WriteHeader(http.StatusNoContent)
 }

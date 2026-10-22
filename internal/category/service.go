@@ -6,7 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"gocms/internal/auth"
-	"gocms/internal/errs"
+	"gocms/internal/domain"
 	"gocms/internal/logger"
 	"gocms/internal/search"
 	"strings"
@@ -28,16 +28,16 @@ func NewService(db Repository, se SearchEngine) *Service {
 func (s *Service) sanitize(ctx context.Context, category *Document) error {
 	category.Slug = strings.TrimSpace(strings.ToLower(category.Slug))
 	if category.Slug == "" {
-		return fmt.Errorf("%w: slug cannot be empty", errs.ErrInval)
+		return fmt.Errorf("%w: slug cannot be empty", domain.ErrInval)
 	} else if strings.IndexFunc(category.Slug, unicode.IsSpace) >= 0 {
-		return fmt.Errorf("%w: no spaces allowed in slug", errs.ErrInval)
+		return fmt.Errorf("%w: no spaces allowed in slug", domain.ErrInval)
 	}
 
 	category.Locale = strings.TrimSpace(strings.ToLower(category.Locale))
 	if category.Locale == "" {
 		locale := ctx.Value("locale")
 		if locale == nil {
-			return fmt.Errorf("%w: empty locale", errs.ErrInval)
+			return fmt.Errorf("%w: empty locale", domain.ErrInval)
 		}
 		category.Locale = locale.(string)
 	}
@@ -47,7 +47,7 @@ func (s *Service) sanitize(ctx context.Context, category *Document) error {
 
 func (s *Service) Create(ctx context.Context, category *Document) error {
 	if !auth.HasPermission(ctx, "categories", "create") {
-		return errs.ErrCred
+		return domain.ErrCred
 	}
 
 	if err := s.sanitize(ctx, category); err != nil {
@@ -55,7 +55,7 @@ func (s *Service) Create(ctx context.Context, category *Document) error {
 	}
 
 	if category.Slug == "" {
-		return fmt.Errorf("%w: slug cannot be empty", errs.ErrInval)
+		return fmt.Errorf("%w: slug cannot be empty", domain.ErrInval)
 	}
 
 	model := category.ToModel()
@@ -69,7 +69,7 @@ func (s *Service) Create(ctx context.Context, category *Document) error {
 
 func (s *Service) Edit(ctx context.Context, category *Document) (*Document, error) {
 	if !auth.HasPermission(ctx, "categories", "edit") {
-		return nil, errs.ErrCred
+		return nil, domain.ErrCred
 	}
 
 	if err := s.sanitize(ctx, category); err != nil {
@@ -89,7 +89,7 @@ func (s *Service) Edit(ctx context.Context, category *Document) (*Document, erro
 func (s *Service) Get(ctx context.Context, slug string) (*Document, error) {
 	locale := ctx.Value("locale")
 	if locale == nil {
-		return nil, fmt.Errorf("%w: empty locale", errs.ErrInval)
+		return nil, fmt.Errorf("%w: empty locale", domain.ErrInval)
 	}
 
 	category, err := s.repo.Get(ctx, slug, locale.(string))
@@ -105,7 +105,7 @@ func (s *Service) Get(ctx context.Context, slug string) (*Document, error) {
 func (s *Service) All(ctx context.Context, hidden *bool) ([]Document, error) {
 	locale := ctx.Value("locale")
 	if locale == nil {
-		return nil, fmt.Errorf("%w: empty locale", errs.ErrInval)
+		return nil, fmt.Errorf("%w: empty locale", domain.ErrInval)
 	}
 
 	model, err := s.repo.GetAll(ctx, locale.(string), hidden)
@@ -136,7 +136,7 @@ func (s *Service) Search(ctx context.Context, filters *SearchParams) (*SearchRes
 
 func (s *Service) Delete(ctx context.Context, slug string) error {
 	if !auth.HasPermission(ctx, "categories", "delete") {
-		return errs.ErrCred
+		return domain.ErrCred
 	}
 
 	if err := s.repo.Delete(ctx, slug); err != nil {
@@ -157,7 +157,7 @@ func (s *Service) SyncSearch(ctx context.Context, data []byte) error {
 	case "create", "update":
 		category, err := s.repo.Get(ctx, payload.Slug, payload.Locale)
 		if err != nil {
-			if errors.Is(err, errs.ErrNotFound) {
+			if errors.Is(err, domain.ErrNotFound) {
 				return nil
 			}
 			return err
@@ -174,5 +174,5 @@ func (s *Service) SyncSearch(ctx context.Context, data []byte) error {
 		}
 		return nil
 	}
-	return fmt.Errorf("%w: unkown action", errs.ErrInval)
+	return fmt.Errorf("%w: unknown action", domain.ErrInval)
 }

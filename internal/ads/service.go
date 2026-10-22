@@ -6,7 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"gocms/internal/auth"
-	"gocms/internal/errs"
+	"gocms/internal/domain"
 	"gocms/internal/logger"
 	"gocms/internal/search"
 	"net/url"
@@ -48,11 +48,11 @@ func isValidURL(str string) bool {
 func (s *Service) sanitize(ad *Doc) error {
 	ad.Group = strings.TrimSpace(strings.ToLower(ad.Group))
 	if strings.IndexFunc(ad.Group, unicode.IsSpace) >= 0 {
-		return fmt.Errorf("%w: no spaces allowed in group", errs.ErrInval)
+		return fmt.Errorf("%w: no spaces allowed in group", domain.ErrInval)
 	}
 
 	if !isValidURL(ad.URL) {
-		return fmt.Errorf("%w: URL is not valid", errs.ErrInval)
+		return fmt.Errorf("%w: URL is not valid", domain.ErrInval)
 	}
 
 	return nil
@@ -60,7 +60,7 @@ func (s *Service) sanitize(ad *Doc) error {
 
 func (s *Service) Create(ctx context.Context, ad *Doc) error {
 	if !auth.HasPermission(ctx, "ads", "create") {
-		return errs.ErrCred
+		return domain.ErrCred
 	}
 
 	if err := s.sanitize(ad); err != nil {
@@ -78,7 +78,7 @@ func (s *Service) Create(ctx context.Context, ad *Doc) error {
 
 func (s *Service) Update(ctx context.Context, ad *Doc) (*Doc, error) {
 	if !auth.HasPermission(ctx, "ads", "edit") {
-		return nil, errs.ErrCred
+		return nil, domain.ErrCred
 	}
 
 	if err := s.sanitize(ad); err != nil {
@@ -150,7 +150,7 @@ func (s *Service) Search(ctx context.Context, filters *SearchParams) (*SearchRes
 
 func (s *Service) Delete(ctx context.Context, id uint) error {
 	if !auth.HasPermission(ctx, "ads", "delete") {
-		return errs.ErrCred
+		return domain.ErrCred
 	}
 
 	if err := s.repo.Delete(ctx, id); err != nil {
@@ -171,7 +171,7 @@ func (s *Service) SyncSearch(ctx context.Context, data []byte) error {
 	case "create", "update":
 		category, err := s.repo.Get(ctx, payload.ID)
 		if err != nil {
-			if errors.Is(err, errs.ErrNotFound) {
+			if errors.Is(err, domain.ErrNotFound) {
 				return nil
 			}
 			return err
@@ -188,5 +188,5 @@ func (s *Service) SyncSearch(ctx context.Context, data []byte) error {
 		}
 		return nil
 	}
-	return fmt.Errorf("%w: unkown action", errs.ErrInval)
+	return fmt.Errorf("%w: unknown action", domain.ErrInval)
 }

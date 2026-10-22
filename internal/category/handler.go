@@ -2,7 +2,7 @@ package category
 
 import (
 	"encoding/json"
-	"gocms/internal/errs"
+	"gocms/internal/server"
 	"net/http"
 )
 
@@ -48,7 +48,7 @@ func (h *Handler) search(w http.ResponseWriter, r *http.Request) {
 
 	categories, err := h.categoryService.Search(r.Context(), &filters)
 	if err != nil {
-		errs.ServeMessage(w, "Category", err)
+		server.ServeMessage(w, "Category", err)
 		return
 	}
 
@@ -60,7 +60,7 @@ func (h *Handler) search(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) all(w http.ResponseWriter, r *http.Request) {
 	categories, err := h.categoryService.All(r.Context(), nil)
 	if err != nil {
-		errs.ServeMessage(w, "Category", err)
+		server.ServeMessage(w, "Category", err)
 		return
 	}
 
@@ -77,7 +77,7 @@ func (h *Handler) create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.categoryService.Create(r.Context(), &category); err != nil {
-		errs.ServeMessage(w, "Category", err)
+		server.ServeMessage(w, "Category", err)
 		return
 	}
 
@@ -95,7 +95,7 @@ func (h *Handler) get(w http.ResponseWriter, r *http.Request) {
 
 	category, err := h.categoryService.Get(r.Context(), slug)
 	if err != nil {
-		errs.ServeMessage(w, "Category", err)
+		server.ServeMessage(w, "Category", err)
 		return
 	}
 
@@ -118,7 +118,7 @@ func (h *Handler) update(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if _, err := h.categoryService.Edit(r.Context(), &category); err != nil {
-		errs.ServeMessage(w, "Category", err)
+		server.ServeMessage(w, "Category", err)
 		return
 	}
 
@@ -136,7 +136,7 @@ func (h *Handler) delete(w http.ResponseWriter, r *http.Request) {
 
 	err := h.categoryService.Delete(r.Context(), slug)
 	if err != nil {
-		errs.ServeMessage(w, "Category", err)
+		server.ServeMessage(w, "Category", err)
 		return
 	}
 

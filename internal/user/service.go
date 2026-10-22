@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"golang.org/x/crypto/bcrypt"
-	"gorm.io/gorm"
 )
 
 type Service struct {
@@ -41,7 +40,7 @@ func NewService(repo Repository, se SearchEngine) *Service {
 	}
 }
 
-func (s *Service) Create(ctx context.Context, user *domain.User, passwd Password) (string, error) {
+func (s *Service) Create(ctx context.Context, user *domain.User, passwd domain.Password) (string, error) {
 	if !auth.HasPermission(ctx, "users", "create") {
 		clear(passwd)
 		return "", domain.ErrCred
@@ -52,44 +51,39 @@ func (s *Service) Create(ctx context.Context, user *domain.User, passwd Password
 		return "", fmt.Errorf("%w: invalid password", domain.ErrInval)
 	}
 
-	record := ToRecord(user)
 	username, err := domain.NormalizeUsername(user.Username)
 	if err != nil {
 		clear(passwd)
 		return "", err
 	}
-	record.Username = username
+	user.Username = username
 
-	if user.Email != nil {
-		email, err := domain.ParseEmail(*user.Email)
+	if user.Email != "" {
+		email, err := domain.ParseEmail(user.Email)
 		if err != nil {
 			clear(passwd)
 			return "", err
 		}
-		record.Email = email
+		user.Email = email
 	}
 
-	hash, err := bcrypt.GenerateFromPassword(passwd, 12)
+	hash, err := bcrypt.GenerateFromPassword(passwd, s.bcryptCost)
 	clear(passwd)
 	if err != nil {
 		logger.Error("User.Service", "Failed to hash the user password", err)
 		return "", err
 	}
 
-	record.Passwd = hash
-	record.Permissions = domain.RoleEditor
-	record.LastLogin = nil
-	record.SuspendedAt = gorm.DeletedAt{Valid: false}
+	user.Permissions = domain.RoleEditor
 
-	err = s.repo.Create(ctx, &record)
+	err = s.repo.Create(ctx, user, hash)
 	clear(hash)
-	clear(record.Passwd)
 	if err != nil {
 		logger.Error("User.Service", "Failed to create user", err)
 		return "", err
 	}
 
-	return record.Username, nil
+	return user.Username, nil
 }
 
 func (s *Service) UpdateLogin(ctx context.Context, username string) (*domain.User, error) {
@@ -104,8 +98,7 @@ func (s *Service) UpdateLogin(ctx context.Context, username string) (*domain.Use
 		return nil, err
 	}
 
-	val := user.ToDomain()
-	return &val, nil
+	return user, nil
 }
 
 func (s *Service) Get(ctx context.Context, username string) (*domain.User, error) {
@@ -122,8 +115,7 @@ func (s *Service) Get(ctx context.Context, username string) (*domain.User, error
 		return nil, err
 	}
 
-	val := user.ToDomain()
-	return &val, nil
+	return user, nil
 }
 
 func (s *Service) Search(ctx context.Context, filters *SearchParams) (*SearchResult, error) {
@@ -138,24 +130,17 @@ func (s *Service) Search(ctx context.Context, filters *SearchParams) (*SearchRes
 }
 
 func (s *Service) AllActive(ctx context.Context) ([]domain.User, error) {
-
 	users, err := s.repo.GetActive(ctx)
 	if err != nil {
 		logger.Error("User.Service", "Failed to list users", err)
 		return nil, err
 	}
 
-	vals := make([]domain.User, 0, len(users))
-
-	for _, user := range users {
-		vals = append(vals, user.ToDomain())
-	}
-
-	return vals, nil
+	return users, nil
 }
 
 func (s *Service) Suspend(ctx context.Context, username string) error {
-	if !auth.HasPermission(ctx, EntityName, "delete") {
+	if !auth.HasPermission(ctx, domain.UserEntityName, "delete") {
 		return domain.ErrCred
 	}
 
@@ -172,7 +157,7 @@ func (s *Service) Suspend(ctx context.Context, username string) error {
 	return nil
 }
 
-func (s *Service) PasswordMatches(ctx context.Context, username string, passwd Password) error {
+func (s *Service) PasswordMatches(ctx context.Context, username string, passwd domain.Password) error {
 	username, err := domain.NormalizeUsername(username)
 	if err != nil {
 		return domain.ErrCred
@@ -181,7 +166,8 @@ func (s *Service) PasswordMatches(ctx context.Context, username string, passwd P
 	hash, err := s.repo.GetPasswdHash(ctx, username)
 	if err != nil {
 		if errors.Is(err, domain.ErrNotFound) {
-			hash = s.dummyHash
+			hash = make(domain.Password, 0, len(s.dummyHash))
+			copy(hash, s.dummyHash)
 		} else {
 			logger.Error("User.Service", "Failed to retrieve user's password", err)
 			return err
@@ -208,7 +194,7 @@ func (s *Service) ChangeEmail(ctx context.Context, username string, email string
 		return domain.ErrCred
 	}
 
-	if initiator != username && !auth.HasPermission(ctx, EntityName, "edit") {
+	if initiator != username && !auth.HasPermission(ctx, domain.UserEntityName, "edit") {
 		return domain.ErrCred
 	}
 
@@ -219,11 +205,11 @@ func (s *Service) ChangeEmail(ctx context.Context, username string, email string
 		}
 	}
 
-	diff := map[string]interface{}{
-		"email": email,
+	update := domain.User{
+		Email: email,
 	}
 
-	if err := s.repo.Update(ctx, username, diff); err != nil {
+	if err := s.repo.Update(ctx, username, &update); err != nil {
 		logger.Error("User.Service", "Failed to update the user's email address", err)
 		return err
 	}
@@ -242,7 +228,7 @@ func (s *Service) ChangePasswd(ctx context.Context, username string, passwd doma
 		return domain.ErrCred
 	}
 
-	if initiator != username && !auth.HasPermission(ctx, EntityName, "edit") {
+	if initiator != username && !auth.HasPermission(ctx, domain.UserEntityName, "edit") {
 		return domain.ErrCred
 	}
 
@@ -283,15 +269,15 @@ func (s *Service) ChangePermissions(ctx context.Context, username string, perms 
 		return domain.ErrCred
 	}
 
-	if initiator == username || !auth.HasPermission(ctx, EntityName, "edit") || (level&perms) != perms {
+	if initiator == username || !auth.HasPermission(ctx, domain.UserEntityName, "edit") || (level&perms) != perms {
 		return domain.ErrCred
 	}
 
-	diff := map[string]interface{}{
-		"permissions": perms,
+	update := domain.User{
+		Permissions: perms,
 	}
 
-	if err := s.repo.Update(ctx, username, diff); err != nil {
+	if err := s.repo.Update(ctx, username, &update); err != nil {
 		logger.Error("User.Service", "Failed to update the user's permissions", err)
 		return err
 	}

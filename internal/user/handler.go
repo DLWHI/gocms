@@ -2,6 +2,7 @@ package user
 
 import (
 	"encoding/json"
+	"gocms/internal/domain"
 	"gocms/internal/server"
 	"net/http"
 )
@@ -29,6 +30,13 @@ type Handler struct {
 	userService       *Service
 }
 
+type DTO struct {
+	Username    *string         `json:"username,omitempty"`
+	Email       *string         `json:"email,omitempty"`
+	Permissions *uint32         `json:"permissions,omitempty"`
+	Passwd      domain.Password `json:"passwd,omitempty"`
+}
+
 func NewHandler(s *Service) *Handler {
 	var hndl Handler
 	hndl.userService = s
@@ -51,8 +59,12 @@ func (h *Handler) create(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid JSON payload", http.StatusBadRequest)
 		return
 	}
+	if payload.Passwd == nil {
+		http.Error(w, "Password must not be empty", http.StatusBadRequest)
+		return
+	}
 
-	if _, err := h.userService.Create(r.Context(), &payload.User, payload.Passwd); err != nil {
+	if _, err := h.userService.Create(r.Context(), payload.ToDomain(), payload.Passwd); err != nil {
 		server.ServeMessage(w, "User", err)
 		return
 	}
@@ -132,7 +144,7 @@ func (h *Handler) changeEmail(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
-// PATCH /users/{username}/reset - Reset user password
+// PATCH /users/{username}/password - Reset user password
 func (h *Handler) resetPasswd(w http.ResponseWriter, r *http.Request) {
 	username := r.PathValue("username")
 	if username == "" {
@@ -191,4 +203,19 @@ func (h *Handler) suspend(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusNoContent)
+}
+
+func (this *DTO) ToDomain() *domain.User {
+	var res domain.User
+
+	if this.Username != nil {
+		res.Username = *this.Username
+	}
+	if this.Email != nil {
+		res.Email = *this.Email
+	}
+	if this.Permissions != nil {
+		res.Permissions = *this.Permissions
+	}
+	return &res
 }

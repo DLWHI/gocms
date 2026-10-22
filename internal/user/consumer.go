@@ -37,8 +37,7 @@ func (s *EventConsumer) SyncSearch(ctx context.Context, data []byte) error {
 		return err
 	}
 
-	doc := user.ToDomain()
-	if err := s.se.Index(ctx, &doc); err != nil {
+	if err := s.se.Index(ctx, user); err != nil {
 		return err
 	}
 	return nil

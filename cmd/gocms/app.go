@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"gocms/internal/analytics"
+	"gocms/internal/domain"
 	"gocms/internal/flow"
 	"gocms/internal/logger"
 	"gocms/internal/outbox"
@@ -138,7 +139,7 @@ func (app *Container) Init(ctx context.Context, cfg Config) error {
 func (app *Container) WireEvents(dispatcher outbox.Publisher) {
 	app.Subscriptions = make([]*outbox.Subscription, 0, 6)
 	app.Subscriptions = append(app.Subscriptions, dispatcher.Subscribe("post", app.Posts.Service.SyncSearch))
-	app.Subscriptions = append(app.Subscriptions, dispatcher.Subscribe("user", app.Users.Consumer.SyncSearch))
+	app.Subscriptions = append(app.Subscriptions, dispatcher.Subscribe(domain.UserEventName, app.Users.Consumer.SyncSearch))
 	app.Subscriptions = append(app.Subscriptions, dispatcher.Subscribe("user", app.Auth.Consumer.RevokeSessions))
 	app.Subscriptions = append(app.Subscriptions, dispatcher.Subscribe("category", app.Categories.Service.SyncSearch))
 	app.Subscriptions = append(app.Subscriptions, dispatcher.Subscribe("editor", app.Editors.Service.SyncSearch))

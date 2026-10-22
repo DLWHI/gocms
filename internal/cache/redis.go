@@ -24,7 +24,8 @@ var (
 )
 
 type RedisDecorator struct {
-	Client *redis.Client
+	Client   *redis.Client
+	LeaseTTL time.Duration
 }
 
 func NewRedisConnection(host string, port string) (*redis.Client, error) {
@@ -66,9 +67,9 @@ func (r *RedisDecorator) Get(ctx context.Context, key string, ptr any) error {
 	return nil
 }
 
-func (r *RedisDecorator) Lease(ctx context.Context, key string, ttl time.Duration) (string, error) {
+func (r *RedisDecorator) Lease(ctx context.Context, key string) (string, error) {
 	token := strconv.FormatUint(rand.Uint64(), 36)
-	if _, err := r.Client.Set(ctx, key, token, ttl).Result(); err != nil {
+	if _, err := r.Client.Set(ctx, key, token, r.LeaseTTL).Result(); err != nil {
 		return "", err
 	}
 	return token, nil

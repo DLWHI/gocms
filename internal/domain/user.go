@@ -10,26 +10,28 @@ import (
 )
 
 const (
-	MaxUsernameLength = 64
-	charset           = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()-_=+[]{}|;:,.<>?"
-
 	UserActionCreate = 1 << iota
 	UserActionUpdate
 	UserActionSuspend
 	UserActionLogin
 	UserActionPasswd
 
-	UserEventName = "user"
+	UserEventName  = "user"
+	UserEntityName = "users"
+
+	MaxUsernameLength = 64
+	MaxPasswordLength = 72
+	charset           = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()-_=+[]{}|;:,.<>?"
 )
 
 type Password []byte
 
 type User struct {
-	Username    string  `json:"username"`
-	Email       *string `json:"email"`
-	Permissions *uint32 `json:"permissions"`
-	SuspendedAt *int64  `json:"suspended_at"`
-	LastLogin   *int64  `json:"last_login"`
+	Username    string `json:"username"`
+	Email       string `json:"email,omitempty"`
+	Permissions uint32 `json:"permissions,omitempty"`
+	SuspendedAt int64  `json:"suspended_at,omitempty"`
+	LastLogin   int64  `json:"last_login,omitempty"`
 }
 
 type UserEvent struct {
@@ -47,11 +49,11 @@ func (p *Password) UnmarshalJSON(data []byte) error {
 }
 
 func (Password) MarshalJSON() ([]byte, error) {
-	return []byte("[NOT_YOUR_BUISNESS]"), nil
+	return []byte(`"[REDACTED]"`), nil
 }
 
 func (Password) String() string {
-	return "[NOT_YOUR_BUISNESS]"
+	return "[NOT_YOUR_BUSINESS]"
 }
 
 func IsInvalidUsernameRune(r rune) bool {
@@ -88,7 +90,7 @@ func GeneratePassword(length int) (Password, error) {
 }
 
 func IsValidPassword(passwd Password) bool {
-	if len(passwd) == 0 || len(passwd) > 72 {
+	if len(passwd) == 0 || len(passwd) > MaxPasswordLength {
 		return false
 	}
 	return true

@@ -12,6 +12,18 @@ import (
 	"github.com/meilisearch/meilisearch-go"
 )
 
+type SearchParams struct {
+	search.Params
+	Permissions     *uint32 `json:"permissions"`
+	Suspended       *bool   `json:"suspended"`
+	SuspendedAfter  *int64  `json:"suspended_after"`
+	SuspendedBefore *int64  `json:"suspended_before"`
+	LastLoginAfter  *int64  `json:"last_login_after"`
+	LastLoginBefore *int64  `json:"last_login_before"`
+}
+
+type SearchResult = search.Result[domain.User]
+
 type MeilisearchEngine struct {
 	client meilisearch.ServiceManager
 	idx    string
@@ -40,17 +52,17 @@ func buildFilter(params *SearchParams) string {
 	}
 
 	if params.SuspendedAfter != nil {
-		clauses = append(clauses, fmt.Sprintf("suspended_at >= %d", params.SuspendedAfter.Unix()))
+		clauses = append(clauses, fmt.Sprintf("suspended_at >= %d", *params.SuspendedAfter))
 	}
 	if params.SuspendedBefore != nil {
-		clauses = append(clauses, fmt.Sprintf("suspended_at <= %d", params.SuspendedBefore.Unix()))
+		clauses = append(clauses, fmt.Sprintf("suspended_at <= %d", *params.SuspendedBefore))
 	}
 
 	if params.LastLoginAfter != nil {
-		clauses = append(clauses, fmt.Sprintf("last_login >= %d", params.LastLoginAfter.Unix()))
+		clauses = append(clauses, fmt.Sprintf("last_login >= %d", *params.LastLoginAfter))
 	}
 	if params.LastLoginBefore != nil {
-		clauses = append(clauses, fmt.Sprintf("last_login <= %d", params.LastLoginBefore.Unix()))
+		clauses = append(clauses, fmt.Sprintf("last_login <= %d", *params.LastLoginBefore))
 	}
 
 	return strings.Join(clauses, " AND ")

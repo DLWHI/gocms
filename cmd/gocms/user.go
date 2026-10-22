@@ -106,7 +106,7 @@ func CreateUser(ctx context.Context, app *Container) error {
 
 	user := domain.User{
 		Username:    username,
-		Permissions: &permissions,
+		Permissions: permissions,
 	}
 
 	injected := context.WithValue(ctx, auth.UserPermissionKey, domain.OnEntityC("users"))

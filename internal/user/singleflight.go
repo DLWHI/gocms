@@ -3,6 +3,7 @@ package user
 import (
 	"context"
 	"fmt"
+	"gocms/internal/domain"
 	"time"
 
 	"golang.org/x/sync/singleflight"
@@ -25,15 +26,15 @@ func NewSingleflightRepository(db Repository, keyFormat string) *SingleflightRep
 	}
 }
 
-func (r *SingleflightRepository) Create(ctx context.Context, user *Record) error {
-	if err := r.Repository.Create(ctx, user); err != nil {
+func (r *SingleflightRepository) Create(ctx context.Context, user *domain.User, pwdhash domain.Password) error {
+	if err := r.Repository.Create(ctx, user, pwdhash); err != nil {
 		return err
 	}
 	r.group.Forget(r.allKey)
 	return nil
 }
 
-func (r *SingleflightRepository) UpdateLogin(ctx context.Context, username string, timestamp time.Time) (*Record, error) {
+func (r *SingleflightRepository) UpdateLogin(ctx context.Context, username string, timestamp time.Time) (*domain.User, error) {
 	key := fmt.Sprintf(r.keyFormat, username)
 	user, err := r.Repository.UpdateLogin(ctx, username, timestamp)
 	if err != nil {
@@ -44,9 +45,9 @@ func (r *SingleflightRepository) UpdateLogin(ctx context.Context, username strin
 	return user, nil
 }
 
-func (r *SingleflightRepository) Update(ctx context.Context, username string, diff map[string]interface{}) error {
+func (r *SingleflightRepository) Update(ctx context.Context, username string, user *domain.User) error {
 	key := fmt.Sprintf(r.keyFormat, username)
-	if err := r.Repository.Update(ctx, username, diff); err != nil {
+	if err := r.Repository.Update(ctx, username, user); err != nil {
 		return err
 	}
 	r.group.Forget(key)
@@ -54,8 +55,8 @@ func (r *SingleflightRepository) Update(ctx context.Context, username string, di
 	return nil
 }
 
-func (r *SingleflightRepository) Get(ctx context.Context, username string) (*Record, error) {
-	var user Record
+func (r *SingleflightRepository) Get(ctx context.Context, username string) (*domain.User, error) {
+	var user domain.User
 	key := fmt.Sprintf(r.keyFormat, username)
 	ch := r.group.DoChan(key, func() (any, error) {
 		bg, cancel := context.WithTimeout(context.WithoutCancel(ctx), r.timeout)
@@ -77,14 +78,14 @@ func (r *SingleflightRepository) Get(ctx context.Context, username string) (*Rec
 		if res.Err != nil {
 			return nil, res.Err
 		}
-		user = *res.Val.(*Record)
+		user = *res.Val.(*domain.User)
 	}
 
 	return &user, nil
 }
 
-func (r *SingleflightRepository) GetActive(ctx context.Context) ([]Record, error) {
-	var users []Record
+func (r *SingleflightRepository) GetActive(ctx context.Context) ([]domain.User, error) {
+	var users []domain.User
 	ch := r.group.DoChan(r.allKey, func() (any, error) {
 		bg, cancel := context.WithTimeout(context.WithoutCancel(ctx), r.timeout)
 		defer cancel()
@@ -105,7 +106,7 @@ func (r *SingleflightRepository) GetActive(ctx context.Context) ([]Record, error
 		if res.Err != nil {
 			return nil, res.Err
 		}
-		users = res.Val.([]Record)
+		users = res.Val.([]domain.User)
 	}
 
 	return users, nil

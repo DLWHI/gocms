@@ -2,6 +2,7 @@ package hash
 
 import (
 	"crypto/rand"
+	"gocms/internal/logger"
 	"math/big"
 
 	"golang.org/x/crypto/bcrypt"
@@ -14,12 +15,21 @@ type BCryptService struct {
 	dummy     []byte
 }
 
-func NewBCryptGenerator(cost uint) *BCryptService {
+func NewBCryptService(cost uint) *BCryptService {
+	if cost < 4 {
+		logger.Warn("BCryptService", "Provided cost is to low, clamped it to 4", nil)
+		cost = 4
+	} else if cost > 31 {
+		logger.Warn("BCryptService", "Provided cost is to high, clamped it to 31", nil)
+		cost = 31
+	}
+
 	gen := BCryptService{
 		cost:      cost,
 		maxLength: 72,
 		charset:   "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()-_=+[]{}|;:,.<>?",
 	}
+
 	pwd, err := gen.GeneratePassword(16)
 	if err != nil {
 		return &gen
@@ -68,8 +78,8 @@ func (h *BCryptService) GeneratePassword(length int) (Password, error) {
 	return bytes, nil
 }
 
-func (h *BCryptService) IsValidPassword(passwd Password) bool {
-	if len(passwd) == 0 || len(passwd) > int(h.maxLength) {
+func (h *BCryptService) IsValidPassword(password Password) bool {
+	if len(password) == 0 || len(password) > int(h.maxLength) {
 		return false
 	}
 	return true

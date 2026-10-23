@@ -24,7 +24,7 @@ type RedisRepository struct {
 
 type RedisConfig struct {
 	Client    *redis.Client
-	Ttl       time.Duration
+	TTL       time.Duration
 	KeyFormat string
 }
 
@@ -32,7 +32,7 @@ func NewRedisRepository(db Repository, config *RedisConfig) *RedisRepository {
 	return &RedisRepository{
 		origin:    db,
 		rdb:       config.Client,
-		ttl:       config.Ttl,
+		ttl:       config.TTL,
 		keyFormat: config.KeyFormat,
 	}
 }

@@ -25,17 +25,10 @@ type Handler struct {
 	All               http.Handler
 	Get               http.Handler
 	ChangeEmail       http.Handler
-	ResetPasswd       http.Handler
+	ResetPassword     http.Handler
 	UpdatePermissions http.Handler
 	Suspend           http.Handler
 	userService       *Service
-}
-
-type DTO struct {
-	Username    *string       `json:"username,omitempty"`
-	Email       *string       `json:"email,omitempty"`
-	Permissions *uint32       `json:"permissions,omitempty"`
-	Passwd      hash.Password `json:"passwd,omitempty"`
 }
 
 func NewHandler(s *Service) *Handler {
@@ -47,22 +40,25 @@ func NewHandler(s *Service) *Handler {
 	hndl.Get = http.HandlerFunc(hndl.get)
 	hndl.Suspend = http.HandlerFunc(hndl.suspend)
 	hndl.ChangeEmail = http.HandlerFunc(hndl.changeEmail)
-	hndl.ResetPasswd = http.HandlerFunc(hndl.resetPasswd)
+	hndl.ResetPassword = http.HandlerFunc(hndl.resetPassword)
 	hndl.UpdatePermissions = http.HandlerFunc(hndl.updatePermissions)
 	return &hndl
 }
 
 // POST /users - Register new user
 func (h *Handler) create(w http.ResponseWriter, r *http.Request) {
-	var payload DTO
+	var payload struct {
+		domain.User
+		Password hash.Password `json:"password"`
+	}
+	defer clear(payload.Password)
 
 	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
 		http.Error(w, "Invalid JSON payload", http.StatusBadRequest)
 		return
 	}
-	defer clear(payload.Passwd)
 
-	if _, err := h.userService.Create(r.Context(), payload.ToDomain(), payload.Passwd); err != nil {
+	if _, err := h.userService.Create(r.Context(), &payload.User, payload.Password); err != nil {
 		server.ServeMessage(w, "User", err)
 		return
 	}
@@ -127,7 +123,7 @@ func (h *Handler) changeEmail(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var payload DTO
+	var payload domain.UserDiff
 
 	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil || payload.Email == nil {
 		http.Error(w, "Invalid JSON payload", http.StatusBadRequest)
@@ -143,22 +139,24 @@ func (h *Handler) changeEmail(w http.ResponseWriter, r *http.Request) {
 }
 
 // PATCH /users/{username}/password - Reset user password
-func (h *Handler) resetPasswd(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) resetPassword(w http.ResponseWriter, r *http.Request) {
 	username := r.PathValue("username")
 	if username == "" {
 		http.Error(w, "Username was not provided", http.StatusBadRequest)
 		return
 	}
 
-	var payload DTO
+	var payload struct {
+		Password hash.Password `json:"password"`
+	}
+	defer clear(payload.Password)
 
 	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
 		http.Error(w, "Invalid JSON payload", http.StatusBadRequest)
 		return
 	}
-	defer clear(payload.Passwd)
 
-	if err := h.userService.ChangePasswd(r.Context(), username, payload.Passwd); err != nil {
+	if err := h.userService.ChangePassword(r.Context(), username, payload.Password); err != nil {
 		server.ServeMessage(w, "User", err)
 		return
 	}
@@ -174,7 +172,7 @@ func (h *Handler) updatePermissions(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var payload DTO
+	var payload domain.UserDiff
 	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil || payload.Permissions == nil {
 		http.Error(w, "Invalid JSON payload", http.StatusBadRequest)
 		return
@@ -202,19 +200,4 @@ func (h *Handler) suspend(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusNoContent)
-}
-
-func (this *DTO) ToDomain() *domain.User {
-	var res domain.User
-
-	if this.Username != nil {
-		res.Username = *this.Username
-	}
-	if this.Email != nil {
-		res.Email = *this.Email
-	}
-	if this.Permissions != nil {
-		res.Permissions = *this.Permissions
-	}
-	return &res
 }

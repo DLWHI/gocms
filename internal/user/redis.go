@@ -15,7 +15,7 @@ import (
 
 type RedisRepository struct {
 	Repository
-	cache     cache.RedisDecorator
+	cache     cache.RedisClient
 	ttl       time.Duration
 	keyFormat string
 	allKey    string
@@ -23,17 +23,17 @@ type RedisRepository struct {
 
 type RedisConfig struct {
 	Client    *redis.Client
-	Ttl       time.Duration
+	TTL       time.Duration
 	KeyFormat string
 }
 
 func NewRedisRepository(db Repository, config *RedisConfig) *RedisRepository {
 	return &RedisRepository{
 		Repository: db,
-		ttl:        config.Ttl,
+		ttl:        config.TTL,
 		keyFormat:  config.KeyFormat,
 		allKey:     fmt.Sprintf(config.KeyFormat, ":all"),
-		cache: cache.RedisDecorator{
+		cache: cache.RedisClient{
 			Client:   config.Client,
 			LeaseTTL: 5 * time.Second,
 		},
@@ -58,7 +58,7 @@ func (r *RedisRepository) UpdateLogin(ctx context.Context, username string, time
 	return user, nil
 }
 
-func (r *RedisRepository) Update(ctx context.Context, username string, user *domain.User) error {
+func (r *RedisRepository) Update(ctx context.Context, username string, user *domain.UserDiff) error {
 	if err := r.Repository.Update(ctx, username, user); err != nil {
 		return err
 	}
@@ -72,15 +72,17 @@ func (r *RedisRepository) Get(ctx context.Context, username string) (*domain.Use
 	var token string
 	key := fmt.Sprintf(r.keyFormat, username)
 
-	if err := r.cache.Get(ctx, key, &user); err == nil {
+	err := r.cache.Get(ctx, key, &user)
+	switch {
+	case err == nil:
 		return &user, nil
-	} else if !errors.Is(err, redis.Nil) {
-		logger.Warn("User.Redis", "Redis error while trying to retrieve key", err, "key", key)
-	} else {
+	case errors.Is(err, redis.Nil):
 		token, err = r.cache.Lease(ctx, key)
 		if err != nil {
 			logger.Warn("User.Redis", "Redis error while trying to lease key", err, "key", key)
 		}
+	default:
+		logger.Warn("User.Redis", "Redis error while trying to retrieve key", err, "key", key)
 	}
 
 	u, err := r.Repository.Get(ctx, username)
@@ -103,15 +105,18 @@ func (r *RedisRepository) Get(ctx context.Context, username string) (*domain.Use
 func (r *RedisRepository) GetActive(ctx context.Context) ([]domain.User, error) {
 	var users []domain.User
 	var token string
-	if err := r.cache.Get(ctx, r.allKey, &users); err == nil {
+
+	err := r.cache.Get(ctx, r.allKey, &users)
+	switch {
+	case err == nil:
 		return users, nil
-	} else if !errors.Is(err, redis.Nil) {
-		logger.Warn("User.Redis", "Redis error while trying to retrieve key", err, "key", r.allKey)
-	} else {
+	case errors.Is(err, redis.Nil):
 		token, err = r.cache.Lease(ctx, r.allKey)
 		if err != nil {
 			logger.Warn("User.Redis", "Redis error while trying to lease key", err, "key", r.allKey)
 		}
+	default:
+		logger.Warn("User.Redis", "Redis error while trying to retrieve key", err, "key", r.allKey)
 	}
 
 	u, err := r.Repository.GetActive(ctx)

@@ -13,12 +13,12 @@ import (
 )
 
 type MeilisearchEngine struct {
-	search search.MeilisearchDecorator
+	search search.MeilisearchClient
 }
 
 func NewMeilisearchEngine(client meilisearch.ServiceManager, index string) *MeilisearchEngine {
 	return &MeilisearchEngine{
-		search: search.MeilisearchDecorator{
+		search: search.MeilisearchClient{
 			Client: client,
 			Config: meilisearch.IndexConfig{
 				Uid:        index,
@@ -97,7 +97,7 @@ func (r *MeilisearchEngine) Index(ctx context.Context, category *Document) error
 	if err != nil {
 		return err
 	}
-	if err := r.search.WaitForMeilisearchTask(ctx, task); err != nil {
+	if err := r.search.WaitForTask(ctx, task); err != nil {
 		return err
 	}
 	return nil
@@ -127,7 +127,7 @@ func (r *MeilisearchEngine) Delete(ctx context.Context, slug string) error {
 	if err != nil {
 		return err
 	}
-	if err := r.search.WaitForMeilisearchTask(ctx, task); err != nil {
+	if err := r.search.WaitForTask(ctx, task); err != nil {
 		return err
 	}
 	return nil
@@ -170,13 +170,13 @@ func (r *MeilisearchEngine) Search(ctx context.Context, params *SearchParams) (*
 }
 
 func (r *MeilisearchEngine) CreateMeilisearchIndex(ctx context.Context) error {
-	return r.search.CreateMeilisearchIndex(ctx)
+	return r.search.CreateIndex(ctx)
 }
 
 func (r *MeilisearchEngine) WipeMeilisearchIndex(ctx context.Context) error {
-	return r.search.WipeMeilisearchIndex(ctx)
+	return r.search.WipeIndex(ctx)
 }
 
 func (r *MeilisearchEngine) ConfigureMeilisearchIndex(ctx context.Context) error {
-	return r.search.ConfigureMeilisearchIndex(ctx)
+	return r.search.ConfigureIndex(ctx)
 }

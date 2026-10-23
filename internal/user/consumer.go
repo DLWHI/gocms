@@ -25,7 +25,7 @@ func (s *EventConsumer) SyncSearch(ctx context.Context, data []byte) error {
 		return err
 	}
 
-	if payload.Action == domain.UserActionPasswd {
+	if payload.Action == domain.UserActionPassword {
 		return nil
 	}
 

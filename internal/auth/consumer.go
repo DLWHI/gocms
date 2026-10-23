@@ -23,7 +23,7 @@ func (s *EventConsumer) RevokeSessions(ctx context.Context, data []byte) error {
 		return err
 	}
 
-	if payload.Action != domain.UserActionPasswd && payload.Action != domain.UserActionSuspend {
+	if payload.Action != domain.UserActionPassword && payload.Action != domain.UserActionSuspend {
 		return nil
 	}
 

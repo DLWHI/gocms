@@ -142,3 +142,11 @@ func HasPermission(ctx context.Context, entity string, action string) bool {
 
 	return domain.HasPermission(level, entity, action)
 }
+
+func IsSubsetOf(ctx context.Context, permissions uint32) bool {
+	level, ok := ctx.Value(UserPermissionKey).(uint32)
+	if !ok {
+		return false
+	}
+	return (level & permissions) != permissions
+}

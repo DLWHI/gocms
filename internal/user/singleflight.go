@@ -45,7 +45,7 @@ func (r *SingleflightRepository) UpdateLogin(ctx context.Context, username strin
 	return user, nil
 }
 
-func (r *SingleflightRepository) Update(ctx context.Context, username string, user *domain.User) error {
+func (r *SingleflightRepository) Update(ctx context.Context, username string, user *domain.UserDiff) error {
 	key := fmt.Sprintf(r.keyFormat, username)
 	if err := r.Repository.Update(ctx, username, user); err != nil {
 		return err
@@ -56,7 +56,6 @@ func (r *SingleflightRepository) Update(ctx context.Context, username string, us
 }
 
 func (r *SingleflightRepository) Get(ctx context.Context, username string) (*domain.User, error) {
-	var user *domain.User
 	key := fmt.Sprintf(r.keyFormat, username)
 	ch := r.group.DoChan(key, func() (any, error) {
 		bg, cancel := context.WithTimeout(context.WithoutCancel(ctx), r.timeout)
@@ -78,14 +77,12 @@ func (r *SingleflightRepository) Get(ctx context.Context, username string) (*dom
 		if res.Err != nil {
 			return nil, res.Err
 		}
-		user = res.Val.(*domain.User)
+		return res.Val.(*domain.User), nil
 	}
 
-	return user, nil
 }
 
 func (r *SingleflightRepository) GetActive(ctx context.Context) ([]domain.User, error) {
-	var users []domain.User
 	ch := r.group.DoChan(r.allKey, func() (any, error) {
 		bg, cancel := context.WithTimeout(context.WithoutCancel(ctx), r.timeout)
 		defer cancel()
@@ -106,10 +103,8 @@ func (r *SingleflightRepository) GetActive(ctx context.Context) ([]domain.User, 
 		if res.Err != nil {
 			return nil, res.Err
 		}
-		users = res.Val.([]domain.User)
+		return res.Val.([]domain.User), nil
 	}
-
-	return users, nil
 }
 
 func (r *SingleflightRepository) Suspend(ctx context.Context, username string) error {

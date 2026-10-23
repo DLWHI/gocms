@@ -26,17 +26,23 @@ func NewService(repo Repository, se SearchEngine, pwd hash.PasswordService) *Ser
 	}
 }
 
-func (s *Service) Create(ctx context.Context, user *domain.User, passwd hash.Password) (string, error) {
-	level, ok := ctx.Value(auth.UserPermissionKey).(uint32)
+func (s *Service) authorizeEdit(ctx context.Context, username string, action string) error {
+	initiator, ok := ctx.Value(auth.UserNameKey).(string)
 	if !ok {
+		return domain.ErrCred
+	}
+	if initiator != username && !auth.HasPermission(ctx, domain.UserEntityName, action) {
+		return domain.ErrCred
+	}
+	return nil
+}
+
+func (s *Service) Create(ctx context.Context, user *domain.User, password hash.Password) (string, error) {
+	if !auth.HasPermission(ctx, domain.UserEntityName, "create") || !auth.IsSubsetOf(ctx, user.Permissions) {
 		return "", domain.ErrCred
 	}
 
-	if !auth.HasPermission(ctx, domain.UserEntityName, "create") || (level&user.Permissions) != user.Permissions {
-		return "", domain.ErrCred
-	}
-
-	if !s.pwd.IsValidPassword(passwd) {
+	if !s.pwd.IsValidPassword(password) {
 		return "", fmt.Errorf("%w: invalid password", domain.ErrInval)
 	}
 
@@ -47,14 +53,14 @@ func (s *Service) Create(ctx context.Context, user *domain.User, passwd hash.Pas
 	user.Username = username
 
 	if user.Email != "" {
-		email, err := domain.ParseEmail(user.Email)
+		email, err := domain.NormalizeEmail(user.Email)
 		if err != nil {
 			return "", err
 		}
 		user.Email = email
 	}
 
-	pwdhash, err := s.pwd.Hash(passwd)
+	pwdhash, err := s.pwd.Hash(password)
 	if err != nil {
 		logger.Error("User.Service", "Failed to hash the user password", err)
 		return "", err
@@ -67,7 +73,9 @@ func (s *Service) Create(ctx context.Context, user *domain.User, passwd hash.Pas
 
 	err = s.repo.Create(ctx, user, pwdhash)
 	if err != nil {
-		logger.Error("User.Service", "Failed to create user", err)
+		if !errors.Is(err, domain.ErrDuplicate) {
+			logger.Error("User.Service", "Failed to create user", err)
+		}
 		return "", err
 	}
 
@@ -132,22 +140,22 @@ func (s *Service) Suspend(ctx context.Context, username string) error {
 	return nil
 }
 
-func (s *Service) PasswordMatches(ctx context.Context, username string, passwd hash.Password) error {
+func (s *Service) PasswordMatches(ctx context.Context, username string, password hash.Password) error {
 	username, err := domain.NormalizeUsername(username)
 	if err != nil {
 		return domain.ErrCred
 	}
 
-	pwdhash, err := s.repo.GetPasswdHash(ctx, username)
+	pwdhash, err := s.repo.GetPasswordHash(ctx, username)
 	if err != nil {
 		if !errors.Is(err, domain.ErrNotFound) {
 			logger.Error("User.Service", "Failed to retrieve user's password", err)
+			return err
 		}
-		return err
 	}
 	defer clear(pwdhash)
 
-	if !s.pwd.PasswordMatches(passwd, pwdhash) {
+	if !s.pwd.PasswordMatches(password, pwdhash) {
 		return domain.ErrCred
 	}
 	return nil
@@ -176,27 +184,22 @@ func (s *Service) ChangeEmail(ctx context.Context, username string, email string
 		return err
 	}
 
-	initiator, ok := ctx.Value(auth.UserNameKey).(string)
-	if !ok {
-		return domain.ErrCred
-	}
-
-	if initiator != username && !auth.HasPermission(ctx, domain.UserEntityName, "edit") {
-		return domain.ErrCred
+	if err := s.authorizeEdit(ctx, username, "edit"); err != nil {
+		return err
 	}
 
 	if email != "" {
-		email, err = domain.ParseEmail(email)
+		email, err = domain.NormalizeEmail(email)
 		if err != nil {
 			return err
 		}
 	}
 
-	update := domain.User{
-		Email: email,
+	update := &domain.UserDiff{
+		Email: &email,
 	}
 
-	if err := s.repo.Update(ctx, username, &update); err != nil {
+	if err := s.repo.Update(ctx, username, update); err != nil {
 		if !errors.Is(err, domain.ErrNotFound) {
 			logger.Error("User.Service", "Failed to update the user's email address", err)
 		}
@@ -206,7 +209,7 @@ func (s *Service) ChangeEmail(ctx context.Context, username string, email string
 	return nil
 }
 
-func (s *Service) ChangePasswd(ctx context.Context, username string, passwd hash.Password) error {
+func (s *Service) ChangePermissions(ctx context.Context, username string, permissions uint32) error {
 	username, err := domain.NormalizeUsername(username)
 	if err != nil {
 		return err
@@ -217,25 +220,17 @@ func (s *Service) ChangePasswd(ctx context.Context, username string, passwd hash
 		return domain.ErrCred
 	}
 
-	if initiator != username && !auth.HasPermission(ctx, domain.UserEntityName, "edit") {
+	if initiator == username || !auth.HasPermission(ctx, domain.UserEntityName, "edit") || !auth.IsSubsetOf(ctx, permissions) {
 		return domain.ErrCred
 	}
 
-	if !s.pwd.IsValidPassword(passwd) {
-		return fmt.Errorf("%w: invalid password", domain.ErrInval)
+	update := &domain.UserDiff{
+		Permissions: &permissions,
 	}
 
-	pwdhash, err := s.pwd.Hash(passwd)
-	if err != nil {
-		logger.Error("User.Service", "Failed to hash the replacement password", err)
-		return err
-	}
-	defer clear(pwdhash)
-
-	err = s.repo.UpdatePasswd(ctx, username, pwdhash)
-	if err != nil {
+	if err := s.repo.Update(ctx, username, update); err != nil {
 		if !errors.Is(err, domain.ErrNotFound) {
-			logger.Error("User.Service", "Failed to reset the user's password", err)
+			logger.Error("User.Service", "Failed to update the user's permissions", err)
 		}
 		return err
 	}
@@ -243,32 +238,31 @@ func (s *Service) ChangePasswd(ctx context.Context, username string, passwd hash
 	return nil
 }
 
-func (s *Service) ChangePermissions(ctx context.Context, username string, perms uint32) error {
+func (s *Service) ChangePassword(ctx context.Context, username string, password hash.Password) error {
 	username, err := domain.NormalizeUsername(username)
 	if err != nil {
 		return err
 	}
 
-	level, ok := ctx.Value(auth.UserPermissionKey).(uint32)
-	if !ok {
-		return domain.ErrCred
-	}
-	initiator, ok := ctx.Value(auth.UserNameKey).(string)
-	if !ok {
-		return domain.ErrCred
+	if err := s.authorizeEdit(ctx, username, "edit"); err != nil {
+		return err
 	}
 
-	if initiator == username || !auth.HasPermission(ctx, domain.UserEntityName, "edit") || (level&perms) != perms {
-		return domain.ErrCred
+	if !s.pwd.IsValidPassword(password) {
+		return fmt.Errorf("%w: invalid password", domain.ErrInval)
 	}
 
-	update := domain.User{
-		Permissions: perms,
+	pwdhash, err := s.pwd.Hash(password)
+	if err != nil {
+		logger.Error("User.Service", "Failed to hash the replacement password", err)
+		return err
 	}
+	defer clear(pwdhash)
 
-	if err := s.repo.Update(ctx, username, &update); err != nil {
+	err = s.repo.UpdatePassword(ctx, username, pwdhash)
+	if err != nil {
 		if !errors.Is(err, domain.ErrNotFound) {
-			logger.Error("User.Service", "Failed to update the user's permissions", err)
+			logger.Error("User.Service", "Failed to reset the user's password", err)
 		}
 		return err
 	}

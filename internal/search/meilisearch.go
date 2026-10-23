@@ -9,7 +9,7 @@ import (
 	"github.com/meilisearch/meilisearch-go"
 )
 
-type MeilisearchDecorator struct {
+type MeilisearchClient struct {
 	Client   meilisearch.ServiceManager
 	Config   meilisearch.IndexConfig
 	Settings meilisearch.Settings
@@ -31,38 +31,38 @@ func NewMeilisearchConnection(host string, port string, apiKey string) meilisear
 	return client
 }
 
-func (d *MeilisearchDecorator) CreateMeilisearchIndex(ctx context.Context) error {
+func (d *MeilisearchClient) CreateIndex(ctx context.Context) error {
 	config := d.Config
 	task, err := d.Client.CreateIndexWithContext(ctx, &config)
 	if err != nil {
 		return err
 	}
 	logger.Info("Search.Meilisearch", "Search index creation enqueued")
-	if err := d.WaitForMeilisearchTask(ctx, task); err != nil {
+	if err := d.WaitForTask(ctx, task); err != nil {
 		return err
 	}
 
-	err = d.ConfigureMeilisearchIndex(ctx)
+	err = d.ConfigureIndex(ctx)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (d *MeilisearchDecorator) WipeMeilisearchIndex(ctx context.Context) error {
+func (d *MeilisearchClient) WipeIndex(ctx context.Context) error {
 	config := d.Config
 	task, err := d.Client.DeleteIndexWithContext(ctx, config.Uid)
 	if err != nil {
 		return err
 	}
 	logger.Info("Search.Meilisearch", "Search index deletion enqueued")
-	if err := d.WaitForMeilisearchTask(ctx, task); err != nil {
+	if err := d.WaitForTask(ctx, task); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (d *MeilisearchDecorator) ConfigureMeilisearchIndex(ctx context.Context) error {
+func (d *MeilisearchClient) ConfigureIndex(ctx context.Context) error {
 	config := d.Config
 	settings := d.Settings
 	task, err := d.Client.Index(config.Uid).UpdateSettingsWithContext(ctx, &settings)
@@ -70,13 +70,13 @@ func (d *MeilisearchDecorator) ConfigureMeilisearchIndex(ctx context.Context) er
 		return err
 	}
 	logger.Info("Search.Meilisearch", "Search index settings update enqueued")
-	if err := d.WaitForMeilisearchTask(ctx, task); err != nil {
+	if err := d.WaitForTask(ctx, task); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (d *MeilisearchDecorator) WaitForMeilisearchTask(ctx context.Context, info *meilisearch.TaskInfo) error {
+func (d *MeilisearchClient) WaitForTask(ctx context.Context, info *meilisearch.TaskInfo) error {
 	task, err := d.Client.TaskManager().WaitForTaskWithContext(ctx, info.TaskUID, 100*time.Millisecond)
 	if err != nil {
 		return err

@@ -41,6 +41,7 @@ func (router *Router) AddAuthRoutes(handler *auth.Handler) {
 	limiter := server.NewRequestLimiter(RequestLimit)
 	m := server.ChainMiddleware(
 		limiter.Wrap,
+		server.RequireJSON,
 		router.auth,
 	)
 
@@ -55,6 +56,7 @@ func (router *Router) AddUserRoutes(handler *user.Handler) {
 	limiter := server.NewRequestLimiter(RequestLimit)
 	m := server.ChainMiddleware(
 		limiter.Wrap,
+		server.RequireJSON,
 		router.auth,
 	)
 
@@ -63,7 +65,7 @@ func (router *Router) AddUserRoutes(handler *user.Handler) {
 	router.mux.Handle("GET /cms/users", m(handler.All))
 	router.mux.Handle("GET /cms/users/{username}", m(handler.Get))
 	router.mux.Handle("PATCH /cms/users/{username}/email", m(handler.ChangeEmail))
-	router.mux.Handle("PATCH /cms/users/{username}/password", m(handler.ResetPasswd))
+	router.mux.Handle("PATCH /cms/users/{username}/password", m(handler.ResetPassword))
 	router.mux.Handle("PATCH /cms/users/{username}/permissions", m(handler.UpdatePermissions))
 	router.mux.Handle("DELETE /cms/users/{username}", m(handler.Suspend))
 }
@@ -72,6 +74,7 @@ func (router *Router) AddEditorRoutes(handler *editor.Handler) {
 	streamLimiter := server.NewRequestLimiter(ContentLimit)
 	m := server.ChainMiddleware(
 		streamLimiter.Wrap,
+		server.RequireJSON,
 		router.auth,
 		locale.Middleware,
 	)
@@ -88,6 +91,7 @@ func (router *Router) AddLocaleRoutes(handler *locale.Handler) {
 	limiter := server.NewRequestLimiter(RequestLimit)
 	m := server.ChainMiddleware(
 		limiter.Wrap,
+		server.RequireJSON,
 		router.auth,
 	)
 
@@ -100,6 +104,7 @@ func (router *Router) AddPostRoutes(handler *post.Handler) {
 	streamLimiter := server.NewRequestLimiter(ContentLimit)
 	m := server.ChainMiddleware(
 		streamLimiter.Wrap,
+		server.RequireJSON,
 		router.auth,
 		locale.Middleware,
 	)
@@ -117,6 +122,7 @@ func (router *Router) AddCategoryRoutes(handler *category.Handler) {
 	limiter := server.NewRequestLimiter(RequestLimit)
 	m := server.ChainMiddleware(
 		limiter.Wrap,
+		server.RequireJSON,
 		router.auth,
 		locale.Middleware,
 	)
@@ -133,6 +139,7 @@ func (router *Router) AddAdsRoutes(handler *ads.Handler) {
 	limiter := server.NewRequestLimiter(RequestLimit)
 	m := server.ChainMiddleware(
 		limiter.Wrap,
+		server.RequireJSON,
 		router.auth,
 	)
 
@@ -168,6 +175,7 @@ func (router *Router) AddPublicoutes(handler *public.Handler) {
 	limiter := server.NewRequestLimiter(RequestLimit)
 	m := server.ChainMiddleware(
 		limiter.Wrap,
+		server.RequireJSON,
 		locale.Middleware,
 	)
 

@@ -42,7 +42,7 @@ func CreateUser(ctx context.Context, app *Container) error {
 	svc := app.Users.Service
 
 	var username string
-	var passwd []byte
+	var password []byte
 	var permissions uint32
 
 	for username == "" {
@@ -81,7 +81,7 @@ func CreateUser(ctx context.Context, app *Container) error {
 		}
 	}
 
-	for len(passwd) == 0 {
+	for len(password) == 0 {
 		input, err := ReadBytes("Enter password")
 		if err != nil {
 			logger.Error("User create", "Failed to read input string", err)
@@ -96,7 +96,7 @@ func CreateUser(ctx context.Context, app *Container) error {
 
 		if bytes.Equal(input, confirm) {
 			clear(confirm)
-			passwd = input
+			password = input
 		} else {
 			fmt.Printf("Passwords do not match\n")
 			clear(input)
@@ -111,11 +111,11 @@ func CreateUser(ctx context.Context, app *Container) error {
 
 	injected := context.WithValue(ctx, auth.UserPermissionKey, domain.OnEntityC("users"))
 
-	if _, err := svc.Create(injected, &user, passwd); err != nil {
+	if _, err := svc.Create(injected, &user, password); err != nil {
 		logger.Error("User create", "Failed to register new user", err)
 		return err
 	}
-	clear(passwd)
+	clear(password)
 	fmt.Println("User was created successfully")
 	return nil
 }

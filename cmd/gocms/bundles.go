@@ -86,7 +86,7 @@ func NewAuthBundle(users auth.UserManager, sessions session.Repository) *AuthBun
 func NewUserBundle(db *gorm.DB, search meilisearch.ServiceManager, redis *redis.Client, pwd hash.PasswordService) *UserBundle {
 	redisCfg := user.RedisConfig{
 		Client:    redis,
-		Ttl:       30 * time.Minute,
+		TTL:       30 * time.Minute,
 		KeyFormat: "cms:users:%s",
 	}
 
@@ -111,7 +111,7 @@ func NewUserBundle(db *gorm.DB, search meilisearch.ServiceManager, redis *redis.
 func NewPostBundle(db *gorm.DB, search meilisearch.ServiceManager, redis *redis.Client) *PostBundle {
 	redisCfg := post.RedisConfig{
 		Client:    redis,
-		Ttl:       30 * time.Minute,
+		TTL:       30 * time.Minute,
 		KeyFormat: "cms:posts:%d:%s",
 	}
 
@@ -132,7 +132,7 @@ func NewPostBundle(db *gorm.DB, search meilisearch.ServiceManager, redis *redis.
 func NewCategoryBundle(db *gorm.DB, search meilisearch.ServiceManager, redis *redis.Client) *CategoryBundle {
 	redisCfg := category.RedisConfig{
 		Client:    redis,
-		Ttl:       120 * time.Minute,
+		TTL:       120 * time.Minute,
 		KeyFormat: "cms:categories:%s:%s",
 	}
 
@@ -153,7 +153,7 @@ func NewCategoryBundle(db *gorm.DB, search meilisearch.ServiceManager, redis *re
 func NewEditorBundle(db *gorm.DB, search meilisearch.ServiceManager, redis *redis.Client) *EditorBundle {
 	redisCfg := editor.RedisConfig{
 		Client:    redis,
-		Ttl:       60 * time.Minute,
+		TTL:       60 * time.Minute,
 		KeyFormat: "cms:editors:%s:%s",
 	}
 
@@ -174,7 +174,7 @@ func NewEditorBundle(db *gorm.DB, search meilisearch.ServiceManager, redis *redi
 func NewAdsBundle(db *gorm.DB, search meilisearch.ServiceManager, redis *redis.Client) *AdsBundle {
 	redisCfg := ads.RedisConfig{
 		Client:    redis,
-		Ttl:       60 * time.Minute,
+		TTL:       60 * time.Minute,
 		KeyFormat: "cms:ads:%d",
 	}
 
@@ -195,7 +195,7 @@ func NewAdsBundle(db *gorm.DB, search meilisearch.ServiceManager, redis *redis.C
 func NewLocaleBundle(db *gorm.DB, redis *redis.Client) *LocaleBundle {
 	redisCfg := locale.RedisConfig{
 		Client:    redis,
-		Ttl:       24 * time.Hour,
+		TTL:       24 * time.Hour,
 		KeyFormat: "cms:locales",
 	}
 

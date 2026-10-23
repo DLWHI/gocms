@@ -101,7 +101,7 @@ func (s *Service) ChangePasswd(ctx context.Context, username string, oldPwd hash
 		return err
 	}
 
-	err = s.users.ChangePasswd(ctx, username, newPwd)
+	err = s.users.ChangePassword(ctx, username, newPwd)
 	clear(newPwd)
 	if err != nil {
 		logger.Error("User.Service", "Failed to update the user's password", err)

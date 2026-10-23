@@ -23,7 +23,7 @@ var (
 	`)
 )
 
-type RedisDecorator struct {
+type RedisClient struct {
 	Client   *redis.Client
 	LeaseTTL time.Duration
 }
@@ -53,7 +53,7 @@ func NewRedisConnection(host string, port string) (*redis.Client, error) {
 	return rdb, nil
 }
 
-func (r *RedisDecorator) Get(ctx context.Context, key string, ptr any) error {
+func (r *RedisClient) Get(ctx context.Context, key string, ptr any) error {
 	cached, err := r.Client.Get(ctx, key).Result()
 	if err != nil {
 		return err
@@ -67,15 +67,15 @@ func (r *RedisDecorator) Get(ctx context.Context, key string, ptr any) error {
 	return nil
 }
 
-func (r *RedisDecorator) Lease(ctx context.Context, key string) (string, error) {
+func (r *RedisClient) Lease(ctx context.Context, key string) (string, error) {
 	token := leasePrefix + strconv.FormatUint(rand.Uint64(), 36)
-	if _, err := r.Client.SetNX(ctx, key, token, r.LeaseTTL).Result(); err != nil {
+	if res, err := r.Client.SetNX(ctx, key, token, r.LeaseTTL).Result(); err != nil || !res {
 		return "", err
 	}
 	return token, nil
 }
 
-func (r *RedisDecorator) Return(ctx context.Context, key string, token string, ptrval any, ttl time.Duration) error {
+func (r *RedisClient) Return(ctx context.Context, key string, token string, ptrval any, ttl time.Duration) error {
 	data, err := json.Marshal(ptrval)
 	if err != nil {
 		return fmt.Errorf("%w: %v", domain.ErrInval, err)

@@ -7,6 +7,7 @@ import (
 	"gocms/internal/domain"
 	"gocms/internal/flow"
 	"gocms/internal/outbox"
+	"maps"
 	"time"
 
 	"gorm.io/gorm"
@@ -61,34 +62,26 @@ func (r *GORMRepository) Create(ctx context.Context, user *domain.User, pwdhash 
 	return nil
 }
 
-func (r *GORMRepository) Update(ctx context.Context, username string, update *domain.UserDiff) error {
-	err := flow.DoWithRetry(ctx, r.retries, r.backoff, func() error {
-		return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-			var user Record
-			if err := tx.Omit("Password").Where("username = ?", username).Take(&user).Error; err != nil {
+func (r *GORMRepository) Update(ctx context.Context, username string, diff map[string]interface{}) error {
+	return r.mapErr(r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		if len(diff) > 0 {
+			update := patch(diff)
+			result := tx.Model(&Record{}).
+				Select("email", "permissions", "version").
+				Where("username = ?", username).
+				Updates(update)
+			if result.Error != nil {
+				return result.Error
+			}
+			if result.RowsAffected == 0 {
+				return domain.ErrNotFound
+			}
+			if err := r.writeMessage(tx, domain.UserActionUpdate, username); err != nil {
 				return err
 			}
-			diff := Map(update)
-			if len(diff) > 0 {
-				diff["version"] = gorm.Expr("version + 1")
-				result := tx.Model(&Record{}).
-					Select("").
-					Where("username = ? AND version = ?", username, user.Version).
-					Updates(diff)
-				if result.Error != nil {
-					return result.Error
-				}
-				if result.RowsAffected == 0 {
-					return domain.ErrRetry
-				}
-				if err := r.writeMessage(tx, domain.UserActionUpdate, username); err != nil {
-					return err
-				}
-			}
-			return nil
-		})
-	})
-	return r.mapErr(err)
+		}
+		return nil
+	}))
 }
 
 func (r *GORMRepository) UpdateLogin(ctx context.Context, username string, timestamp time.Time) (*domain.User, error) {
@@ -265,16 +258,10 @@ func (r *GORMRepository) mapErr(err error) error {
 	}
 }
 
-func Map(update *domain.UserDiff) map[string]interface{} {
-	diff := make(map[string]interface{})
-
-	if update.Permissions != nil {
-		diff["permissions"] = *update.Permissions
-	}
-	if update.Email != nil {
-		diff["email"] = *update.Email
-	}
-	return diff
+func patch(diff map[string]interface{}) map[string]interface{} {
+	p := maps.Clone(diff)
+	p["version"] = gorm.Expr("version + 1")
+	return p
 }
 
 func (rd *Record) ToDomain() domain.User {
@@ -282,11 +269,13 @@ func (rd *Record) ToDomain() domain.User {
 	res.Username = rd.Username
 
 	if rd.SuspendedAt.Valid {
-		res.SuspendedAt = rd.SuspendedAt.Time.Unix()
+		t := rd.SuspendedAt.Time.Unix()
+		res.SuspendedAt = &t
 	}
 
 	if rd.LastLogin != nil {
-		res.LastLogin = rd.LastLogin.Unix()
+		t := rd.LastLogin.Unix()
+		res.LastLogin = &t
 	}
 
 	res.Email = rd.Email
@@ -297,15 +286,15 @@ func (rd *Record) ToDomain() domain.User {
 func ToRecord(data *domain.User) Record {
 	var res Record
 
-	if data.SuspendedAt != 0 {
+	if data.SuspendedAt != nil {
 		res.SuspendedAt = gorm.DeletedAt{
-			Time:  time.Unix(data.SuspendedAt, 0).UTC(),
+			Time:  time.Unix(*data.SuspendedAt, 0).UTC(),
 			Valid: true,
 		}
 	}
 
-	if data.LastLogin != 0 {
-		t := time.Unix(data.LastLogin, 0).UTC()
+	if data.LastLogin != nil {
+		t := time.Unix(*data.LastLogin, 0).UTC()
 		res.LastLogin = &t
 	}
 

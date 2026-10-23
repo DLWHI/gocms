@@ -46,18 +46,19 @@ func (s *Service) Create(ctx context.Context, user *domain.User, password hash.P
 		return "", fmt.Errorf("%w: invalid password", domain.ErrInval)
 	}
 
+	var created domain.User
 	username, err := domain.NormalizeUsername(user.Username)
 	if err != nil {
 		return "", err
 	}
-	user.Username = username
+	created.Username = username
 
 	if user.Email != "" {
 		email, err := domain.NormalizeEmail(user.Email)
 		if err != nil {
 			return "", err
 		}
-		user.Email = email
+		created.Email = email
 	}
 
 	pwdhash, err := s.pwd.Hash(password)
@@ -67,11 +68,12 @@ func (s *Service) Create(ctx context.Context, user *domain.User, password hash.P
 	}
 	defer clear(pwdhash)
 
-	if user.Permissions == 0 {
-		user.Permissions = domain.RoleEditor
+	created.Permissions = user.Permissions
+	if created.Permissions == 0 {
+		created.Permissions = domain.RoleEditor
 	}
 
-	err = s.repo.Create(ctx, user, pwdhash)
+	err = s.repo.Create(ctx, &created, pwdhash)
 	if err != nil {
 		if !errors.Is(err, domain.ErrDuplicate) {
 			logger.Error("User.Service", "Failed to create user", err)
@@ -79,7 +81,7 @@ func (s *Service) Create(ctx context.Context, user *domain.User, password hash.P
 		return "", err
 	}
 
-	return user.Username, nil
+	return created.Username, nil
 }
 
 func (s *Service) Get(ctx context.Context, username string) (*domain.User, error) {
@@ -195,8 +197,8 @@ func (s *Service) ChangeEmail(ctx context.Context, username string, email string
 		}
 	}
 
-	update := &domain.UserDiff{
-		Email: &email,
+	update := map[string]interface{}{
+		"email": email,
 	}
 
 	if err := s.repo.Update(ctx, username, update); err != nil {
@@ -224,8 +226,8 @@ func (s *Service) ChangePermissions(ctx context.Context, username string, permis
 		return domain.ErrCred
 	}
 
-	update := &domain.UserDiff{
-		Permissions: &permissions,
+	update := map[string]interface{}{
+		"permissions": permissions,
 	}
 
 	if err := s.repo.Update(ctx, username, update); err != nil {

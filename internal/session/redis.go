@@ -106,7 +106,7 @@ func (s *RedisRepository) Update(ctx context.Context, user *domain.User) (*Sessi
 
 	sessionKey := fmt.Sprintf("cms:sessions:%s", session.ID)
 
-	login := time.Unix(session.User.LastLogin, 0)
+	login := time.Unix(*session.User.LastLogin, 0)
 	elapsed := time.Since(login)
 	if elapsed >= s.ttl {
 		expire := time.Now().Add(elapsed)

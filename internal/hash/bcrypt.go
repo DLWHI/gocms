@@ -11,31 +11,40 @@ import (
 type BCryptService struct {
 	cost      uint
 	maxLength uint
+	minLength uint
 	charset   string
 	dummy     []byte
 }
 
-func NewBCryptService(cost uint) *BCryptService {
+func NewBCryptService(cost uint, minLength uint) *BCryptService {
 	if cost < 4 {
-		logger.Warn("BCryptService", "Provided cost is to low, clamped it to 4", nil)
+		logger.Warn("BCryptService", "Provided cost is too low, clamped it to 4", nil)
 		cost = 4
-	} else if cost > 31 {
-		logger.Warn("BCryptService", "Provided cost is to high, clamped it to 31", nil)
-		cost = 31
+	} else if cost > 15 {
+		logger.Warn("BCryptService", "Provided cost is too high, clamped it to 15", nil)
+		cost = 15
+	}
+
+	if minLength > 36 {
+		logger.Warn("BCryptService", "Minimum password length is too high, clamping to 36", nil)
+		minLength = 36
 	}
 
 	gen := BCryptService{
 		cost:      cost,
 		maxLength: 72,
+		minLength: minLength,
 		charset:   "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()-_=+[]{}|;:,.<>?",
 	}
 
 	pwd, err := gen.GeneratePassword(16)
 	if err != nil {
+		logger.Warn("BCryptService", "Failed to generate dummy password, your application in vulnerable", err)
 		return &gen
 	}
 	dummyHash, err := gen.Hash(pwd)
 	if err != nil {
+		logger.Warn("BCryptService", "Failed to generate dummy password, your application in vulnerable", err)
 		return &gen
 	}
 	gen.dummy = dummyHash
@@ -79,7 +88,7 @@ func (h *BCryptService) GeneratePassword(length int) (Password, error) {
 }
 
 func (h *BCryptService) IsValidPassword(password Password) bool {
-	if len(password) == 0 || len(password) > int(h.maxLength) {
+	if len(password) < int(h.minLength) || len(password) > int(h.maxLength) {
 		return false
 	}
 	return true

@@ -23,8 +23,8 @@ type User struct {
 	Username    string `json:"username"`
 	Email       string `json:"email"`
 	Permissions uint32 `json:"permissions"`
-	SuspendedAt int64  `json:"suspended_at,omitempty"`
-	LastLogin   int64  `json:"last_login"`
+	SuspendedAt *int64 `json:"suspended_at"`
+	LastLogin   *int64 `json:"last_login"`
 }
 
 type UserDiff struct {
@@ -38,13 +38,13 @@ type UserEvent struct {
 }
 
 func IsInvalidUsernameRune(r rune) bool {
-	isAlpha := 'a' <= r && r <= 'z'
+	isAlpha := 'a' <= r && r <= 'z' || 'A' <= r && r <= 'Z'
 	isDigit := '0' <= r && r <= '9'
 	return !(isAlpha || isDigit || r == '-' || r == '_')
 }
 
 func NormalizeUsername(value string) (string, error) {
-	normalized := strings.TrimSpace(strings.ToLower(value))
+	normalized := strings.TrimSpace(value)
 	if normalized == "" {
 		return "", fmt.Errorf("%w: username cannot be empty", ErrInval)
 	}
@@ -55,7 +55,7 @@ func NormalizeUsername(value string) (string, error) {
 		return "", fmt.Errorf("%w: username must contain only letters, numbers, dashes or underscores", ErrInval)
 	}
 
-	return normalized, nil
+	return strings.ToLower(normalized), nil
 }
 
 func NormalizeEmail(email string) (string, error) {

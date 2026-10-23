@@ -51,12 +51,12 @@ func (h *Handler) create(w http.ResponseWriter, r *http.Request) {
 		domain.User
 		Password hash.Password `json:"password"`
 	}
-	defer clear(payload.Password)
-
 	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+		clear(payload.Password)
 		http.Error(w, "Invalid JSON payload", http.StatusBadRequest)
 		return
 	}
+	defer clear(payload.Password)
 
 	if _, err := h.userService.Create(r.Context(), &payload.User, payload.Password); err != nil {
 		server.ServeMessage(w, "User", err)
@@ -149,12 +149,13 @@ func (h *Handler) resetPassword(w http.ResponseWriter, r *http.Request) {
 	var payload struct {
 		Password hash.Password `json:"password"`
 	}
-	defer clear(payload.Password)
 
 	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+		clear(payload.Password)
 		http.Error(w, "Invalid JSON payload", http.StatusBadRequest)
 		return
 	}
+	defer clear(payload.Password)
 
 	if err := h.userService.ChangePassword(r.Context(), username, payload.Password); err != nil {
 		server.ServeMessage(w, "User", err)

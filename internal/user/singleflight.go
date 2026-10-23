@@ -45,9 +45,9 @@ func (r *SingleflightRepository) UpdateLogin(ctx context.Context, username strin
 	return user, nil
 }
 
-func (r *SingleflightRepository) Update(ctx context.Context, username string, user *domain.UserDiff) error {
+func (r *SingleflightRepository) Update(ctx context.Context, username string, diff map[string]interface{}) error {
 	key := fmt.Sprintf(r.keyFormat, username)
-	if err := r.Repository.Update(ctx, username, user); err != nil {
+	if err := r.Repository.Update(ctx, username, diff); err != nil {
 		return err
 	}
 	r.group.Forget(key)

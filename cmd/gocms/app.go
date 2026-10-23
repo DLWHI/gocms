@@ -77,7 +77,7 @@ func (app *Container) Init(ctx context.Context, cfg Config) error {
 		return err
 	}
 
-	passwords := hash.NewBCryptService(12)
+	passwords := hash.NewBCryptService(12, 8)
 	sessions := session.NewRedisRepository(redis, 24*time.Hour)
 
 	categories := NewCategoryBundle(db, search, redis)

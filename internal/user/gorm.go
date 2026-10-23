@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"gocms/internal/domain"
-	"gocms/internal/flow"
 	"gocms/internal/outbox"
 	"maps"
 	"time"
@@ -127,36 +126,24 @@ func (r *GORMRepository) UpdatePassword(ctx context.Context, username string, pw
 	if len(pwdhash) == 0 {
 		return fmt.Errorf("%w: empty password", domain.ErrInval)
 	}
-	err := flow.DoWithRetry(ctx, r.retries, r.backoff, func() error {
-		return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-			var version uint
-			err := tx.Model(&Record{}).
-				Select("Version").
-				Where("username = ?", username).
-				Take(&version).Error
-			if err != nil {
-				return err
-			}
-
-			result := tx.Model(&Record{}).
-				Where("username = ? AND version = ?", username, version).
-				Updates(map[string]any{
-					"password": pwdhash,
-					"version":  gorm.Expr("version + 1"),
-				})
-			if result.Error != nil {
-				return result.Error
-			}
-			if result.RowsAffected == 0 {
-				return domain.ErrRetry
-			}
-			if err := r.writeMessage(tx, domain.UserActionPassword, username); err != nil {
-				return err
-			}
-			return nil
-		})
-	})
-	return r.mapErr(err)
+	return r.mapErr(r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		result := tx.Model(&Record{}).
+			Where("username = ?", username).
+			Updates(map[string]any{
+				"password": pwdhash,
+				"version":  gorm.Expr("version + 1"),
+			})
+		if result.Error != nil {
+			return result.Error
+		}
+		if result.RowsAffected == 0 {
+			return domain.ErrNotFound
+		}
+		if err := r.writeMessage(tx, domain.UserActionPassword, username); err != nil {
+			return err
+		}
+		return nil
+	}))
 }
 
 func (r *GORMRepository) Get(ctx context.Context, username string) (*domain.User, error) {

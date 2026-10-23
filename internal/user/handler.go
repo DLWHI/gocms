@@ -123,14 +123,16 @@ func (h *Handler) changeEmail(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var payload domain.UserDiff
+	var payload struct {
+		Email string `json:"email"`
+	}
 
-	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil || payload.Email == nil {
+	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
 		http.Error(w, "Invalid JSON payload", http.StatusBadRequest)
 		return
 	}
 
-	if err := h.userService.ChangeEmail(r.Context(), username, *payload.Email); err != nil {
+	if err := h.userService.ChangeEmail(r.Context(), username, payload.Email); err != nil {
 		server.ServeMessage(w, "User", err)
 		return
 	}
@@ -173,13 +175,15 @@ func (h *Handler) updatePermissions(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var payload domain.UserDiff
-	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil || payload.Permissions == nil {
+	var payload struct {
+		Permissions uint32 `json:"permissions"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
 		http.Error(w, "Invalid JSON payload", http.StatusBadRequest)
 		return
 	}
 
-	if err := h.userService.ChangePermissions(r.Context(), username, *payload.Permissions); err != nil {
+	if err := h.userService.ChangePermissions(r.Context(), username, payload.Permissions); err != nil {
 		server.ServeMessage(w, "User", err)
 		return
 	}

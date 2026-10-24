@@ -17,6 +17,7 @@ const (
 	UserEntityName = "users"
 
 	MaxUsernameLength = 64
+	MaxEmailLength    = 254
 )
 
 type User struct {
@@ -59,6 +60,9 @@ func NormalizeUsername(value string) (string, error) {
 }
 
 func NormalizeEmail(email string) (string, error) {
+	if len(email) > MaxEmailLength {
+		return "", fmt.Errorf("%w: email too long", ErrInval)
+	}
 	parsed, err := mail.ParseAddress(email)
 	if err != nil || parsed.Name != "" {
 		return "", fmt.Errorf("%w: invalid email", ErrInval)

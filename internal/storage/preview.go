@@ -1,12 +1,11 @@
 package storage
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"image"
 	"io"
-
-	"github.com/chai2010/webp"
 
 	"gocms/internal/domain"
 	internalImage "gocms/internal/image"
@@ -14,6 +13,8 @@ import (
 	_ "image/gif"
 	_ "image/jpeg"
 	_ "image/png"
+
+	"github.com/HugoSmits86/nativewebp"
 )
 
 func GeneratePreview(file io.Reader, width int, height int) ([]byte, error) {
@@ -27,10 +28,13 @@ func GeneratePreview(file io.Reader, width int, height int) ([]byte, error) {
 
 	preview := internalImage.Contain(img, width, height)
 
-	data, err := webp.EncodeRGBA(preview, 0.7)
-	if err != nil {
+	writer := &bytes.Buffer{}
+	options := nativewebp.Options{
+		CompressionLevel: nativewebp.DefaultCompression,
+	}
+	if err := nativewebp.Encode(writer, preview, &options); err != nil {
 		return nil, err
 	}
 
-	return data, nil
+	return writer.Bytes(), nil
 }

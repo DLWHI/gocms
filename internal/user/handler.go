@@ -3,7 +3,7 @@ package user
 import (
 	"encoding/json"
 	"gocms/internal/domain"
-	"gocms/internal/hash"
+	"gocms/internal/password"
 	"gocms/internal/server"
 	"net/http"
 )
@@ -49,7 +49,7 @@ func NewHandler(s *Service) *Handler {
 func (h *Handler) create(w http.ResponseWriter, r *http.Request) {
 	var payload struct {
 		domain.User
-		Password hash.Password `json:"password"`
+		Password password.Password `json:"password"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
 		clear(payload.Password)
@@ -149,7 +149,7 @@ func (h *Handler) resetPassword(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var payload struct {
-		Password hash.Password `json:"password"`
+		Password password.Password `json:"password"`
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {

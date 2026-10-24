@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"gocms/internal/auth"
 	"gocms/internal/domain"
-	"gocms/internal/hash"
 	"gocms/internal/logger"
+	"gocms/internal/password"
 	"gocms/internal/search"
 	"time"
 )
@@ -15,10 +15,10 @@ import (
 type Service struct {
 	repo Repository
 	se   SearchEngine
-	pwd  hash.PasswordService
+	pwd  password.PasswordService
 }
 
-func NewService(repo Repository, se SearchEngine, pwd hash.PasswordService) *Service {
+func NewService(repo Repository, se SearchEngine, pwd password.PasswordService) *Service {
 	return &Service{
 		repo: repo,
 		se:   se,
@@ -37,7 +37,7 @@ func (s *Service) authorizeEdit(ctx context.Context, username string, action str
 	return nil
 }
 
-func (s *Service) Create(ctx context.Context, user *domain.User, password hash.Password) (string, error) {
+func (s *Service) Create(ctx context.Context, user *domain.User, password password.Password) (string, error) {
 	if !auth.HasPermission(ctx, domain.UserEntityName, "create") || !auth.IsSubsetOf(ctx, user.Permissions) {
 		return "", domain.ErrCred
 	}
@@ -142,7 +142,7 @@ func (s *Service) Suspend(ctx context.Context, username string) error {
 	return nil
 }
 
-func (s *Service) PasswordMatches(ctx context.Context, username string, password hash.Password) error {
+func (s *Service) PasswordMatches(ctx context.Context, username string, password password.Password) error {
 	username, err := domain.NormalizeUsername(username)
 	if err != nil {
 		return domain.ErrCred
@@ -240,7 +240,7 @@ func (s *Service) ChangePermissions(ctx context.Context, username string, permis
 	return nil
 }
 
-func (s *Service) ChangePassword(ctx context.Context, username string, password hash.Password) error {
+func (s *Service) ChangePassword(ctx context.Context, username string, password password.Password) error {
 	username, err := domain.NormalizeUsername(username)
 	if err != nil {
 		return err

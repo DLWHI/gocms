@@ -53,6 +53,8 @@ func ServeMessage(w http.ResponseWriter, entity string, err error) {
 		http.Error(w, "Invalid or expired session", http.StatusUnauthorized)
 	} else if errors.Is(err, domain.ErrInval) {
 		http.Error(w, fmt.Sprintf("%v", err), http.StatusBadRequest)
+	} else if errors.Is(err, domain.ErrDuplicate) {
+		http.Error(w, fmt.Sprintf("%v", err), http.StatusConflict)
 	} else if errors.Is(err, domain.ErrNotFound) {
 		http.Error(w, fmt.Sprintf("%s not found", entity), http.StatusNotFound)
 	} else {

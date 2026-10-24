@@ -42,63 +42,15 @@ func HasPermission(permissions uint32, entity string, action string) bool {
 	return false
 }
 
-func OnEntityC(entity string) uint32 {
+func PermissionsOnEntity(entity string, acts ...string) uint32 {
 	if offset, exists := entites[entity]; exists {
-		mask := actions["create"]
+		var mask uint32
+		for _, action := range acts {
+			if val, ok := actions[action]; ok {
+				mask |= val
+			}
+		}
 		return mask << offset
-	}
-	return 0
-}
-
-func OnEntityE(entity string) uint32 {
-	if offset, exists := entites[entity]; exists {
-		mask := actions["edit"]
-		return mask << offset
-	}
-	return 0
-}
-
-func OnEntityD(entity string) uint32 {
-	if offset, exists := entites[entity]; exists {
-		mask := actions["delete"]
-		return mask << offset
-	}
-	return 0
-}
-
-func OnEntityCE(entity string) uint32 {
-	if offset, exists := entites[entity]; exists {
-		create := actions["create"]
-		edit := actions["edit"]
-		return (create | edit) << offset
-	}
-	return 0
-}
-
-func OnEntityCD(entity string) uint32 {
-	if offset, exists := entites[entity]; exists {
-		create := actions["create"]
-		delete := actions["delete"]
-		return (create | delete) << offset
-	}
-	return 0
-}
-
-func OnEntityDE(entity string) uint32 {
-	if offset, exists := entites[entity]; exists {
-		edit := actions["edit"]
-		delete := actions["delete"]
-		return (edit | delete) << offset
-	}
-	return 0
-}
-
-func OnEntityCED(entity string) uint32 {
-	if offset, exists := entites[entity]; exists {
-		create := actions["create"]
-		edit := actions["edit"]
-		delete := actions["delete"]
-		return (create | edit | delete) << offset
 	}
 	return 0
 }

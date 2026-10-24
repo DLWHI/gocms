@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"gocms/internal/domain"
-	"gocms/internal/hash"
+	"gocms/internal/password"
 	"gocms/internal/server"
 	"net/http"
 )
@@ -40,8 +40,8 @@ func NewHandler(s *Service) *Handler {
 // POST /login - Login
 func (h *Handler) login(w http.ResponseWriter, r *http.Request) {
 	var payload struct {
-		Username string        `json:"username"`
-		Passwd   hash.Password `json:"passwd"`
+		Username string            `json:"username"`
+		Passwd   password.Password `json:"passwd"`
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
@@ -107,8 +107,8 @@ func (h *Handler) changePasswd(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var payload struct {
-		OldPasswd hash.Password `json:"old_password"`
-		NewPaswd  hash.Password `json:"new_password"`
+		OldPasswd password.Password `json:"old_password"`
+		NewPaswd  password.Password `json:"new_password"`
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {

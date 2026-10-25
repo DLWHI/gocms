@@ -1,9 +1,14 @@
 package test
 
 import (
+	"context"
+	"encoding/json"
 	"fmt"
+	"gocms/internal/domain"
 	"gocms/internal/password"
+	"gocms/internal/user"
 	"net/http"
+	"os"
 
 	"gorm.io/gorm"
 )
@@ -38,13 +43,55 @@ type Environment struct {
 	TestData *Data
 }
 
-func (e *Data) GetConstant(constant string) (string, error) {
-	if value, ok := e.Constants[constant]; ok {
+func LoadDataFromFile(path string, format string) (*Data, error) {
+	cases, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+
+	data := &Data{}
+	if err := json.NewDecoder(cases).Decode(data); err != nil {
+		return nil, err
+	}
+
+	if val, ok := data.Meta["format_version"]; !ok || fmt.Sprintf("%v", val) != format {
+		return nil, err
+	}
+
+	for _, actor := range data.Fixtures.Actors {
+		if actor.Permissions == 0 {
+			for entity, perms := range actor.Caps {
+				actor.Permissions |= domain.PermissionsOnEntity(entity, perms...)
+			}
+		}
+	}
+	return data, nil
+}
+
+func (e *Environment) Clear(ctx context.Context) error {
+
+	if err := e.DB.Unscoped().Where("1 = 1").Delete(&user.Record{}).Error; err != nil {
+		return err
+	}
+
+	task, err := e.Search.UsersIndex.DeleteAllDocumentsWithContext(ctx, nil)
+	if err != nil {
+		return err
+	}
+	if err := e.Search.WaitForTask(ctx, task); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (d *Data) GetConstant(constant string) (string, error) {
+	if value, ok := d.Constants[constant]; ok {
 		return fmt.Sprintf("%v", value), nil
 	}
 	return "", fmt.Errorf("Missing constant %s", constant)
 }
 
-func (e *Data) GetSessionOf(actor string) string {
-	return e.Fixtures.Actors[actor].Session
+func (d *Data) GetSessionOf(actor string) string {
+	return d.Fixtures.Actors[actor].Session
 }

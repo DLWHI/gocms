@@ -2,8 +2,11 @@ package password
 
 import (
 	"crypto/rand"
+	"fmt"
+	"gocms/internal/domain"
 	"gocms/internal/logger"
 	"math/big"
+	"unicode/utf8"
 
 	"golang.org/x/crypto/bcrypt"
 )
@@ -87,9 +90,12 @@ func (h *BCryptService) GeneratePassword(length int) (Password, error) {
 	return bytes, nil
 }
 
-func (h *BCryptService) IsValidPassword(password Password) bool {
-	if len(password) < int(h.minLength) || len(password) > int(h.maxLength) {
-		return false
+func (h *BCryptService) IsValidPassword(password Password) error {
+	if utf8.RuneCount(password) < int(h.minLength) {
+		return fmt.Errorf("%w: password too short", domain.ErrInval)
 	}
-	return true
+	if len(password) > int(h.maxLength) {
+		return fmt.Errorf("%w: password is too long", domain.ErrInval)
+	}
+	return nil
 }

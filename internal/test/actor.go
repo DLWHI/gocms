@@ -13,14 +13,10 @@ import (
 )
 
 type Actor struct {
-	Username    string   `json:"username"`
-	UsersCaps   []string `json:"users_caps"`
-	Permissions uint32   `json:"permissions"`
-	Session     string   `json:"-"`
-}
-
-func GetActorPermissions(entity string, actor *Actor) uint32 {
-	return domain.PermissionsOnEntity(entity, actor.UsersCaps...)
+	Username    string              `json:"username"`
+	Caps        map[string][]string `json:"caps"`
+	Permissions uint32              `json:"permissions"`
+	Session     string              `json:"-"`
 }
 
 func (a *Actor) PerformLogin(ctx context.Context, e *Environment, passwd Password) error {

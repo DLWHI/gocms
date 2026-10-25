@@ -3,7 +3,6 @@ package user
 import (
 	"context"
 	"errors"
-	"fmt"
 	"gocms/internal/auth"
 	"gocms/internal/domain"
 	"gocms/internal/logger"
@@ -42,8 +41,8 @@ func (s *Service) Create(ctx context.Context, user *domain.User, password passwo
 		return "", domain.ErrCred
 	}
 
-	if !s.pwd.IsValidPassword(password) {
-		return "", fmt.Errorf("%w: invalid password", domain.ErrInval)
+	if err := s.pwd.IsValidPassword(password); err != nil {
+		return "", err
 	}
 
 	var created domain.User
@@ -250,8 +249,8 @@ func (s *Service) ChangePassword(ctx context.Context, username string, password 
 		return err
 	}
 
-	if !s.pwd.IsValidPassword(password) {
-		return fmt.Errorf("%w: invalid password", domain.ErrInval)
+	if err := s.pwd.IsValidPassword(password); err != nil {
+		return err
 	}
 
 	pwdhash, err := s.pwd.Hash(password)

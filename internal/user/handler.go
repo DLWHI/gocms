@@ -50,16 +50,17 @@ func (h *Handler) create(w http.ResponseWriter, r *http.Request) {
 	var payload struct {
 		domain.User
 		Password password.Password `json:"password"`
+		Field    string            `json:"_"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
 		clear(payload.Password)
-		http.Error(w, "Invalid JSON payload", http.StatusBadRequest)
+		server.WriteDecodeError(w, err)
 		return
 	}
 	defer clear(payload.Password)
 
 	if _, err := h.userService.Create(r.Context(), &payload.User, payload.Password); err != nil {
-		server.ServeMessage(w, "User", err)
+		server.WriteServerError(w, "User", err)
 		return
 	}
 
@@ -70,7 +71,7 @@ func (h *Handler) create(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) all(w http.ResponseWriter, r *http.Request) {
 	users, err := h.userService.AllActive(r.Context())
 	if err != nil {
-		server.ServeMessage(w, "User", err)
+		server.WriteServerError(w, "User", err)
 		return
 	}
 
@@ -83,12 +84,12 @@ func (h *Handler) search(w http.ResponseWriter, r *http.Request) {
 	var filters SearchParams
 
 	if err := json.NewDecoder(r.Body).Decode(&filters); err != nil {
-		http.Error(w, "Invalid JSON payload", http.StatusBadRequest)
+		server.WriteDecodeError(w, err)
 		return
 	}
 	users, err := h.userService.Search(r.Context(), &filters)
 	if err != nil {
-		server.ServeMessage(w, "User", err)
+		server.WriteServerError(w, "User", err)
 		return
 	}
 
@@ -101,13 +102,13 @@ func (h *Handler) get(w http.ResponseWriter, r *http.Request) {
 	username := r.PathValue("username")
 
 	if username == "" {
-		http.Error(w, "Invalid user", http.StatusBadRequest)
+		server.WritePathError(w, "Invalid username provided")
 		return
 	}
 
 	user, err := h.userService.Get(r.Context(), username)
 	if err != nil {
-		server.ServeMessage(w, "User", err)
+		server.WriteServerError(w, "User", err)
 		return
 	}
 
@@ -119,7 +120,7 @@ func (h *Handler) get(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) changeEmail(w http.ResponseWriter, r *http.Request) {
 	username := r.PathValue("username")
 	if username == "" {
-		http.Error(w, "Username was not provided", http.StatusBadRequest)
+		server.WritePathError(w, "Invalid username provided")
 		return
 	}
 
@@ -128,12 +129,12 @@ func (h *Handler) changeEmail(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
-		http.Error(w, "Invalid JSON payload", http.StatusBadRequest)
+		server.WriteDecodeError(w, err)
 		return
 	}
 
 	if err := h.userService.ChangeEmail(r.Context(), username, payload.Email); err != nil {
-		server.ServeMessage(w, "User", err)
+		server.WriteServerError(w, "User", err)
 		return
 	}
 
@@ -144,7 +145,7 @@ func (h *Handler) changeEmail(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) resetPassword(w http.ResponseWriter, r *http.Request) {
 	username := r.PathValue("username")
 	if username == "" {
-		http.Error(w, "Username was not provided", http.StatusBadRequest)
+		server.WritePathError(w, "Invalid username provided")
 		return
 	}
 
@@ -154,13 +155,13 @@ func (h *Handler) resetPassword(w http.ResponseWriter, r *http.Request) {
 
 	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
 		clear(payload.Password)
-		http.Error(w, "Invalid JSON payload", http.StatusBadRequest)
+		server.WriteDecodeError(w, err)
 		return
 	}
 	defer clear(payload.Password)
 
 	if err := h.userService.ChangePassword(r.Context(), username, payload.Password); err != nil {
-		server.ServeMessage(w, "User", err)
+		server.WriteServerError(w, "User", err)
 		return
 	}
 
@@ -171,7 +172,7 @@ func (h *Handler) resetPassword(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) updatePermissions(w http.ResponseWriter, r *http.Request) {
 	username := r.PathValue("username")
 	if username == "" {
-		http.Error(w, "Username was not provided", http.StatusBadRequest)
+		server.WritePathError(w, "Invalid username provided")
 		return
 	}
 
@@ -179,12 +180,12 @@ func (h *Handler) updatePermissions(w http.ResponseWriter, r *http.Request) {
 		Permissions uint32 `json:"permissions"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
-		http.Error(w, "Invalid JSON payload", http.StatusBadRequest)
+		server.WriteDecodeError(w, err)
 		return
 	}
 
 	if err := h.userService.ChangePermissions(r.Context(), username, payload.Permissions); err != nil {
-		server.ServeMessage(w, "User", err)
+		server.WriteServerError(w, "User", err)
 		return
 	}
 
@@ -195,12 +196,12 @@ func (h *Handler) updatePermissions(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) suspend(w http.ResponseWriter, r *http.Request) {
 	username := r.PathValue("username")
 	if username == "" {
-		http.Error(w, "Unknown user", http.StatusBadRequest)
+		server.WritePathError(w, "Invalid username provided")
 		return
 	}
 
 	if err := h.userService.Suspend(r.Context(), username); err != nil {
-		server.ServeMessage(w, "User", err)
+		server.WriteServerError(w, "User", err)
 		return
 	}
 

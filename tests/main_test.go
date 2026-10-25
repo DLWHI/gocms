@@ -2,7 +2,6 @@ package tests
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"gocms/internal/logger"
 	"gocms/internal/test"
@@ -81,31 +80,13 @@ func TestUsers(t *testing.T) {
 	}()
 
 	ctx := t.Context()
-	logger.Info("Test.Users", "Opening and parsing test cases file")
-	cases, err := os.Open("./test_cases/users.json")
+	logger.Info("Test.Users", "Loading test data")
+	data, err := test.LoadDataFromFile("./test_cases/users.json", "1")
 	if err != nil {
-		logger.Error("Test.Users", "Failed to open test cases file", err)
+		logger.Error("Test.Users", "Failed to load test data", err)
 		t.FailNow()
 	}
-
-	data := &test.Data{}
-	if err := json.NewDecoder(cases).Decode(data); err != nil {
-		logger.Error("Test.Users", "Failed to parse test cases", err)
-		t.FailNow()
-	}
-
-	if val, ok := data.Meta["format_version"]; !ok || fmt.Sprintf("%v", val) != "1" {
-		logger.Error("Test.Users", "Unsupported or missing format version", err)
-		t.FailNow()
-	}
-
 	Env.TestData = data
-
-	logger.Info("Test.Users", "Applying fixtures")
-	if err = data.Fixtures.ApplyFixtures(ctx, Env); err != nil {
-		logger.Error("Test.Users", "Failed to apply fixtures", err)
-		t.FailNow()
-	}
 
 	for _, testcase := range data.Cases {
 		if matched, err := regexp.MatchString(Filter, testcase.ID); err != nil || !matched {
@@ -113,6 +94,11 @@ func TestUsers(t *testing.T) {
 				logger.Warn("Test.User", "Failed to apply filter", err)
 			}
 			continue
+		}
+
+		if err = data.Fixtures.ApplyFixtures(ctx, Env); err != nil {
+			logger.Error("Test.Users", "Failed to apply fixtures", err)
+			t.FailNow()
 		}
 
 		logger.Info("Test.User", fmt.Sprintf("Running test: %s", testcase.ID))
@@ -140,8 +126,8 @@ func TestUsers(t *testing.T) {
 		}
 
 		logger.Info("Test.User", fmt.Sprintf("Test %s passed", testcase.ID))
-		if err := data.Fixtures.ResetFixtures(ctx, Env); err != nil {
-			logger.Error("Test.User", "Failed to reset fixtures", err)
+		if err := Env.Clear(ctx); err != nil {
+			logger.Error("Test.User", "Failed to clear environment", err)
 			t.FailNow()
 		}
 	}

@@ -54,13 +54,13 @@ func (h *Handler) tree(w http.ResponseWriter, r *http.Request) {
 
 	response.Files, err = h.fileService.GetFiles(path)
 	if err != nil {
-		server.ServeMessage(w, "Path", err)
+		server.WriteServerError(w, "Path", err)
 		return
 	}
 
 	response.Info, err = h.fileService.GetInfo()
 	if err != nil {
-		server.ServeMessage(w, "Storage", err)
+		server.WriteServerError(w, "Storage", err)
 		return
 	}
 
@@ -78,7 +78,7 @@ func (h *Handler) get(w http.ResponseWriter, r *http.Request) {
 
 	file_out, mime, err := h.fileService.Read(path)
 	if err != nil {
-		server.ServeMessage(w, "File", err)
+		server.WriteServerError(w, "File", err)
 		return
 	}
 	defer file_out.Close()
@@ -116,14 +116,14 @@ func (h *Handler) preview(w http.ResponseWriter, r *http.Request) {
 
 	file, _, err := h.fileService.Read(path)
 	if err != nil {
-		server.ServeMessage(w, "File", err)
+		server.WriteServerError(w, "File", err)
 		return
 	}
 	defer file.Close()
 
 	preview, err := GeneratePreview(file, width, height)
 	if err != nil {
-		server.ServeMessage(w, "File", err)
+		server.WriteServerError(w, "File", err)
 		return
 	}
 
@@ -147,7 +147,7 @@ func (h *Handler) upload(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.fileService.Save(path, r.Body); err != nil {
-		server.ServeMessage(w, "File", err)
+		server.WriteServerError(w, "File", err)
 		return
 	}
 	w.WriteHeader(http.StatusOK)
@@ -171,7 +171,7 @@ func (h *Handler) delete(w http.ResponseWriter, r *http.Request) {
 
 	err = h.fileService.Delete(path, recursive)
 	if err != nil {
-		server.ServeMessage(w, "Path", err)
+		server.WriteServerError(w, "Path", err)
 		return
 	}
 	w.WriteHeader(http.StatusOK)
@@ -187,7 +187,7 @@ func (h *Handler) folder(w http.ResponseWriter, r *http.Request) {
 
 	err = h.fileService.CreateDir(path)
 	if err != nil {
-		server.ServeMessage(w, "Folder", err)
+		server.WriteServerError(w, "Folder", err)
 		return
 	}
 	w.WriteHeader(http.StatusOK)

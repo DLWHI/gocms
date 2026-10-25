@@ -49,7 +49,7 @@ func (h *Handler) ads(w http.ResponseWriter, r *http.Request) {
 
 	ads, err := h.adService.Search(r.Context(), &filters)
 	if err != nil {
-		server.ServeMessage(w, "Advertisement", err)
+		server.WriteServerError(w, "Advertisement", err)
 		return
 	}
 
@@ -68,7 +68,7 @@ func (h *Handler) create(w http.ResponseWriter, r *http.Request) {
 
 	err := h.adService.Create(r.Context(), &ad)
 	if err != nil {
-		server.ServeMessage(w, "Advertisement", err)
+		server.WriteServerError(w, "Advertisement", err)
 		return
 	}
 
@@ -85,7 +85,7 @@ func (h *Handler) get(w http.ResponseWriter, r *http.Request) {
 
 	ads, err := h.adService.Get(r.Context(), uint(id))
 	if err != nil {
-		server.ServeMessage(w, "Advertisement", err)
+		server.WriteServerError(w, "Advertisement", err)
 		return
 	}
 
@@ -111,7 +111,7 @@ func (h *Handler) update(w http.ResponseWriter, r *http.Request) {
 
 	_, err = h.adService.Update(r.Context(), &ad)
 	if err != nil {
-		server.ServeMessage(w, "Advertisement", err)
+		server.WriteServerError(w, "Advertisement", err)
 		return
 	}
 
@@ -127,7 +127,7 @@ func (h *Handler) delete(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.adService.Delete(r.Context(), uint(id)); err != nil {
-		server.ServeMessage(w, "Advertisement", err)
+		server.WriteServerError(w, "Advertisement", err)
 		return
 	}
 
@@ -138,7 +138,7 @@ func (h *Handler) delete(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) groups(w http.ResponseWriter, r *http.Request) {
 	groups, err := h.adService.AllGroups(r.Context())
 	if err != nil {
-		server.ServeMessage(w, "Advertisement", err)
+		server.WriteServerError(w, "Advertisement", err)
 		return
 	}
 
@@ -156,7 +156,7 @@ func (h *Handler) getGroup(w http.ResponseWriter, r *http.Request) {
 
 	ads, err := h.adService.GetGroup(r.Context(), group)
 	if err != nil {
-		server.ServeMessage(w, "Advertisement", err)
+		server.WriteServerError(w, "Advertisement", err)
 		return
 	}
 
@@ -184,7 +184,7 @@ func (h *Handler) getGroups(w http.ResponseWriter, r *http.Request) {
 	for _, group := range groups {
 		ads, err := h.adService.GetGroup(r.Context(), group)
 		if err != nil {
-			server.ServeMessage(w, "Advertisement", err)
+			server.WriteServerError(w, "Advertisement", err)
 			return
 		}
 		advertisements[group] = ads

@@ -49,7 +49,7 @@ func (h *Handler) search(w http.ResponseWriter, r *http.Request) {
 
 	editors, err := h.editorService.Search(r.Context(), &filters)
 	if err != nil {
-		server.ServeMessage(w, "Editor", err)
+		server.WriteServerError(w, "Editor", err)
 		return
 	}
 
@@ -61,7 +61,7 @@ func (h *Handler) search(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) all(w http.ResponseWriter, r *http.Request) {
 	editors, err := h.editorService.All(r.Context(), nil)
 	if err != nil {
-		server.ServeMessage(w, "Editor", err)
+		server.WriteServerError(w, "Editor", err)
 		return
 	}
 
@@ -78,7 +78,7 @@ func (h *Handler) create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.editorService.Create(r.Context(), &editor); err != nil {
-		server.ServeMessage(w, "Editor", err)
+		server.WriteServerError(w, "Editor", err)
 		return
 	}
 
@@ -95,7 +95,7 @@ func (h *Handler) get(w http.ResponseWriter, r *http.Request) {
 
 	editor, err := h.editorService.Get(r.Context(), username)
 	if err != nil {
-		server.ServeMessage(w, "Editor", err)
+		server.WriteServerError(w, "Editor", err)
 		return
 	}
 
@@ -123,7 +123,7 @@ func (h *Handler) update(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.editorService.Edit(r.Context(), &editor); err != nil {
-		server.ServeMessage(w, "Editor", err)
+		server.WriteServerError(w, "Editor", err)
 		return
 	}
 
@@ -139,7 +139,7 @@ func (h *Handler) delete(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.editorService.Suspend(r.Context(), username); err != nil {
-		server.ServeMessage(w, "Editor", err)
+		server.WriteServerError(w, "Editor", err)
 		return
 	}
 

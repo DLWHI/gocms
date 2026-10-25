@@ -22,8 +22,8 @@ type HttpRequest struct {
 }
 
 type JSONGenerator struct {
-	Padding uint             `json:"json_padded_bytes"`
-	Base    map[string]Value `json:"base"`
+	Length uint             `json:"json_padded_bytes"`
+	Base   map[string]Value `json:"base"`
 }
 
 func (e *Environment) PerformRequest(ctx context.Context, actor *Actor, request HttpRequest) (*http.Response, error) {
@@ -31,7 +31,12 @@ func (e *Environment) PerformRequest(ctx context.Context, actor *Actor, request 
 	if err != nil {
 		return nil, err
 	}
-	req := httptest.NewRequestWithContext(ctx, request.Method, url, nil)
+	body, err := BodyReaderOf(request, e.TestData)
+	if err != nil {
+		return nil, err
+	}
+
+	req := httptest.NewRequestWithContext(ctx, request.Method, url, body)
 
 	req.Header.Set("User-Agent", "Test-Client")
 
@@ -45,11 +50,6 @@ func (e *Environment) PerformRequest(ctx context.Context, actor *Actor, request 
 			return nil, err
 		}
 		req.Header.Set(key, val)
-	}
-
-	req.Body, err = BodyReaderOf(request, e.TestData)
-	if err != nil {
-		return nil, err
 	}
 
 	w := httptest.NewRecorder()
@@ -74,21 +74,44 @@ func BodyReaderOf(request HttpRequest, testdata *Data) (io.ReadCloser, error) {
 	case request.BodyRaw != nil:
 		return io.NopCloser(strings.NewReader(*request.BodyRaw)), nil
 	case request.BodyGenerator != nil:
-		buf := &bytes.Buffer{}
-		val, err := testdata.Resolve(request.BodyGenerator.Base)
+		return request.BodyGenerator.Create(testdata)
+	case request.Body != nil:
+		payload, err := testdata.ResolveMap(request.Body)
 		if err != nil {
 			return nil, err
 		}
-		buf.Write([]byte(val))
-		buf.Write(make([]byte, request.BodyGenerator.Padding))
-		return io.NopCloser(buf), nil
-	case request.Body != nil:
 		buf := &bytes.Buffer{}
-		if err := json.NewEncoder(buf).Encode(request.Body); err != nil {
+		if err := json.NewEncoder(buf).Encode(&payload); err != nil {
 			return nil, err
 		}
 		return io.NopCloser(buf), nil
 	default:
 		return nil, nil
 	}
+}
+
+func (g *JSONGenerator) Create(testdata *Data) (io.ReadCloser, error) {
+	payload, err := testdata.ResolveMap(g.Base)
+	if err != nil {
+		return nil, err
+	}
+	payload["_"] = ""
+
+	base, err := json.Marshal(payload)
+	if err != nil {
+		return nil, err
+	}
+	if uint(len(base)) > g.Length {
+		return nil, fmt.Errorf("base is %d bytes, larger than requested %d", len(base), g.Length)
+	}
+	payload["_"] = strings.Repeat(" ", int(g.Length)-len(base))
+
+	body, err := json.Marshal(payload)
+	if err != nil {
+		return nil, err
+	}
+	if len(body) != int(g.Length) {
+		return nil, fmt.Errorf("generated %d bytes, want %d", len(body), g.Length)
+	}
+	return io.NopCloser(bytes.NewReader(body)), nil
 }

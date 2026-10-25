@@ -76,7 +76,7 @@ func (h *Handler) logout(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) profile(w http.ResponseWriter, r *http.Request) {
 	user, err := h.userService.CurrentUser(r.Context())
 	if err != nil {
-		server.ServeMessage(w, "User", err)
+		server.WriteServerError(w, "User", err)
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
@@ -117,7 +117,7 @@ func (h *Handler) changePasswd(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.userService.ChangePasswd(r.Context(), username, payload.OldPasswd, payload.NewPaswd); err != nil {
-		server.ServeMessage(w, "User", err)
+		server.WriteServerError(w, "User", err)
 		return
 	}
 

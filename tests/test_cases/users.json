@@ -24,28 +24,38 @@
     "actors": {
       "root": {
         "username": "root",
-        "users_caps": ["create", "edit", "delete"],
+        "caps": {
+          "users": ["create", "edit", "delete"]
+        },
         "permissions": 4294967295
       },
       "creator": {
         "username": "creator",
-        "users_caps": ["create"]
+        "caps": {
+          "users": ["create"]
+        }
       },
       "editor": {
         "username": "editor",
-        "users_caps": ["edit"]
+        "caps": {
+          "users": ["edit"]
+        }
       },
       "deleter": {
         "username": "deleter",
-        "users_caps": ["delete"]
+        "caps": {
+          "users": ["delete"]
+        }
       },
       "limited": {
         "username": "limited",
-        "users_caps": ["create", "edit"]
+        "caps": {
+          "users": ["create", "edit"]
+        }
       },
       "reader": {
         "username": "reader",
-        "users_caps": []
+        "caps": {}
       }
     },
     "users": [
@@ -97,7 +107,9 @@
               "password": "Valid-Passw0rd-1",
               "email": "newuser@example.com"
             },
-            "headers": {}
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 401,
@@ -124,6 +136,7 @@
               "email": "newuser@example.com"
             },
             "headers": {
+              "Content-Type": "application/json",
               "Authorization": "Bearer "
             }
           },
@@ -152,6 +165,7 @@
               "email": "newuser@example.com"
             },
             "headers": {
+              "Content-Type": "application/json",
               "Authorization": "Basic dXNlcjpwYXNz"
             }
           },
@@ -180,6 +194,7 @@
               "email": "newuser@example.com"
             },
             "headers": {
+              "Content-Type": "application/json",
               "Authorization": {
                 "$raw_session": "root"
               }
@@ -210,6 +225,7 @@
               "email": "newuser@example.com"
             },
             "headers": {
+              "Content-Type": "application/json",
               "Authorization": "<Garbage>"
             }
           },
@@ -237,7 +253,9 @@
               "password": "Valid-Passw0rd-1",
               "email": "newuser@example.com"
             },
-            "headers": {}
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 401,
@@ -258,7 +276,10 @@
           "request": {
             "method": "POST",
             "path": "/cms/users",
-            "body_raw": "{not json"
+            "body_raw": "{not json",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 401,
@@ -481,7 +502,13 @@
                 "username": "newuser",
                 "password": "Valid-Passw0rd-1",
                 "email": "newuser@example.com"
+              },
+              "headers": {
+                "Content-Type": "application/json"
               }
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -510,7 +537,13 @@
                 "username": "newuser",
                 "password": "Valid-Passw0rd-1",
                 "email": "newuser@example.com"
+              },
+              "headers": {
+                "Content-Type": "application/json"
               }
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -532,7 +565,10 @@
           "request": {
             "method": "POST",
             "path": "/cms/users",
-            "body_raw": "{"
+            "body_raw": "{",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 400,
@@ -553,7 +589,10 @@
           "request": {
             "method": "POST",
             "path": "/cms/users",
-            "body_raw": ""
+            "body_raw": "",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 400,
@@ -574,7 +613,10 @@
           "request": {
             "method": "POST",
             "path": "/cms/users",
-            "body_raw": "[]"
+            "body_raw": "[]",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 400,
@@ -595,7 +637,10 @@
           "request": {
             "method": "POST",
             "path": "/cms/users",
-            "body_raw": "\"text\""
+            "body_raw": "\"text\"",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 400,
@@ -616,7 +661,10 @@
           "request": {
             "method": "POST",
             "path": "/cms/users",
-            "body_raw": "hello"
+            "body_raw": "hello",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 400,
@@ -637,7 +685,10 @@
           "request": {
             "method": "POST",
             "path": "/cms/users",
-            "body_raw": "{\"a\":\"b"
+            "body_raw": "{\"a\":\"b",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 400,
@@ -658,7 +709,10 @@
           "request": {
             "method": "POST",
             "path": "/cms/users",
-            "body_raw": "null"
+            "body_raw": "null",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 400,
@@ -684,6 +738,9 @@
               "password": "Valid-Passw0rd-1",
               "permissions": 65536,
               "email": "example@email.com"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -744,6 +801,9 @@
             "body": {
               "username": "newuser",
               "password": "Valid-Passw0rd-1"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -776,6 +836,9 @@
             "body": {
               "username": "newuser",
               "password": "Valid-Passw0rd-1"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -829,6 +892,9 @@
               "username": "newuser",
               "password": "Valid-Passw0rd-1",
               "permissions": 0
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -878,7 +944,10 @@
           "request": {
             "method": "POST",
             "path": "/cms/users",
-            "body_raw": "{\"username\":\"newuser\",\"password\":\"Valid-Passw0rd-1\",\"permissions\":null}"
+            "body_raw": "{\"username\":\"newuser\",\"password\":\"Valid-Passw0rd-1\",\"permissions\":null}",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 201,
@@ -930,6 +999,9 @@
             "body": {
               "username": "newuser",
               "password": "Valid-Passw0rd-1"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -981,6 +1053,9 @@
               "username": "newuser",
               "password": "Valid-Passw0rd-1",
               "email": ""
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -1028,7 +1103,10 @@
           "request": {
             "method": "POST",
             "path": "/cms/users",
-            "body_raw": "{\"username\":\"newuser\",\"password\":\"Valid-Passw0rd-1\",\"email\":null}"
+            "body_raw": "{\"username\":\"newuser\",\"password\":\"Valid-Passw0rd-1\",\"email\":null}",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 201,
@@ -1052,6 +1130,9 @@
             "body": {
               "username": "NewUser",
               "password": "Valid-Passw0rd-1"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -1097,6 +1178,9 @@
             "body": {
               "username": "  newuser  ",
               "password": "Valid-Passw0rd-1"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -1142,6 +1226,9 @@
             "body": {
               "username": "a",
               "password": "Valid-Passw0rd-1"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -1171,6 +1258,9 @@
                 }
               },
               "password": "Valid-Passw0rd-1"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -1195,6 +1285,9 @@
             "body": {
               "username": "1new-user_2",
               "password": "Valid-Passw0rd-1"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -1225,6 +1318,9 @@
               "extra": {
                 "a": 1
               }
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -1273,6 +1369,9 @@
             "body": {
               "username": "",
               "password": "Valid-Passw0rd-1"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -1297,6 +1396,9 @@
             "body": {
               "username": "   ",
               "password": "Valid-Passw0rd-1"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -1326,6 +1428,9 @@
                 }
               },
               "password": "Valid-Passw0rd-1"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -1350,6 +1455,9 @@
             "body": {
               "username": "bad name",
               "password": "Valid-Passw0rd-1"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -1374,6 +1482,9 @@
             "body": {
               "username": "al.ice",
               "password": "Valid-Passw0rd-1"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -1398,6 +1509,9 @@
             "body": {
               "username": "a@b",
               "password": "Valid-Passw0rd-1"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -1422,6 +1536,9 @@
             "body": {
               "username": "ali/ce",
               "password": "Valid-Passw0rd-1"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -1446,6 +1563,9 @@
             "body": {
               "username": "alice!",
               "password": "Valid-Passw0rd-1"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -1470,6 +1590,9 @@
             "body": {
               "username": "алиса",
               "password": "Valid-Passw0rd-1"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -1494,6 +1617,9 @@
             "body": {
               "username": "K",
               "password": "Valid-Passw0rd-1"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -1518,6 +1644,9 @@
             "body": {
               "username": "alice'--",
               "password": "Valid-Passw0rd-1"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -1542,6 +1671,9 @@
             "body": {
               "username": "ali\u0000ce",
               "password": "Valid-Passw0rd-1"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -1566,6 +1698,9 @@
             "body": {
               "username": "ali\nce",
               "password": "Valid-Passw0rd-1"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -1590,6 +1725,9 @@
             "body": {
               "username": "user😀",
               "password": "Valid-Passw0rd-1"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -1614,6 +1752,9 @@
             "body": {
               "username": "a;b",
               "password": "Valid-Passw0rd-1"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -1637,6 +1778,9 @@
             "path": "/cms/users",
             "body": {
               "password": "Valid-Passw0rd-1"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -1658,7 +1802,10 @@
           "request": {
             "method": "POST",
             "path": "/cms/users",
-            "body_raw": "{\"username\":null,\"password\":\"Valid-Passw0rd-1\"}"
+            "body_raw": "{\"username\":null,\"password\":\"Valid-Passw0rd-1\"}",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 400,
@@ -1679,7 +1826,10 @@
           "request": {
             "method": "POST",
             "path": "/cms/users",
-            "body_raw": "{\"username\":123,\"password\":\"Valid-Passw0rd-1\"}"
+            "body_raw": "{\"username\":123,\"password\":\"Valid-Passw0rd-1\"}",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 400,
@@ -1700,7 +1850,10 @@
           "request": {
             "method": "POST",
             "path": "/cms/users",
-            "body_raw": "{\"username\":true,\"password\":\"Valid-Passw0rd-1\"}"
+            "body_raw": "{\"username\":true,\"password\":\"Valid-Passw0rd-1\"}",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 400,
@@ -1721,7 +1874,10 @@
           "request": {
             "method": "POST",
             "path": "/cms/users",
-            "body_raw": "{\"username\":[\"a\"],\"password\":\"Valid-Passw0rd-1\"}"
+            "body_raw": "{\"username\":[\"a\"],\"password\":\"Valid-Passw0rd-1\"}",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 400,
@@ -1742,7 +1898,10 @@
           "request": {
             "method": "POST",
             "path": "/cms/users",
-            "body_raw": "{\"username\":{\"a\":1},\"password\":\"Valid-Passw0rd-1\"}"
+            "body_raw": "{\"username\":{\"a\":1},\"password\":\"Valid-Passw0rd-1\"}",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 400,
@@ -1766,6 +1925,9 @@
             "body": {
               "username": "newuser",
               "password": ""
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -1790,6 +1952,9 @@
             "body": {
               "username": "newuser",
               "password": "Aa1!xyz"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -1814,6 +1979,9 @@
             "body": {
               "username": "newuser",
               "password": "Aa1!xyz9"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -1846,6 +2014,9 @@
             "body": {
               "username": "newuser",
               "password": "        "
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -1878,6 +2049,9 @@
             "body": {
               "username": "newuser",
               "password": "12345678"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -1910,6 +2084,9 @@
             "body": {
               "username": "newuser",
               "password": "pass\tword1"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -1942,6 +2119,9 @@
             "body": {
               "username": "newuser",
               "password": "pass\nword1"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -1974,6 +2154,9 @@
             "body": {
               "username": "newuser",
               "password": "p\"w\\x'y;z"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -2006,6 +2189,9 @@
             "body": {
               "username": "newuser",
               "password": "pass\u0000word1"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -2038,6 +2224,9 @@
             "body": {
               "username": "newuser",
               "password": "😀😀😀😀😀😀😀😀"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -2070,6 +2259,9 @@
             "body": {
               "username": "newuser",
               "password": "éééééééé"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -2102,6 +2294,9 @@
             "body": {
               "username": "newuser",
               "password": "ééééééé"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -2110,7 +2305,7 @@
           }
         }
       ],
-      "note": "Minimum is stated in characters; the service validates len() in bytes."
+      "note": "Minimum is stated in characters."
     },
     {
       "id": "CREATE-048",
@@ -2127,6 +2322,9 @@
             "body": {
               "username": "newuser",
               "password": "😀😀😀😀"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -2135,7 +2333,7 @@
           }
         }
       ],
-      "note": "Minimum is stated in characters; the service validates len() in bytes."
+      "note": "Minimum is stated in characters."
     },
     {
       "id": "CREATE-049",
@@ -2157,6 +2355,9 @@
                   "n": 72
                 }
               }
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -2186,6 +2387,9 @@
                   "n": 73
                 }
               }
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -2215,6 +2419,9 @@
                   "n": 36
                 }
               }
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -2244,6 +2451,9 @@
                   "n": 37
                 }
               }
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -2273,6 +2483,9 @@
                   "n": 1000
                 }
               }
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -2296,6 +2509,9 @@
             "path": "/cms/users",
             "body": {
               "username": "newuser"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -2317,7 +2533,10 @@
           "request": {
             "method": "POST",
             "path": "/cms/users",
-            "body_raw": "{\"username\":\"newuser\",\"password\":null}"
+            "body_raw": "{\"username\":\"newuser\",\"password\":null}",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 400,
@@ -2338,7 +2557,10 @@
           "request": {
             "method": "POST",
             "path": "/cms/users",
-            "body_raw": "{\"username\":\"newuser\",\"password\":12345678}"
+            "body_raw": "{\"username\":\"newuser\",\"password\":12345678}",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 400,
@@ -2359,7 +2581,10 @@
           "request": {
             "method": "POST",
             "path": "/cms/users",
-            "body_raw": "{\"username\":\"newuser\",\"password\":true}"
+            "body_raw": "{\"username\":\"newuser\",\"password\":true}",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 400,
@@ -2380,7 +2605,10 @@
           "request": {
             "method": "POST",
             "path": "/cms/users",
-            "body_raw": "{\"username\":\"newuser\",\"password\":[\"x\"]}"
+            "body_raw": "{\"username\":\"newuser\",\"password\":[\"x\"]}",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 400,
@@ -2401,7 +2629,10 @@
           "request": {
             "method": "POST",
             "path": "/cms/users",
-            "body_raw": "{\"username\":\"newuser\",\"password\":{\"a\":1}}"
+            "body_raw": "{\"username\":\"newuser\",\"password\":{\"a\":1}}",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 400,
@@ -2422,7 +2653,10 @@
           "request": {
             "method": "POST",
             "path": "/cms/users",
-            "body_raw": "{\"username\":\"newuser\",\"password\":\"p\\\"w\\\\\\u00e4Valid1!\"}"
+            "body_raw": "{\"username\":\"newuser\",\"password\":\"p\\\"w\\\\\\u00e4Valid1!\"}",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 201,
@@ -2455,6 +2689,9 @@
               "username": "newuser",
               "password": "Valid-Passw0rd-1",
               "email": "not-an-email"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -2480,6 +2717,9 @@
               "username": "newuser",
               "password": "Valid-Passw0rd-1",
               "email": "@example.com"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -2505,6 +2745,9 @@
               "username": "newuser",
               "password": "Valid-Passw0rd-1",
               "email": "alice@"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -2530,6 +2773,9 @@
               "username": "newuser",
               "password": "Valid-Passw0rd-1",
               "email": "Name <a@example.com>"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -2555,6 +2801,9 @@
               "username": "newuser",
               "password": "Valid-Passw0rd-1",
               "email": " "
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -2580,6 +2829,9 @@
               "username": "newuser",
               "password": "Valid-Passw0rd-1",
               "email": "a@example.com, b@example.com"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -2605,6 +2857,9 @@
               "username": "newuser",
               "password": "Valid-Passw0rd-1",
               "email": "a b@example.com"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -2632,6 +2887,9 @@
               "email": {
                 "$email_of_length": 255
               }
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -2659,6 +2917,9 @@
               "email": {
                 "$email_of_length": 254
               }
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -2680,7 +2941,10 @@
           "request": {
             "method": "POST",
             "path": "/cms/users",
-            "body_raw": "{\"username\":\"newuser\",\"password\":\"Valid-Passw0rd-1\",\"email\":123}"
+            "body_raw": "{\"username\":\"newuser\",\"password\":\"Valid-Passw0rd-1\",\"email\":123}",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 400,
@@ -2705,6 +2969,9 @@
               "username": "newuser",
               "password": "Valid-Passw0rd-1",
               "email": "user+tag@example.com"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -2730,6 +2997,9 @@
               "username": "alice",
               "password": "Valid-Passw0rd-1",
               "email": "evil@example.com"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -2780,6 +3050,9 @@
             "body": {
               "username": "ALICE",
               "password": "Valid-Passw0rd-1"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -2804,6 +3077,9 @@
             "body": {
               "username": "bobby",
               "password": "Valid-Passw0rd-1"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -2828,6 +3104,9 @@
             "body": {
               "username": "root",
               "password": "Valid-Passw0rd-1"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -2852,6 +3131,9 @@
             "body": {
               "username": " alice ",
               "password": "Valid-Passw0rd-1"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -2876,6 +3158,9 @@
             "body": {
               "username": "newuser",
               "password": "Valid-Passw0rd-1"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -2891,6 +3176,9 @@
             "body": {
               "username": "newuser",
               "password": "Valid-Passw0rd-1"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -2912,7 +3200,10 @@
           "request": {
             "method": "POST",
             "path": "/cms/users",
-            "body_raw": "{\"username\":\"newuser\",\"password\":\"Valid-Passw0rd-1\",\"permissions\":-1}"
+            "body_raw": "{\"username\":\"newuser\",\"password\":\"Valid-Passw0rd-1\",\"permissions\":-1}",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 400,
@@ -2933,7 +3224,10 @@
           "request": {
             "method": "POST",
             "path": "/cms/users",
-            "body_raw": "{\"username\":\"newuser\",\"password\":\"Valid-Passw0rd-1\",\"permissions\":4294967296}"
+            "body_raw": "{\"username\":\"newuser\",\"password\":\"Valid-Passw0rd-1\",\"permissions\":4294967296}",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 400,
@@ -2954,7 +3248,10 @@
           "request": {
             "method": "POST",
             "path": "/cms/users",
-            "body_raw": "{\"username\":\"newuser\",\"password\":\"Valid-Passw0rd-1\",\"permissions\":1.5}"
+            "body_raw": "{\"username\":\"newuser\",\"password\":\"Valid-Passw0rd-1\",\"permissions\":1.5}",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 400,
@@ -2975,7 +3272,10 @@
           "request": {
             "method": "POST",
             "path": "/cms/users",
-            "body_raw": "{\"username\":\"newuser\",\"password\":\"Valid-Passw0rd-1\",\"permissions\":\"7\"}"
+            "body_raw": "{\"username\":\"newuser\",\"password\":\"Valid-Passw0rd-1\",\"permissions\":\"7\"}",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 400,
@@ -2996,7 +3296,10 @@
           "request": {
             "method": "POST",
             "path": "/cms/users",
-            "body_raw": "{\"username\":\"newuser\",\"password\":\"Valid-Passw0rd-1\",\"permissions\":true}"
+            "body_raw": "{\"username\":\"newuser\",\"password\":\"Valid-Passw0rd-1\",\"permissions\":true}",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 400,
@@ -3017,7 +3320,10 @@
           "request": {
             "method": "POST",
             "path": "/cms/users",
-            "body_raw": "{\"username\":\"newuser\",\"password\":\"Valid-Passw0rd-1\",\"permissions\":[1]}"
+            "body_raw": "{\"username\":\"newuser\",\"password\":\"Valid-Passw0rd-1\",\"permissions\":[1]}",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 400,
@@ -3038,7 +3344,10 @@
           "request": {
             "method": "POST",
             "path": "/cms/users",
-            "body_raw": "{\"username\":\"newuser\",\"password\":\"Valid-Passw0rd-1\",\"permissions\":{\"a\":1}}"
+            "body_raw": "{\"username\":\"newuser\",\"password\":\"Valid-Passw0rd-1\",\"permissions\":{\"a\":1}}",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 400,
@@ -3065,6 +3374,9 @@
               "permissions": {
                 "$const": "PERM_ALL"
               }
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -3089,6 +3401,9 @@
             "body": {
               "username": "newuser",
               "password": "Valid-Passw0rd-1"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -3113,6 +3428,9 @@
             "body": {
               "username": "newuser",
               "password": "Valid-Passw0rd-1"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -3137,6 +3455,9 @@
             "body": {
               "username": "newuser",
               "password": "Valid-Passw0rd-1"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -3175,6 +3496,9 @@
             "body": {
               "username": "newuser",
               "password": "Valid-Passw0rd-1"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -3213,6 +3537,9 @@
             "body": {
               "username": "newuser",
               "password": "Valid-Passw0rd-1"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -3237,6 +3564,9 @@
             "body": {
               "username": "newuser",
               "password": "Valid-Passw0rd-1"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -3275,6 +3605,9 @@
             "body": {
               "username": "",
               "password": ""
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -3302,6 +3635,9 @@
               "permissions": {
                 "$const": "PERM_OUTSIDE"
               }
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -3343,6 +3679,9 @@
               "permissions": {
                 "$const": "PERM_ALL"
               }
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -3384,6 +3723,9 @@
               "permissions": {
                 "$actor_perms": "limited"
               }
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -3439,6 +3781,9 @@
               "permissions": {
                 "$actor_perms": "creator"
               }
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -3494,6 +3839,9 @@
               "permissions": {
                 "$actor_perms": "editor"
               }
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -3550,6 +3898,9 @@
             "body": {
               "username": "newuser",
               "password": "Valid-Passw0rd-1"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -3592,6 +3943,9 @@
             "body": {
               "username": "newuser",
               "password": "Valid-Passw0rd-1"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -3606,6 +3960,9 @@
             "path": "/cms/users/search",
             "body": {
               "query": "newuser"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -3636,7 +3993,9 @@
             "method": "POST",
             "path": "/cms/users/search",
             "body": {},
-            "headers": {}
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 401,
@@ -3659,6 +4018,7 @@
             "path": "/cms/users/search",
             "body": {},
             "headers": {
+              "Content-Type": "application/json",
               "Authorization": "Bearer "
             }
           },
@@ -3683,6 +4043,7 @@
             "path": "/cms/users/search",
             "body": {},
             "headers": {
+              "Content-Type": "application/json",
               "Authorization": "Basic dXNlcjpwYXNz"
             }
           },
@@ -3707,6 +4068,7 @@
             "path": "/cms/users/search",
             "body": {},
             "headers": {
+              "Content-Type": "application/json",
               "Authorization": {
                 "$raw_session": "root"
               }
@@ -3733,6 +4095,7 @@
             "path": "/cms/users/search",
             "body": {},
             "headers": {
+              "Content-Type": "application/json",
               "Authorization": "<Garbage>"
             }
           },
@@ -3756,7 +4119,9 @@
             "method": "POST",
             "path": "/cms/users/search",
             "body": {},
-            "headers": {}
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 401,
@@ -3777,7 +4142,10 @@
           "request": {
             "method": "POST",
             "path": "/cms/users/search",
-            "body_raw": "{not json"
+            "body_raw": "{not json",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 401,
@@ -3969,6 +4337,9 @@
             "body_generator": {
               "json_padded_bytes": 4096,
               "base": {}
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -3994,6 +4365,9 @@
             "body_generator": {
               "json_padded_bytes": 4097,
               "base": {}
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -4015,7 +4389,10 @@
           "request": {
             "method": "POST",
             "path": "/cms/users/search",
-            "body_raw": "{"
+            "body_raw": "{",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 400,
@@ -4036,7 +4413,10 @@
           "request": {
             "method": "POST",
             "path": "/cms/users/search",
-            "body_raw": ""
+            "body_raw": "",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 400,
@@ -4057,7 +4437,10 @@
           "request": {
             "method": "POST",
             "path": "/cms/users/search",
-            "body_raw": "[]"
+            "body_raw": "[]",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 400,
@@ -4078,7 +4461,10 @@
           "request": {
             "method": "POST",
             "path": "/cms/users/search",
-            "body_raw": "\"text\""
+            "body_raw": "\"text\"",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 400,
@@ -4099,7 +4485,10 @@
           "request": {
             "method": "POST",
             "path": "/cms/users/search",
-            "body_raw": "hello"
+            "body_raw": "hello",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 400,
@@ -4120,7 +4509,10 @@
           "request": {
             "method": "POST",
             "path": "/cms/users/search",
-            "body_raw": "{\"a\":\"b"
+            "body_raw": "{\"a\":\"b",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 400,
@@ -4141,7 +4533,10 @@
           "request": {
             "method": "POST",
             "path": "/cms/users/search",
-            "body": {}
+            "body": {},
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 200,
@@ -4195,7 +4590,10 @@
           "request": {
             "method": "POST",
             "path": "/cms/users/search",
-            "body": {}
+            "body": {},
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 200,
@@ -4243,6 +4641,9 @@
             "path": "/cms/users/search",
             "body": {
               "query": "alice"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -4273,6 +4674,9 @@
             "path": "/cms/users/search",
             "body": {
               "query": "alice"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -4303,6 +4707,9 @@
             "path": "/cms/users/search",
             "body": {
               "query": "alice"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -4333,6 +4740,9 @@
             "path": "/cms/users/search",
             "body": {
               "query": "alice"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -4368,6 +4778,9 @@
             "path": "/cms/users/search",
             "body": {
               "query": "carol@example.com"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -4403,6 +4816,9 @@
             "path": "/cms/users/search",
             "body": {
               "query": "ALICE"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -4433,6 +4849,9 @@
             "path": "/cms/users/search",
             "body": {
               "query": "  alice  "
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -4463,6 +4882,9 @@
             "path": "/cms/users/search",
             "body": {
               "query": "alic"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -4498,6 +4920,9 @@
             "path": "/cms/users/search",
             "body": {
               "query": "alice@example.com"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -4528,6 +4953,9 @@
             "path": "/cms/users/search",
             "body": {
               "query": "zzzznomatch"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -4568,6 +4996,9 @@
             "path": "/cms/users/search",
             "body": {
               "query": "\""
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -4608,6 +5039,9 @@
             "path": "/cms/users/search",
             "body": {
               "query": "'; DROP TABLE users;--"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -4648,6 +5082,9 @@
             "path": "/cms/users/search",
             "body": {
               "query": "\\"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -4688,6 +5125,9 @@
             "path": "/cms/users/search",
             "body": {
               "query": "*?%"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -4728,6 +5168,9 @@
             "path": "/cms/users/search",
             "body": {
               "query": "alice\" OR permissions >= 0"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -4773,6 +5216,9 @@
                   "n": 1000
                 }
               }
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -4813,6 +5259,9 @@
             "path": "/cms/users/search",
             "body": {
               "query": "😀"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -4851,7 +5300,10 @@
           "request": {
             "method": "POST",
             "path": "/cms/users/search",
-            "body_raw": "{\"query\":null}"
+            "body_raw": "{\"query\":null}",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 200,
@@ -4889,7 +5341,10 @@
           "request": {
             "method": "POST",
             "path": "/cms/users/search",
-            "body_raw": "{\"query\":123}"
+            "body_raw": "{\"query\":123}",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 400,
@@ -4910,7 +5365,10 @@
           "request": {
             "method": "POST",
             "path": "/cms/users/search",
-            "body_raw": "{\"query\":[\"a\"]}"
+            "body_raw": "{\"query\":[\"a\"]}",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 400,
@@ -4933,6 +5391,9 @@
             "path": "/cms/users/search",
             "body": {
               "count": 2
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -4968,6 +5429,9 @@
             "path": "/cms/users/search",
             "body": {
               "count": 1
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -5003,6 +5467,9 @@
             "path": "/cms/users/search",
             "body": {
               "count": 1000
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -5033,6 +5500,9 @@
             "path": "/cms/users/search",
             "body": {
               "count": 100
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -5064,6 +5534,9 @@
             "body": {
               "count": 2,
               "page": 9999
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -5100,6 +5573,9 @@
             "body": {
               "page": 1,
               "count": 2
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -5130,6 +5606,9 @@
             "path": "/cms/users/search",
             "body": {
               "count": 0
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -5171,6 +5650,9 @@
             "path": "/cms/users/search",
             "body": {
               "count": -1
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -5212,6 +5694,9 @@
             "path": "/cms/users/search",
             "body": {
               "page": 0
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -5253,6 +5738,9 @@
             "path": "/cms/users/search",
             "body": {
               "page": -1
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -5292,7 +5780,10 @@
           "request": {
             "method": "POST",
             "path": "/cms/users/search",
-            "body_raw": "{\"count\":1.5}"
+            "body_raw": "{\"count\":1.5}",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 400,
@@ -5313,7 +5804,10 @@
           "request": {
             "method": "POST",
             "path": "/cms/users/search",
-            "body_raw": "{\"count\":\"10\"}"
+            "body_raw": "{\"count\":\"10\"}",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 400,
@@ -5334,7 +5828,10 @@
           "request": {
             "method": "POST",
             "path": "/cms/users/search",
-            "body_raw": "{\"page\":\"a\"}"
+            "body_raw": "{\"page\":\"a\"}",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 400,
@@ -5355,7 +5852,10 @@
           "request": {
             "method": "POST",
             "path": "/cms/users/search",
-            "body_raw": "{\"page\":1.5}"
+            "body_raw": "{\"page\":1.5}",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 400,
@@ -5376,7 +5876,10 @@
           "request": {
             "method": "POST",
             "path": "/cms/users/search",
-            "body_raw": "{\"count\":true}"
+            "body_raw": "{\"count\":true}",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 400,
@@ -5399,6 +5902,9 @@
             "path": "/cms/users/search",
             "body": {
               "sort_by": "username:asc"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -5428,6 +5934,9 @@
             "path": "/cms/users/search",
             "body": {
               "sort_by": "username:desc"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -5457,6 +5966,9 @@
             "path": "/cms/users/search",
             "body": {
               "sort_by": "last_login:asc"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -5497,6 +6009,9 @@
             "path": "/cms/users/search",
             "body": {
               "sort_by": "last_login:desc"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -5537,6 +6052,9 @@
             "path": "/cms/users/search",
             "body": {
               "sort_by": "suspended_at:asc"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -5577,6 +6095,9 @@
             "path": "/cms/users/search",
             "body": {
               "sort_by": "suspended_at:desc"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -5617,6 +6138,9 @@
             "path": "/cms/users/search",
             "body": {
               "sort_by": "email:asc"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -5640,6 +6164,9 @@
             "path": "/cms/users/search",
             "body": {
               "sort_by": "permissions:desc"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -5663,6 +6190,9 @@
             "path": "/cms/users/search",
             "body": {
               "sort_by": "nonexistent:asc"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -5686,6 +6216,9 @@
             "path": "/cms/users/search",
             "body": {
               "sort_by": "username"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -5709,6 +6242,9 @@
             "path": "/cms/users/search",
             "body": {
               "sort_by": "username:sideways"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -5732,6 +6268,9 @@
             "path": "/cms/users/search",
             "body": {
               "sort_by": ":asc"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -5755,6 +6294,9 @@
             "path": "/cms/users/search",
             "body": {
               "sort_by": "username:asc:desc"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -5778,6 +6320,9 @@
             "path": "/cms/users/search",
             "body": {
               "sort_by": "  "
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -5801,6 +6346,9 @@
             "path": "/cms/users/search",
             "body": {
               "sort_by": "username:asc,email"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -5822,7 +6370,10 @@
           "request": {
             "method": "POST",
             "path": "/cms/users/search",
-            "body_raw": "{\"sort_by\":5}"
+            "body_raw": "{\"sort_by\":5}",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 400,
@@ -5845,6 +6396,9 @@
             "path": "/cms/users/search",
             "body": {
               "permissions": 3
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -5885,6 +6439,9 @@
             "path": "/cms/users/search",
             "body": {
               "permissions": 0
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -5920,6 +6477,9 @@
             "path": "/cms/users/search",
             "body": {
               "permissions": 4294967295
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -5953,7 +6513,10 @@
           "request": {
             "method": "POST",
             "path": "/cms/users/search",
-            "body_raw": "{\"permissions\":null}"
+            "body_raw": "{\"permissions\":null}",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 200,
@@ -5986,7 +6549,10 @@
           "request": {
             "method": "POST",
             "path": "/cms/users/search",
-            "body_raw": "{\"permissions\":-1}"
+            "body_raw": "{\"permissions\":-1}",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 400,
@@ -6007,7 +6573,10 @@
           "request": {
             "method": "POST",
             "path": "/cms/users/search",
-            "body_raw": "{\"permissions\":4294967296}"
+            "body_raw": "{\"permissions\":4294967296}",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 400,
@@ -6028,7 +6597,10 @@
           "request": {
             "method": "POST",
             "path": "/cms/users/search",
-            "body_raw": "{\"permissions\":\"3\"}"
+            "body_raw": "{\"permissions\":\"3\"}",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 400,
@@ -6049,7 +6621,10 @@
           "request": {
             "method": "POST",
             "path": "/cms/users/search",
-            "body_raw": "{\"permissions\":1.5}"
+            "body_raw": "{\"permissions\":1.5}",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 400,
@@ -6070,7 +6645,10 @@
           "request": {
             "method": "POST",
             "path": "/cms/users/search",
-            "body_raw": "{\"permissions\":true}"
+            "body_raw": "{\"permissions\":true}",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 400,
@@ -6093,6 +6671,9 @@
             "path": "/cms/users/search",
             "body": {
               "suspended": true
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -6133,6 +6714,9 @@
             "path": "/cms/users/search",
             "body": {
               "suspended": false
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -6171,7 +6755,10 @@
           "request": {
             "method": "POST",
             "path": "/cms/users/search",
-            "body_raw": "{\"suspended\":null}"
+            "body_raw": "{\"suspended\":null}",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 200,
@@ -6204,7 +6791,10 @@
           "request": {
             "method": "POST",
             "path": "/cms/users/search",
-            "body_raw": "{\"suspended\":\"true\"}"
+            "body_raw": "{\"suspended\":\"true\"}",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 400,
@@ -6225,7 +6815,10 @@
           "request": {
             "method": "POST",
             "path": "/cms/users/search",
-            "body_raw": "{\"suspended\":1}"
+            "body_raw": "{\"suspended\":1}",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 400,
@@ -6246,7 +6839,10 @@
           "request": {
             "method": "POST",
             "path": "/cms/users/search",
-            "body_raw": "{\"suspended\":[true]}"
+            "body_raw": "{\"suspended\":[true]}",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 400,
@@ -6269,6 +6865,9 @@
             "path": "/cms/users/search",
             "body": {
               "suspended_after": 1785456000
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -6304,6 +6903,9 @@
             "path": "/cms/users/search",
             "body": {
               "suspended_after": 1785628800
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -6334,6 +6936,9 @@
             "path": "/cms/users/search",
             "body": {
               "suspended_before": 1785628800
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -6369,6 +6974,9 @@
             "path": "/cms/users/search",
             "body": {
               "suspended_before": 1785456000
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -6404,6 +7012,9 @@
             "path": "/cms/users/search",
             "body": {
               "suspended_after": 1785542400
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -6434,6 +7045,9 @@
             "path": "/cms/users/search",
             "body": {
               "suspended_before": 1785542400
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -6464,6 +7078,9 @@
             "path": "/cms/users/search",
             "body": {
               "last_login_after": 1785542400
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -6504,6 +7121,9 @@
             "path": "/cms/users/search",
             "body": {
               "last_login_before": 1785888000
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -6544,6 +7164,9 @@
             "path": "/cms/users/search",
             "body": {
               "last_login_before": 1786356000
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -6574,6 +7197,9 @@
             "path": "/cms/users/search",
             "body": {
               "last_login_after": 0
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -6609,6 +7235,9 @@
             "path": "/cms/users/search",
             "body": {
               "last_login_after": -1
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -6644,6 +7273,9 @@
             "path": "/cms/users/search",
             "body": {
               "last_login_after": 9223372036854775807
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -6675,6 +7307,9 @@
             "body": {
               "last_login_after": 1788220800,
               "last_login_before": 1785542400
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -6706,6 +7341,9 @@
             "body": {
               "permissions": 3,
               "suspended": false
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -6742,6 +7380,9 @@
             "body": {
               "query": "alice",
               "suspended": true
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -6773,6 +7414,9 @@
             "body": {
               "suspended": true,
               "suspended_after": 1785456000
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -6801,7 +7445,10 @@
           "request": {
             "method": "POST",
             "path": "/cms/users/search",
-            "body_raw": "{\"suspended_after\":\"yesterday\"}"
+            "body_raw": "{\"suspended_after\":\"yesterday\"}",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 400,
@@ -6822,7 +7469,10 @@
           "request": {
             "method": "POST",
             "path": "/cms/users/search",
-            "body_raw": "{\"suspended_after\":\"\"}"
+            "body_raw": "{\"suspended_after\":\"\"}",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 400,
@@ -6843,7 +7493,10 @@
           "request": {
             "method": "POST",
             "path": "/cms/users/search",
-            "body_raw": "{\"suspended_after\":\"2026-08-13T14:30:00Z\"}"
+            "body_raw": "{\"suspended_after\":\"2026-08-13T14:30:00Z\"}",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 400,
@@ -6864,7 +7517,10 @@
           "request": {
             "method": "POST",
             "path": "/cms/users/search",
-            "body_raw": "{\"suspended_after\":\"1786631400\"}"
+            "body_raw": "{\"suspended_after\":\"1786631400\"}",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 400,
@@ -6885,7 +7541,10 @@
           "request": {
             "method": "POST",
             "path": "/cms/users/search",
-            "body_raw": "{\"suspended_after\":1.5}"
+            "body_raw": "{\"suspended_after\":1.5}",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 400,
@@ -6906,7 +7565,10 @@
           "request": {
             "method": "POST",
             "path": "/cms/users/search",
-            "body_raw": "{\"suspended_after\":true}"
+            "body_raw": "{\"suspended_after\":true}",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 400,
@@ -6927,7 +7589,10 @@
           "request": {
             "method": "POST",
             "path": "/cms/users/search",
-            "body_raw": "{\"suspended_after\":[1]}"
+            "body_raw": "{\"suspended_after\":[1]}",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 400,
@@ -6948,7 +7613,10 @@
           "request": {
             "method": "POST",
             "path": "/cms/users/search",
-            "body_raw": "{\"suspended_after\":9223372036854775808}"
+            "body_raw": "{\"suspended_after\":9223372036854775808}",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 400,
@@ -6969,7 +7637,10 @@
           "request": {
             "method": "POST",
             "path": "/cms/users/search",
-            "body_raw": "{\"suspended_after\":null}"
+            "body_raw": "{\"suspended_after\":null}",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 200,
@@ -6997,7 +7668,10 @@
           "request": {
             "method": "POST",
             "path": "/cms/users/search",
-            "body_raw": "{\"suspended_before\":\"yesterday\"}"
+            "body_raw": "{\"suspended_before\":\"yesterday\"}",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 400,
@@ -7018,7 +7692,10 @@
           "request": {
             "method": "POST",
             "path": "/cms/users/search",
-            "body_raw": "{\"suspended_before\":\"\"}"
+            "body_raw": "{\"suspended_before\":\"\"}",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 400,
@@ -7039,7 +7716,10 @@
           "request": {
             "method": "POST",
             "path": "/cms/users/search",
-            "body_raw": "{\"suspended_before\":\"2026-08-13T14:30:00Z\"}"
+            "body_raw": "{\"suspended_before\":\"2026-08-13T14:30:00Z\"}",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 400,
@@ -7060,7 +7740,10 @@
           "request": {
             "method": "POST",
             "path": "/cms/users/search",
-            "body_raw": "{\"suspended_before\":\"1786631400\"}"
+            "body_raw": "{\"suspended_before\":\"1786631400\"}",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 400,
@@ -7081,7 +7764,10 @@
           "request": {
             "method": "POST",
             "path": "/cms/users/search",
-            "body_raw": "{\"suspended_before\":1.5}"
+            "body_raw": "{\"suspended_before\":1.5}",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 400,
@@ -7102,7 +7788,10 @@
           "request": {
             "method": "POST",
             "path": "/cms/users/search",
-            "body_raw": "{\"suspended_before\":true}"
+            "body_raw": "{\"suspended_before\":true}",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 400,
@@ -7123,7 +7812,10 @@
           "request": {
             "method": "POST",
             "path": "/cms/users/search",
-            "body_raw": "{\"suspended_before\":[1]}"
+            "body_raw": "{\"suspended_before\":[1]}",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 400,
@@ -7144,7 +7836,10 @@
           "request": {
             "method": "POST",
             "path": "/cms/users/search",
-            "body_raw": "{\"suspended_before\":9223372036854775808}"
+            "body_raw": "{\"suspended_before\":9223372036854775808}",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 400,
@@ -7165,7 +7860,10 @@
           "request": {
             "method": "POST",
             "path": "/cms/users/search",
-            "body_raw": "{\"suspended_before\":null}"
+            "body_raw": "{\"suspended_before\":null}",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 200,
@@ -7193,7 +7891,10 @@
           "request": {
             "method": "POST",
             "path": "/cms/users/search",
-            "body_raw": "{\"last_login_after\":\"yesterday\"}"
+            "body_raw": "{\"last_login_after\":\"yesterday\"}",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 400,
@@ -7214,7 +7915,10 @@
           "request": {
             "method": "POST",
             "path": "/cms/users/search",
-            "body_raw": "{\"last_login_after\":\"\"}"
+            "body_raw": "{\"last_login_after\":\"\"}",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 400,
@@ -7235,7 +7939,10 @@
           "request": {
             "method": "POST",
             "path": "/cms/users/search",
-            "body_raw": "{\"last_login_after\":\"2026-08-13T14:30:00Z\"}"
+            "body_raw": "{\"last_login_after\":\"2026-08-13T14:30:00Z\"}",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 400,
@@ -7256,7 +7963,10 @@
           "request": {
             "method": "POST",
             "path": "/cms/users/search",
-            "body_raw": "{\"last_login_after\":\"1786631400\"}"
+            "body_raw": "{\"last_login_after\":\"1786631400\"}",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 400,
@@ -7277,7 +7987,10 @@
           "request": {
             "method": "POST",
             "path": "/cms/users/search",
-            "body_raw": "{\"last_login_after\":1.5}"
+            "body_raw": "{\"last_login_after\":1.5}",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 400,
@@ -7298,7 +8011,10 @@
           "request": {
             "method": "POST",
             "path": "/cms/users/search",
-            "body_raw": "{\"last_login_after\":true}"
+            "body_raw": "{\"last_login_after\":true}",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 400,
@@ -7319,7 +8035,10 @@
           "request": {
             "method": "POST",
             "path": "/cms/users/search",
-            "body_raw": "{\"last_login_after\":[1]}"
+            "body_raw": "{\"last_login_after\":[1]}",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 400,
@@ -7340,7 +8059,10 @@
           "request": {
             "method": "POST",
             "path": "/cms/users/search",
-            "body_raw": "{\"last_login_after\":9223372036854775808}"
+            "body_raw": "{\"last_login_after\":9223372036854775808}",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 400,
@@ -7361,7 +8083,10 @@
           "request": {
             "method": "POST",
             "path": "/cms/users/search",
-            "body_raw": "{\"last_login_after\":null}"
+            "body_raw": "{\"last_login_after\":null}",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 200,
@@ -7389,7 +8114,10 @@
           "request": {
             "method": "POST",
             "path": "/cms/users/search",
-            "body_raw": "{\"last_login_before\":\"yesterday\"}"
+            "body_raw": "{\"last_login_before\":\"yesterday\"}",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 400,
@@ -7410,7 +8138,10 @@
           "request": {
             "method": "POST",
             "path": "/cms/users/search",
-            "body_raw": "{\"last_login_before\":\"\"}"
+            "body_raw": "{\"last_login_before\":\"\"}",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 400,
@@ -7431,7 +8162,10 @@
           "request": {
             "method": "POST",
             "path": "/cms/users/search",
-            "body_raw": "{\"last_login_before\":\"2026-08-13T14:30:00Z\"}"
+            "body_raw": "{\"last_login_before\":\"2026-08-13T14:30:00Z\"}",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 400,
@@ -7452,7 +8186,10 @@
           "request": {
             "method": "POST",
             "path": "/cms/users/search",
-            "body_raw": "{\"last_login_before\":\"1786631400\"}"
+            "body_raw": "{\"last_login_before\":\"1786631400\"}",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 400,
@@ -7473,7 +8210,10 @@
           "request": {
             "method": "POST",
             "path": "/cms/users/search",
-            "body_raw": "{\"last_login_before\":1.5}"
+            "body_raw": "{\"last_login_before\":1.5}",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 400,
@@ -7494,7 +8234,10 @@
           "request": {
             "method": "POST",
             "path": "/cms/users/search",
-            "body_raw": "{\"last_login_before\":true}"
+            "body_raw": "{\"last_login_before\":true}",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 400,
@@ -7515,7 +8258,10 @@
           "request": {
             "method": "POST",
             "path": "/cms/users/search",
-            "body_raw": "{\"last_login_before\":[1]}"
+            "body_raw": "{\"last_login_before\":[1]}",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 400,
@@ -7536,7 +8282,10 @@
           "request": {
             "method": "POST",
             "path": "/cms/users/search",
-            "body_raw": "{\"last_login_before\":9223372036854775808}"
+            "body_raw": "{\"last_login_before\":9223372036854775808}",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 400,
@@ -7557,7 +8306,10 @@
           "request": {
             "method": "POST",
             "path": "/cms/users/search",
-            "body_raw": "{\"last_login_before\":null}"
+            "body_raw": "{\"last_login_before\":null}",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 200,
@@ -7591,6 +8343,9 @@
               "nested": {
                 "a": 1
               }
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -7624,6 +8379,9 @@
             },
             "body": {
               "email": "alice.new@example.com"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -7638,6 +8396,9 @@
             "path": "/cms/users/search",
             "body": {
               "query": "alice.new@example.com"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -7683,6 +8444,9 @@
             "path": "/cms/users/search",
             "body": {
               "suspended": true
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -7705,6 +8469,9 @@
             "path": "/cms/users/search",
             "body": {
               "suspended": false
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -7739,6 +8506,9 @@
             },
             "body": {
               "permissions": 1
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -7753,6 +8523,9 @@
             "path": "/cms/users/search",
             "body": {
               "permissions": 1
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -7945,6 +8718,9 @@
             "body_generator": {
               "json_padded_bytes": 4097,
               "base": {}
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -8192,7 +8968,10 @@
           "request": {
             "method": "GET",
             "path": "/cms/users",
-            "body_raw": "{\"a\":1}"
+            "body_raw": "{\"a\":1}",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 200,
@@ -8234,6 +9013,9 @@
             "body": {
               "username": "newuser",
               "password": "Valid-Passw0rd-1"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -8351,6 +9133,9 @@
             },
             "body": {
               "email": "cached@example.com"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -8412,6 +9197,9 @@
             },
             "body": {
               "permissions": 1
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -8641,6 +9429,9 @@
             "body_generator": {
               "json_padded_bytes": 4097,
               "base": {}
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -9357,7 +10148,9 @@
             "body": {
               "email": "new@example.com"
             },
-            "headers": {}
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 401,
@@ -9385,6 +10178,7 @@
               "email": "new@example.com"
             },
             "headers": {
+              "Content-Type": "application/json",
               "Authorization": "Bearer "
             }
           },
@@ -9414,6 +10208,7 @@
               "email": "new@example.com"
             },
             "headers": {
+              "Content-Type": "application/json",
               "Authorization": "Basic dXNlcjpwYXNz"
             }
           },
@@ -9443,6 +10238,7 @@
               "email": "new@example.com"
             },
             "headers": {
+              "Content-Type": "application/json",
               "Authorization": {
                 "$raw_session": "root"
               }
@@ -9474,6 +10270,7 @@
               "email": "new@example.com"
             },
             "headers": {
+              "Content-Type": "application/json",
               "Authorization": "<Garbage>"
             }
           },
@@ -9502,7 +10299,9 @@
             "body": {
               "email": "new@example.com"
             },
-            "headers": {}
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 401,
@@ -9526,7 +10325,10 @@
             "path_params": {
               "username": "alice"
             },
-            "body_raw": "{not json"
+            "body_raw": "{not json",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 401,
@@ -9758,6 +10560,9 @@
               "base": {
                 "email": "new@example.com"
               }
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -9788,6 +10593,9 @@
               "base": {
                 "email": "new@example.com"
               }
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -9812,7 +10620,10 @@
             "path_params": {
               "username": "alice"
             },
-            "body_raw": "{"
+            "body_raw": "{",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 400,
@@ -9836,7 +10647,10 @@
             "path_params": {
               "username": "alice"
             },
-            "body_raw": ""
+            "body_raw": "",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 400,
@@ -9860,7 +10674,10 @@
             "path_params": {
               "username": "alice"
             },
-            "body_raw": "[]"
+            "body_raw": "[]",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 400,
@@ -9884,7 +10701,10 @@
             "path_params": {
               "username": "alice"
             },
-            "body_raw": "\"text\""
+            "body_raw": "\"text\"",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 400,
@@ -9908,7 +10728,10 @@
             "path_params": {
               "username": "alice"
             },
-            "body_raw": "hello"
+            "body_raw": "hello",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 400,
@@ -9932,7 +10755,10 @@
             "path_params": {
               "username": "alice"
             },
-            "body_raw": "{\"a\":\"b"
+            "body_raw": "{\"a\":\"b",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 400,
@@ -9956,7 +10782,10 @@
             "path_params": {
               "username": "alice"
             },
-            "body_raw": "null"
+            "body_raw": "null",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 400,
@@ -9982,6 +10811,9 @@
             },
             "body": {
               "email": "new@example.com"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -10034,6 +10866,9 @@
             },
             "body": {
               "email": ""
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -10086,6 +10921,9 @@
             },
             "body": {
               "email": "alice@example.com"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -10138,6 +10976,9 @@
             },
             "body": {
               "email": "new@example.com"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -10198,6 +11039,9 @@
               "permissions": 65535,
               "password": "Hacked-Passw0rd!",
               "username": "carol"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -10303,6 +11147,9 @@
             },
             "body": {
               "email": "fresh@example.com"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -10355,6 +11202,9 @@
             },
             "body": {
               "email": "not-an-email"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -10407,6 +11257,9 @@
             },
             "body": {
               "email": "@example.com"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -10459,6 +11312,9 @@
             },
             "body": {
               "email": "alice@"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -10511,6 +11367,9 @@
             },
             "body": {
               "email": "Name <a@example.com>"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -10563,6 +11422,9 @@
             },
             "body": {
               "email": " "
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -10615,6 +11477,9 @@
             },
             "body": {
               "email": "a@example.com, b@example.com"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -10669,6 +11534,9 @@
               "email": {
                 "$email_of_length": 255
               }
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -10723,6 +11591,9 @@
               "email": {
                 "$email_of_length": 254
               }
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -10747,7 +11618,10 @@
             "path_params": {
               "username": "alice"
             },
-            "body": {}
+            "body": {},
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 400,
@@ -10771,7 +11645,10 @@
             "path_params": {
               "username": "alice"
             },
-            "body_raw": "{\"email\":null}"
+            "body_raw": "{\"email\":null}",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 400,
@@ -10795,7 +11672,10 @@
             "path_params": {
               "username": "alice"
             },
-            "body_raw": "{\"email\":123}"
+            "body_raw": "{\"email\":123}",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 400,
@@ -10819,7 +11699,10 @@
             "path_params": {
               "username": "alice"
             },
-            "body_raw": "{\"email\":true}"
+            "body_raw": "{\"email\":true}",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 400,
@@ -10843,7 +11726,10 @@
             "path_params": {
               "username": "alice"
             },
-            "body_raw": "{\"email\":[\"a@example.com\"]}"
+            "body_raw": "{\"email\":[\"a@example.com\"]}",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 400,
@@ -10867,7 +11753,10 @@
             "path_params": {
               "username": "alice"
             },
-            "body_raw": "{\"email\":{\"a\":1}}"
+            "body_raw": "{\"email\":{\"a\":1}}",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 400,
@@ -10893,6 +11782,9 @@
             },
             "body": {
               "email": "new@example.com"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -10924,6 +11816,9 @@
             },
             "body": {
               "email": "new@example.com"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -10950,6 +11845,9 @@
             },
             "body": {
               "email": "new@example.com"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -10976,6 +11874,9 @@
             },
             "body": {
               "email": "new@example.com"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -11002,6 +11903,9 @@
             },
             "body": {
               "email": "new@example.com"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -11028,6 +11932,9 @@
             },
             "body": {
               "email": "new@example.com"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -11054,6 +11961,9 @@
             },
             "body": {
               "email": "new@example.com"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -11080,6 +11990,9 @@
             },
             "body": {
               "email": "new@example.com"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -11106,6 +12019,9 @@
             },
             "body": {
               "email": "new@example.com"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -11132,6 +12048,9 @@
             },
             "body": {
               "email": "new@example.com"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -11158,6 +12077,9 @@
             },
             "body": {
               "email": "new@example.com"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -11184,6 +12106,9 @@
             },
             "body": {
               "email": "new@example.com"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -11210,6 +12135,9 @@
             },
             "body": {
               "email": "n@example.com"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -11236,6 +12164,9 @@
             },
             "body": {
               "email": "n@example.com"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -11267,6 +12198,9 @@
             },
             "body": {
               "email": "n@example.com"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -11293,6 +12227,9 @@
             },
             "body": {
               "email": "n@example.com"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -11319,6 +12256,9 @@
             },
             "body": {
               "email": "n@example.com"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -11345,6 +12285,9 @@
             },
             "body": {
               "email": "up@example.com"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -11371,6 +12314,9 @@
             },
             "body": {
               "email": "by-root@example.com"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -11423,6 +12369,9 @@
             },
             "body": {
               "email": "by-creator@example.com"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -11475,6 +12424,9 @@
             },
             "body": {
               "email": "by-editor@example.com"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -11527,6 +12479,9 @@
             },
             "body": {
               "email": "by-deleter@example.com"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -11579,6 +12534,9 @@
             },
             "body": {
               "email": "by-limited@example.com"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -11631,6 +12589,9 @@
             },
             "body": {
               "email": "by-reader@example.com"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -11683,6 +12644,9 @@
             },
             "body": {
               "email": "self@example.com"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -11735,6 +12699,9 @@
             },
             "body": {
               "email": "self@example.com"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -11787,6 +12754,9 @@
             },
             "body": {
               "email": "self@example.com"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -11839,6 +12809,9 @@
             },
             "body": {
               "email": "x@example.com"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -11866,7 +12839,9 @@
             "body": {
               "password": "Another-Passw0rd-2"
             },
-            "headers": {}
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 401,
@@ -11894,6 +12869,7 @@
               "password": "Another-Passw0rd-2"
             },
             "headers": {
+              "Content-Type": "application/json",
               "Authorization": "Bearer "
             }
           },
@@ -11923,6 +12899,7 @@
               "password": "Another-Passw0rd-2"
             },
             "headers": {
+              "Content-Type": "application/json",
               "Authorization": "Basic dXNlcjpwYXNz"
             }
           },
@@ -11952,6 +12929,7 @@
               "password": "Another-Passw0rd-2"
             },
             "headers": {
+              "Content-Type": "application/json",
               "Authorization": {
                 "$raw_session": "root"
               }
@@ -11983,6 +12961,7 @@
               "password": "Another-Passw0rd-2"
             },
             "headers": {
+              "Content-Type": "application/json",
               "Authorization": "<Garbage>"
             }
           },
@@ -12011,7 +12990,9 @@
             "body": {
               "password": "Another-Passw0rd-2"
             },
-            "headers": {}
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 401,
@@ -12035,7 +13016,10 @@
             "path_params": {
               "username": "alice"
             },
-            "body_raw": "{not json"
+            "body_raw": "{not json",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 401,
@@ -12267,6 +13251,9 @@
               "base": {
                 "password": "Another-Passw0rd-2"
               }
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -12297,6 +13284,9 @@
               "base": {
                 "password": "Another-Passw0rd-2"
               }
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -12321,7 +13311,10 @@
             "path_params": {
               "username": "alice"
             },
-            "body_raw": "{"
+            "body_raw": "{",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 400,
@@ -12345,7 +13338,10 @@
             "path_params": {
               "username": "alice"
             },
-            "body_raw": ""
+            "body_raw": "",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 400,
@@ -12369,7 +13365,10 @@
             "path_params": {
               "username": "alice"
             },
-            "body_raw": "[]"
+            "body_raw": "[]",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 400,
@@ -12393,7 +13392,10 @@
             "path_params": {
               "username": "alice"
             },
-            "body_raw": "\"text\""
+            "body_raw": "\"text\"",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 400,
@@ -12417,7 +13419,10 @@
             "path_params": {
               "username": "alice"
             },
-            "body_raw": "hello"
+            "body_raw": "hello",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 400,
@@ -12441,7 +13446,10 @@
             "path_params": {
               "username": "alice"
             },
-            "body_raw": "{\"a\":\"b"
+            "body_raw": "{\"a\":\"b",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 400,
@@ -12465,7 +13473,10 @@
             "path_params": {
               "username": "alice"
             },
-            "body_raw": "null"
+            "body_raw": "null",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 400,
@@ -12491,6 +13502,9 @@
             },
             "body": {
               "password": "Another-Passw0rd-2"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -12542,6 +13556,9 @@
             },
             "body": {
               "password": "Another-Passw0rd-2"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -12579,6 +13596,9 @@
             },
             "body": {
               "password": "Another-Passw0rd-2"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -12640,6 +13660,9 @@
             },
             "body": {
               "passwd": "Another-Passw0rd-2"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -12676,6 +13699,9 @@
               "password": "Another-Passw0rd-2",
               "permissions": 65535,
               "email": "x@example.com"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -12733,6 +13759,9 @@
             },
             "body": {
               "password": ""
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -12767,6 +13796,9 @@
             },
             "body": {
               "password": "Aa1!xyz"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -12801,6 +13833,9 @@
             },
             "body": {
               "password": "Aa1!xyz9"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -12835,6 +13870,9 @@
             },
             "body": {
               "password": "        "
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -12869,6 +13907,9 @@
             },
             "body": {
               "password": "pa\tss\nword1"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -12903,6 +13944,9 @@
             },
             "body": {
               "password": "😀😀😀😀😀😀😀😀"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -12937,6 +13981,9 @@
             },
             "body": {
               "password": "éééééééé"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -12971,6 +14018,9 @@
             },
             "body": {
               "password": "ééééééé"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -13005,6 +14055,9 @@
             },
             "body": {
               "password": "😀😀😀😀"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -13044,6 +14097,9 @@
                   "n": 72
                 }
               }
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -13075,6 +14131,9 @@
                   "n": 73
                 }
               }
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -13114,6 +14173,9 @@
                   "n": 37
                 }
               }
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -13146,7 +14208,10 @@
             "path_params": {
               "username": "alice"
             },
-            "body": {}
+            "body": {},
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 400,
@@ -13170,7 +14235,10 @@
             "path_params": {
               "username": "alice"
             },
-            "body_raw": "{\"password\":null}"
+            "body_raw": "{\"password\":null}",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 400,
@@ -13194,7 +14262,10 @@
             "path_params": {
               "username": "alice"
             },
-            "body_raw": "{\"password\":12345678}"
+            "body_raw": "{\"password\":12345678}",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 400,
@@ -13218,7 +14289,10 @@
             "path_params": {
               "username": "alice"
             },
-            "body_raw": "{\"password\":true}"
+            "body_raw": "{\"password\":true}",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 400,
@@ -13242,7 +14316,10 @@
             "path_params": {
               "username": "alice"
             },
-            "body_raw": "{\"password\":[\"x\"]}"
+            "body_raw": "{\"password\":[\"x\"]}",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 400,
@@ -13266,7 +14343,10 @@
             "path_params": {
               "username": "alice"
             },
-            "body_raw": "{\"password\":{\"a\":1}}"
+            "body_raw": "{\"password\":{\"a\":1}}",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 400,
@@ -13290,7 +14370,10 @@
             "path_params": {
               "username": "alice"
             },
-            "body_raw": "{\"password\":\"p\\\"w\\\\\\u00e4Valid1!\"}"
+            "body_raw": "{\"password\":\"p\\\"w\\\\\\u00e4Valid1!\"}",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 204,
@@ -13324,6 +14407,9 @@
             },
             "body": {
               "password": "Another-Passw0rd-2"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -13355,6 +14441,9 @@
             },
             "body": {
               "password": "Another-Passw0rd-2"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -13381,6 +14470,9 @@
             },
             "body": {
               "password": "Another-Passw0rd-2"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -13407,6 +14499,9 @@
             },
             "body": {
               "password": "Another-Passw0rd-2"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -13433,6 +14528,9 @@
             },
             "body": {
               "password": "Another-Passw0rd-2"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -13459,6 +14557,9 @@
             },
             "body": {
               "password": "Another-Passw0rd-2"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -13485,6 +14586,9 @@
             },
             "body": {
               "password": "Another-Passw0rd-2"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -13511,6 +14615,9 @@
             },
             "body": {
               "password": "Another-Passw0rd-2"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -13537,6 +14644,9 @@
             },
             "body": {
               "password": "Another-Passw0rd-2"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -13563,6 +14673,9 @@
             },
             "body": {
               "password": "Another-Passw0rd-2"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -13589,6 +14702,9 @@
             },
             "body": {
               "password": "Another-Passw0rd-2"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -13615,6 +14731,9 @@
             },
             "body": {
               "password": "Another-Passw0rd-2"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -13641,6 +14760,9 @@
             },
             "body": {
               "password": "Another-Passw0rd-2"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -13667,6 +14789,9 @@
             },
             "body": {
               "password": "Another-Passw0rd-2"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -13693,6 +14818,9 @@
             },
             "body": {
               "password": "Another-Passw0rd-2"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -13719,6 +14847,9 @@
             },
             "body": {
               "password": "Another-Passw0rd-2"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -13745,6 +14876,9 @@
             },
             "body": {
               "password": "Another-Passw0rd-2"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -13779,6 +14913,9 @@
             },
             "body": {
               "password": "Another-Passw0rd-2"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -13813,6 +14950,9 @@
             },
             "body": {
               "password": "Another-Passw0rd-2"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -13847,6 +14987,9 @@
             },
             "body": {
               "password": "Another-Passw0rd-2"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -13881,6 +15024,9 @@
             },
             "body": {
               "password": "Another-Passw0rd-2"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -13915,6 +15061,9 @@
             },
             "body": {
               "password": "Another-Passw0rd-2"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -13949,6 +15098,9 @@
             },
             "body": {
               "password": "Another-Passw0rd-2"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -13994,6 +15146,9 @@
             },
             "body": {
               "password": "Another-Passw0rd-2"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -14021,7 +15176,9 @@
             "body": {
               "permissions": 1
             },
-            "headers": {}
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 401,
@@ -14049,6 +15206,7 @@
               "permissions": 1
             },
             "headers": {
+              "Content-Type": "application/json",
               "Authorization": "Bearer "
             }
           },
@@ -14078,6 +15236,7 @@
               "permissions": 1
             },
             "headers": {
+              "Content-Type": "application/json",
               "Authorization": "Basic dXNlcjpwYXNz"
             }
           },
@@ -14107,6 +15266,7 @@
               "permissions": 1
             },
             "headers": {
+              "Content-Type": "application/json",
               "Authorization": {
                 "$raw_session": "root"
               }
@@ -14138,6 +15298,7 @@
               "permissions": 1
             },
             "headers": {
+              "Content-Type": "application/json",
               "Authorization": "<Garbage>"
             }
           },
@@ -14166,7 +15327,9 @@
             "body": {
               "permissions": 1
             },
-            "headers": {}
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 401,
@@ -14190,7 +15353,10 @@
             "path_params": {
               "username": "alice"
             },
-            "body_raw": "{not json"
+            "body_raw": "{not json",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 401,
@@ -14422,6 +15588,9 @@
               "base": {
                 "permissions": 1
               }
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -14452,6 +15621,9 @@
               "base": {
                 "permissions": 1
               }
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -14476,7 +15648,10 @@
             "path_params": {
               "username": "alice"
             },
-            "body_raw": "{"
+            "body_raw": "{",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 400,
@@ -14500,7 +15675,10 @@
             "path_params": {
               "username": "alice"
             },
-            "body_raw": ""
+            "body_raw": "",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 400,
@@ -14524,7 +15702,10 @@
             "path_params": {
               "username": "alice"
             },
-            "body_raw": "[]"
+            "body_raw": "[]",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 400,
@@ -14548,7 +15729,10 @@
             "path_params": {
               "username": "alice"
             },
-            "body_raw": "\"text\""
+            "body_raw": "\"text\"",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 400,
@@ -14572,7 +15756,10 @@
             "path_params": {
               "username": "alice"
             },
-            "body_raw": "hello"
+            "body_raw": "hello",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 400,
@@ -14596,7 +15783,10 @@
             "path_params": {
               "username": "alice"
             },
-            "body_raw": "{\"a\":\"b"
+            "body_raw": "{\"a\":\"b",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 400,
@@ -14620,7 +15810,10 @@
             "path_params": {
               "username": "alice"
             },
-            "body_raw": "null"
+            "body_raw": "null",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 400,
@@ -14646,6 +15839,9 @@
             },
             "body": {
               "permissions": 65536
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -14698,6 +15894,9 @@
             },
             "body": {
               "permissions": 0
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -14752,6 +15951,9 @@
               "permissions": {
                 "$const": "PERM_ALL"
               }
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -14806,6 +16008,9 @@
             },
             "body": {
               "permissions": 1
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -14864,6 +16069,9 @@
             "body": {
               "permissions": 1,
               "email": "x@example.com"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -14935,6 +16143,9 @@
             },
             "body": {
               "permissions": 1
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -14985,7 +16196,10 @@
             "path_params": {
               "username": "alice"
             },
-            "body": {}
+            "body": {},
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 400,
@@ -15009,7 +16223,10 @@
             "path_params": {
               "username": "alice"
             },
-            "body_raw": "{\"permissions\":null}"
+            "body_raw": "{\"permissions\":null}",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 400,
@@ -15033,7 +16250,10 @@
             "path_params": {
               "username": "alice"
             },
-            "body_raw": "{\"permissions\":-1}"
+            "body_raw": "{\"permissions\":-1}",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 400,
@@ -15057,7 +16277,10 @@
             "path_params": {
               "username": "alice"
             },
-            "body_raw": "{\"permissions\":4294967296}"
+            "body_raw": "{\"permissions\":4294967296}",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 400,
@@ -15081,7 +16304,10 @@
             "path_params": {
               "username": "alice"
             },
-            "body_raw": "{\"permissions\":1.5}"
+            "body_raw": "{\"permissions\":1.5}",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 400,
@@ -15105,7 +16331,10 @@
             "path_params": {
               "username": "alice"
             },
-            "body_raw": "{\"permissions\":\"7\"}"
+            "body_raw": "{\"permissions\":\"7\"}",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 400,
@@ -15129,7 +16358,10 @@
             "path_params": {
               "username": "alice"
             },
-            "body_raw": "{\"permissions\":true}"
+            "body_raw": "{\"permissions\":true}",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 400,
@@ -15153,7 +16385,10 @@
             "path_params": {
               "username": "alice"
             },
-            "body_raw": "{\"permissions\":[1]}"
+            "body_raw": "{\"permissions\":[1]}",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 400,
@@ -15177,7 +16412,10 @@
             "path_params": {
               "username": "alice"
             },
-            "body_raw": "{\"permissions\":{\"a\":1}}"
+            "body_raw": "{\"permissions\":{\"a\":1}}",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 400,
@@ -15203,6 +16441,9 @@
             },
             "body": {
               "permissions": 1
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -15234,6 +16475,9 @@
             },
             "body": {
               "permissions": 1
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -15260,6 +16504,9 @@
             },
             "body": {
               "permissions": 1
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -15286,6 +16533,9 @@
             },
             "body": {
               "permissions": 1
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -15312,6 +16562,9 @@
             },
             "body": {
               "permissions": 1
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -15338,6 +16591,9 @@
             },
             "body": {
               "permissions": 1
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -15364,6 +16620,9 @@
             },
             "body": {
               "permissions": 1
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -15390,6 +16649,9 @@
             },
             "body": {
               "permissions": 1
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -15416,6 +16678,9 @@
             },
             "body": {
               "permissions": 1
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -15442,6 +16707,9 @@
             },
             "body": {
               "permissions": 1
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -15468,6 +16736,9 @@
             },
             "body": {
               "permissions": 1
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -15494,6 +16765,9 @@
             },
             "body": {
               "permissions": 1
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -15520,6 +16794,9 @@
             },
             "body": {
               "permissions": 1
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -15546,6 +16823,9 @@
             },
             "body": {
               "permissions": 1
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -15572,6 +16852,9 @@
             },
             "body": {
               "permissions": 1
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -15598,6 +16881,9 @@
             },
             "body": {
               "permissions": 1
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -15626,6 +16912,9 @@
               "permissions": {
                 "$actor_perms": "root"
               }
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -15680,6 +16969,9 @@
             },
             "body": {
               "permissions": 0
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -15734,6 +17026,9 @@
               "permissions": {
                 "$actor_perms": "editor"
               }
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -15788,6 +17083,9 @@
             },
             "body": {
               "permissions": 0
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -15842,6 +17140,9 @@
               "permissions": {
                 "$actor_perms": "limited"
               }
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -15896,6 +17197,9 @@
             },
             "body": {
               "permissions": 0
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -15948,6 +17252,9 @@
             },
             "body": {
               "permissions": 0
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -16002,6 +17309,9 @@
               "permissions": {
                 "$const": "PERM_OUTSIDE"
               }
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -16056,6 +17366,9 @@
               "permissions": {
                 "$const": "PERM_ALL"
               }
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -16108,6 +17421,9 @@
             },
             "body": {
               "permissions": 0
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -16162,6 +17478,9 @@
               "permissions": {
                 "$const": "PERM_OUTSIDE"
               }
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -16216,6 +17535,9 @@
               "permissions": {
                 "$const": "PERM_ALL"
               }
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -16270,6 +17592,9 @@
               "permissions": {
                 "$actor_perms": "creator"
               }
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -16326,6 +17651,9 @@
               "permissions": {
                 "$actor_perms": "creator"
               }
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -16378,6 +17706,9 @@
             },
             "body": {
               "permissions": 0
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -16433,6 +17764,9 @@
             },
             "body": {
               "permissions": 0
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -16488,6 +17822,9 @@
             },
             "body": {
               "permissions": 0
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -16543,6 +17880,9 @@
             },
             "body": {
               "permissions": 0
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -16751,6 +18091,9 @@
             "body_generator": {
               "json_padded_bytes": 4097,
               "base": {}
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -17025,6 +18368,9 @@
             "body": {
               "username": "alice",
               "password": "Valid-Passw0rd-1"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -17049,7 +18395,10 @@
             "path_params": {
               "username": "alice"
             },
-            "body_raw": "{\"x\":1}"
+            "body_raw": "{\"x\":1}",
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 204,
@@ -17816,7 +19165,10 @@
             "path_params": {
               "username": "alice"
             },
-            "body": {}
+            "body": {},
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 405,
@@ -17865,7 +19217,10 @@
             "path_params": {
               "username": "alice"
             },
-            "body": {}
+            "body": {},
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 405,
@@ -17911,7 +19266,10 @@
           "request": {
             "method": "PATCH",
             "path": "/cms/users/search",
-            "body": {}
+            "body": {},
+            "headers": {
+              "Content-Type": "application/json"
+            }
           },
           "expect": {
             "status": 405,

@@ -8,7 +8,7 @@ type PasswordService interface {
 	Hash(pwd Password) ([]byte, error)
 	PasswordMatches(pwd Password, hash []byte) bool
 	GeneratePassword(length int) (Password, error)
-	IsValidPassword(password Password) bool
+	IsValidPassword(password Password) error
 }
 
 func (p *Password) UnmarshalJSON(data []byte) error {

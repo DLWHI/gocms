@@ -41,16 +41,11 @@ func (r *HttpRunner) Stop(ctx context.Context) error {
 	return nil
 }
 
-func ServeMessage(w http.ResponseWriter, entity string, err error) {
-	var maxBytesErr *http.MaxBytesError
-	if errors.As(err, &maxBytesErr) {
-		http.Error(w, "Request payload is too large", http.StatusRequestEntityTooLarge)
-	} else if errors.Is(err, domain.ErrCred) {
+func WriteServerError(w http.ResponseWriter, entity string, err error) {
+	if errors.Is(err, domain.ErrCred) {
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 	} else if errors.Is(err, domain.ErrPerm) {
 		http.Error(w, "Insufficent permissions", http.StatusUnauthorized)
-	} else if errors.Is(err, domain.ErrExpired) {
-		http.Error(w, "Invalid or expired session", http.StatusUnauthorized)
 	} else if errors.Is(err, domain.ErrInval) {
 		http.Error(w, fmt.Sprintf("%v", err), http.StatusBadRequest)
 	} else if errors.Is(err, domain.ErrDuplicate) {
@@ -60,4 +55,17 @@ func ServeMessage(w http.ResponseWriter, entity string, err error) {
 	} else {
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 	}
+}
+
+func WriteDecodeError(w http.ResponseWriter, err error) {
+	var maxBytesErr *http.MaxBytesError
+	if errors.As(err, &maxBytesErr) {
+		http.Error(w, "Request payload is too large", http.StatusRequestEntityTooLarge)
+	} else {
+		http.Error(w, fmt.Sprintf("%v", err), http.StatusBadRequest)
+	}
+}
+
+func WritePathError(w http.ResponseWriter, message string) {
+	http.Error(w, message, http.StatusBadRequest)
 }

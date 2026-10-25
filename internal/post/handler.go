@@ -53,7 +53,7 @@ func (h *Handler) create(w http.ResponseWriter, r *http.Request) {
 
 	err := h.postService.Create(r.Context(), &post)
 	if err != nil {
-		server.ServeMessage(w, "Post", err)
+		server.WriteServerError(w, "Post", err)
 		return
 	}
 
@@ -82,7 +82,7 @@ func (h *Handler) search(w http.ResponseWriter, r *http.Request) {
 
 	posts, err := h.postService.Search(r.Context(), &filters)
 	if err != nil {
-		server.ServeMessage(w, "Post", err)
+		server.WriteServerError(w, "Post", err)
 		return
 	}
 
@@ -100,7 +100,7 @@ func (h *Handler) get(w http.ResponseWriter, r *http.Request) {
 
 	post, err := h.postService.Get(r.Context(), uint(id))
 	if err != nil {
-		server.ServeMessage(w, "Post", err)
+		server.WriteServerError(w, "Post", err)
 		return
 	}
 
@@ -125,7 +125,7 @@ func (h *Handler) update(w http.ResponseWriter, r *http.Request) {
 	post.PostID = uint(id)
 
 	if _, err := h.postService.Edit(r.Context(), &post); err != nil {
-		server.ServeMessage(w, "Post", err)
+		server.WriteServerError(w, "Post", err)
 		return
 	}
 
@@ -147,7 +147,7 @@ func (h *Handler) updateViews(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.postService.SetViews(r.Context(), uint(id), value); err != nil {
-		server.ServeMessage(w, "Post", err)
+		server.WriteServerError(w, "Post", err)
 		return
 	}
 
@@ -163,7 +163,7 @@ func (h *Handler) delete(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.postService.Delete(r.Context(), uint(id)); err != nil {
-		server.ServeMessage(w, "Post", err)
+		server.WriteServerError(w, "Post", err)
 		return
 	}
 
@@ -180,7 +180,7 @@ func (h *Handler) deleteLocale(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.postService.DeleteTranslation(r.Context(), uint(id), locale); err != nil {
-		server.ServeMessage(w, "Post translation", err)
+		server.WriteServerError(w, "Post translation", err)
 		return
 	}
 

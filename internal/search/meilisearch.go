@@ -32,12 +32,10 @@ func NewMeilisearchConnection(host string, port string, apiKey string) meilisear
 }
 
 func (d *MeilisearchClient) CreateIndex(ctx context.Context) error {
-	config := d.Config
-	task, err := d.Client.CreateIndexWithContext(ctx, &config)
+	task, err := d.Client.CreateIndexWithContext(ctx, &d.Config)
 	if err != nil {
 		return err
 	}
-	logger.Info("Search.Meilisearch", "Search index creation enqueued")
 	if err := d.WaitForTask(ctx, task); err != nil {
 		return err
 	}
@@ -50,12 +48,10 @@ func (d *MeilisearchClient) CreateIndex(ctx context.Context) error {
 }
 
 func (d *MeilisearchClient) WipeIndex(ctx context.Context) error {
-	config := d.Config
-	task, err := d.Client.DeleteIndexWithContext(ctx, config.Uid)
+	task, err := d.Client.Index(d.Config.Uid).DeleteAllDocumentsWithContext(ctx, nil)
 	if err != nil {
 		return err
 	}
-	logger.Info("Search.Meilisearch", "Search index deletion enqueued")
 	if err := d.WaitForTask(ctx, task); err != nil {
 		return err
 	}
@@ -63,13 +59,10 @@ func (d *MeilisearchClient) WipeIndex(ctx context.Context) error {
 }
 
 func (d *MeilisearchClient) ConfigureIndex(ctx context.Context) error {
-	config := d.Config
-	settings := d.Settings
-	task, err := d.Client.Index(config.Uid).UpdateSettingsWithContext(ctx, &settings)
+	task, err := d.Client.Index(d.Config.Uid).UpdateSettingsWithContext(ctx, &d.Settings)
 	if err != nil {
 		return err
 	}
-	logger.Info("Search.Meilisearch", "Search index settings update enqueued")
 	if err := d.WaitForTask(ctx, task); err != nil {
 		return err
 	}

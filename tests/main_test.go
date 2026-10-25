@@ -1,39 +1,149 @@
 package tests
 
-// var (
-// 	app       *Container
-// 	address                 = ""
-// 	port                    = "8080"
-// 	sleepTime time.Duration = 3 * time.Second // time before test starts pulling from meilisearch index
-// )
+import (
+	"context"
+	"encoding/json"
+	"fmt"
+	"gocms/internal/logger"
+	"gocms/internal/test"
+	"log/slog"
+	"os"
+	"os/signal"
+	"regexp"
+	"syscall"
+	"testing"
+	"time"
+)
 
-// func TestMain(m *testing.M) {
-// 	if err := run(m); err != nil {
-// 		os.Exit(1)
-// 	}
+const (
+	ConfigAddress                 = ""
+	ConfigPort                    = "8080"
+	ConfigSleepTime time.Duration = 3 * time.Second // time before test starts pulling from meilisearch index
+	Filter                        = ""
+)
 
-// }
+var (
+	App *Container
+	Env *test.Environment
+)
 
-// func run(m *testing.M) error {
-// 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
-// 	defer cancel()
+func TestMain(m *testing.M) {
+	if err := run(m); err != nil {
+		os.Exit(1)
+	}
 
-// 	app = NewContainer()
-// 	if err := app.Init(ctx); err != nil {
-// 		logger.Error("Main", "Failed to initialize application", err)
-// 		return err
-// 	}
-// 	defer app.TearDown()
+}
 
-// 	app.Start(ctx)
+func run(m *testing.M) error {
+	lg := slog.New(logger.NewReasonedHandler(nil))
+	slog.SetDefault(lg)
+	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer cancel()
 
-// 	<-ctx.Done()
+	App = NewContainer()
+	logger.Info("Test.Users", "Initializing services and connections")
+	if err := App.Init(ctx); err != nil {
+		logger.Error("Main", "Failed to initialize application", err)
+		return err
+	}
+	defer App.TearDown()
 
-// 	logger.Info("Main", "Shutdown signal received. Shutting down...")
-// 	app.Stop(30 * time.Second)
+	Env = &test.Environment{
+		DB: App.DB,
+		Search: test.NewMeilisearch(
+			App.Meilisearch,
+			UsersSearchIndexName,
+			PostsSearchIndexName,
+			CategoriesSearchIndexName,
+			EditorsSearchIndexName,
+			AdsSearchIndexName,
+		),
+		Password: App.PasswordService,
+		Router:   App.Router,
+	}
 
-// 	if m.Run() != 0 {
-// 		return fmt.Errorf("Test run failed")
-// 	}
-// 	return nil
-// }
+	App.Start(ctx)
+	defer App.Stop(30 * time.Second)
+
+	status := m.Run()
+	cancel()
+	if status != 0 {
+		return fmt.Errorf("Test run failed")
+	}
+	return nil
+}
+
+func TestUsers(t *testing.T) {
+	ran := 0
+	succeed := 0
+	defer func() {
+		logger.Info("Tests", fmt.Sprintf("Finished running user tests. Ran = %d tests. Passed = %d. Failed = %d", ran, succeed, ran-succeed))
+	}()
+
+	ctx := t.Context()
+	logger.Info("Test.Users", "Opening and parsing test cases file")
+	cases, err := os.Open("./test_cases/users.json")
+	if err != nil {
+		logger.Error("Test.Users", "Failed to open test cases file", err)
+		t.FailNow()
+	}
+
+	data := &test.Data{}
+	if err := json.NewDecoder(cases).Decode(data); err != nil {
+		logger.Error("Test.Users", "Failed to parse test cases", err)
+		t.FailNow()
+	}
+
+	if val, ok := data.Meta["format_version"]; !ok || fmt.Sprintf("%v", val) != "1" {
+		logger.Error("Test.Users", "Unsupported or missing format version", err)
+		t.FailNow()
+	}
+
+	Env.TestData = data
+
+	logger.Info("Test.Users", "Applying fixtures")
+	if err = data.Fixtures.ApplyFixtures(ctx, Env); err != nil {
+		logger.Error("Test.Users", "Failed to apply fixtures", err)
+		t.FailNow()
+	}
+
+	for _, testcase := range data.Cases {
+		if matched, err := regexp.MatchString(Filter, testcase.ID); err != nil || !matched {
+			if err != nil {
+				logger.Warn("Test.User", "Failed to apply filter", err)
+			}
+			continue
+		}
+
+		logger.Info("Test.User", fmt.Sprintf("Running test: %s", testcase.ID))
+		for _, step := range testcase.Steps {
+			ran++
+
+			actor, ok := data.Fixtures.Actors[step.Actor]
+			if !ok && step.Actor != "anonymous" {
+				logger.Error("Test.User", fmt.Sprintf("Test %s failed", testcase.ID), fmt.Errorf("Requested step for unknown actor"), "Case", testcase, "Step", step)
+				t.FailNow()
+			}
+
+			res, err := Env.PerformRequest(ctx, actor, step.Request)
+			if err != nil {
+				logger.Error("Test.User", fmt.Sprintf("Test %s failed", testcase.ID), err, "Case", testcase, "Step", step)
+				t.FailNow()
+			}
+			defer res.Body.Close()
+
+			if err := step.Expect.Check(data, res); err != nil {
+				logger.Error("Test.User", fmt.Sprintf("Test %s failed", testcase.ID), err, "Case", testcase, "Step", step, "response", res)
+				t.FailNow()
+			}
+			succeed++
+		}
+
+		logger.Info("Test.User", fmt.Sprintf("Test %s passed", testcase.ID))
+		if err := data.Fixtures.ResetFixtures(ctx, Env); err != nil {
+			logger.Error("Test.User", "Failed to reset fixtures", err)
+			t.FailNow()
+		}
+	}
+
+}

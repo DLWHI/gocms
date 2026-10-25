@@ -142,249 +142,6 @@ Change current user's password.
   - `401 Unauthorized` — if session is invalid, missing or expired identity, or if old credentials is invalid. Returns a plain-text message.
   - `500 Internal Server Error` — if change fails. Returns a plain-text message.
 
-## CMS — users
-
-These routes are responsible for user database management.
-
-<a id="cms-users-create"></a>
-
-### `POST /cms/users`
-
-Create a user.
-
-- **Headers:**
-  - `Authorization` — `Bearer <sessionID>` (required).
-  - `Content-Type` — `application/json`
-- **Path parameters:** None.
-- **Request body:**
-
-  ```json
-  {
-    "username": "string",
-    "passwd": "password",
-    "email": "example@email.com",
-  }
-  ```
-
-- **Request limit:** 4 KiB.
-- **Response:**
-  - `201 Created` — if user was created successfully. Returns empty body.
-  - `400 Bad Request` — if body or username is invalid. Returns a plain-text message.
-  - `401 Unauthorized` — is session is invalid, missing or expired identity or if session has insufficient permissions. Returns a plain-text message.
-  - `500 Internal Server Error` — if user creation fails. Returns a plain-text message.
-
-<a id="cms-users-search"></a>
-
-### `POST /cms/users/search`
-
-Search user records. Search is performed on username and email
-
-- **Headers:**
-  - `Authorization` — `Bearer <sessionID>` (required).
-  - `Content-Type` — `application/json`
-- **Path parameters:** None.
-- **Request body:** Unknown fields are ignored. The request body may include:
-
-```json
-{
-  "query": "string",
-  "sort_by": "column:asc|desc",  // note that not all columns are sortable
-  "page": 1,
-  "count": 15,  // capped at 100
-  "permissions": 4294967295,  // optional, bit field as number
-  "suspended": boolean,  // optional
-  "suspended_after": "2026-08-13T14:30:00Z",  // optional, must be RFC 3339 compliant
-  "suspended_before": "2026-08-13T14:30:00Z",  // optional, must be RFC 3339 compliant
-  "last_login_after": "2026-08-13T14:30:00Z",  // optional, must be RFC 3339 compliant
-  "last_login_before": "2026-08-13T14:30:00Z",  // optional, must be RFC 3339 compliant
-}
-```
-
-- **Request limit:** 4 KiB.
-- **Response:**
-  - `200 OK` — if search completed successfully.
-
-  ```json
-  {
-    "results": [
-      {
-        "username": "string",
-        "email": "email",
-        "permissions": 4294967295,  // optional, bit field as number
-        "last_login": "2026-08-13T14:30:00Z",  // RFC 3339 compliant
-        "suspended_at": "2026-08-13T14:30:00Z",  // RFC 3339 compliant
-      }
-    ],
-    "last_page": 1,
-    "total": 1
-  }
-  ```
-
-  - `400 Bad Request` — if body is invalid. Returns a plain-text message.
-  - `401 Unauthorized` — if session is invalid, missing or expired identity. Returns a plain-text message.
-  - `500 Internal Server Error` — if search service fails. Returns a plain-text message.
-
-<a id="cms-users"></a>
-
-### `GET /cms/users`
-
-List all users.
-
-- **Headers:**
-  - `Authorization` — `Bearer <sessionID>` (required).
-- **Path parameters:** None.
-- **Request body:** None.
-- **Request limit:** 4 KiB.
-- **Response:**
-  - `200 OK` — if user retreival succeeds
-
-  ```json
-  [
-    {
-      "username": "string",
-      "email": "email",
-      "permissions": 4294967295,  // optional, bit field as number
-      "last_login": "2026-08-13T14:30:00Z",  // RFC 3339 compliant
-      "suspended_at": "2026-08-13T14:30:00Z",  // RFC 3339 compliant
-    },
-    {
-      "username": "string",
-      "email": "email",
-      "permissions": 4294967295,  // optional, bit field as number
-      "last_login": "2026-08-13T14:30:00Z",  // RFC 3339 compliant
-      "suspended_at": "2026-08-13T14:30:00Z",  // RFC 3339 compliant
-    }
-  ]
-  ```
-
-  - `401 Unauthorized` — if session is invalid, missing or expired identity. Returns a plain-text message.
-  - `500 Internal Server Error` — if user retreival fails. Returns a plain-text message.
-
-<a id="cms-users-username"></a>
-
-### `GET /cms/users/{username}`
-
-Get user by username.
-
-- **Headers:**
-  - `Authorization` — `Bearer <sessionID>` (required).
-- **Path parameters:**
-  - `username` — target account username.
-- **Request body:** None.
-- **Request limit:** 4 KiB.
-- **Response:**
-  - `200 OK` — if user retreival succeeds
-
-  ```json
-  {
-    "username": "string",
-    "email": "email",
-    "permissions": 4294967295,  // optional, bit field as number
-    "last_login": "2026-08-13T14:30:00Z",  // RFC 3339 compliant
-    "suspended_at": "2026-08-13T14:30:00Z",  // RFC 3339 compliant
-  }
-  ```
-
-  - `400 Bad Request` — if username is invalid. Returns a plain-text message.
-  - `401 Unauthorized` — if session is invalid, missing or expired identity. Returns a plain-text message.
-  - `404 Not Found` — if user not found. Returns a plain-text message.
-  - `500 Internal Server Error` — if user retreival fails. Returns a plain-text message.
-
-<a id="cms-users-username-email"></a>
-
-### `PATCH /cms/users/{username}/email`
-
-Change target user's email address.
-
-- **Headers:**
-  - `Authorization` — `Bearer <sessionID>` (required).
-  - `Content-Type` — `application/json`
-- **Path parameters:**
-  - `username` — target user's username.
-- **Request body:** Plain JSON string
-
-```json
-  "sam@example.com"
-```
-
-- **Request limit:** 4 KiB.
-- **Response:**
-  - `200 OK` — if operation succeeds. Returns empty body.
-  - `400 Bad Request` — if username or body is invalid. Returns a plain-text message.
-  - `401 Unauthorized` — is session is invalid, missing or expired identity or if session has insufficient permissions. Returns a plain-text message.
-  - `404 Not Found` — if target user not found. Returns a plain-text message.
-  - `500 Internal Server Error` — if repository failure occurs. Returns a plain-text message.
-
-<a id="cms-users-username-reset"></a>
-
-### `PATCH /cms/users/{username}/reset`
-
-Override user's password. Active sessions for that user are revoked after reset.
-
-- **Headers:**
-  - `Authorization` — `Bearer <sessionID>` (required).
-  - `Content-Type` — `application/json`
-- **Path parameters:**
-  - `username` — target user.
-- **Request body:** Plain JSON string
-
-```json
-  "password"
-```
-
-- **Request limit:** 4 KiB.
-- **Response:**
-  - `200 OK` — if password change succeeds. Returns empty body.
-  - `400 Bad Request` — if username or body is invalid. Returns a plain-text message.
-  - `401 Unauthorized` — is session is invalid, missing or expired identity or if session has insufficient permissions. Returns a plain-text message.
-  - `404 Not Found` — if target user not found. Returns a plain-text message.
-  - `500 Internal Server Error` — if password/session service failure occurs. Returns a plain-text message.
-
-<a id="cms-users-username-permissions"></a>
-
-### `PATCH /cms/users/{username}/permissions`
-
-Update a user's permissions.
-
-- **Headers:**
-  - `Authorization` — `Bearer <sessionID>` (required).
-  - `Content-Type` — `application/json`.
-- **Path parameters:**
-  - `username` — target user.
-- **Request body:** Plain unsigned integer
-
-```json
-  65536
-```
-
-- **Request limit:** 4 KiB.
-- **Response:**
-  - `200 OK` — if permissions change successfully. Returns empty body.
-  - `400 Bad Request` — Invalid request JSON. Returns a plain-text message.
-  - `401 Unauthorized` — is session is invalid, missing or expired identity or if session has insufficient permissions. Returns a plain-text message.
-  - `404 Not Found` — User not found. Returns a plain-text message.
-  - `404 Not Found` — if target user not found. Returns a plain-text message.
-  - `500 Internal Server Error` — if users service fails to change permissions. Returns a plain-text message.
-
-<a id="cms-users-username-delete"></a>
-
-### `DELETE /cms/users/{username}`
-
-Suspend a user and revoke that user's sessions. Note that this soft-deletes user from the database, menaing user data will still be available.
-
-- **Headers:**
-  - `Authorization` — `Bearer <sessionID>` (required).
-- **Path parameters:**
-  - `username` — target user.
-- **Request body:** None.
-- **Request limit:** 4 KiB.
-- **Response:**
-  - `200 OK` — if user suspended successfully. Empty body.
-  - `400 Bad Request` — if  username is invalid. Returns a plain-text message.
-  - `401 Unauthorized` — is session is invalid, missing or expired identity or if session has insufficient permissions. Returns a plain-text message.
-  - `404 Not Found` — target user was not found. Returns a plain-text message.
-  - `500 Internal Server Error` — if users service fails to suspend user. Returns a plain-text message.
-
 ## CMS — editors
 
 These routes are responsible for editor management.
@@ -436,7 +193,7 @@ Search editors. Search is performed on editor name, email and target username
   ```
 
   - `400 Bad Request` — if request body is invalid. Returns a plain-text message.
-  - `401 Unauthorized` — is session is invalid, missing or expired identity. Returns a plain-text message.
+  - `401 Unauthorized` — if session is invalid, missing or expired identity. Returns a plain-text message.
   - `500 Internal Server Error` — if search failure occurs. Returns a plain-text message.
 
 <a id="cms-editors"></a>
@@ -505,7 +262,7 @@ Create an editor profile.
 - **Response:**
   - `201 Created` — if editor created successfully. Returns empty body.
   - `400 Bad Request` — if request body is malformed or a target locale is missing. Returns a plain-text message.
-  - `401 Unauthorized` — is session is invalid, missing or expired identity or if session has insufficient permissions. Returns a plain-text message.
+  - `401 Unauthorized` — if session is invalid, missing or expired identity or if session has insufficient permissions. Returns a plain-text message.
   - `500 Internal Server Error` — if editor service fails. Returns a plain-text message.
 
 <a id="cms-editors-username"></a>
@@ -538,7 +295,7 @@ Get target username's editor profile.
   - `400 Bad Request` — if username is invalid or target locale is missing. Returns a plain-text message.
   - `401 Unauthorized` — if session is invalid, missing or expired identity. Returns a plain-text message.
   - `404 Not Found` — Target editor not found. Returns a plain-text message.
-  - `500 Internal Server Error` — if editor service fails to retreive data. Returns a plain-text message.
+  - `500 Internal Server Error` — if editor service fails to retrieve data. Returns a plain-text message.
 
 <a id="cms-editors-username-patch"></a>
 
@@ -567,7 +324,7 @@ Update an editor profile. Currently, only editor himself has rights to update in
 - **Response:**
   - `200 OK` — if update succeeds. Returns empty body.
   - `400 Bad Request` — if request body is malformed or a target locale is missing. Returns a plain-text message.
-  - `401 Unauthorized` — is session is invalid, missing or expired identity or if session has insufficient permissions. Returns a plain-text message.
+  - `401 Unauthorized` — if session is invalid, missing or expired identity or if session has insufficient permissions. Returns a plain-text message.
   - `404 Not Found` — if target editor was not found. Returns a plain-text message.
   - `500 Internal Server Error` — if editor service fails to commit update. Returns a plain-text message.
 
@@ -586,7 +343,7 @@ Suspend an editor profile.
 - **Response:**
   - `200 OK` — if delete succeeds. Returns empty body.
   - `400 Bad Request` — if username is invalid. Returns a plain-text message.
-  - `401 Unauthorized` — is session is invalid, missing or expired identity or if session has insufficient permissions. Returns a plain-text message.
+  - `401 Unauthorized` — if session is invalid, missing or expired identity or if session has insufficient permissions. Returns a plain-text message.
   - `404 Not Found` — if target editor was not found. Returns a plain-text message.
   - `500 Internal Server Error` — if editor service fails delete. Returns a plain-text message.
 
@@ -650,7 +407,7 @@ Create locale. Entites will be available to be edited in that locale
 - **Response:**
   - `201 Created` — if creation succeeds. Returns empty body.
   - `400 Bad Request` — if request JSON is invalid. Returns a plain-text message.
-  - `401 Unauthorized` — is session is invalid, missing or expired identity or if session has insufficient permissions. Returns a plain-text message.
+  - `401 Unauthorized` — if session is invalid, missing or expired identity or if session has insufficient permissions. Returns a plain-text message.
   - `500 Internal Server Error` — if locales service fails to create locale. Returns a plain-text message.
 
 <a id="cms-locales-code-delete"></a>
@@ -668,7 +425,7 @@ Create locale. Entites will be available to be edited in that locale
 - **Response:**
   - `200 OK` — if deletion succeeds. Returns empty body.
   - `400 Bad Request` — if code is invalid. Returns a plain-text message.
-  - `401 Unauthorized` — is session is invalid, missing or expired identity or if session has insufficient permissions. Returns a plain-text message.
+  - `401 Unauthorized` — if session is invalid, missing or expired identity or if session has insufficient permissions. Returns a plain-text message.
   - `404 Not Found` — if target locale was not found. Returns a plain-text message.
   - `500 Internal Server Error` — if locales service fails to delete locale. Returns a plain-text message.
 
@@ -804,7 +561,7 @@ Get particular post by id
   - `400 Bad Request` — if id is invalid or locale is missing. Returns a plain-text message.
   - `401 Unauthorized` — if session is invalid, missing or expired identity or if session has insufficient permissions. Returns a plain-text message.
   - `404 Not Found` — if target post or post translation were not found. Returns a plain-text message.
-  - `500 Internal Server Error` — if post service fails to retreive post. Returns a plain-text message.
+  - `500 Internal Server Error` — if post service fails to retrieve post. Returns a plain-text message.
 
 <a id="cms-posts-id-patch"></a>
 
@@ -999,7 +756,7 @@ Get all categories for specified locale
 
   - `400 Bad Request` — if locale is missing. Returns a plain-text message.
   - `401 Unauthorized` — if session is invalid, missing or expired identity. Returns a plain-text message.
-  - `500 Internal Server Error` — if category service fails to retreive data. Returns a plain-text message.
+  - `500 Internal Server Error` — if category service fails to retrieve data. Returns a plain-text message.
   
 <a id="cms-categories-create"></a>
 
@@ -1034,7 +791,7 @@ Create a category.
 
 ### `GET /cms/categories/{slug}`
 
-Retreive particular category.
+retrieve particular category.
 
 - **Headers:**
   - `Authorization` — `Bearer <sessionID>` (required).
@@ -1059,7 +816,7 @@ Retreive particular category.
   - `400 Bad Request` — if slug is invalid or target locale is missing. Returns a plain-text message.
   - `401 Unauthorized` — if session is invalid, missing or expired identity or if session has insufficient permissions. Returns a plain-text message.
   - `404 Not Found` — if target category translation was not found. Returns a plain-text message.
-  - `500 Internal Server Error` — if category service fails to retreive data. Returns a plain-text message.
+  - `500 Internal Server Error` — if category service fails to retrieve data. Returns a plain-text message.
 
 <a id="cms-categories-slug-patch"></a>
 
@@ -1161,7 +918,7 @@ This section decribes routes that are responsible for advertisement management.
   ```
 
   - `400 Bad Request` — if request body is invalid. Returns a plain-text message.
-  - `401 Unauthorized` — is session is invalid, missing or expired identity. Returns a plain-text message.
+  - `401 Unauthorized` — if session is invalid, missing or expired identity. Returns a plain-text message.
   - `500 Internal Server Error` — if search failure occurs. Returns a plain-text message.
 
 <a id="cms-ads-create"></a>
@@ -1198,7 +955,7 @@ Create an advertisement.
 
 ### `GET /cms/ads/{id}`
 
-Retreive specific advertisement.
+retrieve specific advertisement.
 
 - **Headers:**
   - `Authorization` — `Bearer <sessionID>` (required).
@@ -1225,7 +982,7 @@ Retreive specific advertisement.
   - `400 Bad Request` — if id is invalid. Returns a plain-text message.
   - `401 Unauthorized` — if session is invalid, missing or expired identity. Returns a plain-text message.
   - `404 Not Found` — if target advertisement was not found. Returns a plain-text message.
-  - `500 Internal Server Error` — if advertisement service fails to retreive data. Returns a plain-text message.
+  - `500 Internal Server Error` — if advertisement service fails to retrieve data. Returns a plain-text message.
 
 <a id="cms-ads-id-patch"></a>
 
@@ -1255,7 +1012,7 @@ Update an advertisement
 - **Response:**
   - `200 OK` — if update succeeds. Returns empty body.
   - `400 Bad Request` — if request body is malformed or id is invalid. Returns a plain-text message.
-  - `401 Unauthorized` — is session is invalid, missing or expired identity or if session has insufficient permissions. Returns a plain-text message.
+  - `401 Unauthorized` — if session is invalid, missing or expired identity or if session has insufficient permissions. Returns a plain-text message.
   - `404 Not Found` — if target advertisement was not found. Returns a plain-text message.
   - `500 Internal Server Error` — if advertisement service fails to commit update. Returns a plain-text message.
 
@@ -1274,7 +1031,7 @@ Delete advertisement
 - **Response:**
   - `200 OK` — if delete succeeds. Returns empty body.
   - `400 Bad Request` — if id  is invalid. Returns a plain-text message.
-  - `401 Unauthorized` — is session is invalid, missing or expired identity or if session has insufficient permissions. Returns a plain-text message.
+  - `401 Unauthorized` — if session is invalid, missing or expired identity or if session has insufficient permissions. Returns a plain-text message.
   - `404 Not Found` — if target advertisement was not found. Returns a plain-text message.
   - `500 Internal Server Error` — if advertisement service fails delete. Returns a plain-text message.
 
@@ -1302,5 +1059,5 @@ Get list of all `group` values that are currently in advertisements table.
   ```
 
   - `401 Unauthorized` — Missing or invalid session. Returns a plain-text message.
-  - `401 Unauthorized` — is session is invalid, missing or expired identity. Returns a plain-text message.
+  - `401 Unauthorized` — if session is invalid, missing or expired identity. Returns a plain-text message.
   - `500 Internal Server Error` — if advertisement service fails. Returns a plain-text message.

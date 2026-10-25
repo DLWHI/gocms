@@ -5,8 +5,8 @@ import (
 	"gocms/internal/auth"
 	"gocms/internal/category"
 	"gocms/internal/editor"
-	"gocms/internal/hash"
 	"gocms/internal/locale"
+	"gocms/internal/password"
 	"gocms/internal/post"
 	"gocms/internal/session"
 	"gocms/internal/user"
@@ -15,6 +15,14 @@ import (
 	"github.com/meilisearch/meilisearch-go"
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
+)
+
+const (
+	UsersSearchIndexName      = "users"
+	PostsSearchIndexName      = "posts"
+	EditorsSearchIndexName    = "editor"
+	CategoriesSearchIndexName = "categories"
+	AdsSearchIndexName        = "ads"
 )
 
 type AuthBundle struct {
@@ -83,7 +91,7 @@ func NewAuthBundle(users auth.UserManager, sessions session.Repository) *AuthBun
 	}
 }
 
-func NewUserBundle(db *gorm.DB, search meilisearch.ServiceManager, redis *redis.Client, pwd hash.PasswordService) *UserBundle {
+func NewUserBundle(db *gorm.DB, search meilisearch.ServiceManager, redis *redis.Client, pwd password.PasswordService) *UserBundle {
 	redisCfg := user.RedisConfig{
 		Client:    redis,
 		TTL:       30 * time.Minute,
@@ -93,7 +101,7 @@ func NewUserBundle(db *gorm.DB, search meilisearch.ServiceManager, redis *redis.
 	repo := user.NewGORMRepository(db)
 	sfRepo := user.NewSingleflightRepository(repo, redisCfg.KeyFormat)
 	redisRepo := user.NewRedisRepository(sfRepo, &redisCfg)
-	searchEngine := user.NewMeilisearchEngine(search, "users")
+	searchEngine := user.NewMeilisearchEngine(search, UsersSearchIndexName)
 	consumer := user.NewEventConsumer(repo, searchEngine)
 	service := user.NewService(redisRepo, searchEngine, pwd)
 	handler := user.NewHandler(service)
@@ -117,7 +125,7 @@ func NewPostBundle(db *gorm.DB, search meilisearch.ServiceManager, redis *redis.
 
 	repo := post.NewGORMRepository(db)
 	cacheRepo := post.NewRedisRepository(repo, &redisCfg)
-	searchEngine := post.NewMeilisearchEngine(search, "posts")
+	searchEngine := post.NewMeilisearchEngine(search, PostsSearchIndexName)
 	service := post.NewService(cacheRepo, searchEngine)
 	handler := post.NewHandler(service)
 	return &PostBundle{
@@ -138,7 +146,7 @@ func NewCategoryBundle(db *gorm.DB, search meilisearch.ServiceManager, redis *re
 
 	repo := category.NewGORMRepository(db)
 	cacheRepo := category.NewRedisRepository(repo, &redisCfg)
-	searchEngine := category.NewMeilisearchEngine(search, "categories")
+	searchEngine := category.NewMeilisearchEngine(search, CategoriesSearchIndexName)
 	service := category.NewService(cacheRepo, searchEngine)
 	handler := category.NewHandler(service)
 	return &CategoryBundle{
@@ -159,7 +167,7 @@ func NewEditorBundle(db *gorm.DB, search meilisearch.ServiceManager, redis *redi
 
 	repo := editor.NewGORMRepository(db)
 	cacheRepo := editor.NewRedisRepository(repo, &redisCfg)
-	searchEngine := editor.NewMeilisearchEngine(search, "editors")
+	searchEngine := editor.NewMeilisearchEngine(search, EditorsSearchIndexName)
 	service := editor.NewService(cacheRepo, searchEngine)
 	handler := editor.NewHandler(service)
 	return &EditorBundle{
@@ -180,7 +188,7 @@ func NewAdsBundle(db *gorm.DB, search meilisearch.ServiceManager, redis *redis.C
 
 	repo := ads.NewGORMRepository(db)
 	cacheRepo := ads.NewRedisRepository(repo, &redisCfg)
-	searchEngine := ads.NewMeilisearchEngine(search, "ads")
+	searchEngine := ads.NewMeilisearchEngine(search, AdsSearchIndexName)
 	service := ads.NewService(cacheRepo, searchEngine)
 	handler := ads.NewHandler(service)
 	return &AdsBundle{

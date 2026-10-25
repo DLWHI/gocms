@@ -148,5 +148,5 @@ func IsSubsetOf(ctx context.Context, permissions uint32) bool {
 	if !ok {
 		return false
 	}
-	return (level & permissions) != permissions
+	return (level & permissions) == permissions
 }

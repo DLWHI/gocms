@@ -5,9 +5,9 @@ import (
 	"gocms/internal/analytics"
 	"gocms/internal/domain"
 	"gocms/internal/flow"
-	"gocms/internal/hash"
 	"gocms/internal/logger"
 	"gocms/internal/outbox"
+	"gocms/internal/password"
 	"gocms/internal/public"
 	"gocms/internal/server"
 	"gocms/internal/session"
@@ -36,6 +36,7 @@ type Container struct {
 	DB          *gorm.DB
 	Redis       *redis.Client
 	Meilisearch meilisearch.ServiceManager
+	Passwords   password.PasswordService
 
 	Categories *CategoryBundle
 	Users      *UserBundle
@@ -77,7 +78,7 @@ func (app *Container) Init(ctx context.Context, cfg Config) error {
 		return err
 	}
 
-	passwords := hash.NewBCryptService(12, 8)
+	passwords := password.NewBCryptService(12, 8)
 	sessions := session.NewRedisRepository(redis, 24*time.Hour)
 
 	categories := NewCategoryBundle(db, search, redis)
@@ -121,6 +122,7 @@ func (app *Container) Init(ctx context.Context, cfg Config) error {
 	app.DB = db
 	app.Redis = redis
 	app.Meilisearch = search
+	app.Passwords = passwords
 
 	app.Categories = categories
 	app.Users = users

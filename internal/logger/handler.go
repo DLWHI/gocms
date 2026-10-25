@@ -31,7 +31,7 @@ func NewReasonedHandler(opts *slog.HandlerOptions) *ReasonedHandler {
 func fetchKeyValue(group string, pending *[]slog.Attr) (string, *string) {
 	stack := *pending
 	current := stack[len(stack)-1]
-
+	stack = stack[:len(stack)-1]
 	var strval *string
 	value := current.Value.Resolve()
 	if value.Kind() == slog.KindGroup {
@@ -65,7 +65,7 @@ func (h *ReasonedHandler) Enabled(_ context.Context, level slog.Level) bool {
 func (h *ReasonedHandler) Handle(_ context.Context, r slog.Record) error {
 	var line string
 	var values string
-	reason := "none"
+	reason := ""
 	source := "No source"
 
 	tree := make([]slog.Attr, 0, r.NumAttrs()+len(h.attrs))
@@ -78,25 +78,31 @@ func (h *ReasonedHandler) Handle(_ context.Context, r slog.Record) error {
 	for len(tree) > 0 {
 		key, value := fetchKeyValue(h.group, &tree)
 		if value != nil {
-			if key == "reason" {
+			switch key {
+			case "reason":
 				reason = *value
-			} else if key == "source" {
+			case "source":
 				source = *value
-			} else {
-				values += " " + key + "=" + safeText(*value)
+			default:
+				values = fmt.Sprintf("%s %s=%s", values, key, safeText(*value))
 			}
 		}
 	}
 
 	timestamp := r.Time.Format(time.DateTime)
-	line = fmt.Sprintf("%s [%s] [%s] %s. Reason: %s. Data: %s\n",
+	line = fmt.Sprintf("%s [%s] [%s] %s.",
 		timestamp,
 		r.Level,
 		source,
 		safeText(r.Message),
-		reason,
-		values,
 	)
+	if reason != "" {
+		line += fmt.Sprintf(" Reason: %s.", reason)
+	}
+	if values != "" {
+		line += fmt.Sprintf(" Data: %s", values)
+	}
+	line += "\n"
 
 	return h.write(r.Level, line)
 }

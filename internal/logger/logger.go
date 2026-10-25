@@ -3,19 +3,22 @@ package logger
 import "log/slog"
 
 func Error(source, message string, reason error, attrs ...any) {
-	args := append([]any{"reason", reason}, attrs...)
-	slog.Default().With("source", source).Error(message, args...)
+	args := append([]any{"source", source, "reason", reason}, attrs...)
+	slog.Default().Error(message, args...)
 }
 
 func Warn(source, message string, reason error, attrs ...any) {
+	args := []any{"source", source}
 	if reason == nil {
-		slog.Default().With("source", source).Warn(message, attrs...)
+		args = append(args, attrs...)
 	} else {
-		args := append([]any{"reason", reason}, attrs...)
-		slog.Default().With("source", source).Warn(message, args...)
+		args = append(args, "reason", reason)
+		args = append(args, attrs...)
 	}
+	slog.Default().Warn(message, attrs...)
 }
 
 func Info(source, message string, attrs ...any) {
-	slog.Default().With("source", source).Info(message, attrs...)
+	args := append([]any{"source", source}, attrs...)
+	slog.Default().Info(message, args...)
 }

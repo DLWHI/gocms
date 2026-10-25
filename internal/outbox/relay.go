@@ -228,7 +228,7 @@ func WriteMessage(tx *gorm.DB, action Event, source string, target any) error {
 		Type:        action,
 		Data:        payload,
 	}
-	if err := tx.Create(message).Error; err != nil {
+	if err := tx.Create(&message).Error; err != nil {
 		return err
 	}
 	return nil

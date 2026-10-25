@@ -13,7 +13,6 @@ List the contents of a directory and report storage capacity.
 
 - **Headers:**
   - `Authorization` — `Bearer <sessionID>` (required).
-  - `Content-Type` — `application/json`.
 - **Path parameters:**
   - `path` — target path
 - **Request body:** None.

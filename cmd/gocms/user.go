@@ -109,7 +109,7 @@ func CreateUser(ctx context.Context, app *Container) error {
 		Permissions: permissions,
 	}
 
-	injected := context.WithValue(ctx, auth.UserPermissionKey, domain.OnEntityC("users"))
+	injected := context.WithValue(ctx, auth.UserPermissionKey, domain.PermissionsOnEntity("users", "create"))
 
 	if _, err := svc.Create(injected, &user, password); err != nil {
 		logger.Error("User create", "Failed to register new user", err)

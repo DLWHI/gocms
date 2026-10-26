@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"strings"
 )
 
@@ -45,7 +46,7 @@ func (e *Environment) PerformRequest(ctx context.Context, actor *Actor, request 
 	}
 
 	for key, value := range request.Headers {
-		val, err := e.TestData.Resolve(value)
+		val, err := e.TestData.ResolveString(value)
 		if err != nil {
 			return nil, err
 		}
@@ -60,11 +61,11 @@ func (e *Environment) PerformRequest(ctx context.Context, actor *Actor, request 
 
 func RequestURL(pathname string, params map[string]Value, testdata *Data) (string, error) {
 	for key, val := range params {
-		v, err := testdata.Resolve(val)
+		resolved, err := testdata.ResolveString(val)
 		if err != nil {
 			return "", err
 		}
-		pathname = strings.ReplaceAll(pathname, "{"+key+"}", v)
+		pathname = strings.ReplaceAll(pathname, "{"+key+"}", url.PathEscape(resolved))
 	}
 	return pathname, nil
 }

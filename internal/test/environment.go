@@ -95,3 +95,21 @@ func (d *Data) GetConstant(constant string) (string, error) {
 func (d *Data) GetSessionOf(actor string) string {
 	return d.Fixtures.Actors[actor].Session
 }
+
+func (s *Step) Perform(ctx context.Context, d *Data, e *Environment) (*http.Response, error) {
+	actor, ok := d.Fixtures.Actors[s.Actor]
+	if !ok && s.Actor != "anonymous" {
+		return nil, fmt.Errorf("Requested step for unknown actor")
+	}
+
+	res, err := e.PerformRequest(ctx, actor, s.Request)
+	if err != nil {
+		return res, err
+	}
+	defer res.Body.Close()
+
+	if err := s.Expect.Check(d, res); err != nil {
+		return res, err
+	}
+	return nil, nil
+}

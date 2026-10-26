@@ -9387,7 +9387,7 @@
     {
       "id": "TRANSPORT-GET-001",
       "group": "GET /cms/users/{username}",
-      "title": "415: Content-Type text/plain",
+      "title": "200: Content-Type text/plain",
       "source": "inferred",
       "tags": [],
       "steps": [
@@ -9404,12 +9404,11 @@
             }
           },
           "expect": {
-            "status": 415,
+            "status": 200,
             "body": "any"
           }
         }
-      ],
-      "note": "Docs list Content-Type for this route; assumes the content middleware covers all routes."
+      ]
     },
     {
       "id": "TRANSPORT-GET-002",

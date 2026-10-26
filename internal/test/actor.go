@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"gocms/internal/domain"
 	"gocms/internal/session"
 	"gocms/internal/user"
@@ -39,6 +40,10 @@ func (a *Actor) PerformLogin(ctx context.Context, e *Environment, passwd Passwor
 	w := httptest.NewRecorder()
 
 	e.Router.ServeHTTP(w, req)
+
+	if w.Result().StatusCode != http.StatusOK {
+		return fmt.Errorf("Error while performing login, expected status code 200, got %d", w.Result().StatusCode)
+	}
 
 	var response session.Session
 	if err := json.NewDecoder(w.Body).Decode(&response); err != nil {

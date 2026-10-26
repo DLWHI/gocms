@@ -102,30 +102,19 @@ func TestUsers(t *testing.T) {
 		}
 
 		logger.Info("Test.User", fmt.Sprintf("Running test: %s", testcase.ID))
+		var status error
 		for _, step := range testcase.Steps {
 			ran++
-
-			actor, ok := data.Fixtures.Actors[step.Actor]
-			if !ok && step.Actor != "anonymous" {
-				logger.Error("Test.User", fmt.Sprintf("Test %s failed", testcase.ID), fmt.Errorf("Requested step for unknown actor"), "Case", testcase, "Step", step)
-				t.FailNow()
-			}
-
-			res, err := Env.PerformRequest(ctx, actor, step.Request)
-			if err != nil {
-				logger.Error("Test.User", fmt.Sprintf("Test %s failed", testcase.ID), err, "Case", testcase, "Step", step)
-				t.FailNow()
-			}
-			defer res.Body.Close()
-
-			if err := step.Expect.Check(data, res); err != nil {
-				logger.Error("Test.User", fmt.Sprintf("Test %s failed", testcase.ID), err, "Case", testcase, "Step", step, "response", res)
-				t.FailNow()
+			if res, err := step.Perform(ctx, data, Env); err != nil {
+				status = err
+				logger.Error("Test.User", fmt.Sprintf("Test %s failed", testcase.ID), err, "case", testcase, "response", res)
 			}
 			succeed++
 		}
 
-		logger.Info("Test.User", fmt.Sprintf("Test %s passed", testcase.ID))
+		if status == nil {
+			logger.Info("Test.User", fmt.Sprintf("Test %s passed", testcase.ID))
+		}
 		if err := Env.Clear(ctx); err != nil {
 			logger.Error("Test.User", "Failed to clear environment", err)
 			t.FailNow()

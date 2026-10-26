@@ -4,10 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"math"
 	"mime"
 	"net/http"
 	"reflect"
-	"strings"
 )
 
 type Operation = string
@@ -31,45 +31,6 @@ type ExternalAssertion struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
 	Expect   string `json:"expect"`
-}
-
-func ResolvePath(values map[string]Value, path string) ([]Value, error) {
-	currents := []Value{values}
-	if path == "" || path == "$" {
-		return currents, nil
-	}
-	parts := strings.Split(path, ".")
-	for _, part := range parts {
-		if part == "" {
-			continue
-		}
-		key := part
-		expand := strings.HasSuffix(part, "[*]")
-		expanded := make([]Value, 0, len(currents))
-		if expand {
-			key = strings.TrimSuffix(part, "[*]")
-		}
-
-		for _, current := range currents {
-			obj, ok := current.(map[string]Value)
-			if !ok {
-				return nil, fmt.Errorf("values.%s, expected object, got %T", key, current)
-			}
-			if expand {
-				arr, ok := obj[key].([]Value)
-				if !ok {
-					return nil, fmt.Errorf("values.%s, expected array, got %T", key, current)
-				}
-				for _, val := range arr {
-					expanded = append(expanded, val)
-				}
-			} else {
-				expanded = append(expanded, obj[key])
-			}
-		}
-		currents = expanded
-	}
-	return currents, nil
 }
 
 func (expected *ExpectedResult) Check(e *Data, res *http.Response) error {
@@ -102,199 +63,276 @@ func (expected *ExpectedResult) Check(e *Data, res *http.Response) error {
 	return nil
 }
 
-func (as *Assertion) Assert(e *Data, body map[string]Value) error {
-	// values, err := ResolvePath(body, as.Path)
-	// if err != nil {
-	// 	return err
-	// }
-	// switch as.Op {
-	// case "is_null":
-	// 	return OpNull(values, true)
-	// case "not_null":
-	// 	return OpNull(values, false)
-	// case "eq", "ne":
-	// 	return OpCompare(e, values, as.Value, as.Op)
-	// case "type":
-	// 	for _, v := range values {
-	// 		if !typeMatches(v, arg) {
-	// 			return fmt.Errorf("assertion failed: expected type %s, got %T", arg, v)
-	// 		}
-	// 	}
-	// case "len_eq":
-	// 	expectedLen, err := strconv.Atoi(arg)
-	// 	if err != nil {
-	// 		return fmt.Errorf("invalid len_eq argument: %v", err)
-	// 	}
-	// 	for _, v := range values {
-	// 		if getLength(v) != expectedLen {
-	// 			return fmt.Errorf("assertion failed: expected length %d, got %d", expectedLen, getLength(v))
-	// 		}
-	// 	}
-	// case "len_lte":
-	// 	expectedLen, err := strconv.Atoi(arg)
-	// 	if err != nil {
-	// 		return fmt.Errorf("invalid len_lte argument: %v", err)
-	// 	}
-	// 	for _, v := range values {
-	// 		if getLength(v) > expectedLen {
-	// 			return fmt.Errorf("assertion failed: expected length <= %d, got %d", expectedLen, getLength(v))
-	// 		}
-	// 	}
-	// case "gte":
-	// 	expectedVal, err := strconv.ParseFloat(arg, 64)
-	// 	if err != nil {
-	// 		return fmt.Errorf("invalid gte argument: %v", err)
-	// 	}
-	// 	for _, v := range values {
-	// 		f, err := toFloat(v)
-	// 		if err != nil || f < expectedVal {
-	// 			return fmt.Errorf("assertion failed: expected >= %v, got %v", expectedVal, v)
-	// 		}
-	// 	}
-	// case "includes":
-	// 	for _, v := range values {
-	// 		if !containsValue(v, arg) {
-	// 			return fmt.Errorf("assertion failed: expected %v to include %v", v, arg)
-	// 		}
-	// 	}
-	// case "excludes":
-	// 	for _, v := range values {
-	// 		if containsValue(v, arg) {
-	// 			return fmt.Errorf("assertion failed: expected %v to exclude %v", v, arg)
-	// 		}
-	// 	}
-	// case "all_null":
-	// 	for _, v := range values {
-	// 		slice, ok := toSlice(v)
-	// 		if !ok {
-	// 			return fmt.Errorf("all_null requires a list, got %T", v)
-	// 		}
-	// 		for _, item := range slice {
-	// 			if item != nil && !isNil(item) {
-	// 				return fmt.Errorf("assertion failed: all_null failed, found non-null element %v", item)
-	// 			}
-	// 		}
-	// 	}
-	// case "unix_or_null":
-	// 	for _, v := range values {
-	// 		slice, ok := toSlice(v)
-	// 		if !ok {
-	// 			return fmt.Errorf("unix_or_null requires a list, got %T", v)
-	// 		}
-	// 		for _, item := range slice {
-	// 			if item != nil && !isNil(item) && !isInteger(item) {
-	// 				return fmt.Errorf("assertion failed: unix_or_null failed, found non-integer element %v (%T)", item, item)
-	// 			}
-	// 		}
-	// 	}
-	// case "sorted_asc":
-	// 	for _, v := range values {
-	// 		slice, ok := toSlice(v)
-	// 		if !ok {
-	// 			return fmt.Errorf("sorted_asc requires a list, got %T", v)
-	// 		}
-	// 		if !isSortedAsc(slice) {
-	// 			return fmt.Errorf("assertion failed: list is not sorted ascending")
-	// 		}
-	// 	}
-	// case "sorted_desc":
-	// 	for _, v := range values {
-	// 		slice, ok := toSlice(v)
-	// 		if !ok {
-	// 			return fmt.Errorf("sorted_desc requires a list, got %T", v)
-	// 		}
-	// 		if !isSortedDesc(slice) {
-	// 			return fmt.Errorf("assertion failed: list is not sorted descending")
-	// 		}
-	// 	}
-	// default:
-	// 	return fmt.Errorf("unknown operation: %s", op)
-	// }
-	return nil
-}
-
-func OpCompare(e *Data, values []Value, rhs Value, op string) error {
-	// for _, val := range values {
-	// 	switch typed := rhs.(type) {
-	// 	case int, float64:
-	// 		switch op {
-	// 		case "eq":
-	// 			return lhs == typed
-	// 		case "ne":
-	// 			return lhs != typed
-	// 		case "le":
-	// 			return lhs < typed
-	// 		case "gt":
-	// 			return lhs > typed
-	// 		case "lte":
-	// 			return lhs <= typed
-	// 		case "gte":
-	// 			return lhs >= typed
-	// 		default:
-	// 			return false
-	// 		}
-	// 	}
-	// 	switch op {
-	// 	case "eq":
-	// 		if fmt.Sprint(v) != value {
-	// 			return fmt.Errorf("Assertion failed: expected %v == %s", v, value)
-	// 		}
-	// 	case "ne":
-	// 		if fmt.Sprint(v) == value {
-	// 			return fmt.Errorf("Assertion failed: expected %v != %s", v, value)
-	// 		}
-	// 	}
-	// }
-	return nil
-}
-
-// if positive == true, checks if values[0] == nil. Checks if values[0] != nil otherwise
-func OpNull(values []Value, positive bool) error {
-	if len(values) < 1 {
-		return fmt.Errorf("Assertion failed: expected value, got nothing")
+func (a *Assertion) Assert(d *Data, body map[string]Value) error {
+	values, err := ResolvePath(body, a.Path)
+	if err != nil {
+		return err
 	}
+	if len(values) < 1 {
+		return fmt.Errorf("Expected at least one value, got nothing")
+	}
+	expected, err := d.Resolve(a.Value)
+	if err != nil {
+		return fmt.Errorf("Invalid expect value submitted to assertion: %w", err)
+	}
+	a.Value = expected
+	switch a.Op {
+	case "is_null":
+		return IsNull(values[0])
+	case "not_null":
+		return IsNotNull(values[0])
+	case "eq":
+		return a.opEq(values[0])
+	case "ne":
+		return a.opNe(values[0])
+	case "lt":
+		return a.opLt(values[0])
+	case "gt":
+		return a.opGt(values[0])
+	case "lte":
+		return a.opLte(values[0])
+	case "gte":
+		return a.opGte(values[0])
+	case "type":
+		return a.opType(values)
+	case "len_eq":
+		return a.opLenEq(values)
+	case "len_lt":
+		return a.opLenLt(values)
+	case "len_gt":
+		return a.opLenGt(values)
+	case "len_lte":
+		return a.opLenLte(values)
+	case "len_gte":
+		return a.opLenGte(values)
+	case "includes":
+		return a.opIncludes(values)
+	case "excludes":
+		return a.opExcludes(values)
+	case "all_null":
+		return AllNull(values)
+	case "all_not_null":
+		return AllNotNull(values)
+	case "unix_or_null":
+		return opUnixTimestamp(values)
+	case "sorted_asc":
+		return IsSorted(values, false)
+	case "sorted_desc":
+		return IsSorted(values, true)
+	default:
+		return fmt.Errorf("unknown operation: %s", "op")
+	}
+}
 
-	rv := reflect.ValueOf(values[0])
-	switch rv.Kind() {
-	case reflect.Invalid:
-		if !positive {
-			return fmt.Errorf("Assertion failed: expected %v != nil", values[0])
+func (a *Assertion) opEq(value Value) error {
+	if reflect.TypeOf(value) != reflect.TypeOf(a.Value) {
+		return fmt.Errorf("Assertion failed, expected types to be same, got (%T, %T)", value, a.Value)
+	}
+	switch a.Value.(type) {
+	case float64, string, bool:
+		if value == a.Value {
+			return nil
 		}
-	case reflect.Chan, reflect.Func, reflect.Interface, reflect.Map, reflect.Ptr, reflect.Slice:
-		if positive {
-			if !rv.IsNil() {
-				return fmt.Errorf("Assertion failed: expected %v == nil", values[0])
+		return fmt.Errorf("Assertion failed, expected %v == %v", value, a.Value)
+	}
+	return fmt.Errorf("Assertion failed, expected types to be comparable, got (%T, %T)", value, a.Value)
+}
+func (a *Assertion) opNe(value Value) error {
+	if reflect.TypeOf(value) != reflect.TypeOf(a.Value) {
+		return fmt.Errorf("Assertion failed, expected types to be same, got (%T, %T)", value, a.Value)
+	}
+	switch a.Value.(type) {
+	case float64, string, bool:
+		if value != a.Value {
+			return nil
+		}
+		return fmt.Errorf("Assertion failed, expected %v != %v", value, a.Value)
+	}
+	return fmt.Errorf("Assertion failed, expected types to be comparable, got (%T, %T)", value, a.Value)
+}
+func (a *Assertion) opGt(value Value) error {
+	if reflect.TypeOf(value) != reflect.TypeOf(a.Value) {
+		return fmt.Errorf("Assertion failed, expected types to be same, got (%T, %T)", value, a.Value)
+	}
+	switch a.Value.(type) {
+	case float64:
+		lval, _ := ToNumber(value)
+		rval, _ := ToNumber(a.Value)
+		if lval > rval {
+			return nil
+		}
+		return fmt.Errorf("Assertion failed, expected %v > %v", value, a.Value)
+	case string:
+		lval := value.(string)
+		rval := a.Value.(string)
+		if lval > rval {
+			return nil
+		}
+		return fmt.Errorf("Assertion failed, expected %v > %v", value, a.Value)
+	}
+	return fmt.Errorf("Assertion failed, expected types to be ordered, got (%T, %T)", value, a.Value)
+}
+func (a *Assertion) opLt(value Value) error {
+	if reflect.TypeOf(value) != reflect.TypeOf(a.Value) {
+		return fmt.Errorf("Assertion failed, expected types to be same, got (%T, %T)", value, a.Value)
+	}
+	switch a.Value.(type) {
+	case float64:
+		lval, _ := ToNumber(value)
+		rval, _ := ToNumber(a.Value)
+		if lval < rval {
+			return nil
+		}
+		return fmt.Errorf("Assertion failed, expected %v < %v", value, a.Value)
+	case string:
+		lval := value.(string)
+		rval := a.Value.(string)
+		if lval < rval {
+			return nil
+		}
+		return fmt.Errorf("Assertion failed, expected %v < %v", value, a.Value)
+	}
+	return fmt.Errorf("Assertion failed, expected types to be ordered, got (%T, %T)", value, a.Value)
+}
+func (a *Assertion) opGte(value Value) error {
+	if reflect.TypeOf(value) != reflect.TypeOf(a.Value) {
+		return fmt.Errorf("Assertion failed, expected types to be same, got (%T, %T)", value, a.Value)
+	}
+	switch a.Value.(type) {
+	case float64:
+		lval, _ := ToNumber(value)
+		rval, _ := ToNumber(a.Value)
+		if lval >= rval {
+			return nil
+		}
+		return fmt.Errorf("Assertion failed, expected %v >= %v", value, a.Value)
+	case string:
+		lval := value.(string)
+		rval := a.Value.(string)
+		if lval >= rval {
+			return nil
+		}
+		return fmt.Errorf("Assertion failed, expected %v >= %v", value, a.Value)
+	}
+	return fmt.Errorf("Assertion failed, expected types to be ordered, got (%T, %T)", value, a.Value)
+}
+func (a *Assertion) opLte(value Value) error {
+	if reflect.TypeOf(value) != reflect.TypeOf(a.Value) {
+		return fmt.Errorf("Assertion failed, expected types to be same, got (%T, %T)", value, a.Value)
+	}
+	switch a.Value.(type) {
+	case float64:
+		lval, _ := ToNumber(value)
+		rval, _ := ToNumber(a.Value)
+		if lval <= rval {
+			return nil
+		}
+		return fmt.Errorf("Assertion failed, expected %v <= %v", value, a.Value)
+	case string:
+		lval := value.(string)
+		rval := a.Value.(string)
+		if lval <= rval {
+			return nil
+		}
+		return fmt.Errorf("Assertion failed, expected %v <= %v", value, a.Value)
+	}
+	return fmt.Errorf("Assertion failed, expected types to be ordered, got (%T, %T)", value, a.Value)
+}
+
+func (a *Assertion) opType(values []Value) error {
+	typename, ok := a.Value.(string)
+	if !ok {
+		return fmt.Errorf("Invalid type value in assertion, got %T", a.Value)
+	}
+	for _, value := range values {
+		if err := TypeMatches(value, typename); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (a *Assertion) opLenEq(values []Value) error {
+	expected, ok := ToLen(a.Value)
+	if !ok {
+		return fmt.Errorf("Invalid length value in assertions, got %v, type %T", a.Value, a.Value)
+	}
+	if expected == len(values) {
+		return nil
+	}
+	return fmt.Errorf("Assertion failed: expected len(%d) == %d", len(values), expected)
+}
+func (a *Assertion) opLenLt(values []Value) error {
+	expected, ok := ToLen(a.Value)
+	if !ok {
+		return fmt.Errorf("Invalid length value in assertions, got %v, type %T", a.Value, a.Value)
+	}
+	if expected > len(values) {
+		return nil
+	}
+	return fmt.Errorf("Assertion failed: expected len(%d) > %d", len(values), expected)
+}
+func (a *Assertion) opLenGt(values []Value) error {
+	expected, ok := ToLen(a.Value)
+	if !ok {
+		return fmt.Errorf("Invalid length value in assertions, got %v, type %T", a.Value, a.Value)
+	}
+	if expected < len(values) {
+		return nil
+	}
+	return fmt.Errorf("Assertion failed: expected len(%d) < %d", len(values), expected)
+}
+func (a *Assertion) opLenLte(values []Value) error {
+	expected, ok := ToLen(a.Value)
+	if !ok {
+		return fmt.Errorf("Invalid length value in assertions, got %v, type %T", a.Value, a.Value)
+	}
+	if expected >= len(values) {
+		return nil
+	}
+	return fmt.Errorf("Assertion failed: expected len(%d) >= %d", len(values), expected)
+}
+func (a *Assertion) opLenGte(values []Value) error {
+	expected, ok := ToLen(a.Value)
+	if !ok {
+		return fmt.Errorf("Invalid length value in assertions, got %v, type %T", a.Value, a.Value)
+	}
+	if expected <= len(values) {
+		return nil
+	}
+	return fmt.Errorf("Assertion failed: expected len(%d) <= %d", len(values), expected)
+}
+
+func (a *Assertion) opIncludes(values []Value) error {
+	for _, value := range values {
+		if err := a.opEq(value); err == nil {
+			return nil
+		}
+	}
+	return fmt.Errorf("Assertion failed: expected %v to be in %v", a.Value, values)
+}
+func (a *Assertion) opExcludes(values []Value) error {
+	for _, value := range values {
+		if err := a.opEq(value); err != nil {
+			return nil
+		}
+	}
+	return fmt.Errorf("Assertion failed: expected %v not to be in %v", a.Value, values)
+}
+
+func opUnixTimestamp(values []Value) error {
+	for _, value := range values {
+		number, ok := ToNumber(value)
+		if ok {
+			if math.Mod(number, 1) != 0 {
+				return fmt.Errorf("Assertion failed: expected all integer or null in %v", values)
 			}
 		} else {
-			if rv.IsNil() {
-				return fmt.Errorf("Assertion failed: expected %v != nil", values[0])
+			if err := IsNull(value); err != nil {
+				return fmt.Errorf("Assertion failed: expected all integer or null in %v", values)
 			}
 		}
-	default:
-		if positive {
-			return fmt.Errorf("Assertion failed: expected %v == nil", values[0])
-		}
 	}
-	return nil
-}
-
-func OpSorted(values []Value, desc bool) error {
-	// if len(values) < 1 {
-	// 	return fmt.Errorf("Assertion failed: expected non-empty array")
-	// }
-
-	// last := values[0]
-	// for i := 1; i < len(values); i++ {
-	// 	if desc {
-	// 		if last > values[i] {
-	// 			return fmt.Errorf("Assertion failed: expected sorted ascending array")
-	// 		}
-	// 	} else {
-	// 		if last < values[i] {
-	// 			return fmt.Errorf("Assertion failed: expected sorted ascending array")
-	// 		}
-	// 	}
-	// }
 	return nil
 }
 

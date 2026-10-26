@@ -103,16 +103,17 @@ func TestUsers(t *testing.T) {
 
 		logger.Info("Test.User", fmt.Sprintf("Running test: %s", testcase.ID))
 		var status error
+		ran++
 		for _, step := range testcase.Steps {
-			ran++
 			if res, err := step.Perform(ctx, data, Env); err != nil {
 				status = err
-				logger.Error("Test.User", fmt.Sprintf("Test %s failed", testcase.ID), err, "case", testcase, "response", res)
+				logger.Error("Test.User", fmt.Sprintf("Test %s failed", testcase.ID), err, "case", testcase, "step", step, "response", res)
+				t.Fail()
+				break
 			}
-			succeed++
 		}
-
 		if status == nil {
+			succeed++
 			logger.Info("Test.User", fmt.Sprintf("Test %s passed", testcase.ID))
 		}
 		if err := Env.Clear(ctx); err != nil {

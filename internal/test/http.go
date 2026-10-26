@@ -13,18 +13,18 @@ import (
 )
 
 type HttpRequest struct {
-	Method        string           `json:"method"`
-	Path          string           `json:"path"`
-	PathParams    map[string]Value `json:"path_params"`
-	Body          map[string]Value `json:"body"`
-	BodyGenerator *JSONGenerator   `json:"body_generator"`
-	BodyRaw       *string          `json:"body_raw"`
-	Headers       map[string]Value `json:"headers"`
+	Method        string               `json:"method"`
+	Path          string               `json:"path"`
+	PathParams    map[string]JSONValue `json:"path_params"`
+	Body          map[string]JSONValue `json:"body"`
+	BodyGenerator *JSONGenerator       `json:"body_generator"`
+	BodyRaw       *string              `json:"body_raw"`
+	Headers       map[string]JSONValue `json:"headers"`
 }
 
 type JSONGenerator struct {
-	Length uint             `json:"json_padded_bytes"`
-	Base   map[string]Value `json:"base"`
+	Length uint                 `json:"json_padded_bytes"`
+	Base   map[string]JSONValue `json:"base"`
 }
 
 func (e *Environment) PerformRequest(ctx context.Context, actor *Actor, request HttpRequest) (*http.Response, error) {
@@ -59,7 +59,7 @@ func (e *Environment) PerformRequest(ctx context.Context, actor *Actor, request 
 	return w.Result(), nil
 }
 
-func RequestURL(pathname string, params map[string]Value, testdata *Data) (string, error) {
+func RequestURL(pathname string, params map[string]JSONValue, testdata *Data) (string, error) {
 	for key, val := range params {
 		resolved, err := testdata.ResolveString(val)
 		if err != nil {

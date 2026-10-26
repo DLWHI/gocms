@@ -2984,7 +2984,7 @@
     {
       "id": "CREATE-072",
       "group": "POST /cms/users",
-      "title": "duplicate username -> 400, original untouched",
+      "title": "duplicate username -> 409, original untouched",
       "source": "documented",
       "tags": [],
       "steps": [
@@ -3003,7 +3003,7 @@
             }
           },
           "expect": {
-            "status": 400,
+            "status": 409,
             "body": "plain_text"
           }
         },
@@ -3038,7 +3038,7 @@
     {
       "id": "CREATE-073",
       "group": "POST /cms/users",
-      "title": "400: duplicate username (different case)",
+      "title": "409: duplicate username (different case)",
       "source": "inferred",
       "tags": [],
       "steps": [
@@ -3056,7 +3056,7 @@
             }
           },
           "expect": {
-            "status": 400,
+            "status": 409,
             "body": "plain_text"
           }
         }
@@ -3065,7 +3065,7 @@
     {
       "id": "CREATE-074",
       "group": "POST /cms/users",
-      "title": "400: duplicate username (suspended user (row still holds the key))",
+      "title": "409: duplicate username (suspended user (row still holds the key))",
       "source": "documented",
       "tags": [],
       "steps": [
@@ -3083,7 +3083,7 @@
             }
           },
           "expect": {
-            "status": 400,
+            "status": 409,
             "body": "plain_text"
           }
         }
@@ -3092,7 +3092,7 @@
     {
       "id": "CREATE-075",
       "group": "POST /cms/users",
-      "title": "400: duplicate username (an actor's name)",
+      "title": "409: duplicate username (an actor's name)",
       "source": "documented",
       "tags": [],
       "steps": [
@@ -3110,7 +3110,7 @@
             }
           },
           "expect": {
-            "status": 400,
+            "status": 409,
             "body": "plain_text"
           }
         }
@@ -3119,7 +3119,7 @@
     {
       "id": "CREATE-076",
       "group": "POST /cms/users",
-      "title": "400: duplicate username (padded with whitespace)",
+      "title": "409: duplicate username (padded with whitespace)",
       "source": "documented",
       "tags": [],
       "steps": [
@@ -3137,7 +3137,7 @@
             }
           },
           "expect": {
-            "status": 400,
+            "status": 409,
             "body": "plain_text"
           }
         }

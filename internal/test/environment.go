@@ -29,10 +29,10 @@ type Step struct {
 }
 
 type Data struct {
-	Meta      map[string]Value `json:"meta"`
-	Fixtures  Fixtures         `json:"fixtures"`
-	Constants map[string]Value `json:"constants"`
-	Cases     []Case           `json:"cases"`
+	Meta      map[string]JSONValue `json:"meta"`
+	Fixtures  Fixtures             `json:"fixtures"`
+	Constants map[string]JSONValue `json:"constants"`
+	Cases     []Case               `json:"cases"`
 }
 
 type Environment struct {
@@ -110,6 +110,12 @@ func (s *Step) Perform(ctx context.Context, d *Data, e *Environment) (*http.Resp
 
 	if err := s.Expect.Check(d, res); err != nil {
 		return res, err
+	}
+
+	for _, external := range s.Expect.ExternalChecks {
+		if err := external.Assert(ctx, e); err != nil {
+			return res, err
+		}
 	}
 	return nil, nil
 }

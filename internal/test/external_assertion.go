@@ -28,8 +28,8 @@ func (a *ExternalAssertion) Assert(ctx context.Context, e *Environment) error {
 		if status != nil {
 			return fmt.Errorf("Assertion failed: expected external check of %s to succeed: %v", a.Check, status)
 		}
-	case "fail":
-		if status != nil {
+	case "failure":
+		if status == nil {
 			return fmt.Errorf("Assertion failed: expected external check of %s to fail", a.Check)
 		}
 	default:

@@ -43,10 +43,11 @@ type Container struct {
 	Auth       *AuthBundle
 
 	PasswordService password.PasswordService
+	MessageRelay    outbox.MessageRepository
 	Router          *Router
 
 	ViewsCounter flow.Runner
-	MessageRelay flow.Runner
+	OutboxRunner flow.Runner
 
 	Subscriptions []*outbox.Subscription
 }
@@ -125,10 +126,11 @@ func (app *Container) Init(ctx context.Context) error {
 	app.Auth = auth
 
 	app.PasswordService = passwords
+	app.MessageRelay = relay
 	app.Router = router
 
 	app.ViewsCounter = views
-	app.MessageRelay = relay
+	app.OutboxRunner = relay
 
 	app.WireEvents(dispatcher)
 	if err := Migrate(ctx, app); err != nil {
@@ -209,7 +211,7 @@ func (app *Container) Start(ctx context.Context) {
 	app.group.Add(1)
 	go app.ViewsCounter.Start(ctx, &app.group, time.Minute*30)
 	app.group.Add(1)
-	go app.MessageRelay.Start(ctx, &app.group, 100*time.Millisecond)
+	go app.OutboxRunner.Start(ctx, &app.group, 100*time.Millisecond)
 }
 
 func (app *Container) Stop(timeout time.Duration) bool {
@@ -222,7 +224,7 @@ func (app *Container) Stop(timeout time.Duration) bool {
 	if err := app.ViewsCounter.Stop(ctx); err != nil {
 		success = false
 	}
-	if err := app.MessageRelay.Stop(ctx); err != nil {
+	if err := app.OutboxRunner.Stop(ctx); err != nil {
 		success = false
 	}
 

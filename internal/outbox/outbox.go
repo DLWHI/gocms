@@ -37,7 +37,7 @@ type Message struct {
 }
 
 type MessageRepository interface {
-	CommitMessages(ctx context.Context, messages []Message) error
+	Dispatch(ctx context.Context, count int) error
 	GetUnprocessed(ctx context.Context, limit int) ([]Message, error)
 }
 

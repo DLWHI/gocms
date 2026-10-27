@@ -18,7 +18,8 @@ func ChainMiddleware(middlewares ...Middleware) Middleware {
 
 func RequireJSON(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.Method == http.MethodPost || r.Method == http.MethodPut {
+		switch r.Method {
+		case http.MethodPost, http.MethodPut, http.MethodPatch:
 			contentType := r.Header.Get("Content-Type")
 			mediaType, _, err := mime.ParseMediaType(contentType)
 
@@ -56,5 +57,13 @@ func NewRequestLimiter(limit int64) *RequestLimiter {
 }
 
 func (m *RequestLimiter) Wrap(next http.Handler) http.Handler {
-	return http.MaxBytesHandler(next, m.value)
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.ContentLength > m.value {
+			http.Error(w, "request body too large", http.StatusRequestEntityTooLarge)
+			return
+		}
+		r2 := *r
+		r2.Body = http.MaxBytesReader(w, r.Body, m.value)
+		next.ServeHTTP(w, &r2)
+	})
 }

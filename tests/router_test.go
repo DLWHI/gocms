@@ -45,7 +45,7 @@ func (router *Router) AddAuthRoutes(handler *auth.Handler) {
 		server.RequireJSON,
 	)
 
-	router.mux.Handle("POST /cms/login", limiter.Wrap(handler.Login))
+	router.mux.Handle("POST /cms/login", limiter.Wrap(server.RequireJSON(handler.Login)))
 	router.mux.Handle("PATCH /cms/passwd", m(handler.ChangePasswd))
 	router.mux.Handle("POST /cms/logout", m(handler.Logout))
 	router.mux.Handle("GET /cms/profile", m(handler.Profile))

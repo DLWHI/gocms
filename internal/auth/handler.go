@@ -2,7 +2,6 @@ package auth
 
 import (
 	"encoding/json"
-	"errors"
 	"gocms/internal/domain"
 	"gocms/internal/password"
 	"gocms/internal/server"
@@ -45,17 +44,13 @@ func (h *Handler) login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
-		http.Error(w, "Invalid JSON payload", http.StatusBadRequest)
+		server.WriteDecodeError(w, err)
 		return
 	}
 
 	session, err := h.userService.Login(r.Context(), payload.Username, payload.Passwd)
 	if err != nil {
-		if errors.Is(err, domain.ErrCred) {
-			http.Error(w, "Invalid username or password", http.StatusUnauthorized)
-		} else {
-			http.Error(w, "Internal server error", http.StatusInternalServerError)
-		}
+		server.WriteServerError(w, "Auth", err)
 		return
 	}
 

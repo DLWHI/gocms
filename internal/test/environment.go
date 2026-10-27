@@ -5,11 +5,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"gocms/internal/domain"
+	"gocms/internal/outbox"
 	"gocms/internal/password"
 	"gocms/internal/user"
 	"net/http"
 	"os"
 
+	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 )
 
@@ -23,9 +25,10 @@ type Case struct {
 }
 
 type Step struct {
-	Actor   string         `json:"actor"`
-	Request HttpRequest    `json:"request"`
-	Expect  ExpectedResult `json:"expect"`
+	Actor      string         `json:"actor"`
+	Request    HttpRequest    `json:"request"`
+	Expect     ExpectedResult `json:"expect"`
+	Eventually uint           `json:"eventually_ms"`
 }
 
 type Data struct {
@@ -38,7 +41,9 @@ type Data struct {
 type Environment struct {
 	DB       *gorm.DB
 	Search   *Meilisearch
+	Redis    *redis.Client
 	Password password.PasswordService
+	Outbox   outbox.MessageRepository
 	Router   http.Handler
 	TestData *Data
 }
@@ -50,7 +55,9 @@ func LoadDataFromFile(path string, format string) (*Data, error) {
 	}
 
 	data := &Data{}
-	if err := json.NewDecoder(cases).Decode(data); err != nil {
+	decoder := json.NewDecoder(cases)
+	decoder.UseNumber()
+	if err := decoder.Decode(data); err != nil {
 		return nil, err
 	}
 
@@ -71,6 +78,13 @@ func LoadDataFromFile(path string, format string) (*Data, error) {
 func (e *Environment) Clear(ctx context.Context) error {
 
 	if err := e.DB.Unscoped().Where("1 = 1").Delete(&user.Record{}).Error; err != nil {
+		return err
+	}
+	if err := e.DB.Unscoped().Where("1 = 1").Delete(&outbox.Message{}).Error; err != nil {
+		return err
+	}
+
+	if err := e.Redis.FlushDB(ctx).Err(); err != nil {
 		return err
 	}
 
@@ -107,6 +121,10 @@ func (s *Step) Perform(ctx context.Context, d *Data, e *Environment) (*http.Resp
 		return res, err
 	}
 	defer res.Body.Close()
+
+	if err := e.Outbox.Dispatch(ctx, 5); err != nil {
+		return res, err
+	}
 
 	if err := s.Expect.Check(d, res); err != nil {
 		return res, err

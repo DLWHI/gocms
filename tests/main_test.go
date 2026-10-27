@@ -15,10 +15,9 @@ import (
 )
 
 const (
-	ConfigAddress                 = ""
-	ConfigPort                    = "8080"
-	ConfigSleepTime time.Duration = 3 * time.Second // time before test starts pulling from meilisearch index
-	Filter                        = ""
+	ConfigAddress = ""
+	ConfigPort    = "8080"
+	Filter        = "^PASSWORD-001"
 )
 
 var (
@@ -59,6 +58,8 @@ func run(m *testing.M) error {
 		),
 		Password: App.PasswordService,
 		Router:   App.Router,
+		Redis:    App.Redis,
+		Outbox:   App.MessageRelay,
 	}
 
 	App.Start(ctx)

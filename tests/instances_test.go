@@ -11,6 +11,7 @@ import (
 	"github.com/meilisearch/meilisearch-go"
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 )
 
 func MySQLDatabase(app *Container) (*gorm.DB, error) {
@@ -22,7 +23,7 @@ func MySQLDatabase(app *Container) (*gorm.DB, error) {
 		Name:     "test",
 	}
 
-	DB, err := database.NewMySQLConnection(&dbCfg)
+	DB, err := database.NewMySQLConnection(&dbCfg, logger.Silent)
 	if err != nil {
 		return nil, err
 	}

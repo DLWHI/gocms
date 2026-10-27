@@ -28,17 +28,17 @@ func NewService(repo Repository, se SearchEngine, pwd password.PasswordService) 
 func (s *Service) authorizeEdit(ctx context.Context, username string, action string) error {
 	initiator, ok := ctx.Value(auth.UserNameKey).(string)
 	if !ok {
-		return domain.ErrCred
+		return domain.ErrPerm
 	}
 	if initiator != username && !auth.HasPermission(ctx, domain.UserEntityName, action) {
-		return domain.ErrCred
+		return domain.ErrPerm
 	}
 	return nil
 }
 
 func (s *Service) Create(ctx context.Context, user *domain.User, password password.Password) (string, error) {
 	if !auth.HasPermission(ctx, domain.UserEntityName, "create") || !auth.IsSubsetOf(ctx, user.Permissions) {
-		return "", domain.ErrCred
+		return "", domain.ErrPerm
 	}
 
 	if err := s.pwd.IsValidPassword(password); err != nil {
@@ -123,7 +123,7 @@ func (s *Service) AllActive(ctx context.Context) ([]domain.User, error) {
 
 func (s *Service) Suspend(ctx context.Context, username string) error {
 	if !auth.HasPermission(ctx, domain.UserEntityName, "delete") {
-		return domain.ErrCred
+		return domain.ErrPerm
 	}
 
 	username, err := domain.NormalizeUsername(username)
@@ -144,7 +144,7 @@ func (s *Service) Suspend(ctx context.Context, username string) error {
 func (s *Service) PasswordMatches(ctx context.Context, username string, password password.Password) error {
 	username, err := domain.NormalizeUsername(username)
 	if err != nil {
-		return domain.ErrCred
+		return domain.ErrInval
 	}
 
 	pwdhash, err := s.repo.GetPasswordHash(ctx, username)
@@ -218,11 +218,11 @@ func (s *Service) ChangePermissions(ctx context.Context, username string, permis
 
 	initiator, ok := ctx.Value(auth.UserNameKey).(string)
 	if !ok {
-		return domain.ErrCred
+		return domain.ErrPerm
 	}
 
 	if initiator == username || !auth.HasPermission(ctx, domain.UserEntityName, "edit") || !auth.IsSubsetOf(ctx, permissions) {
-		return domain.ErrCred
+		return domain.ErrPerm
 	}
 
 	update := map[string]interface{}{

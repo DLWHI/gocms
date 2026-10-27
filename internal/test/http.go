@@ -70,10 +70,10 @@ func RequestURL(pathname string, params map[string]JSONValue, testdata *Data) (s
 	return pathname, nil
 }
 
-func BodyReaderOf(request HttpRequest, testdata *Data) (io.ReadCloser, error) {
+func BodyReaderOf(request HttpRequest, testdata *Data) (io.Reader, error) {
 	switch {
 	case request.BodyRaw != nil:
-		return io.NopCloser(strings.NewReader(*request.BodyRaw)), nil
+		return strings.NewReader(*request.BodyRaw), nil
 	case request.BodyGenerator != nil:
 		return request.BodyGenerator.Create(testdata)
 	case request.Body != nil:
@@ -85,13 +85,13 @@ func BodyReaderOf(request HttpRequest, testdata *Data) (io.ReadCloser, error) {
 		if err := json.NewEncoder(buf).Encode(&payload); err != nil {
 			return nil, err
 		}
-		return io.NopCloser(buf), nil
+		return buf, nil
 	default:
 		return nil, nil
 	}
 }
 
-func (g *JSONGenerator) Create(testdata *Data) (io.ReadCloser, error) {
+func (g *JSONGenerator) Create(testdata *Data) (io.Reader, error) {
 	payload, err := testdata.ResolveMap(g.Base)
 	if err != nil {
 		return nil, err
@@ -114,5 +114,5 @@ func (g *JSONGenerator) Create(testdata *Data) (io.ReadCloser, error) {
 	if len(body) != int(g.Length) {
 		return nil, fmt.Errorf("generated %d bytes, want %d", len(body), g.Length)
 	}
-	return io.NopCloser(bytes.NewReader(body)), nil
+	return bytes.NewReader(body), nil
 }

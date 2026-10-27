@@ -50,7 +50,6 @@ func (h *Handler) create(w http.ResponseWriter, r *http.Request) {
 	var payload struct {
 		domain.User
 		Password password.Password `json:"password"`
-		Field    string            `json:"_"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
 		clear(payload.Password)
@@ -75,8 +74,11 @@ func (h *Handler) all(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	res := map[string][]domain.User{
+		"users": users,
+	}
 	w.Header().Set("Content-Type", "application/json")
-	_ = json.NewEncoder(w).Encode(&users)
+	_ = json.NewEncoder(w).Encode(&res)
 }
 
 // POST /users/search - Search users
@@ -125,15 +127,15 @@ func (h *Handler) changeEmail(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var payload struct {
-		Email string `json:"email"`
+		Email *string `json:"email"`
 	}
 
-	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil || payload.Email == nil {
 		server.WriteDecodeError(w, err)
 		return
 	}
 
-	if err := h.userService.ChangeEmail(r.Context(), username, payload.Email); err != nil {
+	if err := h.userService.ChangeEmail(r.Context(), username, *payload.Email); err != nil {
 		server.WriteServerError(w, "User", err)
 		return
 	}
@@ -153,7 +155,7 @@ func (h *Handler) resetPassword(w http.ResponseWriter, r *http.Request) {
 		Password password.Password `json:"password"`
 	}
 
-	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil || payload.Password == nil {
 		clear(payload.Password)
 		server.WriteDecodeError(w, err)
 		return
@@ -177,14 +179,14 @@ func (h *Handler) updatePermissions(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var payload struct {
-		Permissions uint32 `json:"permissions"`
+		Permissions *uint32 `json:"permissions"`
 	}
-	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil || payload.Permissions == nil {
 		server.WriteDecodeError(w, err)
 		return
 	}
 
-	if err := h.userService.ChangePermissions(r.Context(), username, payload.Permissions); err != nil {
+	if err := h.userService.ChangePermissions(r.Context(), username, *payload.Permissions); err != nil {
 		server.WriteServerError(w, "User", err)
 		return
 	}

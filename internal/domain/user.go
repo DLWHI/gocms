@@ -28,11 +28,6 @@ type User struct {
 	LastLogin   *int64 `json:"last_login"`
 }
 
-type UserDiff struct {
-	Email       *string `json:"email,omitempty"`
-	Permissions *uint32 `json:"permissions,omitempty"`
-}
-
 type UserEvent struct {
 	Action   int    `json:"action"`
 	Username string `json:"username"`

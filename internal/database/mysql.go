@@ -18,7 +18,7 @@ type DBConfig struct {
 	Name     string
 }
 
-func NewMySQLConnection(cfg *DBConfig) (*gorm.DB, error) {
+func NewMySQLConnection(cfg *DBConfig, level logger.LogLevel) (*gorm.DB, error) {
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local",
 		cfg.User,
 		cfg.Password,
@@ -28,7 +28,7 @@ func NewMySQLConnection(cfg *DBConfig) (*gorm.DB, error) {
 	)
 
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
-		Logger:         logger.Default.LogMode(logger.Warn),
+		Logger:         logger.Default.LogMode(level),
 		TranslateError: true,
 	})
 	if err != nil {

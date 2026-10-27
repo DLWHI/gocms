@@ -1,7 +1,9 @@
 package test
 
 import (
+	"encoding/json"
 	"fmt"
+	"math"
 	"reflect"
 	"strings"
 )
@@ -91,6 +93,16 @@ func (d *Data) ExpandToken(name string, arg JSONValue) (JSONValue, error) {
 			return nil, fmt.Errorf("$raw_session needs to be a string")
 		}
 		return d.GetSessionOf(actor), nil
+	case "$actor_perms":
+		username, ok := arg.(string)
+		if !ok {
+			return nil, fmt.Errorf("$actor_perms needs to be a string")
+		}
+		actor, ok := d.Fixtures.Actors[username]
+		if !ok {
+			return nil, fmt.Errorf("$actor_perms requests unknown actor")
+		}
+		return float64(actor.Permissions), nil
 	default:
 		return nil, fmt.Errorf("value is not a state token")
 	}
@@ -161,6 +173,12 @@ func ToLen(v JSONValue) (int, bool) {
 		return int(n), true
 	case float64:
 		return int(n), true
+	case json.Number:
+		if val, err := n.Int64(); err != nil || val > math.MaxInt {
+			return 0, false
+		} else {
+			return int(val), true
+		}
 	case bool:
 		if n {
 			return 1, true
@@ -197,6 +215,12 @@ func ToNumber(v JSONValue) (float64, bool) {
 		return float64(n), true
 	case float64:
 		return n, true
+	case json.Number:
+		if val, err := n.Float64(); err != nil {
+			return 0, false
+		} else {
+			return val, true
+		}
 	case bool:
 		if n {
 			return 1, true
@@ -219,6 +243,12 @@ func ToInt64(v JSONValue) (int64, bool) {
 		return int64(n), true
 	case int64:
 		return n, true
+	case json.Number:
+		if val, err := n.Int64(); err != nil {
+			return 0, false
+		} else {
+			return val, true
+		}
 	default:
 		return 0, false
 	}
@@ -227,7 +257,8 @@ func ToInt64(v JSONValue) (int64, bool) {
 func TypeMatches(value JSONValue, typename string) error {
 	switch typename {
 	case "number":
-		if _, ok := value.(float64); ok {
+		switch value.(type) {
+		case float64, json.Number:
 			return nil
 		}
 		return fmt.Errorf("Assertion failed: expected number, got %T", value)
@@ -262,7 +293,7 @@ func Eq(lhs JSONValue, rhs JSONValue) error {
 		return fmt.Errorf("Assertion failed: expected types to be same, got (%T, %T)", lhs, rhs)
 	}
 	switch lhs.(type) {
-	case float64, string, bool:
+	case float64, string, bool, json.Number:
 		if lhs == rhs {
 			return nil
 		}
@@ -275,7 +306,7 @@ func Ne(lhs JSONValue, rhs JSONValue) error {
 		return fmt.Errorf("Assertion failed: expected types to be same, got (%T, %T)", lhs, rhs)
 	}
 	switch rhs.(type) {
-	case float64, string, bool:
+	case float64, string, bool, json.Number:
 		if lhs != rhs {
 			return nil
 		}
@@ -288,7 +319,7 @@ func Gt(value JSONValue, rhs JSONValue) error {
 		return fmt.Errorf("Assertion failed: expected types to be same, got (%T, %T)", value, rhs)
 	}
 	switch rhs.(type) {
-	case float64:
+	case float64, json.Number:
 		lval, _ := ToNumber(value)
 		rval, _ := ToNumber(rhs)
 		if lval > rval {
@@ -310,7 +341,7 @@ func Lt(lhs JSONValue, rhs JSONValue) error {
 		return fmt.Errorf("Assertion failed: expected types to be same, got (%T, %T)", lhs, rhs)
 	}
 	switch rhs.(type) {
-	case float64:
+	case float64, json.Number:
 		lval, _ := ToNumber(lhs)
 		rval, _ := ToNumber(rhs)
 		if lval < rval {
@@ -332,7 +363,7 @@ func Gte(lhs JSONValue, rhs JSONValue) error {
 		return fmt.Errorf("Assertion failed: expected types to be same, got (%T, %T)", lhs, rhs)
 	}
 	switch rhs.(type) {
-	case float64:
+	case float64, json.Number:
 		lval, _ := ToNumber(lhs)
 		rval, _ := ToNumber(rhs)
 		if lval >= rval {
@@ -354,7 +385,7 @@ func Lte(lhs JSONValue, rhs JSONValue) error {
 		return fmt.Errorf("Assertion failed: expected types to be same, got (%T, %T)", lhs, rhs)
 	}
 	switch rhs.(type) {
-	case float64:
+	case float64, json.Number:
 		lval, _ := ToNumber(lhs)
 		rval, _ := ToNumber(rhs)
 		if lval <= rval {
@@ -401,7 +432,7 @@ func IsNotNull(value JSONValue) error {
 
 func AllNull(values []JSONValue) error {
 	for _, value := range values {
-		if err := IsNotNull(value); err != nil {
+		if err := IsNull(value); err != nil {
 			return fmt.Errorf("Assertion failed: expected all values in %v to be null", values)
 		}
 	}
@@ -409,28 +440,28 @@ func AllNull(values []JSONValue) error {
 }
 func AllNotNull(values []JSONValue) error {
 	for _, value := range values {
-		if err := IsNull(value); err != nil {
+		if err := IsNotNull(value); err != nil {
 			return fmt.Errorf("Assertion failed: expected all values in %v to be non-null", values)
 		}
 	}
 	return nil
 }
 
-func Includes(values []JSONValue, value JSONValue) error {
+func Includes(values []JSONValue, target JSONValue) error {
 	for _, value := range values {
-		if err := Eq(value, value); err == nil {
+		if err := Eq(value, target); err == nil {
 			return nil
 		}
 	}
-	return fmt.Errorf("Assertion failed: expected %v to be in %v", value, values)
+	return fmt.Errorf("Assertion failed: expected %v to be in %v", target, values)
 }
-func Excludes(values []JSONValue, value JSONValue) error {
+func Excludes(values []JSONValue, target JSONValue) error {
 	for _, value := range values {
-		if err := Eq(value, value); err != nil {
-			return nil
+		if err := Eq(value, target); err == nil {
+			return fmt.Errorf("Assertion failed: expected %v not to be in %v", value, values)
 		}
 	}
-	return fmt.Errorf("Assertion failed: expected %v not to be in %v", value, values)
+	return nil
 }
 
 func IsSorted(values []JSONValue, desc bool) error {

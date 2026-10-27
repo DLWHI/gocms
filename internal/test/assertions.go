@@ -62,9 +62,9 @@ func (a *Assertion) Assert(d *Data, body map[string]JSONValue) error {
 	a.Value = expected
 	switch a.Op {
 	case "is_null":
-		return IsNull(values)
+		return AllNull(values)
 	case "not_null":
-		return IsNotNull(values)
+		return AllNotNull(values)
 	case "eq":
 		return a.opEq(values)
 	case "ne":
@@ -93,12 +93,8 @@ func (a *Assertion) Assert(d *Data, body map[string]JSONValue) error {
 		return Includes(values, a.Value)
 	case "excludes":
 		return Excludes(values, a.Value)
-	case "all_null":
-		return AllNull(values)
-	case "all_not_null":
-		return AllNotNull(values)
 	case "unix_or_null":
-		return opUnixTimestamp(values)
+		return a.opUnixTimestamp(values)
 	case "sorted_asc":
 		return IsSorted(values, false)
 	case "sorted_desc":
@@ -135,7 +131,7 @@ func (a *Assertion) opLt(values []JSONValue) error {
 		return fmt.Errorf("Assertion failed: expected at least 1 value, got nothing")
 	}
 	for _, value := range values {
-		if err := Gte(value, a.Value); err != nil {
+		if err := Lt(value, a.Value); err != nil {
 			return err
 		}
 	}
@@ -146,7 +142,7 @@ func (a *Assertion) opGt(values []JSONValue) error {
 		return fmt.Errorf("Assertion failed: expected at least 1 value, got nothing")
 	}
 	for _, value := range values {
-		if err := Lte(value, a.Value); err != nil {
+		if err := Gt(value, a.Value); err != nil {
 			return err
 		}
 	}
@@ -157,7 +153,7 @@ func (a *Assertion) opLte(values []JSONValue) error {
 		return fmt.Errorf("Assertion failed: expected at least 1 value, got nothing")
 	}
 	for _, value := range values {
-		if err := Gt(value, a.Value); err != nil {
+		if err := Lte(value, a.Value); err != nil {
 			return err
 		}
 	}
@@ -168,7 +164,7 @@ func (a *Assertion) opGte(values []JSONValue) error {
 		return fmt.Errorf("Assertion failed: expected at least 1 value, got nothing")
 	}
 	for _, value := range values {
-		if err := Lt(value, a.Value); err != nil {
+		if err := Gte(value, a.Value); err != nil {
 			return err
 		}
 	}
@@ -220,7 +216,7 @@ func (a *Assertion) opLenLt(values []JSONValue) error {
 		if !ok {
 			return fmt.Errorf("Invalid length value in assertions, got %v, type %T", a.Value, a.Value)
 		}
-		if expected >= len(arr) {
+		if len(arr) >= expected {
 			return fmt.Errorf("Assertion failed: expected len(%d) < %d", len(values), expected)
 		}
 	}
@@ -239,7 +235,7 @@ func (a *Assertion) opLenGt(values []JSONValue) error {
 		if !ok {
 			return fmt.Errorf("Invalid length value in assertions, got %v, type %T", a.Value, a.Value)
 		}
-		if expected <= len(arr) {
+		if len(arr) <= expected {
 			return fmt.Errorf("Assertion failed: expected len(%d) > %d", len(values), expected)
 		}
 	}
@@ -258,7 +254,7 @@ func (a *Assertion) opLenLte(values []JSONValue) error {
 		if !ok {
 			return fmt.Errorf("Invalid length value in assertions, got %v, type %T", a.Value, a.Value)
 		}
-		if expected > len(arr) {
+		if len(arr) > expected {
 			return fmt.Errorf("Assertion failed: expected len(%d) <= %d", len(values), expected)
 		}
 	}
@@ -277,14 +273,14 @@ func (a *Assertion) opLenGte(values []JSONValue) error {
 		if !ok {
 			return fmt.Errorf("Invalid length value in assertions, got %v, type %T", a.Value, a.Value)
 		}
-		if expected < len(arr) {
+		if len(arr) < expected {
 			return fmt.Errorf("Assertion failed: expected len(%d) >= %d", len(values), expected)
 		}
 	}
 	return nil
 }
 
-func opUnixTimestamp(values []JSONValue) error {
+func (a *Assertion) opUnixTimestamp(values []JSONValue) error {
 	for _, value := range values {
 		number, ok := ToNumber(value)
 		if ok {

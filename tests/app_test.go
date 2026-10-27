@@ -168,8 +168,8 @@ func (app *Container) TearDown() {
 		&editor.Model{},
 		&post.Meta{},
 		&post.Translation{},
-		&category.Model{},
-		&category.Translation{},
+		&category.Record{},
+		&category.RecordTranslation{},
 		&locale.Locale{},
 		&outbox.Message{},
 	); err != nil {

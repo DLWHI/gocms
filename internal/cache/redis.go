@@ -88,6 +88,13 @@ func (r *RedisClient) Return(ctx context.Context, key string, token string, ptrv
 	return nil
 }
 
+// func (r *RedisClient) Gen(ctx context.Context, key string) (int64, error) {
+// 	gen, err := r.rdb.Get(ctx, genKey(slug)).Int64()
+// 	if err != nil && !errors.Is(err, redis.Nil) {
+// 		gen = 0 // degrade: go to the DB path
+// 	}
+// }
+
 func UnmarshalRedisKey(rdb *redis.Client, ctx context.Context, key string, ptr any) error {
 	cached, err := rdb.Get(ctx, key).Result()
 	if err != nil {

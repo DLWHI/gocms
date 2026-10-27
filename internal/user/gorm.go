@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"gocms/internal/domain"
 	"gocms/internal/outbox"
-	"maps"
 	"time"
 
 	"gorm.io/gorm"
@@ -19,8 +18,10 @@ type Record struct {
 	Permissions uint32         `gorm:"default:0"` // PermCreate
 	SuspendedAt gorm.DeletedAt ``
 	LastLogin   *time.Time     ``
-	Version     uint           `gorm:"default:0"`
+	Version     uint           `gorm:"default:1"`
 }
+
+type RecordPatch = map[string]interface{}
 
 func (Record) TableName() string {
 	return domain.UserEntityName
@@ -63,8 +64,8 @@ func (r *GORMRepository) Create(ctx context.Context, user *domain.User, pwdhash 
 
 func (r *GORMRepository) Update(ctx context.Context, username string, diff map[string]interface{}) error {
 	return r.mapErr(r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		if len(diff) > 0 {
-			update := patch(diff)
+		update := patch(diff)
+		if len(update) > 0 {
 			result := tx.Model(&Record{}).
 				Select("email", "permissions", "version").
 				Where("username = ?", username).
@@ -166,7 +167,7 @@ func (r *GORMRepository) Get(ctx context.Context, username string) (*domain.User
 }
 
 func (r *GORMRepository) GetActive(ctx context.Context) ([]domain.User, error) {
-	users := make([]Record, 0)
+	var users []Record
 
 	err := r.db.WithContext(ctx).Omit("Password").Find(&users).Error
 	if err != nil {
@@ -245,10 +246,20 @@ func (r *GORMRepository) mapErr(err error) error {
 	}
 }
 
-func patch(diff map[string]interface{}) map[string]interface{} {
-	p := maps.Clone(diff)
-	p["version"] = gorm.Expr("version + 1")
-	return p
+func patch(diff map[string]interface{}) RecordPatch {
+	record := make(map[string]interface{}, 0)
+
+	if val, ok := diff["email"]; ok {
+		record["email"] = val
+	}
+	if val, ok := diff["permissions"]; ok {
+		record["permissions"] = val
+	}
+
+	if len(record) > 0 {
+		record["version"] = gorm.Expr("version + 1")
+	}
+	return record
 }
 
 func (rd *Record) ToDomain() domain.User {

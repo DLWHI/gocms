@@ -7,7 +7,7 @@
     "request": "path_params are unescaped and must be percent-encoded when substituted. headers: null removes a default header. body_raw (even empty string) overrides body. body_generator {json_padded_bytes: N, base} = valid JSON of exactly N bytes, padded with an unknown field.",
     "tokens": "{$const: NAME} constants; {$repeat: {s, n}}; {$email_of_length: N}; {$raw_session: actor} session id without Bearer; {$actor_perms: actor} the actor's permission mask. Tokens appear only as direct field values (body, headers, path_params, assertion value).",
     "expect.body": "empty | plain_text | json | any",
-    "json_assertions": "ops: eq, ne, type, len_eq, len_lte, gte, includes, excludes, is_null, not_null, all_null (every element null), unix_or_null (every element is an integer or null), sorted_asc, sorted_desc. Paths with [*] resolve to lists.",
+    "json_assertions": "ops: eq, ne, type, len_eq, len_lte, gte, includes, excludes, is_null, not_null, unix_or_null (every element is an integer or null), sorted_asc, sorted_desc. Paths with [*] resolve to lists.",
     "external_checks": "login: authenticate through the auth service and expect success/failure.",
     "eventually_ms": "Retry the step until it passes or the timeout elapses (indexing is async).",
     "source": "documented = rules inside the source_document; stated = rules you gave outside the source_document; inferred = derived from code or conventions.",
@@ -4524,7 +4524,7 @@
     {
       "id": "SEARCH-001",
       "group": "POST /cms/users/search",
-      "title": "empty object returns everyone, documented shape",
+      "title": "empty filters return everyone, documented shape",
       "source": "documented",
       "tags": [],
       "steps": [
@@ -4533,7 +4533,10 @@
           "request": {
             "method": "POST",
             "path": "/cms/users/search",
-            "body": {},
+            "body": {
+              "count": 10,
+              "page": 1
+            },
             "headers": {
               "Content-Type": "application/json"
             }
@@ -4952,7 +4955,8 @@
             "method": "POST",
             "path": "/cms/users/search",
             "body": {
-              "query": "zzzznomatch"
+              "query": "zzzznomatch",
+              "count": 10
             },
             "headers": {
               "Content-Type": "application/json"
@@ -4995,7 +4999,8 @@
             "method": "POST",
             "path": "/cms/users/search",
             "body": {
-              "query": "\""
+              "query": "\"",
+              "count": 10
             },
             "headers": {
               "Content-Type": "application/json"
@@ -5038,7 +5043,8 @@
             "method": "POST",
             "path": "/cms/users/search",
             "body": {
-              "query": "'; DROP TABLE users;--"
+              "query": "'; DROP TABLE users;--",
+              "count": 10
             },
             "headers": {
               "Content-Type": "application/json"
@@ -5081,7 +5087,8 @@
             "method": "POST",
             "path": "/cms/users/search",
             "body": {
-              "query": "\\"
+              "query": "\\",
+              "count": 10
             },
             "headers": {
               "Content-Type": "application/json"
@@ -5124,7 +5131,8 @@
             "method": "POST",
             "path": "/cms/users/search",
             "body": {
-              "query": "*?%"
+              "query": "*?%",
+              "count": 10
             },
             "headers": {
               "Content-Type": "application/json"
@@ -5167,7 +5175,8 @@
             "method": "POST",
             "path": "/cms/users/search",
             "body": {
-              "query": "alice\" OR permissions >= 0"
+              "query": "alice\" OR permissions >= 0",
+              "count": 10
             },
             "headers": {
               "Content-Type": "application/json"
@@ -5215,7 +5224,8 @@
                   "s": "a",
                   "n": 1000
                 }
-              }
+              },
+              "count": 10
             },
             "headers": {
               "Content-Type": "application/json"
@@ -5258,7 +5268,8 @@
             "method": "POST",
             "path": "/cms/users/search",
             "body": {
-              "query": "😀"
+              "query": "😀",
+              "count": 10
             },
             "headers": {
               "Content-Type": "application/json"
@@ -5300,7 +5311,7 @@
           "request": {
             "method": "POST",
             "path": "/cms/users/search",
-            "body_raw": "{\"query\":null}",
+            "body_raw": "{\"query\":null,\"count\":10}",
             "headers": {
               "Content-Type": "application/json"
             }
@@ -5901,7 +5912,8 @@
             "method": "POST",
             "path": "/cms/users/search",
             "body": {
-              "sort_by": "username:asc"
+              "sort_by": "username:asc",
+              "count": 10
             },
             "headers": {
               "Content-Type": "application/json"
@@ -5933,7 +5945,8 @@
             "method": "POST",
             "path": "/cms/users/search",
             "body": {
-              "sort_by": "username:desc"
+              "sort_by": "username:desc",
+              "count": 10
             },
             "headers": {
               "Content-Type": "application/json"
@@ -5965,7 +5978,8 @@
             "method": "POST",
             "path": "/cms/users/search",
             "body": {
-              "sort_by": "last_login:asc"
+              "sort_by": "last_login:asc",
+              "count": 10
             },
             "headers": {
               "Content-Type": "application/json"
@@ -6008,7 +6022,8 @@
             "method": "POST",
             "path": "/cms/users/search",
             "body": {
-              "sort_by": "last_login:desc"
+              "sort_by": "last_login:desc",
+              "count": 10
             },
             "headers": {
               "Content-Type": "application/json"
@@ -6051,7 +6066,8 @@
             "method": "POST",
             "path": "/cms/users/search",
             "body": {
-              "sort_by": "suspended_at:asc"
+              "sort_by": "suspended_at:asc",
+              "count": 10
             },
             "headers": {
               "Content-Type": "application/json"
@@ -6094,7 +6110,8 @@
             "method": "POST",
             "path": "/cms/users/search",
             "body": {
-              "sort_by": "suspended_at:desc"
+              "sort_by": "suspended_at:desc",
+              "count": 10
             },
             "headers": {
               "Content-Type": "application/json"
@@ -6137,7 +6154,8 @@
             "method": "POST",
             "path": "/cms/users/search",
             "body": {
-              "sort_by": "email:asc"
+              "sort_by": "email:asc",
+              "count": 10
             },
             "headers": {
               "Content-Type": "application/json"
@@ -6163,7 +6181,8 @@
             "method": "POST",
             "path": "/cms/users/search",
             "body": {
-              "sort_by": "permissions:desc"
+              "sort_by": "permissions:desc",
+              "count": 10
             },
             "headers": {
               "Content-Type": "application/json"
@@ -6189,7 +6208,8 @@
             "method": "POST",
             "path": "/cms/users/search",
             "body": {
-              "sort_by": "nonexistent:asc"
+              "sort_by": "nonexistent:asc",
+              "count": 10
             },
             "headers": {
               "Content-Type": "application/json"
@@ -6215,7 +6235,8 @@
             "method": "POST",
             "path": "/cms/users/search",
             "body": {
-              "sort_by": "username"
+              "sort_by": "username",
+              "count": 10
             },
             "headers": {
               "Content-Type": "application/json"
@@ -6241,7 +6262,8 @@
             "method": "POST",
             "path": "/cms/users/search",
             "body": {
-              "sort_by": "username:sideways"
+              "sort_by": "username:sideways",
+              "count": 10
             },
             "headers": {
               "Content-Type": "application/json"
@@ -6267,7 +6289,8 @@
             "method": "POST",
             "path": "/cms/users/search",
             "body": {
-              "sort_by": ":asc"
+              "sort_by": ":asc",
+              "count": 10
             },
             "headers": {
               "Content-Type": "application/json"
@@ -6293,7 +6316,8 @@
             "method": "POST",
             "path": "/cms/users/search",
             "body": {
-              "sort_by": "username:asc:desc"
+              "sort_by": "username:asc:desc",
+              "count": 10
             },
             "headers": {
               "Content-Type": "application/json"
@@ -6319,7 +6343,8 @@
             "method": "POST",
             "path": "/cms/users/search",
             "body": {
-              "sort_by": "  "
+              "sort_by": "  ",
+              "count": 10
             },
             "headers": {
               "Content-Type": "application/json"
@@ -6345,7 +6370,8 @@
             "method": "POST",
             "path": "/cms/users/search",
             "body": {
-              "sort_by": "username:asc,email"
+              "sort_by": "username:asc,email",
+              "count": 10
             },
             "headers": {
               "Content-Type": "application/json"
@@ -6370,7 +6396,7 @@
           "request": {
             "method": "POST",
             "path": "/cms/users/search",
-            "body_raw": "{\"sort_by\":5}",
+            "body_raw": "{\"sort_by\":5,\"count\":10}",
             "headers": {
               "Content-Type": "application/json"
             }
@@ -6395,7 +6421,8 @@
             "method": "POST",
             "path": "/cms/users/search",
             "body": {
-              "permissions": 3
+              "permissions": 3,
+              "count": 10
             },
             "headers": {
               "Content-Type": "application/json"
@@ -6438,7 +6465,8 @@
             "method": "POST",
             "path": "/cms/users/search",
             "body": {
-              "permissions": 0
+              "permissions": 0,
+              "count": 10
             },
             "headers": {
               "Content-Type": "application/json"
@@ -6476,7 +6504,8 @@
             "method": "POST",
             "path": "/cms/users/search",
             "body": {
-              "permissions": 4294967295
+              "permissions": 4294967295,
+              "count": 10
             },
             "headers": {
               "Content-Type": "application/json"
@@ -6513,7 +6542,7 @@
           "request": {
             "method": "POST",
             "path": "/cms/users/search",
-            "body_raw": "{\"permissions\":null}",
+            "body_raw": "{\"permissions\":null,\"count\":10}",
             "headers": {
               "Content-Type": "application/json"
             }
@@ -6549,7 +6578,7 @@
           "request": {
             "method": "POST",
             "path": "/cms/users/search",
-            "body_raw": "{\"permissions\":-1}",
+            "body_raw": "{\"permissions\":-1,\"count\":10}",
             "headers": {
               "Content-Type": "application/json"
             }
@@ -6573,7 +6602,7 @@
           "request": {
             "method": "POST",
             "path": "/cms/users/search",
-            "body_raw": "{\"permissions\":4294967296}",
+            "body_raw": "{\"permissions\":4294967296,\"count\":10}",
             "headers": {
               "Content-Type": "application/json"
             }
@@ -6597,7 +6626,7 @@
           "request": {
             "method": "POST",
             "path": "/cms/users/search",
-            "body_raw": "{\"permissions\":\"3\"}",
+            "body_raw": "{\"permissions\":\"3\",\"count\":10}",
             "headers": {
               "Content-Type": "application/json"
             }
@@ -6621,7 +6650,7 @@
           "request": {
             "method": "POST",
             "path": "/cms/users/search",
-            "body_raw": "{\"permissions\":1.5}",
+            "body_raw": "{\"permissions\":1.5,\"count\":10}",
             "headers": {
               "Content-Type": "application/json"
             }
@@ -6645,7 +6674,7 @@
           "request": {
             "method": "POST",
             "path": "/cms/users/search",
-            "body_raw": "{\"permissions\":true}",
+            "body_raw": "{\"permissions\":true,\"count\":10}",
             "headers": {
               "Content-Type": "application/json"
             }
@@ -6670,7 +6699,8 @@
             "method": "POST",
             "path": "/cms/users/search",
             "body": {
-              "suspended": true
+              "suspended": true,
+              "count": 10
             },
             "headers": {
               "Content-Type": "application/json"
@@ -6713,7 +6743,8 @@
             "method": "POST",
             "path": "/cms/users/search",
             "body": {
-              "suspended": false
+              "suspended": false,
+              "count": 10
             },
             "headers": {
               "Content-Type": "application/json"
@@ -6755,7 +6786,7 @@
           "request": {
             "method": "POST",
             "path": "/cms/users/search",
-            "body_raw": "{\"suspended\":null}",
+            "body_raw": "{\"suspended\":null,\"count\":10}",
             "headers": {
               "Content-Type": "application/json"
             }
@@ -6791,7 +6822,7 @@
           "request": {
             "method": "POST",
             "path": "/cms/users/search",
-            "body_raw": "{\"suspended\":\"true\"}",
+            "body_raw": "{\"suspended\":\"true\",\"count\":10}",
             "headers": {
               "Content-Type": "application/json"
             }
@@ -6815,7 +6846,7 @@
           "request": {
             "method": "POST",
             "path": "/cms/users/search",
-            "body_raw": "{\"suspended\":1}",
+            "body_raw": "{\"suspended\":1,\"count\":10}",
             "headers": {
               "Content-Type": "application/json"
             }
@@ -6839,7 +6870,7 @@
           "request": {
             "method": "POST",
             "path": "/cms/users/search",
-            "body_raw": "{\"suspended\":[true]}",
+            "body_raw": "{\"suspended\":[true],\"count\":10}",
             "headers": {
               "Content-Type": "application/json"
             }
@@ -6864,7 +6895,8 @@
             "method": "POST",
             "path": "/cms/users/search",
             "body": {
-              "suspended_after": 1785456000
+              "suspended_after": 1785456000,
+              "count": 10
             },
             "headers": {
               "Content-Type": "application/json"
@@ -6902,7 +6934,8 @@
             "method": "POST",
             "path": "/cms/users/search",
             "body": {
-              "suspended_after": 1785628800
+              "suspended_after": 1785628800,
+              "count": 10
             },
             "headers": {
               "Content-Type": "application/json"
@@ -6935,7 +6968,8 @@
             "method": "POST",
             "path": "/cms/users/search",
             "body": {
-              "suspended_before": 1785628800
+              "suspended_before": 1785628800,
+              "count": 10
             },
             "headers": {
               "Content-Type": "application/json"
@@ -6973,7 +7007,8 @@
             "method": "POST",
             "path": "/cms/users/search",
             "body": {
-              "suspended_before": 1785456000
+              "suspended_before": 1785456000,
+              "count": 10
             },
             "headers": {
               "Content-Type": "application/json"
@@ -7011,7 +7046,8 @@
             "method": "POST",
             "path": "/cms/users/search",
             "body": {
-              "suspended_after": 1785542400
+              "suspended_after": 1785542400,
+              "count": 10
             },
             "headers": {
               "Content-Type": "application/json"
@@ -7044,7 +7080,8 @@
             "method": "POST",
             "path": "/cms/users/search",
             "body": {
-              "suspended_before": 1785542400
+              "suspended_before": 1785542400,
+              "count": 10
             },
             "headers": {
               "Content-Type": "application/json"
@@ -7077,7 +7114,8 @@
             "method": "POST",
             "path": "/cms/users/search",
             "body": {
-              "last_login_after": 1785542400
+              "last_login_after": 1785542400,
+              "count": 10
             },
             "headers": {
               "Content-Type": "application/json"
@@ -7120,7 +7158,8 @@
             "method": "POST",
             "path": "/cms/users/search",
             "body": {
-              "last_login_before": 1785888000
+              "last_login_before": 1785888000,
+              "count": 10
             },
             "headers": {
               "Content-Type": "application/json"
@@ -7163,7 +7202,8 @@
             "method": "POST",
             "path": "/cms/users/search",
             "body": {
-              "last_login_before": 1786356000
+              "last_login_before": 1786356000,
+              "count": 10
             },
             "headers": {
               "Content-Type": "application/json"
@@ -7196,7 +7236,8 @@
             "method": "POST",
             "path": "/cms/users/search",
             "body": {
-              "last_login_after": 0
+              "last_login_after": 0,
+              "count": 10
             },
             "headers": {
               "Content-Type": "application/json"
@@ -7234,7 +7275,8 @@
             "method": "POST",
             "path": "/cms/users/search",
             "body": {
-              "last_login_after": -1
+              "last_login_after": -1,
+              "count": 10
             },
             "headers": {
               "Content-Type": "application/json"
@@ -7272,7 +7314,8 @@
             "method": "POST",
             "path": "/cms/users/search",
             "body": {
-              "last_login_after": 9223372036854775807
+              "last_login_after": 9223372036854775807,
+              "count": 10
             },
             "headers": {
               "Content-Type": "application/json"
@@ -7306,7 +7349,8 @@
             "path": "/cms/users/search",
             "body": {
               "last_login_after": 1788220800,
-              "last_login_before": 1785542400
+              "last_login_before": 1785542400,
+              "count": 10
             },
             "headers": {
               "Content-Type": "application/json"
@@ -7340,7 +7384,8 @@
             "path": "/cms/users/search",
             "body": {
               "permissions": 3,
-              "suspended": false
+              "suspended": false,
+              "count": 10
             },
             "headers": {
               "Content-Type": "application/json"
@@ -7379,7 +7424,8 @@
             "path": "/cms/users/search",
             "body": {
               "query": "alice",
-              "suspended": true
+              "suspended": true,
+              "count": 10
             },
             "headers": {
               "Content-Type": "application/json"
@@ -7413,7 +7459,8 @@
             "path": "/cms/users/search",
             "body": {
               "suspended": true,
-              "suspended_after": 1785456000
+              "suspended_after": 1785456000,
+              "count": 10
             },
             "headers": {
               "Content-Type": "application/json"
@@ -7445,7 +7492,7 @@
           "request": {
             "method": "POST",
             "path": "/cms/users/search",
-            "body_raw": "{\"suspended_after\":\"yesterday\"}",
+            "body_raw": "{\"suspended_after\":\"yesterday\",\"count\":10}",
             "headers": {
               "Content-Type": "application/json"
             }
@@ -7469,7 +7516,7 @@
           "request": {
             "method": "POST",
             "path": "/cms/users/search",
-            "body_raw": "{\"suspended_after\":\"\"}",
+            "body_raw": "{\"suspended_after\":\"\",\"count\":10}",
             "headers": {
               "Content-Type": "application/json"
             }
@@ -7493,7 +7540,7 @@
           "request": {
             "method": "POST",
             "path": "/cms/users/search",
-            "body_raw": "{\"suspended_after\":\"2026-08-13T14:30:00Z\"}",
+            "body_raw": "{\"suspended_after\":\"2026-08-13T14:30:00Z\",\"count\":10}",
             "headers": {
               "Content-Type": "application/json"
             }
@@ -7517,7 +7564,7 @@
           "request": {
             "method": "POST",
             "path": "/cms/users/search",
-            "body_raw": "{\"suspended_after\":\"1786631400\"}",
+            "body_raw": "{\"suspended_after\":\"1786631400\",\"count\":10}",
             "headers": {
               "Content-Type": "application/json"
             }
@@ -7541,7 +7588,7 @@
           "request": {
             "method": "POST",
             "path": "/cms/users/search",
-            "body_raw": "{\"suspended_after\":1.5}",
+            "body_raw": "{\"suspended_after\":1.5,\"count\":10}",
             "headers": {
               "Content-Type": "application/json"
             }
@@ -7565,7 +7612,7 @@
           "request": {
             "method": "POST",
             "path": "/cms/users/search",
-            "body_raw": "{\"suspended_after\":true}",
+            "body_raw": "{\"suspended_after\":true,\"count\":10}",
             "headers": {
               "Content-Type": "application/json"
             }
@@ -7589,7 +7636,7 @@
           "request": {
             "method": "POST",
             "path": "/cms/users/search",
-            "body_raw": "{\"suspended_after\":[1]}",
+            "body_raw": "{\"suspended_after\":[1],\"count\":10}",
             "headers": {
               "Content-Type": "application/json"
             }
@@ -7613,7 +7660,7 @@
           "request": {
             "method": "POST",
             "path": "/cms/users/search",
-            "body_raw": "{\"suspended_after\":9223372036854775808}",
+            "body_raw": "{\"suspended_after\":9223372036854775808,\"count\":10}",
             "headers": {
               "Content-Type": "application/json"
             }
@@ -7637,7 +7684,7 @@
           "request": {
             "method": "POST",
             "path": "/cms/users/search",
-            "body_raw": "{\"suspended_after\":null}",
+            "body_raw": "{\"suspended_after\":null,\"count\":10}",
             "headers": {
               "Content-Type": "application/json"
             }
@@ -7668,7 +7715,7 @@
           "request": {
             "method": "POST",
             "path": "/cms/users/search",
-            "body_raw": "{\"suspended_before\":\"yesterday\"}",
+            "body_raw": "{\"suspended_before\":\"yesterday\",\"count\":10}",
             "headers": {
               "Content-Type": "application/json"
             }
@@ -7692,7 +7739,7 @@
           "request": {
             "method": "POST",
             "path": "/cms/users/search",
-            "body_raw": "{\"suspended_before\":\"\"}",
+            "body_raw": "{\"suspended_before\":\"\",\"count\":10}",
             "headers": {
               "Content-Type": "application/json"
             }
@@ -7716,7 +7763,7 @@
           "request": {
             "method": "POST",
             "path": "/cms/users/search",
-            "body_raw": "{\"suspended_before\":\"2026-08-13T14:30:00Z\"}",
+            "body_raw": "{\"suspended_before\":\"2026-08-13T14:30:00Z\",\"count\":10}",
             "headers": {
               "Content-Type": "application/json"
             }
@@ -7740,7 +7787,7 @@
           "request": {
             "method": "POST",
             "path": "/cms/users/search",
-            "body_raw": "{\"suspended_before\":\"1786631400\"}",
+            "body_raw": "{\"suspended_before\":\"1786631400\",\"count\":10}",
             "headers": {
               "Content-Type": "application/json"
             }
@@ -7764,7 +7811,7 @@
           "request": {
             "method": "POST",
             "path": "/cms/users/search",
-            "body_raw": "{\"suspended_before\":1.5}",
+            "body_raw": "{\"suspended_before\":1.5,\"count\":10}",
             "headers": {
               "Content-Type": "application/json"
             }
@@ -7788,7 +7835,7 @@
           "request": {
             "method": "POST",
             "path": "/cms/users/search",
-            "body_raw": "{\"suspended_before\":true}",
+            "body_raw": "{\"suspended_before\":true,\"count\":10}",
             "headers": {
               "Content-Type": "application/json"
             }
@@ -7812,7 +7859,7 @@
           "request": {
             "method": "POST",
             "path": "/cms/users/search",
-            "body_raw": "{\"suspended_before\":[1]}",
+            "body_raw": "{\"suspended_before\":[1],\"count\":10}",
             "headers": {
               "Content-Type": "application/json"
             }
@@ -7836,7 +7883,7 @@
           "request": {
             "method": "POST",
             "path": "/cms/users/search",
-            "body_raw": "{\"suspended_before\":9223372036854775808}",
+            "body_raw": "{\"suspended_before\":9223372036854775808,\"count\":10}",
             "headers": {
               "Content-Type": "application/json"
             }
@@ -7860,7 +7907,7 @@
           "request": {
             "method": "POST",
             "path": "/cms/users/search",
-            "body_raw": "{\"suspended_before\":null}",
+            "body_raw": "{\"suspended_before\":null,\"count\":10}",
             "headers": {
               "Content-Type": "application/json"
             }
@@ -7891,7 +7938,7 @@
           "request": {
             "method": "POST",
             "path": "/cms/users/search",
-            "body_raw": "{\"last_login_after\":\"yesterday\"}",
+            "body_raw": "{\"last_login_after\":\"yesterday\",\"count\":10}",
             "headers": {
               "Content-Type": "application/json"
             }
@@ -7915,7 +7962,7 @@
           "request": {
             "method": "POST",
             "path": "/cms/users/search",
-            "body_raw": "{\"last_login_after\":\"\"}",
+            "body_raw": "{\"last_login_after\":\"\",\"count\":10}",
             "headers": {
               "Content-Type": "application/json"
             }
@@ -7939,7 +7986,7 @@
           "request": {
             "method": "POST",
             "path": "/cms/users/search",
-            "body_raw": "{\"last_login_after\":\"2026-08-13T14:30:00Z\"}",
+            "body_raw": "{\"last_login_after\":\"2026-08-13T14:30:00Z\",\"count\":10}",
             "headers": {
               "Content-Type": "application/json"
             }
@@ -7963,7 +8010,7 @@
           "request": {
             "method": "POST",
             "path": "/cms/users/search",
-            "body_raw": "{\"last_login_after\":\"1786631400\"}",
+            "body_raw": "{\"last_login_after\":\"1786631400\",\"count\":10}",
             "headers": {
               "Content-Type": "application/json"
             }
@@ -7987,7 +8034,7 @@
           "request": {
             "method": "POST",
             "path": "/cms/users/search",
-            "body_raw": "{\"last_login_after\":1.5}",
+            "body_raw": "{\"last_login_after\":1.5,\"count\":10}",
             "headers": {
               "Content-Type": "application/json"
             }
@@ -8011,7 +8058,7 @@
           "request": {
             "method": "POST",
             "path": "/cms/users/search",
-            "body_raw": "{\"last_login_after\":true}",
+            "body_raw": "{\"last_login_after\":true,\"count\":10}",
             "headers": {
               "Content-Type": "application/json"
             }
@@ -8035,7 +8082,7 @@
           "request": {
             "method": "POST",
             "path": "/cms/users/search",
-            "body_raw": "{\"last_login_after\":[1]}",
+            "body_raw": "{\"last_login_after\":[1],\"count\":10}",
             "headers": {
               "Content-Type": "application/json"
             }
@@ -8059,7 +8106,7 @@
           "request": {
             "method": "POST",
             "path": "/cms/users/search",
-            "body_raw": "{\"last_login_after\":9223372036854775808}",
+            "body_raw": "{\"last_login_after\":9223372036854775808,\"count\":10}",
             "headers": {
               "Content-Type": "application/json"
             }
@@ -8083,7 +8130,7 @@
           "request": {
             "method": "POST",
             "path": "/cms/users/search",
-            "body_raw": "{\"last_login_after\":null}",
+            "body_raw": "{\"last_login_after\":null,\"count\":10}",
             "headers": {
               "Content-Type": "application/json"
             }
@@ -8114,7 +8161,7 @@
           "request": {
             "method": "POST",
             "path": "/cms/users/search",
-            "body_raw": "{\"last_login_before\":\"yesterday\"}",
+            "body_raw": "{\"last_login_before\":\"yesterday\",\"count\":10}",
             "headers": {
               "Content-Type": "application/json"
             }
@@ -8138,7 +8185,7 @@
           "request": {
             "method": "POST",
             "path": "/cms/users/search",
-            "body_raw": "{\"last_login_before\":\"\"}",
+            "body_raw": "{\"last_login_before\":\"\",\"count\":10}",
             "headers": {
               "Content-Type": "application/json"
             }
@@ -8162,7 +8209,7 @@
           "request": {
             "method": "POST",
             "path": "/cms/users/search",
-            "body_raw": "{\"last_login_before\":\"2026-08-13T14:30:00Z\"}",
+            "body_raw": "{\"last_login_before\":\"2026-08-13T14:30:00Z\",\"count\":10}",
             "headers": {
               "Content-Type": "application/json"
             }
@@ -8186,7 +8233,7 @@
           "request": {
             "method": "POST",
             "path": "/cms/users/search",
-            "body_raw": "{\"last_login_before\":\"1786631400\"}",
+            "body_raw": "{\"last_login_before\":\"1786631400\",\"count\":10}",
             "headers": {
               "Content-Type": "application/json"
             }
@@ -8210,7 +8257,7 @@
           "request": {
             "method": "POST",
             "path": "/cms/users/search",
-            "body_raw": "{\"last_login_before\":1.5}",
+            "body_raw": "{\"last_login_before\":1.5,\"count\":10}",
             "headers": {
               "Content-Type": "application/json"
             }
@@ -8234,7 +8281,7 @@
           "request": {
             "method": "POST",
             "path": "/cms/users/search",
-            "body_raw": "{\"last_login_before\":true}",
+            "body_raw": "{\"last_login_before\":true,\"count\":10}",
             "headers": {
               "Content-Type": "application/json"
             }
@@ -8258,7 +8305,7 @@
           "request": {
             "method": "POST",
             "path": "/cms/users/search",
-            "body_raw": "{\"last_login_before\":[1]}",
+            "body_raw": "{\"last_login_before\":[1],\"count\":10}",
             "headers": {
               "Content-Type": "application/json"
             }
@@ -8282,7 +8329,7 @@
           "request": {
             "method": "POST",
             "path": "/cms/users/search",
-            "body_raw": "{\"last_login_before\":9223372036854775808}",
+            "body_raw": "{\"last_login_before\":9223372036854775808,\"count\":10}",
             "headers": {
               "Content-Type": "application/json"
             }
@@ -8306,7 +8353,7 @@
           "request": {
             "method": "POST",
             "path": "/cms/users/search",
-            "body_raw": "{\"last_login_before\":null}",
+            "body_raw": "{\"last_login_before\":null,\"count\":10}",
             "headers": {
               "Content-Type": "application/json"
             }
@@ -8850,7 +8897,7 @@
             "json_assertions": [
               {
                 "path": "$.users[*].suspended_at",
-                "op": "all_null"
+                "op": "is_null"
               }
             ]
           }
@@ -18469,7 +18516,7 @@
             }
           },
           "expect": {
-            "status": 400,
+            "status": 409,
             "body": "plain_text"
           }
         }

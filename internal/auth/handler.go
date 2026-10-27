@@ -61,7 +61,7 @@ func (h *Handler) login(w http.ResponseWriter, r *http.Request) {
 // POST /logout - Log out
 func (h *Handler) logout(w http.ResponseWriter, r *http.Request) {
 	if err := h.userService.Logout(r.Context()); err != nil {
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		server.WriteServerError(w, "Auth", err)
 		return
 	}
 	w.WriteHeader(http.StatusOK)
@@ -97,7 +97,7 @@ func (h *Handler) perms(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) changePasswd(w http.ResponseWriter, r *http.Request) {
 	username := r.PathValue("username")
 	if username == "" {
-		http.Error(w, "Username was not provided", http.StatusBadRequest)
+		server.WritePathError(w, "Username was not provided")
 		return
 	}
 
@@ -107,7 +107,7 @@ func (h *Handler) changePasswd(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
-		http.Error(w, "Invalid JSON payload", http.StatusBadRequest)
+		server.WriteDecodeError(w, err)
 		return
 	}
 

@@ -3,7 +3,6 @@ package user
 import (
 	"context"
 	"errors"
-	"fmt"
 	"time"
 
 	"gocms/internal/cache"
@@ -15,26 +14,18 @@ import (
 
 type RedisRepository struct {
 	Repository
-	cache     cache.RedisClient
-	ttl       time.Duration
-	keyFormat string
-	allKey    string
+	cache cache.RedisClient
+	ttl   time.Duration
+	keys  *cache.Keyspace
 }
 
-type RedisConfig struct {
-	Client    *redis.Client
-	TTL       time.Duration
-	KeyFormat string
-}
-
-func NewRedisRepository(db Repository, config *RedisConfig) *RedisRepository {
+func NewRedisRepository(db Repository, client *redis.Client, ttl time.Duration, config *cache.Keyspace) *RedisRepository {
 	return &RedisRepository{
 		Repository: db,
-		ttl:        config.TTL,
-		keyFormat:  config.KeyFormat,
-		allKey:     fmt.Sprintf(config.KeyFormat, ":all"),
+		ttl:        ttl,
+		keys:       config,
 		cache: cache.RedisClient{
-			Client:   config.Client,
+			Client:   client,
 			LeaseTTL: 5 * time.Second,
 		},
 	}
@@ -44,7 +35,7 @@ func (r *RedisRepository) Create(ctx context.Context, user *domain.User, pwdhash
 	if err := r.Repository.Create(ctx, user, pwdhash); err != nil {
 		return err
 	}
-	r.invalidate(ctx, r.allKey)
+	r.invalidate(ctx, r.keys.List(activeList))
 	return nil
 }
 
@@ -53,8 +44,7 @@ func (r *RedisRepository) UpdateLogin(ctx context.Context, username string, time
 	if err != nil {
 		return nil, err
 	}
-	key := fmt.Sprintf(r.keyFormat, username)
-	r.invalidate(ctx, r.allKey, key)
+	r.invalidate(ctx, r.keys.List(activeList), r.keys.Item(username))
 	return user, nil
 }
 
@@ -62,15 +52,14 @@ func (r *RedisRepository) Update(ctx context.Context, username string, diff map[
 	if err := r.Repository.Update(ctx, username, diff); err != nil {
 		return err
 	}
-	key := fmt.Sprintf(r.keyFormat, username)
-	r.invalidate(ctx, r.allKey, key)
+	r.invalidate(ctx, r.keys.List(activeList), r.keys.Item(username))
 	return nil
 }
 
 func (r *RedisRepository) Get(ctx context.Context, username string) (*domain.User, error) {
 	var user domain.User
 	var token string
-	key := fmt.Sprintf(r.keyFormat, username)
+	key := r.keys.Item(username)
 
 	err := r.cache.Get(ctx, key, &user)
 	switch {
@@ -105,18 +94,18 @@ func (r *RedisRepository) Get(ctx context.Context, username string) (*domain.Use
 func (r *RedisRepository) GetActive(ctx context.Context) ([]domain.User, error) {
 	var users []domain.User
 	var token string
-
-	err := r.cache.Get(ctx, r.allKey, &users)
+	key := r.keys.List(activeList)
+	err := r.cache.Get(ctx, key, &users)
 	switch {
 	case err == nil:
 		return users, nil
 	case errors.Is(err, redis.Nil):
-		token, err = r.cache.Lease(ctx, r.allKey)
+		token, err = r.cache.Lease(ctx, key)
 		if err != nil {
-			logger.Warn("User.Redis", "Redis error while trying to lease key", err, "key", r.allKey)
+			logger.Warn("User.Redis", "Redis error while trying to lease key", err, "key", key)
 		}
 	default:
-		logger.Warn("User.Redis", "Redis error while trying to retrieve key", err, "key", r.allKey)
+		logger.Warn("User.Redis", "Redis error while trying to retrieve key", err, "key", key)
 	}
 
 	u, err := r.Repository.GetActive(ctx)
@@ -126,9 +115,9 @@ func (r *RedisRepository) GetActive(ctx context.Context) ([]domain.User, error) 
 	users = u
 
 	if token != "" {
-		if err := r.cache.Return(ctx, r.allKey, token, u, r.ttl); err != nil {
+		if err := r.cache.Return(ctx, key, token, u, r.ttl); err != nil {
 			if !errors.Is(err, redis.Nil) {
-				logger.Warn("User.Redis", "Redis error while trying to store key", err, "key", r.allKey)
+				logger.Warn("User.Redis", "Redis error while trying to store key", err, "key", key)
 			}
 		}
 	}
@@ -140,8 +129,7 @@ func (r *RedisRepository) Suspend(ctx context.Context, username string) error {
 	if err := r.Repository.Suspend(ctx, username); err != nil {
 		return err
 	}
-	key := fmt.Sprintf(r.keyFormat, username)
-	r.invalidate(ctx, r.allKey, key)
+	r.invalidate(ctx, r.keys.List(activeList), r.keys.Item(username))
 	return nil
 }
 

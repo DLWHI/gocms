@@ -6,6 +6,10 @@ import (
 	"time"
 )
 
+const (
+	activeList = "active"
+)
+
 type Repository interface {
 	Create(ctx context.Context, user *domain.User, pwdhash []byte) error
 	Update(ctx context.Context, username string, diff map[string]interface{}) error

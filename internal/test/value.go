@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math"
 	"reflect"
+	"strconv"
 	"strings"
 )
 
@@ -74,14 +75,13 @@ func (d *Data) ExpandToken(name string, arg JSONValue) (JSONValue, error) {
 			return nil, fmt.Errorf("$repeat expects {s, n}")
 		}
 		s, ok1 := m["s"].(string)
-		n, ok2 := m["n"].(float64)
-		if !ok1 || !ok2 || n < 0 || n != float64(int(n)) {
+		n, ok2 := ToLen(m["n"])
+		if !ok1 || !ok2 || n < 0 {
 			return nil, fmt.Errorf("$repeat needs string s and non-negative integer n")
 		}
 		return strings.Repeat(s, int(n)), nil
-
 	case "$email_of_length":
-		n, ok := arg.(float64)
+		n, ok := ToLen(arg)
 		const domain = "@example.com"
 		if !ok || int(n) <= len(domain) {
 			return nil, fmt.Errorf("$email_of_length needs an integer > %d", len(domain))
@@ -102,7 +102,7 @@ func (d *Data) ExpandToken(name string, arg JSONValue) (JSONValue, error) {
 		if !ok {
 			return nil, fmt.Errorf("$actor_perms requests unknown actor")
 		}
-		return float64(actor.Permissions), nil
+		return json.Number(strconv.FormatUint(uint64(actor.Permissions), 10)), nil
 	default:
 		return nil, fmt.Errorf("value is not a state token")
 	}
@@ -150,14 +150,29 @@ func ResolvePath(values map[string]JSONValue, path string) ([]JSONValue, error) 
 func ToLen(v JSONValue) (int, bool) {
 	switch n := v.(type) {
 	case int:
+		if n < 0 {
+			return 0, false
+		}
 		return n, true
 	case int8:
+		if n < 0 {
+			return 0, false
+		}
 		return int(n), true
 	case int16:
+		if n < 0 {
+			return 0, false
+		}
 		return int(n), true
 	case int32:
+		if n < 0 {
+			return 0, false
+		}
 		return int(n), true
 	case int64:
+		if n < 0 || n > math.MaxInt {
+			return 0, false
+		}
 		return int(n), true
 	case uint:
 		return int(n), true
@@ -166,15 +181,27 @@ func ToLen(v JSONValue) (int, bool) {
 	case uint16:
 		return int(n), true
 	case uint32:
+		if int(n) < 0 {
+			return 0, false
+		}
 		return int(n), true
 	case uint64:
+		if n > math.MaxInt {
+			return 0, false
+		}
 		return int(n), true
 	case float32:
+		if n < 0 {
+			return 0, false
+		}
 		return int(n), true
 	case float64:
+		if n < 0 {
+			return 0, false
+		}
 		return int(n), true
 	case json.Number:
-		if val, err := n.Int64(); err != nil || val > math.MaxInt {
+		if val, err := n.Int64(); err != nil || val > math.MaxInt || val < 0 {
 			return 0, false
 		} else {
 			return int(val), true
@@ -226,28 +253,6 @@ func ToNumber(v JSONValue) (float64, bool) {
 			return 1, true
 		} else {
 			return 0, true
-		}
-	default:
-		return 0, false
-	}
-}
-func ToInt64(v JSONValue) (int64, bool) {
-	switch n := v.(type) {
-	case int:
-		return int64(n), true
-	case int8:
-		return int64(n), true
-	case int16:
-		return int64(n), true
-	case int32:
-		return int64(n), true
-	case int64:
-		return n, true
-	case json.Number:
-		if val, err := n.Int64(); err != nil {
-			return 0, false
-		} else {
-			return val, true
 		}
 	default:
 		return 0, false

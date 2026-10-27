@@ -3,6 +3,7 @@ package tests
 import (
 	"gocms/internal/ads"
 	"gocms/internal/auth"
+	"gocms/internal/cache"
 	"gocms/internal/category"
 	"gocms/internal/editor"
 	"gocms/internal/locale"
@@ -92,15 +93,13 @@ func NewAuthBundle(users auth.UserManager, sessions session.Repository) *AuthBun
 }
 
 func NewUserBundle(db *gorm.DB, search meilisearch.ServiceManager, redis *redis.Client, pwd password.PasswordService) *UserBundle {
-	redisCfg := user.RedisConfig{
-		Client:    redis,
-		TTL:       3 * time.Minute,
-		KeyFormat: "test_cms:users:%s",
-	}
+	keys, _ := cache.NewKeyspace(cache.KeyConfig{
+		Prefix: "cms_test",
+	}, "users")
 
 	repo := user.NewGORMRepository(db)
-	sfRepo := user.NewSingleflightRepository(repo, redisCfg.KeyFormat)
-	redisRepo := user.NewRedisRepository(sfRepo, &redisCfg)
+	sfRepo := user.NewSingleflightRepository(repo, keys)
+	redisRepo := user.NewRedisRepository(sfRepo, redis, 3*time.Minute, keys)
 	searchEngine := user.NewMeilisearchEngine(search, UsersSearchIndexName)
 	consumer := user.NewEventConsumer(repo, searchEngine)
 	service := user.NewService(redisRepo, searchEngine, pwd)

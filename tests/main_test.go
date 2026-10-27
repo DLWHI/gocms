@@ -17,7 +17,7 @@ import (
 const (
 	ConfigAddress = ""
 	ConfigPort    = "8080"
-	Filter        = "^PASSWORD-001"
+	Filter        = "^SEARCH-"
 )
 
 var (

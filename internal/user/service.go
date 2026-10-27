@@ -105,7 +105,9 @@ func (s *Service) Search(ctx context.Context, filters *SearchParams) (*SearchRes
 
 	users, err := s.se.Search(ctx, filters)
 	if err != nil {
-		logger.Error("User.Service", "Failed to search users", err)
+		if !errors.Is(err, domain.ErrInval) {
+			logger.Error("User.Service", "Failed to search users", err)
+		}
 		return nil, err
 	}
 	return users, nil

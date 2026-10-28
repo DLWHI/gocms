@@ -16,11 +16,11 @@ type SingleflightRepository struct {
 	timeout time.Duration
 }
 
-func NewSingleflightRepository(origin Repository, config cache.Keyspace) *SingleflightRepository {
+func NewSingleflightRepository(origin Repository, timeout time.Duration, config cache.Keyspace) *SingleflightRepository {
 	return &SingleflightRepository{
 		Repository: origin,
 		keys:       config,
-		timeout:    20 * time.Second,
+		timeout:    timeout,
 	}
 }
 

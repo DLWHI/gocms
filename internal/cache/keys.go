@@ -3,36 +3,55 @@ package cache
 import (
 	"fmt"
 	"gocms/internal/domain"
+	"regexp"
 	"strings"
 )
 
+var whitelist = regexp.MustCompile(`^[A-Za-z0-9_-]+$`)
+var escaper = strings.NewReplacer("%", "%25", "{", "%7B", "}", "%7D")
+
 type KeyConfig struct {
-	Prefix  string
+	Prefix  []string
 	Version string
-	HashTag bool
 }
 
-type Keyspace struct{ base string }
+type Keyspace struct {
+	base string
+}
+
+type HashedKeyspace struct {
+	Keyspace
+}
 
 func NewKeyspace(cfg KeyConfig, entity string) (*Keyspace, error) {
-	if cfg.Prefix == "" || entity == "" {
-		return nil, fmt.Errorf("%w: prefix and entity are required to create keyspace", domain.ErrInval)
+	if len(cfg.Prefix) == 0 {
+		return nil, fmt.Errorf("%w: at least one prefix part is required", domain.ErrInval)
 	}
-	for _, s := range []string{cfg.Prefix, cfg.Version, entity} {
-		if strings.ContainsAny(s, " \t\r\n{}:") {
-			return nil, fmt.Errorf("%w: key parts must not contain whitespace, braces or ':'", domain.ErrInval)
+	parts := make([]string, 0, len(cfg.Prefix)+2) // fresh slice: no aliasing
+	parts = append(parts, cfg.Prefix...)
+	parts = append(parts, entity, cfg.Version)
+
+	for _, part := range parts {
+		if !whitelist.MatchString(part) {
+			return nil, fmt.Errorf("%w: %s key part must contain letters, digits, '_' or '-')", domain.ErrInval, part)
 		}
 	}
-	base := cfg.Prefix + ":" + entity
-	if cfg.Version != "" {
-		base += ":" + cfg.Version
-	}
-	if cfg.HashTag {
-		base = "{" + base + "}"
-	}
-	return &Keyspace{base: base}, nil
+	return &Keyspace{base: strings.Join(parts, ":")}, nil
 }
 
-func (k Keyspace) Item(id string) string   { return k.base + ":i:" + id }
-func (k Keyspace) Gen(id string) string    { return k.base + ":gen:" + id }
-func (k Keyspace) List(name string) string { return k.base + ":l:" + name }
+func NewHashedKeyspace(cfg KeyConfig, entity string) (*HashedKeyspace, error) {
+	keyspace, err := NewKeyspace(cfg, entity)
+	if err != nil {
+		return nil, err
+	}
+	return &HashedKeyspace{Keyspace: *keyspace}, nil
+}
+
+func (k *Keyspace) Key(id string) string    { return k.base + ":item:" + id }
+func (k *Keyspace) List(name string) string { return k.base + ":list:" + name }
+
+// '{', '}' and '%' are escaped with their web code
+func (k *HashedKeyspace) Key(id string) string { return k.base + ":item:{" + escaper.Replace(id) + "}" }
+func (k *HashedKeyspace) List(name string) string {
+	return k.base + ":list:{" + escaper.Replace(name) + "}"
+}

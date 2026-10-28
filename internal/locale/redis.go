@@ -6,41 +6,35 @@ import (
 	"time"
 
 	"gocms/internal/cache"
-	"gocms/internal/domain"
 	"gocms/internal/logger"
 
 	"github.com/redis/go-redis/v9"
-	"golang.org/x/sync/singleflight"
 )
 
 type RedisRepository struct {
-	origin    Repository
-	rdb       *redis.Client
-	ttl       time.Duration
-	keyFormat string
-	group     singleflight.Group
+	Repository
+	cache cache.RedisClient
+	ttl   time.Duration
+	keys  cache.Keyspace
 }
 
-type RedisConfig struct {
-	Client    *redis.Client
-	TTL       time.Duration
-	KeyFormat string
-}
-
-func NewRedisRepository(db Repository, config *RedisConfig) *RedisRepository {
+func NewRedisRepository(origin Repository, client *redis.Client, ttl time.Duration, config cache.Keyspace) *RedisRepository {
 	return &RedisRepository{
-		origin:    db,
-		rdb:       config.Client,
-		ttl:       config.TTL,
-		keyFormat: config.KeyFormat,
+		Repository: origin,
+		cache: cache.RedisClient{
+			Client:   client,
+			LeaseTTL: 5 * time.Second,
+		},
+		ttl:  ttl,
+		keys: config,
 	}
 }
 
-func (r *RedisRepository) Create(ctx context.Context, locale *Locale) error {
-	if err := r.origin.Create(ctx, locale); err != nil {
+func (r *RedisRepository) Create(ctx context.Context, name string, code string) error {
+	if err := r.Repository.Create(ctx, name, code); err != nil {
 		return err
 	}
-	if _, err := r.rdb.Unlink(ctx, r.keyFormat).Result(); err != nil {
+	if err := r.cache.Invalidate(ctx, r.keys.List(allList)); err != nil {
 		logger.Warn("Locale.Redis", "Failed to delete locale cache entries.", err)
 	}
 	return nil
@@ -48,53 +42,41 @@ func (r *RedisRepository) Create(ctx context.Context, locale *Locale) error {
 
 func (r *RedisRepository) GetAll(ctx context.Context) ([]Locale, error) {
 	var locales []Locale
-
-	if err := cache.UnmarshalRedisKey(r.rdb, ctx, r.keyFormat, &locales); err != nil {
-		if !errors.Is(err, redis.Nil) {
-			logger.Warn("Locale.Redis", "Failed to read from cache.", err)
-		}
-	} else {
+	var token string
+	key := r.keys.List(allList)
+	err := r.cache.Get(ctx, key, &locales)
+	switch {
+	case err == nil:
 		return locales, nil
-	}
-
-	ch := r.group.DoChan(r.keyFormat, func() (any, error) {
-		bg, cancel := context.WithTimeout(context.Background(), 20*time.Second)
-		defer cancel()
-
-		locales, err := r.origin.GetAll(bg)
+	case errors.Is(err, redis.Nil):
+		token, err = r.cache.Lease(ctx, key)
 		if err != nil {
-			if errors.Is(err, domain.ErrNotFound) {
-				r.group.Forget(r.keyFormat)
-			}
-			return nil, err
+			logger.Warn("User.Redis", "Redis error while trying to lease key", err, "key", key)
 		}
-
-		if err := cache.MarshalRedisKey(r.rdb, ctx, r.keyFormat, r.ttl, &locales); err != nil {
-			logger.Warn("Locale.Redis", "Failed to write to cache.", err)
-		}
-
-		return locales, err
-	})
-
-	select {
-	case <-ctx.Done():
-		return nil, ctx.Err()
-
-	case res := <-ch:
-		if res.Err != nil {
-			return nil, res.Err
-		}
-		locales = res.Val.([]Locale)
+	default:
+		logger.Warn("User.Redis", "Redis error while trying to retrieve key", err, "key", key)
 	}
 
+	locales, err = r.Repository.GetAll(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	if token != "" {
+		if err := r.cache.Return(ctx, key, token, &locales, r.ttl); err != nil {
+			if !errors.Is(err, redis.Nil) {
+				logger.Warn("User.Redis", "Redis error while trying to store key", err, "key", key)
+			}
+		}
+	}
 	return locales, nil
 }
 
-func (r *RedisRepository) Delete(ctx context.Context, locale string) error {
-	if err := r.origin.Delete(ctx, locale); err != nil {
+func (r *RedisRepository) Delete(ctx context.Context, code string) error {
+	if err := r.Repository.Delete(ctx, code); err != nil {
 		return err
 	}
-	if _, err := r.rdb.Unlink(ctx, r.keyFormat).Result(); err != nil {
+	if err := r.cache.Invalidate(ctx, r.keys.List(allList)); err != nil {
 		logger.Warn("Locale.Redis", "Failed to delete locale cache entries.", err)
 	}
 	return nil

@@ -19,9 +19,9 @@ type RedisRepository struct {
 	keys  cache.Keyspace
 }
 
-func NewRedisRepository(db Repository, client *redis.Client, ttl time.Duration, config cache.Keyspace) *RedisRepository {
+func NewRedisRepository(origin Repository, client *redis.Client, ttl time.Duration, config cache.Keyspace) *RedisRepository {
 	return &RedisRepository{
-		Repository: db,
+		Repository: origin,
 		ttl:        ttl,
 		keys:       config,
 		cache: cache.RedisClient{

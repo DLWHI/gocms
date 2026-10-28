@@ -29,13 +29,16 @@ func NewHandler(s *Service) *Handler {
 
 // POST /locales - Add locale
 func (h *Handler) create(w http.ResponseWriter, r *http.Request) {
-	var locale Locale
-	if err := json.NewDecoder(r.Body).Decode(&locale); err != nil {
-		http.Error(w, "Invalid JSON payload", http.StatusBadRequest)
+	var payload struct {
+		Name string `json:"name"`
+		Code string `json:"code"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+		server.WriteDecodeError(w, err)
 		return
 	}
 
-	if err := h.localeService.Create(r.Context(), &locale); err != nil {
+	if err := h.localeService.Create(r.Context(), payload.Name, payload.Code); err != nil {
 		server.WriteServerError(w, "Locale", err)
 		return
 	}
@@ -59,7 +62,7 @@ func (h *Handler) get(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) delete(w http.ResponseWriter, r *http.Request) {
 	code := r.PathValue("code")
 	if code == "" {
-		http.Error(w, "Missing or invalid locale code", http.StatusBadRequest)
+		server.WritePathError(w, "Empty locale code")
 		return
 	}
 

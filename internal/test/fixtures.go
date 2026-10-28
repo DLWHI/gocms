@@ -39,6 +39,10 @@ func (f *Fixtures) ApplyFixtures(ctx context.Context, e *Environment) error {
 		}
 	}
 
+	if err := e.Outbox.Dispatch(ctx, len(f.Actors)); err != nil {
+		return err
+	}
+
 	for _, u := range f.Users {
 		record := user.ToRecord(&u)
 		record.Password = hash

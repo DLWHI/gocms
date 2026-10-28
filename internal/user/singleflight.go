@@ -33,22 +33,20 @@ func (r *SingleflightRepository) Create(ctx context.Context, user *domain.User, 
 }
 
 func (r *SingleflightRepository) UpdateLogin(ctx context.Context, username string, timestamp time.Time) (*domain.User, error) {
-	key := r.keys.Key(username)
 	user, err := r.Repository.UpdateLogin(ctx, username, timestamp)
 	if err != nil {
 		return nil, err
 	}
-	r.group.Forget(key)
+	r.group.Forget(r.keys.Key(username))
 	r.group.Forget(r.keys.List(activeList))
 	return user, nil
 }
 
 func (r *SingleflightRepository) Update(ctx context.Context, username string, diff map[string]interface{}) error {
-	key := r.keys.Key(username)
 	if err := r.Repository.Update(ctx, username, diff); err != nil {
 		return err
 	}
-	r.group.Forget(key)
+	r.group.Forget(r.keys.Key(username))
 	r.group.Forget(r.keys.List(activeList))
 	return nil
 }
@@ -106,11 +104,10 @@ func (r *SingleflightRepository) GetActive(ctx context.Context) ([]domain.User, 
 }
 
 func (r *SingleflightRepository) Suspend(ctx context.Context, username string) error {
-	key := r.keys.Key(username)
 	if err := r.Repository.Suspend(ctx, username); err != nil {
 		return err
 	}
-	r.group.Forget(key)
+	r.group.Forget(r.keys.Key(username))
 	r.group.Forget(r.keys.List(activeList))
 	return nil
 }

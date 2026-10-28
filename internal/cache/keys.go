@@ -28,7 +28,7 @@ type SimpleKeyspace struct {
 }
 
 type HashedKeyspace struct {
-	base *SimpleKeyspace
+	prefix *SimpleKeyspace
 }
 
 type FlightKeyspace struct {
@@ -59,7 +59,7 @@ func NewHashedKeyspace(cfg KeyConfig, entity string) (*HashedKeyspace, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &HashedKeyspace{base: keyspace}, nil
+	return &HashedKeyspace{prefix: keyspace}, nil
 }
 
 func NewFlightKeyspace(slots int) (*FlightKeyspace, error) {
@@ -77,10 +77,10 @@ func (k *SimpleKeyspace) List(name string) string { return k.base + ":list:" + n
 
 // '{', '}' and '%' are escaped with their web code
 func (k *HashedKeyspace) Key(id string) string {
-	return k.base.base + ":item:{" + escaper.Replace(id) + "}"
+	return k.prefix.base + ":item:{" + escaper.Replace(id) + "}"
 }
 func (k *HashedKeyspace) List(name string) string {
-	return k.base.base + ":list:{" + escaper.Replace(name) + "}"
+	return k.prefix.base + ":list:{" + escaper.Replace(name) + "}"
 }
 
 func (f *FlightKeyspace) slot(id string) *atomic.Uint64 {

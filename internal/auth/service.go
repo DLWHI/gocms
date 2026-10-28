@@ -45,7 +45,7 @@ func (s *Service) Login(ctx context.Context, username string, passwd password.Pa
 }
 
 func (s *Service) Logout(ctx context.Context) error {
-	session, ok := ctx.Value("username").(string)
+	session, ok := ctx.Value(SessionIDKey).(string)
 	if !ok {
 		return nil
 	}
@@ -58,7 +58,7 @@ func (s *Service) Logout(ctx context.Context) error {
 }
 
 func (s *Service) UpdateProfile(ctx context.Context) (*session.Session, error) {
-	session, ok := ctx.Value("username").(string)
+	session, ok := ctx.Value(SessionIDKey).(string)
 	if !ok {
 		return nil, domain.ErrExpired
 	}
@@ -73,7 +73,7 @@ func (s *Service) UpdateProfile(ctx context.Context) (*session.Session, error) {
 }
 
 func (s *Service) CurrentUser(ctx context.Context) (*session.Session, error) {
-	session, ok := ctx.Value("username").(string)
+	session, ok := ctx.Value(SessionIDKey).(string)
 	if !ok {
 		return nil, domain.ErrExpired
 	}
@@ -87,22 +87,10 @@ func (s *Service) CurrentUser(ctx context.Context) (*session.Session, error) {
 	return user, nil
 }
 
-func (s *Service) ChangePasswd(ctx context.Context, username string, oldPwd password.Password, newPwd password.Password) error {
-	initiator := ctx.Value("username")
-
-	if initiator == nil || initiator.(string) != username {
-		return domain.ErrPerm
-	}
-
-	err := s.users.PasswordMatches(ctx, username, oldPwd)
-	clear(oldPwd)
-	if err != nil {
-		logger.Error("User.Service", "Failed to retrieve the user's password for password change", err)
-		return err
-	}
-
-	err = s.users.ChangePassword(ctx, username, newPwd)
-	clear(newPwd)
+func (s *Service) ChangePasswd(ctx context.Context, username string, old password.Password, new password.Password) error {
+	err := s.users.ChangePasswordSelf(ctx, username, old, new)
+	clear(old)
+	clear(new)
 	if err != nil {
 		logger.Error("User.Service", "Failed to update the user's password", err)
 		return err

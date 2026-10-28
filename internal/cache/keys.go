@@ -44,7 +44,10 @@ func NewKeyspace(cfg KeyConfig, entity string) (*SimpleKeyspace, error) {
 	}
 	parts := make([]string, 0, len(cfg.Prefix)+2) // fresh slice: no aliasing
 	parts = append(parts, cfg.Prefix...)
-	parts = append(parts, entity, cfg.Version)
+	parts = append(parts, entity)
+	if cfg.Version != "" {
+		parts = append(parts, cfg.Version)
+	}
 
 	for _, part := range parts {
 		if !whitelist.MatchString(part) {

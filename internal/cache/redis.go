@@ -88,6 +88,14 @@ func (r *RedisClient) Return(ctx context.Context, key string, token string, ptrv
 	return nil
 }
 
+func (r *RedisClient) Invalidate(ctx context.Context, keys ...string) error {
+	ictx := context.WithoutCancel(ctx)
+	if _, err := r.Client.Unlink(ictx, keys...).Result(); err != nil {
+		return err
+	}
+	return nil
+}
+
 // func (r *RedisClient) Gen(ctx context.Context, key string) (int64, error) {
 // 	gen, err := r.rdb.Get(ctx, genKey(slug)).Int64()
 // 	if err != nil && !errors.Is(err, redis.Nil) {

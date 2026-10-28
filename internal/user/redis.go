@@ -16,10 +16,10 @@ type RedisRepository struct {
 	Repository
 	cache cache.RedisClient
 	ttl   time.Duration
-	keys  *cache.Keyspace
+	keys  cache.Keyspace
 }
 
-func NewRedisRepository(db Repository, client *redis.Client, ttl time.Duration, config *cache.Keyspace) *RedisRepository {
+func NewRedisRepository(db Repository, client *redis.Client, ttl time.Duration, config cache.Keyspace) *RedisRepository {
 	return &RedisRepository{
 		Repository: db,
 		ttl:        ttl,
@@ -44,7 +44,7 @@ func (r *RedisRepository) UpdateLogin(ctx context.Context, username string, time
 	if err != nil {
 		return nil, err
 	}
-	r.invalidate(ctx, r.keys.List(activeList), r.keys.Item(username))
+	r.invalidate(ctx, r.keys.Key(username), r.keys.List(activeList))
 	return user, nil
 }
 
@@ -52,14 +52,14 @@ func (r *RedisRepository) Update(ctx context.Context, username string, diff map[
 	if err := r.Repository.Update(ctx, username, diff); err != nil {
 		return err
 	}
-	r.invalidate(ctx, r.keys.List(activeList), r.keys.Item(username))
+	r.invalidate(ctx, r.keys.Key(username), r.keys.List(activeList))
 	return nil
 }
 
 func (r *RedisRepository) Get(ctx context.Context, username string) (*domain.User, error) {
 	var user domain.User
 	var token string
-	key := r.keys.Item(username)
+	key := r.keys.Key(username)
 
 	err := r.cache.Get(ctx, key, &user)
 	switch {
@@ -129,13 +129,12 @@ func (r *RedisRepository) Suspend(ctx context.Context, username string) error {
 	if err := r.Repository.Suspend(ctx, username); err != nil {
 		return err
 	}
-	r.invalidate(ctx, r.keys.List(activeList), r.keys.Item(username))
+	r.invalidate(ctx, r.keys.Key(username), r.keys.List(activeList))
 	return nil
 }
 
 func (r *RedisRepository) invalidate(ctx context.Context, keys ...string) {
-	ictx := context.WithoutCancel(ctx)
-	if _, err := r.cache.Client.Unlink(ictx, keys...).Result(); err != nil {
+	if err := r.cache.Invalidate(ctx, keys...); err != nil {
 		logger.Warn("User.Redis", "Redis error while trying to delete keys", err, "keys", keys)
 	}
 }

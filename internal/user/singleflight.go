@@ -11,12 +11,12 @@ import (
 
 type SingleflightRepository struct {
 	Repository
-	keys    *cache.Keyspace
+	keys    cache.Keyspace
 	group   singleflight.Group
 	timeout time.Duration
 }
 
-func NewSingleflightRepository(db Repository, config *cache.Keyspace) *SingleflightRepository {
+func NewSingleflightRepository(db Repository, config cache.Keyspace) *SingleflightRepository {
 	return &SingleflightRepository{
 		Repository: db,
 		keys:       config,
@@ -33,7 +33,7 @@ func (r *SingleflightRepository) Create(ctx context.Context, user *domain.User, 
 }
 
 func (r *SingleflightRepository) UpdateLogin(ctx context.Context, username string, timestamp time.Time) (*domain.User, error) {
-	key := r.keys.Item(username)
+	key := r.keys.Key(username)
 	user, err := r.Repository.UpdateLogin(ctx, username, timestamp)
 	if err != nil {
 		return nil, err
@@ -44,7 +44,7 @@ func (r *SingleflightRepository) UpdateLogin(ctx context.Context, username strin
 }
 
 func (r *SingleflightRepository) Update(ctx context.Context, username string, diff map[string]interface{}) error {
-	key := r.keys.Item(username)
+	key := r.keys.Key(username)
 	if err := r.Repository.Update(ctx, username, diff); err != nil {
 		return err
 	}
@@ -54,7 +54,7 @@ func (r *SingleflightRepository) Update(ctx context.Context, username string, di
 }
 
 func (r *SingleflightRepository) Get(ctx context.Context, username string) (*domain.User, error) {
-	key := r.keys.Item(username)
+	key := r.keys.Key(username)
 	ch := r.group.DoChan(key, func() (any, error) {
 		bg, cancel := context.WithTimeout(context.WithoutCancel(ctx), r.timeout)
 		defer cancel()
@@ -106,7 +106,7 @@ func (r *SingleflightRepository) GetActive(ctx context.Context) ([]domain.User, 
 }
 
 func (r *SingleflightRepository) Suspend(ctx context.Context, username string) error {
-	key := r.keys.Item(username)
+	key := r.keys.Key(username)
 	if err := r.Repository.Suspend(ctx, username); err != nil {
 		return err
 	}

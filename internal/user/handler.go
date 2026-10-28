@@ -162,7 +162,7 @@ func (h *Handler) resetPassword(w http.ResponseWriter, r *http.Request) {
 	}
 	defer clear(payload.Password)
 
-	if err := h.userService.ChangePassword(r.Context(), username, payload.Password); err != nil {
+	if err := h.userService.OverridePassword(r.Context(), username, payload.Password); err != nil {
 		server.WriteServerError(w, "User", err)
 		return
 	}

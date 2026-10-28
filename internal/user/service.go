@@ -64,7 +64,7 @@ func (s *Service) Create(ctx context.Context, user *domain.User, password passwo
 	err = s.repo.Create(ctx, &created, pwdhash)
 	if err != nil {
 		if !errors.Is(err, domain.ErrDuplicate) {
-			logger.Error("User.Service", "Failed to create user", err)
+			logger.Error("User.Service", "Failed to create user", err, "data", user)
 		}
 		return "", err
 	}
@@ -81,7 +81,7 @@ func (s *Service) Get(ctx context.Context, username string) (*domain.User, error
 	user, err := s.repo.Get(ctx, username)
 	if err != nil {
 		if !errors.Is(err, domain.ErrNotFound) {
-			logger.Error("User.Service", "Failed to retrieve user", err)
+			logger.Error("User.Service", "Failed to retrieve user", err, "username", username)
 		}
 		return nil, err
 	}
@@ -95,7 +95,7 @@ func (s *Service) Search(ctx context.Context, filters *SearchParams) (*SearchRes
 	users, err := s.se.Search(ctx, filters)
 	if err != nil {
 		if !errors.Is(err, domain.ErrInval) {
-			logger.Error("User.Service", "Failed to search users", err)
+			logger.Error("User.Service", "Failed to search users", err, "filters", filters)
 		}
 		return nil, err
 	}
@@ -124,7 +124,7 @@ func (s *Service) Suspend(ctx context.Context, username string) error {
 
 	if err := s.repo.Suspend(ctx, username); err != nil {
 		if !errors.Is(err, domain.ErrNotFound) {
-			logger.Error("User.Service", "Failed to suspend user", err)
+			logger.Error("User.Service", "Failed to suspend user", err, "username", username)
 		}
 		return err
 	}
@@ -141,7 +141,7 @@ func (s *Service) PasswordMatches(ctx context.Context, username string, password
 	pwdhash, err := s.repo.GetPasswordHash(ctx, username)
 	if err != nil {
 		if !errors.Is(err, domain.ErrNotFound) {
-			logger.Error("User.Service", "Failed to retrieve user's password", err)
+			logger.Error("User.Service", "Failed to retrieve user's password", err, "username", username)
 			return err
 		}
 	}
@@ -162,7 +162,7 @@ func (s *Service) UpdateLogin(ctx context.Context, username string) (*domain.Use
 	user, err := s.repo.UpdateLogin(ctx, username, time.Now())
 	if err != nil {
 		if !errors.Is(err, domain.ErrNotFound) {
-			logger.Error("User.Service", "Failed to update the user's last login time", err)
+			logger.Error("User.Service", "Failed to update the user's last login time", err, "username", username)
 		}
 		return nil, err
 	}
@@ -197,7 +197,7 @@ func (s *Service) ChangeEmail(ctx context.Context, username string, email string
 
 	if err := s.repo.Update(ctx, username, update); err != nil {
 		if !errors.Is(err, domain.ErrNotFound) {
-			logger.Error("User.Service", "Failed to update the user's email address", err)
+			logger.Error("User.Service", "Failed to update the user's email address", err, "value", email)
 		}
 		return err
 	}
@@ -226,7 +226,7 @@ func (s *Service) ChangePermissions(ctx context.Context, username string, permis
 
 	if err := s.repo.Update(ctx, username, update); err != nil {
 		if !errors.Is(err, domain.ErrNotFound) {
-			logger.Error("User.Service", "Failed to update the user's permissions", err)
+			logger.Error("User.Service", "Failed to update the user's permissions", err, "value", permissions)
 		}
 		return err
 	}
@@ -263,7 +263,7 @@ func (s *Service) OverridePassword(ctx context.Context, username string, passwor
 	err = s.repo.UpdatePassword(ctx, username, pwdhash)
 	if err != nil {
 		if !errors.Is(err, domain.ErrNotFound) {
-			logger.Error("User.Service", "Failed to reset the user's password", err)
+			logger.Error("User.Service", "Failed to reset the user's password", err, "username", username)
 		}
 		return err
 	}
@@ -271,20 +271,13 @@ func (s *Service) OverridePassword(ctx context.Context, username string, passwor
 	return nil
 }
 
-func (s *Service) ChangePasswordSelf(ctx context.Context, username string, old password.Password, password password.Password) error {
-	username, err := domain.NormalizeUsername(username)
-	if err != nil {
-		return err
-	}
+func (s *Service) ChangePasswordSelf(ctx context.Context, old password.Password, password password.Password) error {
 	initiator, ok := ctx.Value(auth.UserNameKey).(string)
 	if !ok {
 		return domain.ErrCred
 	}
-	if username != initiator {
-		return domain.ErrCred
-	}
 
-	if err := s.PasswordMatches(ctx, username, old); err != nil {
+	if err := s.PasswordMatches(ctx, initiator, old); err != nil {
 		return err
 	}
 
@@ -299,10 +292,10 @@ func (s *Service) ChangePasswordSelf(ctx context.Context, username string, old p
 	}
 	defer clear(pwdhash)
 
-	err = s.repo.UpdatePassword(ctx, username, pwdhash)
+	err = s.repo.UpdatePassword(ctx, initiator, pwdhash)
 	if err != nil {
 		if !errors.Is(err, domain.ErrNotFound) {
-			logger.Error("User.Service", "Failed to reset the user's password", err)
+			logger.Error("User.Service", "Failed to reset the user's password", err, "username", initiator)
 		}
 		return err
 	}

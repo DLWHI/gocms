@@ -9,6 +9,6 @@ import (
 type UserManager interface {
 	PasswordMatches(ctx context.Context, username string, passwd password.Password) error
 	UpdateLogin(ctx context.Context, username string) (*domain.User, error)
-	ChangePasswordSelf(ctx context.Context, username string, old password.Password, passwd password.Password) error
+	ChangePasswordSelf(ctx context.Context, old password.Password, passwd password.Password) error
 	Get(ctx context.Context, username string) (*domain.User, error)
 }

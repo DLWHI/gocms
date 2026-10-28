@@ -3,7 +3,9 @@ package auth
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"gocms/internal/domain"
+	"gocms/internal/logger"
 	"gocms/internal/session"
 )
 
@@ -28,6 +30,9 @@ func (s *EventConsumer) RevokeSessions(ctx context.Context, data []byte) error {
 	}
 
 	if err := s.sessions.RevokeUser(ctx, payload.Username); err != nil {
+		if !errors.Is(err, domain.ErrExpired) {
+			logger.Error("Auth.Service", "Failed to revoke user's sessions", err, "username", payload.Username)
+		}
 		return err
 	}
 	return nil

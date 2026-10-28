@@ -24,20 +24,20 @@ func NewService(users UserManager, sessions session.Repository) *Service {
 func (s *Service) Login(ctx context.Context, username string, passwd password.Password) (*session.Session, error) {
 	if err := s.users.PasswordMatches(ctx, username, passwd); err != nil {
 		if !errors.Is(err, domain.ErrCred) {
-			logger.Error("User.Service", "Failed to retrieve user credentials for login", err)
+			logger.Error("Auth.Service", "Failed to retrieve user credentials for login", err)
 		}
 		return nil, err
 	}
 
 	user, err := s.users.UpdateLogin(ctx, username)
 	if err != nil {
-		logger.Error("User.Service", "Failed to update the user's last login time", err)
+		logger.Error("Auth.Service", "Failed to update the user's last login time", err)
 		return nil, err
 	}
 
 	session, err := s.sessions.Create(ctx, user)
 	if err != nil {
-		logger.Error("User.Service", "Failed to create a user session", err)
+		logger.Error("Auth.Service", "Failed to create a user session", err)
 		return nil, err
 	}
 
@@ -51,7 +51,7 @@ func (s *Service) Logout(ctx context.Context) error {
 	}
 
 	if err := s.sessions.RevokeID(ctx, session); err != nil {
-		logger.Error("User.Service", "Failed to revoke the user session", err)
+		logger.Error("Auth.Service", "Failed to revoke the user session", err)
 		return err
 	}
 	return nil
@@ -65,7 +65,7 @@ func (s *Service) UpdateProfile(ctx context.Context) (*session.Session, error) {
 
 	user, err := s.sessions.Validate(ctx, session)
 	if err != nil {
-		logger.Error("User.Service", "Failed to retrieve the current user", err)
+		logger.Error("Auth.Service", "Failed to retrieve the current user", err)
 		return nil, err
 	}
 
@@ -80,19 +80,19 @@ func (s *Service) CurrentUser(ctx context.Context) (*session.Session, error) {
 
 	user, err := s.sessions.Validate(ctx, session)
 	if err != nil {
-		logger.Error("User.Service", "Failed to retrieve the current user", err)
+		logger.Error("Auth.Service", "Failed to retrieve the current user", err)
 		return nil, err
 	}
 
 	return user, nil
 }
 
-func (s *Service) ChangePasswd(ctx context.Context, username string, old password.Password, new password.Password) error {
-	err := s.users.ChangePasswordSelf(ctx, username, old, new)
+func (s *Service) ChangePasswd(ctx context.Context, old password.Password, new password.Password) error {
+	err := s.users.ChangePasswordSelf(ctx, old, new)
 	clear(old)
 	clear(new)
 	if err != nil {
-		logger.Error("User.Service", "Failed to update the user's password", err)
+		logger.Error("Auth.Service", "Failed to update the user's password", err)
 		return err
 	}
 

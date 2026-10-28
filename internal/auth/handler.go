@@ -13,7 +13,7 @@ import (
 // POST /logout - Log out
 // GET /profile - Get current user/Validate session
 // GET /permissions - Get all of current permissions
-// PATCH /users/{username}/change - Update user password
+// PATCH /password - Update user password
 // ------------------------------------------------------------------
 
 type Handler struct {
@@ -93,14 +93,8 @@ func (h *Handler) perms(w http.ResponseWriter, r *http.Request) {
 	_ = json.NewEncoder(w).Encode(&permissionData)
 }
 
-// PATCH /users/{username}/change - Update user password
+// PATCH /password - Update user password
 func (h *Handler) changePasswd(w http.ResponseWriter, r *http.Request) {
-	username := r.PathValue("username")
-	if username == "" {
-		server.WritePathError(w, "Username was not provided")
-		return
-	}
-
 	var payload struct {
 		OldPasswd password.Password `json:"old_password"`
 		NewPaswd  password.Password `json:"new_password"`
@@ -111,7 +105,7 @@ func (h *Handler) changePasswd(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.userService.ChangePasswd(r.Context(), username, payload.OldPasswd, payload.NewPaswd); err != nil {
+	if err := h.userService.ChangePasswd(r.Context(), payload.OldPasswd, payload.NewPaswd); err != nil {
 		server.WriteServerError(w, "User", err)
 		return
 	}

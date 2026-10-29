@@ -7,7 +7,7 @@ import (
 	"gorm.io/gorm"
 )
 
-type Locale struct {
+type Record struct {
 	Name string ``
 	Code string `gorm:"primaryKey;size:8;"`
 }
@@ -25,7 +25,7 @@ func (r *GORMRepository) Create(ctx context.Context, locale *domain.Locale) erro
 }
 
 func (r *GORMRepository) GetAll(ctx context.Context) ([]domain.Locale, error) {
-	locales := make([]Locale, 0)
+	locales := make([]Record, 0)
 
 	err := r.db.WithContext(ctx).
 		Find(&locales).Error
@@ -45,7 +45,7 @@ func (r *GORMRepository) GetAll(ctx context.Context) ([]domain.Locale, error) {
 func (r *GORMRepository) Delete(ctx context.Context, code string) error {
 	result := r.db.WithContext(ctx).
 		Where("code = ?", code).
-		Delete(&Locale{})
+		Delete(&Record{})
 	if result.Error != nil {
 		return result.Error
 	}
@@ -55,18 +55,18 @@ func (r *GORMRepository) Delete(ctx context.Context, code string) error {
 	return nil
 }
 
-func (Locale) TableName() string {
+func (Record) TableName() string {
 	return "locales"
 }
 
-func ToRecord(locale *domain.Locale) *Locale {
-	return &Locale{
+func ToRecord(locale *domain.Locale) *Record {
+	return &Record{
 		Name: locale.Name,
 		Code: locale.Code,
 	}
 }
 
-func (l *Locale) ToDomain() *domain.Locale {
+func (l *Record) ToDomain() *domain.Locale {
 	return &domain.Locale{
 		Name: l.Name,
 		Code: l.Code,

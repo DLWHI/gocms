@@ -100,7 +100,7 @@ func (h *ReasonedHandler) Handle(_ context.Context, r slog.Record) error {
 		line += fmt.Sprintf(" Reason: %s.", reason)
 	}
 	if values != "" {
-		line += fmt.Sprintf(" Data: %s", values)
+		line += fmt.Sprintf(" Data:%s", values)
 	}
 	line += "\n"
 

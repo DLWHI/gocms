@@ -49,8 +49,9 @@ type RedisSessionRepository struct {
 
 func NewRedisSessionRepository(client *redis.Client, keys cache.Keyspace, ttl time.Duration) *RedisSessionRepository {
 	return &RedisSessionRepository{
-		ttl:  ttl,
-		keys: keys,
+		ttl:    ttl,
+		keys:   keys,
+		client: client,
 	}
 }
 

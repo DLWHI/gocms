@@ -17,8 +17,9 @@ type Service struct {
 
 func NewService(sessions SessionRepository, users UserRepository, passwords password.PasswordService) *Service {
 	return &Service{
-		users:    users,
-		sessions: sessions,
+		users:     users,
+		sessions:  sessions,
+		passwords: passwords,
 	}
 }
 

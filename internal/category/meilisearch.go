@@ -67,7 +67,7 @@ func (ms *MeilisearchEngine) Index(ctx context.Context, slug string, group ...do
 
 	for i := range group {
 		if group[i].Slug != slug {
-			return fmt.Errorf("%v: group item not from provided category slug")
+			return fmt.Errorf("%v: group item not from provided category slug", domain.ErrInval)
 		}
 		group[i].ID = fmt.Sprintf("%s-%s", slug, group[i].Locale)
 	}

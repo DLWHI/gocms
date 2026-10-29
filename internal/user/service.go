@@ -3,6 +3,7 @@ package user
 import (
 	"context"
 	"errors"
+	"fmt"
 	"gocms/internal/auth"
 	"gocms/internal/domain"
 	"gocms/internal/logger"
@@ -170,7 +171,7 @@ func (s *Service) UpdateLogin(ctx context.Context, username string) (*domain.Use
 	return user, nil
 }
 
-func (s *Service) ChangeEmail(ctx context.Context, username string, email string) error {
+func (s *Service) ChangeEmail(ctx context.Context, username string, diff *domain.UserDiff) error {
 	username, err := domain.NormalizeUsername(username)
 	if err != nil {
 		return err
@@ -184,18 +185,16 @@ func (s *Service) ChangeEmail(ctx context.Context, username string, email string
 		return domain.ErrPerm
 	}
 
-	if email != "" {
-		email, err = domain.NormalizeEmail(email)
-		if err != nil {
-			return err
-		}
+	if diff.Email == nil {
+		return fmt.Errorf("%v: missing email", domain.ErrInval)
 	}
-
-	update := map[string]interface{}{
-		"email": email,
+	email, err := domain.NormalizeEmail(*diff.Email)
+	if err != nil {
+		return err
 	}
+	diff.Email = &email
 
-	if err := s.repo.Update(ctx, username, update); err != nil {
+	if err := s.repo.Update(ctx, username, diff); err != nil {
 		if !errors.Is(err, domain.ErrNotFound) {
 			logger.Error("User.Service", "Failed to update the user's email address", err, "value", email)
 		}
@@ -205,7 +204,7 @@ func (s *Service) ChangeEmail(ctx context.Context, username string, email string
 	return nil
 }
 
-func (s *Service) ChangePermissions(ctx context.Context, username string, permissions uint32) error {
+func (s *Service) ChangePermissions(ctx context.Context, username string, diff *domain.UserDiff) error {
 	username, err := domain.NormalizeUsername(username)
 	if err != nil {
 		return err
@@ -216,17 +215,21 @@ func (s *Service) ChangePermissions(ctx context.Context, username string, permis
 		return domain.ErrPerm
 	}
 
-	if initiator == username || !auth.HasPermission(ctx, domain.UserEntityName, "edit") || !auth.IsSubsetOf(ctx, permissions) {
+	if initiator == username || !auth.HasPermission(ctx, domain.UserEntityName, "edit") {
 		return domain.ErrPerm
 	}
 
-	update := map[string]interface{}{
-		"permissions": permissions,
+	if diff.Permissions == nil {
+		return fmt.Errorf("%v: missing email", domain.ErrInval)
 	}
 
-	if err := s.repo.Update(ctx, username, update); err != nil {
+	if !auth.IsSubsetOf(ctx, *diff.Permissions) {
+		return domain.ErrPerm
+	}
+
+	if err := s.repo.Update(ctx, username, diff); err != nil {
 		if !errors.Is(err, domain.ErrNotFound) {
-			logger.Error("User.Service", "Failed to update the user's permissions", err, "value", permissions)
+			logger.Error("User.Service", "Failed to update the user's permissions", err, "value", *diff.Permissions)
 		}
 		return err
 	}

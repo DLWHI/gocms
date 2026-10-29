@@ -12,7 +12,7 @@ const (
 
 type Repository interface {
 	Create(ctx context.Context, user *domain.User, pwdhash []byte) error
-	Update(ctx context.Context, username string, diff map[string]interface{}) error
+	Update(ctx context.Context, username string, diff *domain.UserDiff) error
 	UpdateLogin(ctx context.Context, username string, timestamp time.Time) (*domain.User, error)
 	UpdatePassword(ctx context.Context, username string, pwdhash []byte) error
 	Get(ctx context.Context, username string) (*domain.User, error)

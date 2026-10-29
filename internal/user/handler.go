@@ -126,16 +126,13 @@ func (h *Handler) changeEmail(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var payload struct {
-		Email *string `json:"email"`
-	}
-
-	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil || payload.Email == nil {
+	var payload domain.UserDiff
+	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
 		server.WriteDecodeError(w, err)
 		return
 	}
 
-	if err := h.userService.ChangeEmail(r.Context(), username, *payload.Email); err != nil {
+	if err := h.userService.ChangeEmail(r.Context(), username, &payload); err != nil {
 		server.WriteServerError(w, "User", err)
 		return
 	}
@@ -178,15 +175,13 @@ func (h *Handler) updatePermissions(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var payload struct {
-		Permissions *uint32 `json:"permissions"`
-	}
-	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil || payload.Permissions == nil {
+	var payload domain.UserDiff
+	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
 		server.WriteDecodeError(w, err)
 		return
 	}
 
-	if err := h.userService.ChangePermissions(r.Context(), username, *payload.Permissions); err != nil {
+	if err := h.userService.ChangePermissions(r.Context(), username, &payload); err != nil {
 		server.WriteServerError(w, "User", err)
 		return
 	}

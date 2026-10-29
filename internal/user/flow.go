@@ -41,7 +41,7 @@ func (r *FlowRepository) UpdateLogin(ctx context.Context, username string, times
 	return user, nil
 }
 
-func (r *FlowRepository) Update(ctx context.Context, username string, diff map[string]interface{}) error {
+func (r *FlowRepository) Update(ctx context.Context, username string, diff *domain.UserDiff) error {
 	if err := r.Repository.Update(ctx, username, diff); err != nil {
 		return err
 	}

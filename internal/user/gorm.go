@@ -62,12 +62,11 @@ func (r *GORMRepository) Create(ctx context.Context, user *domain.User, pwdhash 
 	return nil
 }
 
-func (r *GORMRepository) Update(ctx context.Context, username string, diff map[string]interface{}) error {
+func (r *GORMRepository) Update(ctx context.Context, username string, diff *domain.UserDiff) error {
 	return r.mapErr(r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		update := patch(diff)
 		if len(update) > 0 {
 			result := tx.Model(&Record{}).
-				Select("email", "permissions", "version").
 				Where("username = ?", username).
 				Updates(update)
 			if result.Error != nil {
@@ -246,14 +245,14 @@ func (r *GORMRepository) mapErr(err error) error {
 	}
 }
 
-func patch(diff map[string]interface{}) RecordPatch {
+func patch(diff *domain.UserDiff) RecordPatch {
 	record := make(map[string]interface{}, 0)
 
-	if val, ok := diff["email"]; ok {
-		record["email"] = val
+	if diff.Email != nil {
+		record["email"] = *diff.Email
 	}
-	if val, ok := diff["permissions"]; ok {
-		record["permissions"] = val
+	if diff.Permissions != nil {
+		record["permissions"] = *diff.Permissions
 	}
 
 	if len(record) > 0 {

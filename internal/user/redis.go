@@ -48,7 +48,7 @@ func (r *RedisRepository) UpdateLogin(ctx context.Context, username string, time
 	return user, nil
 }
 
-func (r *RedisRepository) Update(ctx context.Context, username string, diff map[string]interface{}) error {
+func (r *RedisRepository) Update(ctx context.Context, username string, diff *domain.UserDiff) error {
 	if err := r.Repository.Update(ctx, username, diff); err != nil {
 		return err
 	}

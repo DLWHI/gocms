@@ -130,7 +130,7 @@ func (r *GORMRepository) UpdatePassword(ctx context.Context, username string, pw
 	return r.mapErr(r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		result := tx.Model(&Record{}).
 			Where("username = ?", username).
-			Updates(map[string]any{
+			Updates(map[string]interface{}{
 				"password": pwdhash,
 				"version":  gorm.Expr("version + 1"),
 			})

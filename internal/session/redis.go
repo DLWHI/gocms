@@ -13,34 +13,34 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
+var revoke = redis.NewScript(`
+	local userKey = KEYS[1]
+	local newSessionKey = KEYS[2]
+	local newSessionData = ARGV[1]
+	local newSuid = ARGV[2]
+	local ttl = tonumber(ARGV[3])
+
+	local oldSuid = redis.call("GET", userKey)
+
+	if oldSuid and oldSuid ~= "" then
+			redis.call("DEL", "cms:sessions:" .. oldSuid)
+	end
+
+	redis.call("SET", newSessionKey, newSessionData, "EX", ttl)
+	redis.call("SET", userKey, newSuid, "EX", ttl)
+
+	return "OK"
+`)
+
 type RedisRepository struct {
-	rdb    *redis.Client
-	ttl    time.Duration
-	revoke *redis.Script
+	rdb *redis.Client
+	ttl time.Duration
 }
 
 func NewRedisRepository(client *redis.Client, ttl time.Duration) *RedisRepository {
 	return &RedisRepository{
 		rdb: client,
 		ttl: ttl,
-		revoke: redis.NewScript(`
-			local userKey = KEYS[1]
-			local newSessionKey = KEYS[2]
-			local newSessionData = ARGV[1]
-			local newSuid = ARGV[2]
-			local ttl = tonumber(ARGV[3])
-
-			local oldSuid = redis.call("GET", userKey)
-
-			if oldSuid and oldSuid ~= "" then
-					redis.call("DEL", "cms:sessions:" .. oldSuid)
-			end
-
-			redis.call("SET", newSessionKey, newSessionData, "EX", ttl)
-			redis.call("SET", userKey, newSuid, "EX", ttl)
-
-			return "OK"
-		`),
 	}
 }
 
@@ -74,34 +74,35 @@ func (s *RedisRepository) Create(ctx context.Context, user *domain.User) (*Sessi
 	keys := []string{userKey, sessionKey}
 	args := []interface{}{json, suid, int(s.ttl.Seconds())}
 
-	if err := s.revoke.Run(ctx, s.rdb, keys, args...).Err(); err != nil {
+	if err := revoke.Run(ctx, s.rdb, keys, args...).Err(); err != nil {
 		return nil, err
 	}
 
 	return &session, nil
 }
 
-func (s *RedisRepository) Update(ctx context.Context, user *domain.User) (*Session, error) {
-	userKey := fmt.Sprintf("cms:users:%s:session", user.Username)
+func (s *RedisRepository) Update(ctx context.Context, username string, payload *domain.User) error {
+	userKey := fmt.Sprintf("cms:users:%s:session", username)
 
 	cached, err := s.rdb.Get(ctx, userKey).Result()
 	if err != nil {
 		if errors.Is(err, redis.Nil) {
-			return nil, domain.ErrExpired
+			return domain.ErrExpired
 		}
-		return nil, err
+		return err
 	}
 
 	var session Session
 	if err := json.Unmarshal([]byte(cached), &session); err != nil {
-		return nil, err
+		return err
 	}
 
-	session.User = *user
+	session.User = *payload
+	session.User.Username = username
 
 	json, err := json.Marshal(session)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	sessionKey := fmt.Sprintf("cms:sessions:%s", session.ID)
@@ -114,11 +115,11 @@ func (s *RedisRepository) Update(ctx context.Context, user *domain.User) (*Sessi
 		pipe.Set(ctx, sessionKey, json, time.Until(expire))
 		pipe.Set(ctx, userKey, json, time.Until(expire))
 		if _, err := pipe.Exec(ctx); err != nil {
-			return nil, err
+			return err
 		}
 	}
 
-	return &session, nil
+	return nil
 }
 
 func (s *RedisRepository) Revoke(ctx context.Context, username string, suid string) error {

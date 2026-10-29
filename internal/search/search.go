@@ -3,10 +3,11 @@ package search
 import "context"
 
 type Params struct {
-	SortBy string `json:"sort_by,omitempty"`
-	Query  string `json:"query,omitempty"`
-	Page   int64  `json:"page,omitempty"`
-	Count  int64  `json:"count,omitempty"`
+	SortBy string   `json:"sort_by,omitempty"`
+	Query  string   `json:"query,omitempty"`
+	Page   int64    `json:"page,omitempty"`
+	Count  int64    `json:"count,omitempty"`
+	Select []string `json:"select,omitempty"`
 }
 
 type Result[T any] struct {

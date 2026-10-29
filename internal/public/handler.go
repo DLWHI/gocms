@@ -138,8 +138,7 @@ func (h *Handler) postsGet(w http.ResponseWriter, r *http.Request) {
 
 // GET /categories - Get all categories
 func (h *Handler) categoriesAll(w http.ResponseWriter, r *http.Request) {
-	falseVal := false
-	categories, err := h.categories.All(r.Context(), &falseVal)
+	categories, err := h.categories.AllNotHidden(r.Context())
 	if err != nil {
 		server.WriteServerError(w, "Categories", err)
 		return

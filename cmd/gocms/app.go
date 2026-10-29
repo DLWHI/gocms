@@ -63,30 +63,36 @@ func (app *Container) Init(ctx context.Context, cfg Config) error {
 
 	db, err := MySQLDatabase(app)
 	if err != nil {
-		logger.Error("Init", "Failed to connect to database", err)
 		return err
 	}
 	redis, err := RedisClient(ctx, app)
 	if err != nil {
-		logger.Error("Init", "Failed to connect to redis", err)
 		return err
 	}
 
 	search, err := MeilisearchClient(app)
 	if err != nil {
-		logger.Error("Init", "Failed to connect to meilisearch", err)
 		return err
 	}
 
 	passwords := password.NewBCryptService(12, 8)
 	sessions := session.NewRedisRepository(redis, 24*time.Hour)
 
-	categories := NewCategoryBundle(db, search, redis)
-	users := NewUserBundle(db, search, redis, passwords)
+	categories, err := NewCategoryBundle(db, search, redis)
+	if err != nil {
+		return err
+	}
+	users, err := NewUserBundle(db, search, redis, passwords)
+	if err != nil {
+		return err
+	}
 	posts := NewPostBundle(db, search, redis)
 	ads := NewAdsBundle(db, search, redis)
 	editors := NewEditorBundle(db, search, redis)
-	locales := NewLocaleBundle(db, redis)
+	locales, err := NewLocaleBundle(db, redis)
+	if err != nil {
+		return err
+	}
 	auth := NewAuthBundle(users.Service, sessions)
 
 	views := analytics.NewRedisCounter(app.Redis, posts.Service)
@@ -144,8 +150,8 @@ func (app *Container) WireEvents(dispatcher outbox.Publisher) {
 	app.Subscriptions = make([]*outbox.Subscription, 0, 6)
 	app.Subscriptions = append(app.Subscriptions, dispatcher.Subscribe("post", app.Posts.Service.SyncSearch))
 	app.Subscriptions = append(app.Subscriptions, dispatcher.Subscribe(domain.UserEventName, app.Users.Consumer.SyncSearch))
-	app.Subscriptions = append(app.Subscriptions, dispatcher.Subscribe("user", app.Auth.Consumer.RevokeSessions))
-	app.Subscriptions = append(app.Subscriptions, dispatcher.Subscribe("category", app.Categories.Service.SyncSearch))
+	app.Subscriptions = append(app.Subscriptions, dispatcher.Subscribe(domain.UserEventName, app.Auth.Consumer.RevokeSessions))
+	app.Subscriptions = append(app.Subscriptions, dispatcher.Subscribe(domain.CategoryEventName, app.Categories.Consumer.SyncSearch))
 	app.Subscriptions = append(app.Subscriptions, dispatcher.Subscribe("editor", app.Editors.Service.SyncSearch))
 	app.Subscriptions = append(app.Subscriptions, dispatcher.Subscribe("ads", app.Ads.Service.SyncSearch))
 }

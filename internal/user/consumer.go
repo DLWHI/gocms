@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"gocms/internal/domain"
 	"gocms/internal/logger"
 )
@@ -26,22 +27,24 @@ func (s *EventConsumer) SyncSearch(ctx context.Context, data []byte) error {
 		return err
 	}
 
-	if payload.Action == domain.UserActionPassword {
+	switch payload.Action {
+	case domain.UserActionPassword:
+		return nil
+	case domain.UserActionCreate, domain.UserActionLogin, domain.UserActionSuspend, domain.UserActionUpdate:
+		user, err := s.db.Get(ctx, payload.Username)
+		if err != nil {
+			if errors.Is(err, domain.ErrNotFound) {
+				return nil
+			}
+			logger.Error("User.Service", "Failed to retreive user from db", err, "payload", payload)
+			return err
+		}
+
+		if err := s.se.Index(ctx, user); err != nil {
+			logger.Error("User.Service", "Failed to index user", err, "payload", payload, "user", user)
+			return err
+		}
 		return nil
 	}
-
-	user, err := s.db.Get(ctx, payload.Username)
-	if err != nil {
-		if errors.Is(err, domain.ErrNotFound) {
-			return nil
-		}
-		logger.Error("User.Service", "Failed to retreive user from db", err, "payload", payload)
-		return err
-	}
-
-	if err := s.se.Index(ctx, user); err != nil {
-		logger.Error("User.Service", "Failed to index user", err, "payload", payload, "user", user)
-		return err
-	}
-	return nil
+	return fmt.Errorf("%w: unknown action", domain.ErrInval)
 }

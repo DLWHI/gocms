@@ -59,10 +59,12 @@ type EditorBundle struct {
 }
 
 type CategoryBundle struct {
+	Consumer          *category.EventConsumer
 	Service           *category.Service
 	Handler           *category.Handler
-	RedisRepo         *category.RedisRepository
-	GORMRepo          *category.GORMRepository
+	DedupRepo         category.Repository
+	CacheRepo         category.Repository
+	DBRepo            category.Repository
 	MeilisearchEngine *category.MeilisearchEngine
 }
 
@@ -77,12 +79,13 @@ type AdsBundle struct {
 type LocaleBundle struct {
 	Service   *locale.Service
 	Handler   *locale.Handler
-	RedisRepo *locale.RedisRepository
-	GORMRepo  *locale.GORMRepository
+	CacheRepo locale.Repository
+	DBRepo    locale.Repository
+	DedupRepo locale.Repository
 }
 
 func NewAuthBundle(users auth.UserManager, sessions session.Repository) *AuthBundle {
-	consumer := auth.NewEventConsumer(sessions)
+	consumer := auth.NewEventConsumer(sessions, users)
 	service := auth.NewService(users, sessions)
 	handler := auth.NewHandler(service)
 	return &AuthBundle{
@@ -92,16 +95,18 @@ func NewAuthBundle(users auth.UserManager, sessions session.Repository) *AuthBun
 	}
 }
 
-func NewUserBundle(db *gorm.DB, search meilisearch.ServiceManager, redis *redis.Client, pwd password.PasswordService) *UserBundle {
-	keys, _ := cache.NewKeyspace(cache.KeyConfig{
-		Prefix: "cms",
+func NewUserBundle(db *gorm.DB, search meilisearch.ServiceManager, redis *redis.Client, pwd password.PasswordService) (*UserBundle, error) {
+	keys, err := cache.NewKeyspace(cache.KeyConfig{
+		Prefix: []string{"cms"},
 	}, "users")
-
-	repo := user.NewGORMRepository(db)
-	sfRepo := user.NewSingleflightRepository(repo, keys)
-	redisRepo := user.NewRedisRepository(sfRepo, redis, 30*time.Minute, keys)
+	if err != nil {
+		return nil, err
+	}
+	gormRepo := user.NewGORMRepository(db)
+	flowRepo := user.NewFlowRepository(gormRepo, 20*time.Second, keys)
+	redisRepo := user.NewRedisRepository(flowRepo, redis, 30*time.Minute, keys)
 	searchEngine := user.NewMeilisearchEngine(search, UsersSearchIndexName)
-	consumer := user.NewEventConsumer(repo, searchEngine)
+	consumer := user.NewEventConsumer(gormRepo, searchEngine)
 	service := user.NewService(redisRepo, searchEngine, pwd)
 	handler := user.NewHandler(service)
 	return &UserBundle{
@@ -109,10 +114,10 @@ func NewUserBundle(db *gorm.DB, search meilisearch.ServiceManager, redis *redis.
 		Service:           service,
 		Handler:           handler,
 		CacheRepo:         redisRepo,
-		DedupRepo:         sfRepo,
-		DBRepo:            repo,
+		DedupRepo:         flowRepo,
+		DBRepo:            gormRepo,
 		MeilisearchEngine: searchEngine,
-	}
+	}, nil
 }
 
 func NewPostBundle(db *gorm.DB, search meilisearch.ServiceManager, redis *redis.Client) *PostBundle {
@@ -136,25 +141,27 @@ func NewPostBundle(db *gorm.DB, search meilisearch.ServiceManager, redis *redis.
 	}
 }
 
-func NewCategoryBundle(db *gorm.DB, search meilisearch.ServiceManager, redis *redis.Client) *CategoryBundle {
-	redisCfg := category.RedisConfig{
-		Client:    redis,
-		TTL:       120 * time.Minute,
-		KeyFormat: "cms:categories:%s:%s",
+func NewCategoryBundle(db *gorm.DB, search meilisearch.ServiceManager, redis *redis.Client) (*CategoryBundle, error) {
+	keys, err := cache.NewKeyspace(cache.KeyConfig{
+		Prefix: []string{"cms"},
+	}, "categories")
+	if err != nil {
+		return nil, err
 	}
 
-	repo := category.NewGORMRepository(db)
-	cacheRepo := category.NewRedisRepository(repo, &redisCfg)
+	gormRepo := category.NewGORMRepository(db)
+	flowRepo := category.NewFlowRepository(gormRepo, 20*time.Second, keys)
+	redisRepo := category.NewRedisRepository(flowRepo, redis, 120*time.Minute, keys)
 	searchEngine := category.NewMeilisearchEngine(search, CategoriesSearchIndexName)
-	service := category.NewService(cacheRepo, searchEngine)
+	service := category.NewService(redisRepo, searchEngine)
 	handler := category.NewHandler(service)
 	return &CategoryBundle{
 		Service:           service,
 		Handler:           handler,
-		RedisRepo:         cacheRepo,
-		GORMRepo:          repo,
+		CacheRepo:         redisRepo,
+		DBRepo:            gormRepo,
 		MeilisearchEngine: searchEngine,
-	}
+	}, nil
 }
 
 func NewEditorBundle(db *gorm.DB, search meilisearch.ServiceManager, redis *redis.Client) *EditorBundle {
@@ -199,21 +206,24 @@ func NewAdsBundle(db *gorm.DB, search meilisearch.ServiceManager, redis *redis.C
 	}
 }
 
-func NewLocaleBundle(db *gorm.DB, redis *redis.Client) *LocaleBundle {
-	redisCfg := locale.RedisConfig{
-		Client:    redis,
-		TTL:       24 * time.Hour,
-		KeyFormat: "cms:locales",
+func NewLocaleBundle(db *gorm.DB, redis *redis.Client) (*LocaleBundle, error) {
+	keys, err := cache.NewKeyspace(cache.KeyConfig{
+		Prefix: []string{"cms"},
+	}, "locales")
+	if err != nil {
+		return nil, err
 	}
 
-	repo := locale.NewGORMRepository(db)
-	cacheRepo := locale.NewRedisRepository(repo, &redisCfg)
-	service := locale.NewService(cacheRepo)
+	gormRepo := locale.NewGORMRepository(db)
+	flowRepo := locale.NewFlowRepository(gormRepo, 20*time.Second, keys)
+	redisRepo := locale.NewRedisRepository(flowRepo, redis, 24*time.Hour, keys)
+	service := locale.NewService(redisRepo)
 	handler := locale.NewHandler(service)
 	return &LocaleBundle{
 		Service:   service,
 		Handler:   handler,
-		RedisRepo: cacheRepo,
-		GORMRepo:  repo,
-	}
+		CacheRepo: redisRepo,
+		DBRepo:    gormRepo,
+		DedupRepo: flowRepo,
+	}, nil
 }

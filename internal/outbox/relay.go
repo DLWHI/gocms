@@ -153,6 +153,9 @@ func (d *Relay) Dispatch(ctx context.Context, count int) error {
 	if err != nil {
 		return err
 	}
+	if len(messages) == 0 {
+		return nil
+	}
 
 	processed, err := d.broker.Publish(ctx, messages)
 	if err != nil {

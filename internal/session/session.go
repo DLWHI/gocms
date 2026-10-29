@@ -14,5 +14,6 @@ type Repository interface {
 	Create(ctx context.Context, user *domain.User) (*Session, error)
 	RevokeID(ctx context.Context, suid string) error
 	RevokeUser(ctx context.Context, username string) error
+	Update(ctx context.Context, username string, payload *domain.User) error
 	Validate(ctx context.Context, suid string) (*Session, error)
 }

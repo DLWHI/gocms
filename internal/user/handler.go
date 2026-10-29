@@ -104,7 +104,7 @@ func (h *Handler) get(w http.ResponseWriter, r *http.Request) {
 	username := r.PathValue("username")
 
 	if username == "" {
-		server.WritePathError(w, "Invalid username provided")
+		server.WritePathError(w, "Missing username")
 		return
 	}
 
@@ -122,7 +122,7 @@ func (h *Handler) get(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) changeEmail(w http.ResponseWriter, r *http.Request) {
 	username := r.PathValue("username")
 	if username == "" {
-		server.WritePathError(w, "Invalid username provided")
+		server.WritePathError(w, "Missing username")
 		return
 	}
 
@@ -147,7 +147,7 @@ func (h *Handler) changeEmail(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) resetPassword(w http.ResponseWriter, r *http.Request) {
 	username := r.PathValue("username")
 	if username == "" {
-		server.WritePathError(w, "Invalid username provided")
+		server.WritePathError(w, "Missing username")
 		return
 	}
 
@@ -174,7 +174,7 @@ func (h *Handler) resetPassword(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) updatePermissions(w http.ResponseWriter, r *http.Request) {
 	username := r.PathValue("username")
 	if username == "" {
-		server.WritePathError(w, "Invalid username provided")
+		server.WritePathError(w, "Missing username")
 		return
 	}
 
@@ -198,7 +198,7 @@ func (h *Handler) updatePermissions(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) suspend(w http.ResponseWriter, r *http.Request) {
 	username := r.PathValue("username")
 	if username == "" {
-		server.WritePathError(w, "Invalid username provided")
+		server.WritePathError(w, "Missing username")
 		return
 	}
 

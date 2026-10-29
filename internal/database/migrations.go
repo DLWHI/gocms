@@ -20,8 +20,8 @@ func SoftMigrate(db *gorm.DB) error {
 		&editor.Model{},
 		&post.Meta{},
 		&post.Translation{},
-		&category.Model{},
-		&category.Translation{},
+		&category.Record{},
+		&category.RecordTranslation{},
 		&locale.Locale{},
 		&outbox.Message{},
 	)
@@ -49,8 +49,8 @@ func HardMigrate(db *gorm.DB) error {
 		&user.Record{},
 		&post.Meta{},
 		&post.Translation{},
-		&category.Model{},
-		&category.Translation{},
+		&category.Record{},
+		&category.RecordTranslation{},
 		&outbox.Message{},
 	); err != nil {
 		return err

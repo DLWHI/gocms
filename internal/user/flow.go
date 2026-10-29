@@ -4,27 +4,26 @@ import (
 	"context"
 	"gocms/internal/cache"
 	"gocms/internal/domain"
+	"gocms/internal/flow"
 	"time"
-
-	"golang.org/x/sync/singleflight"
 )
 
-type SingleflightRepository struct {
+type FlowRepository struct {
 	Repository
 	keys    cache.Keyspace
-	group   singleflight.Group
+	group   flow.Group
 	timeout time.Duration
 }
 
-func NewSingleflightRepository(origin Repository, timeout time.Duration, config cache.Keyspace) *SingleflightRepository {
-	return &SingleflightRepository{
+func NewFlowRepository(origin Repository, timeout time.Duration, config cache.Keyspace) *FlowRepository {
+	return &FlowRepository{
 		Repository: origin,
 		keys:       config,
 		timeout:    timeout,
 	}
 }
 
-func (r *SingleflightRepository) Create(ctx context.Context, user *domain.User, pwdhash []byte) error {
+func (r *FlowRepository) Create(ctx context.Context, user *domain.User, pwdhash []byte) error {
 	if err := r.Repository.Create(ctx, user, pwdhash); err != nil {
 		return err
 	}
@@ -32,7 +31,7 @@ func (r *SingleflightRepository) Create(ctx context.Context, user *domain.User, 
 	return nil
 }
 
-func (r *SingleflightRepository) UpdateLogin(ctx context.Context, username string, timestamp time.Time) (*domain.User, error) {
+func (r *FlowRepository) UpdateLogin(ctx context.Context, username string, timestamp time.Time) (*domain.User, error) {
 	user, err := r.Repository.UpdateLogin(ctx, username, timestamp)
 	if err != nil {
 		return nil, err
@@ -42,7 +41,7 @@ func (r *SingleflightRepository) UpdateLogin(ctx context.Context, username strin
 	return user, nil
 }
 
-func (r *SingleflightRepository) Update(ctx context.Context, username string, diff map[string]interface{}) error {
+func (r *FlowRepository) Update(ctx context.Context, username string, diff map[string]interface{}) error {
 	if err := r.Repository.Update(ctx, username, diff); err != nil {
 		return err
 	}
@@ -51,7 +50,7 @@ func (r *SingleflightRepository) Update(ctx context.Context, username string, di
 	return nil
 }
 
-func (r *SingleflightRepository) Get(ctx context.Context, username string) (*domain.User, error) {
+func (r *FlowRepository) Get(ctx context.Context, username string) (*domain.User, error) {
 	key := r.keys.Key(username)
 	ch := r.group.DoChan(key, func() (any, error) {
 		bg, cancel := context.WithTimeout(context.WithoutCancel(ctx), r.timeout)
@@ -78,7 +77,7 @@ func (r *SingleflightRepository) Get(ctx context.Context, username string) (*dom
 
 }
 
-func (r *SingleflightRepository) GetActive(ctx context.Context) ([]domain.User, error) {
+func (r *FlowRepository) GetActive(ctx context.Context) ([]domain.User, error) {
 	ch := r.group.DoChan(r.keys.List(activeList), func() (any, error) {
 		bg, cancel := context.WithTimeout(context.WithoutCancel(ctx), r.timeout)
 		defer cancel()
@@ -103,7 +102,7 @@ func (r *SingleflightRepository) GetActive(ctx context.Context) ([]domain.User, 
 	}
 }
 
-func (r *SingleflightRepository) Suspend(ctx context.Context, username string) error {
+func (r *FlowRepository) Suspend(ctx context.Context, username string) error {
 	if err := r.Repository.Suspend(ctx, username); err != nil {
 		return err
 	}

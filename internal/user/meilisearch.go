@@ -120,10 +120,11 @@ func (ms *MeilisearchEngine) Search(ctx context.Context, params *SearchParams) (
 	var results SearchResult
 	count := params.Count
 	req := &meilisearch.SearchRequest{
-		HitsPerPage: &count,
-		Page:        params.Page,
-		Filter:      ms.buildFilter(params),
-		Sort:        ms.buildSort(params),
+		HitsPerPage:          &count,
+		Page:                 params.Page,
+		Filter:               ms.buildFilter(params),
+		Sort:                 ms.buildSort(params),
+		AttributesToRetrieve: params.Select,
 	}
 	index := ms.search.Client.Index(ms.search.Config.Uid)
 

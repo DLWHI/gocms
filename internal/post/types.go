@@ -9,16 +9,16 @@ import (
 )
 
 type Meta struct {
-	ID          uint             `json:"id" gorm:"primaryKey;autoIncrement"`
-	Slug        string           `json:"slug"`
-	CreatedAt   time.Time        `json:"created_at" gorm:"default:current_timestamp"`
-	PublishedAt *time.Time       `json:"published_at"`
-	Views       uint             `json:"views" gorm:"not null;default:0"`
-	Preview     string           `json:"preview"`
-	Author      string           `json:"author" gorm:"size:64;"`
-	AuthorUser  user.Record      `json:"-" gorm:"foreignKey:Author;references:Username;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
-	Categories  []category.Model `json:"-" gorm:"many2many:post_categories;foreignKey:ID;joinForeignKey:PostID;references:Slug;joinReferences:CategorySlug;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;"`
-	Version     uint             `json:"-" gorm:"default:1"`
+	ID          uint              `json:"id" gorm:"primaryKey;autoIncrement"`
+	Slug        string            `json:"slug"`
+	CreatedAt   time.Time         `json:"created_at" gorm:"default:current_timestamp"`
+	PublishedAt *time.Time        `json:"published_at"`
+	Views       uint              `json:"views" gorm:"not null;default:0"`
+	Preview     string            `json:"preview"`
+	Author      string            `json:"author" gorm:"size:64;"`
+	AuthorUser  user.Record       `json:"-" gorm:"foreignKey:Author;references:Username;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	Categories  []category.Record `json:"-" gorm:"many2many:post_categories;foreignKey:ID;joinForeignKey:PostID;references:Slug;joinReferences:CategorySlug;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;"`
+	Version     uint              `json:"-" gorm:"default:1"`
 }
 
 type Translation struct {
@@ -73,7 +73,6 @@ type SearchParams struct {
 	PublishedAfter    *time.Time `json:"published_after,omitempty"`
 	PublishedBefore   *time.Time `json:"published_before,omitempty"`
 	Published         *bool      `json:"published,omitempty"`
-	Select            []string   `json:"select,omitempty"`
 }
 
 type SearchResult = search.Result[Document]
@@ -171,9 +170,9 @@ func (pd *Document) ToModel() Translation {
 	}
 
 	// To make json.Marshall convert no categories to empty array
-	categories := make([]category.Model, 0, len(pd.Categories))
+	categories := make([]category.Record, 0, len(pd.Categories))
 	for _, categ := range pd.Categories {
-		categories = append(categories, category.Model{Slug: categ})
+		categories = append(categories, category.Record{Slug: categ})
 	}
 	pm.Post.Categories = categories
 

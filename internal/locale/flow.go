@@ -5,25 +5,25 @@ import (
 	"time"
 
 	"gocms/internal/cache"
-
-	"golang.org/x/sync/singleflight"
+	"gocms/internal/flow"
 )
 
-type SingleflightRepository struct {
+type FlowRepository struct {
 	Repository
 	keys    cache.Keyspace
-	group   singleflight.Group
+	group   flow.Group
 	timeout time.Duration
 }
 
-func NewSingleflightRepository(origin Repository, config cache.Keyspace) *SingleflightRepository {
-	return &SingleflightRepository{
+func NewFlowRepository(origin Repository, timeout time.Duration, config cache.Keyspace) *FlowRepository {
+	return &FlowRepository{
 		Repository: origin,
 		keys:       config,
+		timeout:    timeout,
 	}
 }
 
-func (r *SingleflightRepository) Create(ctx context.Context, name string, code string) error {
+func (r *FlowRepository) Create(ctx context.Context, name string, code string) error {
 	if err := r.Repository.Create(ctx, name, code); err != nil {
 		return err
 	}
@@ -31,9 +31,9 @@ func (r *SingleflightRepository) Create(ctx context.Context, name string, code s
 	return nil
 }
 
-func (r *SingleflightRepository) GetAll(ctx context.Context) ([]Locale, error) {
+func (r *FlowRepository) GetAll(ctx context.Context) ([]Locale, error) {
 	ch := r.group.DoChan(r.keys.List(allList), func() (any, error) {
-		bg, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+		bg, cancel := context.WithTimeout(context.Background(), r.timeout)
 		defer cancel()
 
 		locales, err := r.Repository.GetAll(bg)
@@ -56,7 +56,7 @@ func (r *SingleflightRepository) GetAll(ctx context.Context) ([]Locale, error) {
 	}
 }
 
-func (r *SingleflightRepository) Delete(ctx context.Context, code string) error {
+func (r *FlowRepository) Delete(ctx context.Context, code string) error {
 	if err := r.Repository.Delete(ctx, code); err != nil {
 		return err
 	}

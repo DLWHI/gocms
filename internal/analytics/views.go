@@ -14,6 +14,17 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
+var restore = redis.NewScript(`
+	local liveKey = KEYS[1]
+	local stagingKey = KEYS[2]
+	local amount = tonumber(ARGV[1])
+	
+	redis.call("INCRBY", liveKey, amount)
+	redis.call("DEL", stagingKey)
+	
+	return 1
+`)
+
 type PostViewCounterService interface {
 	Read(ctx context.Context, id uint) error
 	Get(ctx context.Context, id uint) (uint, error)
@@ -22,23 +33,12 @@ type PostViewCounterService interface {
 type RedisCounter struct {
 	service *post.Service
 	rdb     *redis.Client
-	restore *redis.Script
 }
 
 func NewRedisCounter(client *redis.Client, service *post.Service) *RedisCounter {
 	return &RedisCounter{
 		service: service,
 		rdb:     client,
-		restore: redis.NewScript(`
-			local liveKey = KEYS[1]
-			local stagingKey = KEYS[2]
-			local amount = tonumber(ARGV[1])
-			
-			redis.call("INCRBY", liveKey, amount)
-			redis.call("DEL", stagingKey)
-			
-			return 1
-		`),
 	}
 }
 
@@ -201,7 +201,7 @@ func (c *RedisCounter) RecoverOrphans(ctx context.Context) error {
 			continue
 		}
 		recovered++
-		if err := c.restore.Run(ctx, c.rdb, []string{key, staging}, value).Err(); err != nil {
+		if err := restore.Run(ctx, c.rdb, []string{key, staging}, value).Err(); err != nil {
 			logger.Error("PostViewCounter.Service", "Failed to restore staged post views during recovery", err)
 			continue
 		}

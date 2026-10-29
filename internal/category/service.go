@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"gocms/internal/auth"
 	"gocms/internal/domain"
 	"gocms/internal/logger"
 	"gocms/internal/search"
@@ -160,7 +159,7 @@ func (s *Service) Search(ctx context.Context, filters *SearchParams) (*SearchRes
 }
 
 func (s *Service) Delete(ctx context.Context, slug string) error {
-	if !auth.HasPermission(ctx, domain.CategoryEntityName, domain.ActionDeleteName) {
+	if !s.auth.Authorize(ctx, domain.CategoryEntityName, domain.ActionDeleteName) {
 		return domain.ErrCred
 	}
 

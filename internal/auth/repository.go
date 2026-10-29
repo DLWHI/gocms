@@ -6,6 +6,10 @@ import (
 	"time"
 )
 
+const (
+	MaxTokenLength = 200
+)
+
 type SessionRepository interface {
 	Create(ctx context.Context, username string) (string, error)
 	Revoke(ctx context.Context, username string, suid string) error

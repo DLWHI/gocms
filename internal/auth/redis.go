@@ -117,6 +117,9 @@ func (s *RedisSessionRepository) RevokeUser(ctx context.Context, username string
 }
 
 func (s *RedisSessionRepository) Validate(ctx context.Context, token string) (string, string, error) {
+	if len(token) > MaxTokenLength {
+		return "", "", fmt.Errorf("%w: invalid token", domain.ErrInval)
+	}
 	parts := strings.Split(token, ".")
 
 	if len(parts) != 3 {

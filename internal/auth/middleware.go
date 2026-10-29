@@ -104,7 +104,7 @@ func (m *SessionMiddleware) Wrap(next http.Handler) http.Handler {
 
 		username, session, err := m.provider.Validate(ctx, sessionID)
 		if err != nil {
-			if errors.Is(err, domain.ErrExpired) {
+			if errors.Is(err, domain.ErrExpired) || errors.Is(err, domain.ErrInval) {
 				http.Error(w, "Unauthorized: Expired or invalid session", http.StatusUnauthorized)
 			} else {
 				http.Error(w, "Internal server error", http.StatusInternalServerError)

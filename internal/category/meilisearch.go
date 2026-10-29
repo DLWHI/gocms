@@ -33,7 +33,7 @@ func NewMeilisearchEngine(client meilisearch.ServiceManager, index string) *Meil
 	}
 }
 
-func buildFilter(params *SearchParams) string {
+func (ms *MeilisearchEngine) buildFilter(params *SearchParams) string {
 	var clauses []string
 
 	if params.Locale != "" {
@@ -50,7 +50,7 @@ func buildFilter(params *SearchParams) string {
 	return strings.Join(clauses, " AND ")
 }
 
-func buildSort(params *SearchParams) []string {
+func (ms *MeilisearchEngine) buildSort(params *SearchParams) []string {
 	var sortParams []string
 
 	if !strings.HasPrefix(params.SortBy, "name") {
@@ -62,51 +62,30 @@ func buildSort(params *SearchParams) []string {
 	return sortParams
 }
 
-func (r *MeilisearchEngine) Index(ctx context.Context, category *Document) error {
-	index := r.search.Client.Index(r.search.Config.Uid)
-	category.ID = fmt.Sprintf("%s-%s", category.Slug, category.Locale)
-	req := &meilisearch.DocumentsQuery{
-		Filter: fmt.Sprintf("slug = %q AND locale != %q", category.Slug, category.Locale),
-	}
+func (ms *MeilisearchEngine) Index(ctx context.Context, slug string, group ...domain.Category) error {
+	index := ms.search.Client.Index(ms.search.Config.Uid)
 
-	var res meilisearch.DocumentsResult
-	err := r.search.Client.Index(r.search.Config.Uid).GetDocumentsWithContext(ctx, req, &res)
-	if err != nil {
-		var meiliErr *meilisearch.Error
-		if errors.As(err, &meiliErr) {
-			if meiliErr.StatusCode == http.StatusNotFound {
-				return domain.ErrNotFound
-			}
+	for i := range group {
+		if group[i].Slug != slug {
+			return fmt.Errorf("%v: group item not from provided category slug")
 		}
-		return err
+		group[i].ID = fmt.Sprintf("%s-%s", slug, group[i].Locale)
 	}
 
-	var categories []Document
-	if err := res.Results.DecodeInto(&categories); err != nil {
-		return err
-	}
-
-	for i := range categories {
-		categories[i].Slug = category.Slug
-		categories[i].Navbar = category.Navbar
-		categories[i].Hidden = category.Hidden
-	}
-	categories = append(categories, *category)
-
-	task, err := index.AddDocumentsWithContext(ctx, categories, nil)
+	task, err := index.AddDocumentsWithContext(ctx, group, nil)
 	if err != nil {
 		return err
 	}
-	if err := r.search.WaitForTask(ctx, task); err != nil {
+	if err := ms.search.WaitForTask(ctx, task); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (r *MeilisearchEngine) Get(ctx context.Context, slug string, locale string) (*Document, error) {
-	var category Document
+func (ms *MeilisearchEngine) Get(ctx context.Context, slug string, locale string) (*domain.Category, error) {
+	var category domain.Category
 	docID := fmt.Sprintf("%s-%s", slug, locale)
-	err := r.search.Client.Index(r.search.Config.Uid).GetDocumentWithContext(ctx, docID, nil, &category)
+	err := ms.search.Client.Index(ms.search.Config.Uid).GetDocumentWithContext(ctx, docID, nil, &category)
 	if err != nil {
 		var meiliErr *meilisearch.Error
 		if errors.As(err, &meiliErr) {
@@ -119,36 +98,30 @@ func (r *MeilisearchEngine) Get(ctx context.Context, slug string, locale string)
 	return &category, nil
 }
 
-func (r *MeilisearchEngine) Delete(ctx context.Context, slug string) error {
+func (ms *MeilisearchEngine) Delete(ctx context.Context, slug string) error {
 	filter := fmt.Sprintf("slug = %q", slug)
-	index := r.search.Client.Index(r.search.Config.Uid)
+	index := ms.search.Client.Index(ms.search.Config.Uid)
 
 	task, err := index.DeleteDocumentsByFilterWithContext(ctx, filter, nil)
 	if err != nil {
 		return err
 	}
-	if err := r.search.WaitForTask(ctx, task); err != nil {
+	if err := ms.search.WaitForTask(ctx, task); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (r *MeilisearchEngine) Search(ctx context.Context, params *SearchParams) (*SearchResult, error) {
+func (ms *MeilisearchEngine) Search(ctx context.Context, params *SearchParams) (*SearchResult, error) {
 	var results SearchResult
 	req := &meilisearch.SearchRequest{
-		HitsPerPage: &params.Count,
-		Page:        params.Page,
-		Filter:      buildFilter(params),
-		Sort:        buildSort(params),
-		AttributesToRetrieve: []string{
-			"slug",
-			"hidden",
-			"navbar",
-			"name",
-			"locale",
-		},
+		HitsPerPage:          &params.Count,
+		Page:                 params.Page,
+		Filter:               ms.buildFilter(params),
+		Sort:                 ms.buildSort(params),
+		AttributesToRetrieve: params.Select,
 	}
-	index := r.search.Client.Index(r.search.Config.Uid)
+	index := ms.search.Client.Index(ms.search.Config.Uid)
 
 	params.Query = strings.TrimSpace(params.Query)
 
@@ -169,14 +142,14 @@ func (r *MeilisearchEngine) Search(ctx context.Context, params *SearchParams) (*
 	return &results, nil
 }
 
-func (r *MeilisearchEngine) CreateMeilisearchIndex(ctx context.Context) error {
-	return r.search.CreateIndex(ctx)
+func (ms *MeilisearchEngine) CreateMeilisearchIndex(ctx context.Context) error {
+	return ms.search.CreateIndex(ctx)
 }
 
-func (r *MeilisearchEngine) WipeMeilisearchIndex(ctx context.Context) error {
-	return r.search.WipeIndex(ctx)
+func (ms *MeilisearchEngine) WipeMeilisearchIndex(ctx context.Context) error {
+	return ms.search.WipeIndex(ctx)
 }
 
-func (r *MeilisearchEngine) ConfigureMeilisearchIndex(ctx context.Context) error {
-	return r.search.ConfigureIndex(ctx)
+func (ms *MeilisearchEngine) ConfigureMeilisearchIndex(ctx context.Context) error {
+	return ms.search.ConfigureIndex(ctx)
 }

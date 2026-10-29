@@ -1,0 +1,46 @@
+package category
+
+import (
+	"context"
+	"encoding/json"
+	"fmt"
+	"gocms/internal/domain"
+)
+
+type EventConsumer struct {
+	db Repository
+	se SearchEngine
+}
+
+func NewEventConsumer(db Repository, se SearchEngine) *EventConsumer {
+	return &EventConsumer{
+		db: db,
+		se: se,
+	}
+}
+
+func (s *EventConsumer) SyncSearch(ctx context.Context, data []byte) error {
+	var payload domain.CategoryEvent
+	if err := json.Unmarshal(data, &payload); err != nil {
+		return err
+	}
+
+	switch payload.Action {
+	case domain.CategoryActionCreate, domain.CategoryActionUpdate:
+		translations, err := s.db.GetTranslations(ctx, payload.Slug)
+		if err != nil {
+			return err
+		}
+
+		if err := s.se.Index(ctx, payload.Slug, translations...); err != nil {
+			return err
+		}
+		return nil
+	case domain.CategoryActionDelete:
+		if err := s.se.Delete(ctx, payload.Slug); err != nil {
+			return err
+		}
+		return nil
+	}
+	return fmt.Errorf("%w: unknown action", domain.ErrInval)
+}

@@ -2,7 +2,6 @@ package category
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"gocms/internal/auth"
@@ -10,7 +9,6 @@ import (
 	"gocms/internal/logger"
 	"gocms/internal/search"
 	"strings"
-	"unicode"
 )
 
 type Service struct {
@@ -25,99 +23,112 @@ func NewService(db Repository, se SearchEngine) *Service {
 	}
 }
 
-func (s *Service) sanitize(ctx context.Context, category *Document) error {
-	category.Slug = strings.TrimSpace(strings.ToLower(category.Slug))
-	if category.Slug == "" {
-		return fmt.Errorf("%w: slug cannot be empty", domain.ErrInval)
-	} else if strings.IndexFunc(category.Slug, unicode.IsSpace) >= 0 {
-		return fmt.Errorf("%w: no spaces allowed in slug", domain.ErrInval)
-	}
-
-	category.Locale = strings.TrimSpace(strings.ToLower(category.Locale))
-	if category.Locale == "" {
-		locale := ctx.Value("locale")
-		if locale == nil {
-			return fmt.Errorf("%w: empty locale", domain.ErrInval)
+func (s *Service) resolveLocale(ctx context.Context, value string) (string, error) {
+	normalized := strings.TrimSpace(strings.ToLower(value))
+	if normalized == "" {
+		locale, ok := ctx.Value("locale").(string)
+		if !ok {
+			return "", fmt.Errorf("%w: empty locale", domain.ErrInval)
 		}
-		category.Locale = locale.(string)
+		return locale, nil
 	}
-
-	return nil
+	return normalized, nil
 }
 
-func (s *Service) Create(ctx context.Context, category *Document) error {
+func (s *Service) Create(ctx context.Context, category *domain.Category) (string, error) {
 	if !auth.HasPermission(ctx, "categories", "create") {
-		return domain.ErrCred
+		return "", domain.ErrCred
 	}
 
-	if err := s.sanitize(ctx, category); err != nil {
-		return err
+	var created domain.Category
+	created = *category
+	slug, err := domain.NormalizeSlug(category.Slug)
+	if err != nil {
+		return "", err
+	}
+	created.Slug = slug
+
+	normalized := strings.TrimSpace(strings.ToLower(category.Locale))
+	if normalized == "" {
+		locale, ok := ctx.Value("locale").(string)
+		if !ok {
+			return "", fmt.Errorf("%w: empty locale", domain.ErrInval)
+		}
+		created.Locale = locale
+	} else {
+		created.Locale = normalized
 	}
 
-	if category.Slug == "" {
-		return fmt.Errorf("%w: slug cannot be empty", domain.ErrInval)
-	}
-
-	model := category.ToModel()
-	if err := s.repo.Create(ctx, &model); err != nil {
+	if err := s.repo.Create(ctx, &created); err != nil {
 		logger.Error("Category.Service", "Failed to create category", err)
-		return err
+		return "", err
 	}
 
-	return nil
+	return created.Slug, nil
 }
 
-func (s *Service) Edit(ctx context.Context, category *Document) (*Document, error) {
+func (s *Service) Edit(ctx context.Context, slug string, diff *domain.CategoryDiff) (string, error) {
 	if !auth.HasPermission(ctx, "categories", "edit") {
-		return nil, domain.ErrCred
+		return "", domain.ErrCred
 	}
 
-	if err := s.sanitize(ctx, category); err != nil {
-		return nil, err
-	}
-
-	model := category.ToModel()
-	err := s.repo.Update(ctx, &model)
+	slug, err := domain.NormalizeSlug(slug)
 	if err != nil {
+		return "", err
+	}
+
+	locale, ok := ctx.Value("locale").(string)
+	if !ok {
+		return "", fmt.Errorf("%w: empty locale", domain.ErrInval)
+	}
+
+	if diff.Slug != nil {
+		normalized, err := domain.NormalizeSlug(*diff.Slug)
+		if err != nil {
+			return "", err
+		}
+		diff.Slug = &normalized
+	}
+
+	if err := s.repo.Update(ctx, slug, locale, diff); err != nil {
 		logger.Error("Category.Service", "Failed to update category", err)
+		return "", err
+	}
+
+	if diff.Slug != nil {
+		return *diff.Slug, nil
+	} else {
+		return slug, nil
+	}
+}
+
+func (s *Service) Get(ctx context.Context, slug string) (*domain.Category, error) {
+	locale, ok := ctx.Value("locale").(string)
+	if !ok {
+		return nil, fmt.Errorf("%w: empty locale", domain.ErrInval)
+	}
+
+	category, err := s.repo.Get(ctx, slug, locale)
+	if err != nil {
+		if !errors.Is(err, domain.ErrNotFound) {
+			logger.Error("Category.Service", "Failed to retrieve category", err)
+		}
 		return nil, err
 	}
 
 	return category, nil
 }
 
-func (s *Service) Get(ctx context.Context, slug string) (*Document, error) {
-	locale := ctx.Value("locale")
-	if locale == nil {
+func (s *Service) AllNotHidden(ctx context.Context) ([]domain.Category, error) {
+	locale, ok := ctx.Value("locale").(string)
+	if !ok {
 		return nil, fmt.Errorf("%w: empty locale", domain.ErrInval)
 	}
 
-	category, err := s.repo.Get(ctx, slug, locale.(string))
-	if err != nil {
-		logger.Error("Category.Service", "Failed to retrieve category", err)
-		return nil, err
-	}
-
-	doc := category.ToDoc()
-	return &doc, nil
-}
-
-func (s *Service) All(ctx context.Context, hidden *bool) ([]Document, error) {
-	locale := ctx.Value("locale")
-	if locale == nil {
-		return nil, fmt.Errorf("%w: empty locale", domain.ErrInval)
-	}
-
-	model, err := s.repo.GetAll(ctx, locale.(string), hidden)
+	categories, err := s.repo.GetNotHidden(ctx, locale)
 	if err != nil {
 		logger.Error("Category.Service", "Failed to list categories", err)
 		return nil, err
-	}
-
-	categories := make([]Document, 0, len(model))
-
-	for _, category := range model {
-		categories = append(categories, category.ToDoc())
 	}
 
 	return categories, nil
@@ -145,34 +156,4 @@ func (s *Service) Delete(ctx context.Context, slug string) error {
 	}
 
 	return nil
-}
-
-func (s *Service) SyncSearch(ctx context.Context, data []byte) error {
-	var payload MessagePayload
-	if err := json.Unmarshal(data, &payload); err != nil {
-		return err
-	}
-
-	switch payload.Action {
-	case "create", "update":
-		category, err := s.repo.Get(ctx, payload.Slug, payload.Locale)
-		if err != nil {
-			if errors.Is(err, domain.ErrNotFound) {
-				return nil
-			}
-			return err
-		}
-		doc := category.ToDoc()
-
-		if err := s.se.Index(ctx, &doc); err != nil {
-			return err
-		}
-		return nil
-	case "delete":
-		if err := s.se.Delete(ctx, payload.Slug); err != nil {
-			return err
-		}
-		return nil
-	}
-	return fmt.Errorf("%w: unknown action", domain.ErrInval)
 }

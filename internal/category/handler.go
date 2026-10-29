@@ -2,13 +2,14 @@ package category
 
 import (
 	"encoding/json"
+	"gocms/internal/domain"
 	"gocms/internal/server"
 	"net/http"
 )
 
 // ------------------------------------------------------------------
 // POST /categories/search - Get/search categories
-// GET /categories - Get all categories
+// GET /categories - Get all categories without `hidden` tag
 // POST /categories - Create category
 // GET /categories/{slug} - Get category
 // PATCH /categories/{slug} - Update category
@@ -42,7 +43,7 @@ func (h *Handler) search(w http.ResponseWriter, r *http.Request) {
 	var filters SearchParams
 
 	if err := json.NewDecoder(r.Body).Decode(&filters); err != nil {
-		http.Error(w, "Invalid JSON payload", http.StatusBadRequest)
+		server.WriteDecodeError(w, err)
 		return
 	}
 
@@ -58,7 +59,7 @@ func (h *Handler) search(w http.ResponseWriter, r *http.Request) {
 
 // GET /categories - Get all categories
 func (h *Handler) all(w http.ResponseWriter, r *http.Request) {
-	categories, err := h.categoryService.All(r.Context(), nil)
+	categories, err := h.categoryService.AllNotHidden(r.Context())
 	if err != nil {
 		server.WriteServerError(w, "Category", err)
 		return
@@ -70,13 +71,13 @@ func (h *Handler) all(w http.ResponseWriter, r *http.Request) {
 
 // POST /categories - Create category
 func (h *Handler) create(w http.ResponseWriter, r *http.Request) {
-	var category Document
+	var category domain.Category
 	if err := json.NewDecoder(r.Body).Decode(&category); err != nil {
-		http.Error(w, "Invalid JSON payload", http.StatusBadRequest)
+		server.WriteDecodeError(w, err)
 		return
 	}
 
-	if err := h.categoryService.Create(r.Context(), &category); err != nil {
+	if _, err := h.categoryService.Create(r.Context(), &category); err != nil {
 		server.WriteServerError(w, "Category", err)
 		return
 	}
@@ -89,7 +90,7 @@ func (h *Handler) create(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) get(w http.ResponseWriter, r *http.Request) {
 	slug := r.PathValue("slug")
 	if slug == "" {
-		http.Error(w, "Missing slug", http.StatusBadRequest)
+		server.WritePathError(w, "Missing slug")
 		return
 	}
 
@@ -107,30 +108,30 @@ func (h *Handler) get(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) update(w http.ResponseWriter, r *http.Request) {
 	slug := r.PathValue("slug")
 	if slug == "" {
-		http.Error(w, "Missing slug", http.StatusBadRequest)
+		server.WritePathError(w, "Missing slug")
 		return
 	}
 
-	var category Document
-	if err := json.NewDecoder(r.Body).Decode(&category); err != nil {
-		http.Error(w, "Invalid JSON payload", http.StatusBadRequest)
+	var diff domain.CategoryDiff
+	if err := json.NewDecoder(r.Body).Decode(&diff); err != nil {
+		server.WriteDecodeError(w, err)
 		return
 	}
 
-	if _, err := h.categoryService.Edit(r.Context(), &category); err != nil {
+	if _, err := h.categoryService.Edit(r.Context(), slug, &diff); err != nil {
 		server.WriteServerError(w, "Category", err)
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	_ = json.NewEncoder(w).Encode(category)
+	_ = json.NewEncoder(w).Encode(diff)
 }
 
 // DELETE /categories/{slug} - Delete category
 func (h *Handler) delete(w http.ResponseWriter, r *http.Request) {
 	slug := r.PathValue("slug")
 	if slug == "" {
-		http.Error(w, "Missing slug", http.StatusBadRequest)
+		server.WritePathError(w, "Missing slug")
 		return
 	}
 

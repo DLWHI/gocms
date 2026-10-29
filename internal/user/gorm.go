@@ -45,7 +45,7 @@ func (r *GORMRepository) Create(ctx context.Context, user *domain.User, pwdhash 
 	record := ToRecord(user)
 	record.Password = pwdhash
 	err := r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		if err := tx.Create(&record).Error; err != nil {
+		if err := tx.Create(record).Error; err != nil {
 			return err
 		}
 		if err := r.writeMessage(tx, domain.UserActionCreate, user.Username); err != nil {
@@ -118,8 +118,7 @@ func (r *GORMRepository) UpdateLogin(ctx context.Context, username string, times
 	if err != nil {
 		return nil, r.mapErr(err)
 	}
-	u := user.ToDomain()
-	return &u, nil
+	return user.ToDomain(), nil
 }
 
 func (r *GORMRepository) UpdatePassword(ctx context.Context, username string, pwdhash []byte) error {
@@ -161,8 +160,7 @@ func (r *GORMRepository) Get(ctx context.Context, username string) (*domain.User
 		return nil, err
 	}
 
-	u := user.ToDomain()
-	return &u, nil
+	return user.ToDomain(), nil
 }
 
 func (r *GORMRepository) GetActive(ctx context.Context) ([]domain.User, error) {
@@ -176,7 +174,7 @@ func (r *GORMRepository) GetActive(ctx context.Context) ([]domain.User, error) {
 	vals := make([]domain.User, 0, len(users))
 
 	for _, user := range users {
-		vals = append(vals, user.ToDomain())
+		vals = append(vals, *user.ToDomain())
 	}
 
 	return vals, nil
@@ -261,7 +259,7 @@ func patch(diff *domain.UserDiff) RecordPatch {
 	return record
 }
 
-func (rd *Record) ToDomain() domain.User {
+func (rd *Record) ToDomain() *domain.User {
 	var res domain.User
 	res.Username = rd.Username
 
@@ -277,10 +275,10 @@ func (rd *Record) ToDomain() domain.User {
 
 	res.Email = rd.Email
 	res.Permissions = rd.Permissions
-	return res
+	return &res
 }
 
-func ToRecord(data *domain.User) Record {
+func ToRecord(data *domain.User) *Record {
 	var res Record
 
 	if data.SuspendedAt != nil {
@@ -298,5 +296,5 @@ func ToRecord(data *domain.User) Record {
 	res.Username = data.Username
 	res.Email = data.Email
 	res.Permissions = data.Permissions
-	return res
+	return &res
 }

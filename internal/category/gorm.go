@@ -44,9 +44,8 @@ func NewGORMRepository(db *gorm.DB) *GORMRepository {
 }
 
 func (r *GORMRepository) Create(ctx context.Context, category *domain.Category) error {
-	record := ToRecord(category)
 	err := r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		if err := tx.Create(&record).Error; err != nil {
+		if err := tx.Create(ToRecord(category)).Error; err != nil {
 			return err
 		}
 		if err := r.writeMessage(tx, domain.CategoryActionCreate, string(category.Slug)); err != nil {
@@ -140,8 +139,7 @@ func (r *GORMRepository) Get(ctx context.Context, slug string, locale string) (*
 		return nil, result.Error
 	}
 
-	val := record.ToDomain()
-	return &val, nil
+	return record.ToDomain(), nil
 }
 
 func (r *GORMRepository) GetTranslations(ctx context.Context, slug string) ([]domain.Category, error) {
@@ -160,8 +158,8 @@ func (r *GORMRepository) GetTranslations(ctx context.Context, slug string) ([]do
 
 	vals := make([]domain.Category, 0, len(categories))
 
-	for _, user := range categories {
-		vals = append(vals, user.ToDomain())
+	for _, category := range categories {
+		vals = append(vals, *category.ToDomain())
 	}
 
 	return vals, nil
@@ -184,8 +182,8 @@ func (r *GORMRepository) GetAll(ctx context.Context, locale string) ([]domain.Ca
 
 	vals := make([]domain.Category, 0, len(categories))
 
-	for _, user := range categories {
-		vals = append(vals, user.ToDomain())
+	for _, category := range categories {
+		vals = append(vals, *category.ToDomain())
 	}
 
 	return vals, nil
@@ -271,7 +269,7 @@ func patch(diff *domain.CategoryDiff) (RecordPatch, TranslationPatch) {
 	return RecordPatch(record), TranslationPatch(translation)
 }
 
-func (cm *RecordTranslation) ToDomain() domain.Category {
+func (cm *RecordTranslation) ToDomain() *domain.Category {
 	var cd domain.Category
 
 	cd.Slug = cm.Category.Slug
@@ -279,10 +277,10 @@ func (cm *RecordTranslation) ToDomain() domain.Category {
 	cd.Navbar = cm.Category.Navbar
 	cd.Name = cm.Name
 	cd.Locale = cm.Locale
-	return cd
+	return &cd
 }
 
-func ToRecord(cd *domain.Category) RecordTranslation {
+func ToRecord(cd *domain.Category) *RecordTranslation {
 	var cm RecordTranslation
 
 	cm.CategorySlug = cd.Slug
@@ -293,5 +291,5 @@ func ToRecord(cd *domain.Category) RecordTranslation {
 		Hidden: cd.Hidden,
 		Navbar: cd.Navbar,
 	}
-	return cm
+	return &cm
 }

@@ -85,7 +85,7 @@ func (r *RedisRepository) Get(ctx context.Context, slug string, locale string) (
 	return &category, nil
 }
 
-func (r *RedisRepository) GetNotHidden(ctx context.Context, locale string) ([]domain.Category, error) {
+func (r *RedisRepository) GetAll(ctx context.Context, locale string) ([]domain.Category, error) {
 	var categories []domain.Category
 	var token string
 	key := r.keys.Key(notHiddenListBase + "-" + locale)
@@ -102,7 +102,7 @@ func (r *RedisRepository) GetNotHidden(ctx context.Context, locale string) ([]do
 		logger.Warn("User.Redis", "Redis error while trying to retrieve key", err, "key", key)
 	}
 
-	c, err := r.Repository.GetNotHidden(ctx, locale)
+	c, err := r.Repository.GetAll(ctx, locale)
 	if err != nil {
 		return nil, err
 	}

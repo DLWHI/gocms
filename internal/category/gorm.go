@@ -167,12 +167,12 @@ func (r *GORMRepository) GetTranslations(ctx context.Context, slug string) ([]do
 	return vals, nil
 }
 
-func (r *GORMRepository) GetNotHidden(ctx context.Context, locale string) ([]domain.Category, error) {
+func (r *GORMRepository) GetAll(ctx context.Context, locale string) ([]domain.Category, error) {
 	var categories []RecordTranslation
 
 	result := r.db.WithContext(ctx).Model(&RecordTranslation{}).
 		Preload("Category").
-		Where("locale = ? AND hidden = false", locale).
+		Where("locale = ?", locale).
 		Find(&categories)
 
 	if result.Error != nil {

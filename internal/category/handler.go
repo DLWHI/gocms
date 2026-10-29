@@ -9,7 +9,7 @@ import (
 
 // ------------------------------------------------------------------
 // POST /categories/search - Get/search categories
-// GET /categories - Get all categories without `hidden` tag
+// GET /categories - Get all categories
 // POST /categories - Create category
 // GET /categories/{slug} - Get category
 // PATCH /categories/{slug} - Update category
@@ -59,7 +59,7 @@ func (h *Handler) search(w http.ResponseWriter, r *http.Request) {
 
 // GET /categories - Get all categories
 func (h *Handler) all(w http.ResponseWriter, r *http.Request) {
-	categories, err := h.categoryService.AllNotHidden(r.Context())
+	categories, err := h.categoryService.All(r.Context())
 	if err != nil {
 		server.WriteServerError(w, "Category", err)
 		return

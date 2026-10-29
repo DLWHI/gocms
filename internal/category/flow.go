@@ -65,13 +65,13 @@ func (r *FlowRepository) Get(ctx context.Context, slug string, locale string) (*
 	}
 }
 
-func (r *FlowRepository) GetNotHidden(ctx context.Context, locale string) ([]domain.Category, error) {
+func (r *FlowRepository) GetAll(ctx context.Context, locale string) ([]domain.Category, error) {
 	key := r.keys.Key(notHiddenListBase + "-" + locale)
 	ch := r.group.DoChan(key, func() (any, error) {
 		bg, cancel := context.WithTimeout(context.WithoutCancel(ctx), r.timeout)
 		defer cancel()
 
-		retrieved, err := r.Repository.GetNotHidden(bg, locale)
+		retrieved, err := r.Repository.GetAll(bg, locale)
 		if err != nil {
 			return nil, err
 		}

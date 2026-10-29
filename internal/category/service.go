@@ -119,17 +119,41 @@ func (s *Service) Get(ctx context.Context, slug string) (*domain.Category, error
 	return category, nil
 }
 
+func (s *Service) All(ctx context.Context) ([]domain.Category, error) {
+	locale, ok := ctx.Value("locale").(string)
+	if !ok {
+		return nil, fmt.Errorf("%w: empty locale", domain.ErrInval)
+	}
+
+	categories, err := s.repo.GetAll(ctx, locale)
+	if err != nil {
+		logger.Error("Category.Service", "Failed to list categories", err)
+		return nil, err
+	}
+
+	return categories, nil
+}
+
 func (s *Service) AllNotHidden(ctx context.Context) ([]domain.Category, error) {
 	locale, ok := ctx.Value("locale").(string)
 	if !ok {
 		return nil, fmt.Errorf("%w: empty locale", domain.ErrInval)
 	}
 
-	categories, err := s.repo.GetNotHidden(ctx, locale)
+	categories, err := s.repo.GetAll(ctx, locale)
 	if err != nil {
 		logger.Error("Category.Service", "Failed to list categories", err)
 		return nil, err
 	}
+
+	i := 0
+	for _, category := range categories {
+		if category.Hidden {
+			categories[i] = category
+			i++
+		}
+	}
+	categories = categories[:i]
 
 	return categories, nil
 }

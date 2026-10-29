@@ -65,8 +65,12 @@ func (h *Handler) all(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	res := map[string][]domain.Category{
+		"categories": categories,
+	}
+
 	w.Header().Set("Content-Type", "application/json")
-	_ = json.NewEncoder(w).Encode(categories)
+	_ = json.NewEncoder(w).Encode(res)
 }
 
 // POST /categories - Create category

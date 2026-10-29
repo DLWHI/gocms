@@ -40,12 +40,12 @@ func NewBCryptService(cost uint, minLength uint) *BCryptService {
 		charset:   "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()-_=+[]{}|;:,.<>?",
 	}
 
-	pwd, err := gen.GeneratePassword(16)
+	password, err := gen.GeneratePassword(16)
 	if err != nil {
 		logger.Warn("BCryptService", "Failed to generate dummy password, your application in vulnerable", err)
 		return &gen
 	}
-	dummyHash, err := gen.Hash(pwd)
+	dummyHash, err := gen.Hash(password)
 	if err != nil {
 		logger.Warn("BCryptService", "Failed to generate dummy password, your application in vulnerable", err)
 		return &gen
@@ -54,8 +54,8 @@ func NewBCryptService(cost uint, minLength uint) *BCryptService {
 	return &gen
 }
 
-func (h *BCryptService) Hash(pwd Password) ([]byte, error) {
-	hash, err := bcrypt.GenerateFromPassword(pwd, int(h.cost))
+func (h *BCryptService) Hash(password Password) ([]byte, error) {
+	hash, err := bcrypt.GenerateFromPassword(password, int(h.cost))
 	if err != nil {
 		return nil, err
 	}
@@ -63,14 +63,14 @@ func (h *BCryptService) Hash(pwd Password) ([]byte, error) {
 	return hash, nil
 }
 
-func (h *BCryptService) PasswordMatches(pwd Password, hash []byte) bool {
+func (h *BCryptService) PasswordMatches(password Password, hash []byte) bool {
 	if len(hash) == 0 {
 		if len(h.dummy) == 0 {
 			return false
 		}
 		hash = h.dummy
 	}
-	if err := bcrypt.CompareHashAndPassword(hash, pwd); err != nil {
+	if err := bcrypt.CompareHashAndPassword(hash, password); err != nil {
 		return false
 	}
 	return true

@@ -16,41 +16,41 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-var revoke = redis.NewScript(`
-	local userKey = KEYS[1]
-	local newSessionKey = KEYS[2]
-	local newSessionData = ARGV[1]
-	local newSuid = ARGV[2]
-	local ttl = tonumber(ARGV[3])
+var (
+	createScript = redis.NewScript(`
+		redis.call("SET", KEYS[1], ARGV[1], "EX", ARGV[2])
+		for _, k in ipairs(redis.call("SMEMBERS", KEYS[2])) do
+			if redis.call("EXISTS", k) == 0 then redis.call("SREM", KEYS[2], k) end
+		end
+		redis.call("SADD", KEYS[2], KEYS[1])
+		redis.call("EXPIRE", KEYS[2], ARGV[2])
+		return 1
+	`)
 
-	local oldSuid = redis.call("GET", userKey)
+	revokeUserScript = redis.NewScript(`
+		local ids = redis.call("SMEMBERS", KEYS[1])
+		for _, id in ipairs(ids) do redis.call("DEL", id) end
+		redis.call("DEL", KEYS[1])
+		return #ids
+	`)
 
-	if oldSuid and oldSuid ~= "" then
-			redis.call("DEL", "cms:sessions:" .. oldSuid)
-	end
-
-	redis.call("SET", newSessionKey, newSessionData, "EX", ttl)
-	redis.call("SET", userKey, newSuid, "EX", ttl)
-
-	return "OK"
-`)
+	revokeIdScript = redis.NewScript(`
+		redis.call("DEL", KEYS[1])
+		redis.call("SREM", KEYS[2], KEYS[1])
+		return 1
+	`)
+)
 
 type RedisSessionRepository struct {
-	cache *cache.RedisClient
-	users UserService
-	keys  cache.Keyspace
-	ttl   time.Duration
+	client *redis.Client
+	keys   cache.Keyspace
+	ttl    time.Duration
 }
 
-func NewRedisRepository(client *redis.Client, users UserService, keys cache.Keyspace, ttl time.Duration) *RedisSessionRepository {
+func NewRedisSessionRepository(client *redis.Client, keys cache.Keyspace, ttl time.Duration) *RedisSessionRepository {
 	return &RedisSessionRepository{
-		users: users,
-		ttl:   ttl,
-		keys:  keys,
-		cache: &cache.RedisClient{
-			Client:   client,
-			LeaseTTL: 5 * time.Second,
-		},
+		ttl:  ttl,
+		keys: keys,
 	}
 }
 
@@ -83,9 +83,10 @@ func (s *RedisSessionRepository) Create(ctx context.Context, username string) (s
 	}
 
 	key := s.keys.Key(username + "." + suid)
+	list := s.keys.List(username)
 	hash := sha256.Sum256(secret)
 
-	if _, err := s.cache.Client.Set(ctx, key, hash[:], s.ttl).Result(); err != nil {
+	if _, err := createScript.Run(ctx, s.client, []string{key, list}, hash[:], int64(s.ttl.Seconds())).Result(); err != nil {
 		return "", err
 	}
 
@@ -97,48 +98,46 @@ func (s *RedisSessionRepository) Create(ctx context.Context, username string) (s
 
 func (s *RedisSessionRepository) Revoke(ctx context.Context, username string, suid string) error {
 	key := s.keys.Key(username + "." + suid)
+	list := s.keys.List(username)
 
-	if _, err := s.cache.Client.Del(ctx, key).Result(); err != nil {
-		if errors.Is(err, redis.Nil) {
-			return nil
-		}
+	if _, err := revokeIdScript.Run(ctx, s.client, []string{key, list}).Result(); err != nil {
 		return err
 	}
 	return nil
 }
 
 func (s *RedisSessionRepository) RevokeUser(ctx context.Context, username string) error {
-	pattern := s.keys.Key(username + ".*")
+	list := s.keys.List(username)
 
-	if err := s.cache.InvalidatePattern(ctx, pattern); err != nil {
+	if _, err := revokeUserScript.Run(ctx, s.client, []string{list}).Result(); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (s *RedisSessionRepository) Validate(ctx context.Context, token string) (string, error) {
+func (s *RedisSessionRepository) Validate(ctx context.Context, token string) (string, string, error) {
 	parts := strings.Split(token, ".")
 
 	if len(parts) != 3 {
-		return "", fmt.Errorf("%w: invalid token", domain.ErrInval)
+		return "", "", fmt.Errorf("%w: invalid token", domain.ErrInval)
 	}
 
-	username := parts[0]
-	suid := parts[1]
+	username := strings.Clone(parts[0])
+	suid := strings.Clone(parts[1])
 
 	key := s.keys.Key(username + "." + suid)
 
-	store, err := s.cache.Client.Get(ctx, key).Bytes()
+	store, err := s.client.Get(ctx, key).Bytes()
 	if err != nil {
 		if errors.Is(err, redis.Nil) {
-			return "", domain.ErrExpired
+			return "", "", domain.ErrExpired
 		}
-		return "", err
+		return "", "", err
 	}
 
 	secret, err := base64.RawURLEncoding.DecodeString(parts[2])
 	if err != nil {
-		return "", fmt.Errorf("%w: invalid token", domain.ErrInval)
+		return "", "", fmt.Errorf("%w: invalid token", domain.ErrInval)
 	}
 
 	hash := sha256.Sum256(secret)
@@ -148,8 +147,8 @@ func (s *RedisSessionRepository) Validate(ctx context.Context, token string) (st
 	clear(hash[:])
 	clear(secret)
 	if !match {
-		return "", domain.ErrExpired
+		return "", "", domain.ErrExpired
 	}
 
-	return username, nil
+	return username, suid, nil
 }

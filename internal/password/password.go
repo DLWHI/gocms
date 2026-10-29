@@ -5,8 +5,8 @@ import "encoding/json"
 type Password []byte
 
 type PasswordService interface {
-	Hash(pwd Password) ([]byte, error)
-	PasswordMatches(pwd Password, hash []byte) bool
+	Hash(password Password) ([]byte, error)
+	PasswordMatches(password Password, hash []byte) bool
 	GeneratePassword(length int) (Password, error)
 	IsValidPassword(password Password) error
 }

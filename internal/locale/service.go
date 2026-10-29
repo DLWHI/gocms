@@ -3,7 +3,6 @@ package locale
 import (
 	"context"
 	"fmt"
-	"gocms/internal/auth"
 	"gocms/internal/domain"
 	"gocms/internal/logger"
 	"strings"
@@ -13,11 +12,13 @@ const MaxCodeLength = 2
 
 type Service struct {
 	repo Repository
+	auth domain.AuthService
 }
 
-func NewService(repo Repository) *Service {
+func NewService(repo Repository, auth domain.AuthService) *Service {
 	return &Service{
 		repo: repo,
+		auth: auth,
 	}
 }
 
@@ -41,7 +42,7 @@ func NormalizeCode(value string) (string, error) {
 }
 
 func (s *Service) Create(ctx context.Context, locale *domain.Locale) error {
-	if !auth.HasPermission(ctx, "locales", "create") {
+	if !s.auth.Authorize(ctx, domain.LocaleEntityName, domain.ActionCreateName) {
 		return domain.ErrCred
 	}
 
@@ -64,7 +65,7 @@ func (s *Service) GetAll(ctx context.Context) ([]domain.Locale, error) {
 }
 
 func (s *Service) Delete(ctx context.Context, code string) error {
-	if !auth.HasPermission(ctx, "locales", "delete") {
+	if !s.auth.Authorize(ctx, domain.LocaleEntityName, domain.ActionDeleteName) {
 		return domain.ErrCred
 	}
 

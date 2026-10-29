@@ -1,0 +1,6020 @@
+{
+  "meta": {
+    "format_version": 1,
+    "source_document": "docs/locales.md",
+    "reset": "Reset DB, cache and any index to `fixtures` before every case. Seed fixtures.locales. Actor rows are seeded by the harness; inject sessions directly.",
+    "actor": "Key into fixtures.actors, or: anonymous, garbage_session, expired_session. Actor caps are per entity: caps.locales = [create, delete]. Listing needs no capability, only a valid session.",
+    "request": "path_params are unescaped and must be percent-encoded when substituted. headers: null removes a default header. A request with a body carries Content-Type: application/json unless overridden. body_generator {json_padded_bytes: N, base} = valid JSON of exactly N bytes, padded with an unknown field.",
+    "expect.body": "empty | plain_text | json | any",
+    "json_assertions": "ops used: type, len_eq, includes, excludes, eq. Paths with [*] resolve to lists; filter paths like $.locales[?(@.code=='en')].name must match exactly one element.",
+    "source": "documented = rules inside the source_document; stated = rules you gave outside it (413, 415, 409, 401); inferred = derived from conventions or from the users tests.",
+    "tags": "boundary, cache, security, regression, undocumented_limit, verify_normalisation (code is lowercased/trimmed), verify_iso_list (code checked against the ISO 639-1 list, not just 2 letters), verify_name_rules (name trimming, required, length, uniqueness), verify_bodiless (Content-Type and size handling on GET/DELETE), verify_check_order (validation vs authorisation order).",
+    "not_covered": "Cascade deletion of translated records (needs entity routes) and concurrent creation of the same code (needs parallel steps)."
+  },
+  "constants": {},
+  "fixtures": {
+    "default_password": "Seed-Passw0rd-1",
+    "actors": {
+      "root": {
+        "username": "root",
+        "caps": {
+          "locales": ["create", "delete"]
+        }
+      },
+      "creator": {
+        "username": "creator",
+        "caps": {
+          "locales": ["create"]
+        }
+      },
+      "deleter": {
+        "username": "deleter",
+        "caps": {
+          "locales": ["delete"]
+        }
+      },
+      "reader": {
+        "username": "reader",
+        "caps": {}
+      }
+    },
+    "users": [],
+    "locales": [
+      {
+        "name": "English",
+        "code": "en"
+      },
+      {
+        "name": "Русский",
+        "code": "ru"
+      },
+      {
+        "name": "Deutsch",
+        "code": "de"
+      }
+    ]
+  },
+  "cases": [
+    {
+      "id": "LOCALES-AUTH-LIST-001",
+      "group": "GET /cms/locales",
+      "title": "401: missing Authorization header",
+      "source": "documented",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "anonymous",
+          "request": {
+            "method": "GET",
+            "path": "/cms/locales"
+          },
+          "expect": {
+            "status": 401,
+            "body": "plain_text"
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-AUTH-LIST-002",
+      "group": "GET /cms/locales",
+      "title": "401: empty bearer token",
+      "source": "documented",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "anonymous",
+          "request": {
+            "method": "GET",
+            "path": "/cms/locales",
+            "headers": {
+              "Authorization": "Bearer "
+            }
+          },
+          "expect": {
+            "status": 401,
+            "body": "plain_text"
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-AUTH-LIST-003",
+      "group": "GET /cms/locales",
+      "title": "401: wrong scheme (Basic)",
+      "source": "documented",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "anonymous",
+          "request": {
+            "method": "GET",
+            "path": "/cms/locales",
+            "headers": {
+              "Authorization": "Basic dXNlcjpwYXNz"
+            }
+          },
+          "expect": {
+            "status": 401,
+            "body": "plain_text"
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-AUTH-LIST-004",
+      "group": "GET /cms/locales",
+      "title": "401: session id without Bearer prefix",
+      "source": "documented",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "anonymous",
+          "request": {
+            "method": "GET",
+            "path": "/cms/locales",
+            "headers": {
+              "Authorization": {
+                "$raw_session": "root"
+              }
+            }
+          },
+          "expect": {
+            "status": 401,
+            "body": "plain_text"
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-AUTH-LIST-005",
+      "group": "GET /cms/locales",
+      "title": "401: garbage session id",
+      "source": "documented",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "garbage_session",
+          "request": {
+            "method": "GET",
+            "path": "/cms/locales"
+          },
+          "expect": {
+            "status": 401,
+            "body": "plain_text"
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-AUTH-LIST-006",
+      "group": "GET /cms/locales",
+      "title": "401: expired session",
+      "source": "documented",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "expired_session",
+          "request": {
+            "method": "GET",
+            "path": "/cms/locales"
+          },
+          "expect": {
+            "status": 401,
+            "body": "plain_text"
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-AUTH-CREATE-001",
+      "group": "POST /cms/locales",
+      "title": "401: missing Authorization header",
+      "source": "documented",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "anonymous",
+          "request": {
+            "method": "POST",
+            "path": "/cms/locales",
+            "body": {
+              "name": "French",
+              "code": "fr"
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 401,
+            "body": "plain_text"
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-AUTH-CREATE-002",
+      "group": "POST /cms/locales",
+      "title": "401: empty bearer token",
+      "source": "documented",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "anonymous",
+          "request": {
+            "method": "POST",
+            "path": "/cms/locales",
+            "body": {
+              "name": "French",
+              "code": "fr"
+            },
+            "headers": {
+              "Content-Type": "application/json",
+              "Authorization": "Bearer "
+            }
+          },
+          "expect": {
+            "status": 401,
+            "body": "plain_text"
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-AUTH-CREATE-003",
+      "group": "POST /cms/locales",
+      "title": "401: wrong scheme (Basic)",
+      "source": "documented",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "anonymous",
+          "request": {
+            "method": "POST",
+            "path": "/cms/locales",
+            "body": {
+              "name": "French",
+              "code": "fr"
+            },
+            "headers": {
+              "Content-Type": "application/json",
+              "Authorization": "Basic dXNlcjpwYXNz"
+            }
+          },
+          "expect": {
+            "status": 401,
+            "body": "plain_text"
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-AUTH-CREATE-004",
+      "group": "POST /cms/locales",
+      "title": "401: session id without Bearer prefix",
+      "source": "documented",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "anonymous",
+          "request": {
+            "method": "POST",
+            "path": "/cms/locales",
+            "body": {
+              "name": "French",
+              "code": "fr"
+            },
+            "headers": {
+              "Content-Type": "application/json",
+              "Authorization": {
+                "$raw_session": "root"
+              }
+            }
+          },
+          "expect": {
+            "status": 401,
+            "body": "plain_text"
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-AUTH-CREATE-005",
+      "group": "POST /cms/locales",
+      "title": "401: garbage session id",
+      "source": "documented",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "garbage_session",
+          "request": {
+            "method": "POST",
+            "path": "/cms/locales",
+            "body": {
+              "name": "French",
+              "code": "fr"
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 401,
+            "body": "plain_text"
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-AUTH-CREATE-006",
+      "group": "POST /cms/locales",
+      "title": "401: expired session",
+      "source": "documented",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "expired_session",
+          "request": {
+            "method": "POST",
+            "path": "/cms/locales",
+            "body": {
+              "name": "French",
+              "code": "fr"
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 401,
+            "body": "plain_text"
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-AUTH-DELETE-001",
+      "group": "DELETE /cms/locales/{code}",
+      "title": "401: missing Authorization header",
+      "source": "documented",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "anonymous",
+          "request": {
+            "method": "DELETE",
+            "path": "/cms/locales/{code}",
+            "path_params": {
+              "code": "de"
+            }
+          },
+          "expect": {
+            "status": 401,
+            "body": "plain_text"
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-AUTH-DELETE-002",
+      "group": "DELETE /cms/locales/{code}",
+      "title": "401: empty bearer token",
+      "source": "documented",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "anonymous",
+          "request": {
+            "method": "DELETE",
+            "path": "/cms/locales/{code}",
+            "path_params": {
+              "code": "de"
+            },
+            "headers": {
+              "Authorization": "Bearer "
+            }
+          },
+          "expect": {
+            "status": 401,
+            "body": "plain_text"
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-AUTH-DELETE-003",
+      "group": "DELETE /cms/locales/{code}",
+      "title": "401: wrong scheme (Basic)",
+      "source": "documented",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "anonymous",
+          "request": {
+            "method": "DELETE",
+            "path": "/cms/locales/{code}",
+            "path_params": {
+              "code": "de"
+            },
+            "headers": {
+              "Authorization": "Basic dXNlcjpwYXNz"
+            }
+          },
+          "expect": {
+            "status": 401,
+            "body": "plain_text"
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-AUTH-DELETE-004",
+      "group": "DELETE /cms/locales/{code}",
+      "title": "401: session id without Bearer prefix",
+      "source": "documented",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "anonymous",
+          "request": {
+            "method": "DELETE",
+            "path": "/cms/locales/{code}",
+            "path_params": {
+              "code": "de"
+            },
+            "headers": {
+              "Authorization": {
+                "$raw_session": "root"
+              }
+            }
+          },
+          "expect": {
+            "status": 401,
+            "body": "plain_text"
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-AUTH-DELETE-005",
+      "group": "DELETE /cms/locales/{code}",
+      "title": "401: garbage session id",
+      "source": "documented",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "garbage_session",
+          "request": {
+            "method": "DELETE",
+            "path": "/cms/locales/{code}",
+            "path_params": {
+              "code": "de"
+            }
+          },
+          "expect": {
+            "status": 401,
+            "body": "plain_text"
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-AUTH-DELETE-006",
+      "group": "DELETE /cms/locales/{code}",
+      "title": "401: expired session",
+      "source": "documented",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "expired_session",
+          "request": {
+            "method": "DELETE",
+            "path": "/cms/locales/{code}",
+            "path_params": {
+              "code": "de"
+            }
+          },
+          "expect": {
+            "status": 401,
+            "body": "plain_text"
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-AUTH-CREATE-007",
+      "group": "POST /cms/locales",
+      "title": "401 wins over invalid body",
+      "source": "inferred",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "anonymous",
+          "request": {
+            "method": "POST",
+            "path": "/cms/locales",
+            "body_raw": "{not json",
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 401,
+            "body": "plain_text"
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-AUTH-DELETE-007",
+      "group": "DELETE /cms/locales/{code}",
+      "title": "rejected request leaves the locale in place",
+      "source": "inferred",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "anonymous",
+          "request": {
+            "method": "DELETE",
+            "path": "/cms/locales/{code}",
+            "path_params": {
+              "code": "de"
+            }
+          },
+          "expect": {
+            "status": 401,
+            "body": "plain_text"
+          }
+        },
+        {
+          "actor": "root",
+          "request": {
+            "method": "GET",
+            "path": "/cms/locales"
+          },
+          "expect": {
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.locales",
+                "op": "type",
+                "value": "array"
+              },
+              {
+                "path": "$.locales[*].code",
+                "op": "includes",
+                "value": "de"
+              },
+              {
+                "path": "$.locales",
+                "op": "len_eq",
+                "value": 3
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-AUTH-CREATE-008",
+      "group": "POST /cms/locales",
+      "title": "rejected request creates nothing",
+      "source": "inferred",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "anonymous",
+          "request": {
+            "method": "POST",
+            "path": "/cms/locales",
+            "body": {
+              "name": "French",
+              "code": "fr"
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 401,
+            "body": "plain_text"
+          }
+        },
+        {
+          "actor": "root",
+          "request": {
+            "method": "GET",
+            "path": "/cms/locales"
+          },
+          "expect": {
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.locales",
+                "op": "type",
+                "value": "array"
+              },
+              {
+                "path": "$.locales[*].code",
+                "op": "excludes",
+                "value": "fr"
+              },
+              {
+                "path": "$.locales",
+                "op": "len_eq",
+                "value": 3
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-LIST-001",
+      "group": "GET /cms/locales",
+      "title": "returns the seeded locales with documented shape",
+      "source": "documented",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "GET",
+            "path": "/cms/locales"
+          },
+          "expect": {
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.locales",
+                "op": "type",
+                "value": "array"
+              },
+              {
+                "path": "$.locales",
+                "op": "len_eq",
+                "value": 3
+              },
+              {
+                "path": "$.locales[*].name",
+                "op": "type",
+                "value": "string"
+              },
+              {
+                "path": "$.locales[*].code",
+                "op": "type",
+                "value": "string"
+              },
+              {
+                "path": "$.locales[*].code",
+                "op": "includes",
+                "value": "en"
+              },
+              {
+                "path": "$.locales[*].code",
+                "op": "includes",
+                "value": "ru"
+              },
+              {
+                "path": "$.locales[*].code",
+                "op": "includes",
+                "value": "de"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-LIST-002",
+      "group": "GET /cms/locales",
+      "title": "names are paired with their codes (unicode preserved)",
+      "source": "documented",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "GET",
+            "path": "/cms/locales"
+          },
+          "expect": {
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.locales[?(@.code=='en')].name",
+                "op": "eq",
+                "value": "English"
+              },
+              {
+                "path": "$.locales[?(@.code=='ru')].name",
+                "op": "eq",
+                "value": "Русский"
+              },
+              {
+                "path": "$.locales[?(@.code=='de')].name",
+                "op": "eq",
+                "value": "Deutsch"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-LIST-003",
+      "group": "GET /cms/locales",
+      "title": "any authenticated user (`creator`) may list",
+      "source": "documented",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "creator",
+          "request": {
+            "method": "GET",
+            "path": "/cms/locales"
+          },
+          "expect": {
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.locales",
+                "op": "type",
+                "value": "array"
+              },
+              {
+                "path": "$.locales[*].code",
+                "op": "includes",
+                "value": "en"
+              },
+              {
+                "path": "$.locales[*].code",
+                "op": "includes",
+                "value": "ru"
+              },
+              {
+                "path": "$.locales[*].code",
+                "op": "includes",
+                "value": "de"
+              },
+              {
+                "path": "$.locales",
+                "op": "len_eq",
+                "value": 3
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-LIST-004",
+      "group": "GET /cms/locales",
+      "title": "any authenticated user (`deleter`) may list",
+      "source": "documented",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "deleter",
+          "request": {
+            "method": "GET",
+            "path": "/cms/locales"
+          },
+          "expect": {
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.locales",
+                "op": "type",
+                "value": "array"
+              },
+              {
+                "path": "$.locales[*].code",
+                "op": "includes",
+                "value": "en"
+              },
+              {
+                "path": "$.locales[*].code",
+                "op": "includes",
+                "value": "ru"
+              },
+              {
+                "path": "$.locales[*].code",
+                "op": "includes",
+                "value": "de"
+              },
+              {
+                "path": "$.locales",
+                "op": "len_eq",
+                "value": 3
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-LIST-005",
+      "group": "GET /cms/locales",
+      "title": "any authenticated user (`reader`) may list",
+      "source": "documented",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "reader",
+          "request": {
+            "method": "GET",
+            "path": "/cms/locales"
+          },
+          "expect": {
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.locales",
+                "op": "type",
+                "value": "array"
+              },
+              {
+                "path": "$.locales[*].code",
+                "op": "includes",
+                "value": "en"
+              },
+              {
+                "path": "$.locales[*].code",
+                "op": "includes",
+                "value": "ru"
+              },
+              {
+                "path": "$.locales[*].code",
+                "op": "includes",
+                "value": "de"
+              },
+              {
+                "path": "$.locales",
+                "op": "len_eq",
+                "value": 3
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-LIST-006",
+      "group": "GET /cms/locales",
+      "title": "request body is ignored",
+      "source": "documented",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "GET",
+            "path": "/cms/locales",
+            "body": {
+              "x": 1
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.locales",
+                "op": "type",
+                "value": "array"
+              },
+              {
+                "path": "$.locales",
+                "op": "len_eq",
+                "value": 3
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-LIST-007",
+      "group": "GET /cms/locales",
+      "title": "query string is ignored",
+      "source": "inferred",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "GET",
+            "path": "/cms/locales?code=en&x=1"
+          },
+          "expect": {
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.locales",
+                "op": "type",
+                "value": "array"
+              },
+              {
+                "path": "$.locales",
+                "op": "len_eq",
+                "value": 3
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-LIST-008",
+      "group": "GET /cms/locales",
+      "title": "empty list is [] not null",
+      "source": "inferred",
+      "tags": ["regression"],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "DELETE",
+            "path": "/cms/locales/{code}",
+            "path_params": {
+              "code": "en"
+            }
+          },
+          "expect": {
+            "status": 204,
+            "body": "empty"
+          }
+        },
+        {
+          "actor": "root",
+          "request": {
+            "method": "DELETE",
+            "path": "/cms/locales/{code}",
+            "path_params": {
+              "code": "ru"
+            }
+          },
+          "expect": {
+            "status": 204,
+            "body": "empty"
+          }
+        },
+        {
+          "actor": "root",
+          "request": {
+            "method": "DELETE",
+            "path": "/cms/locales/{code}",
+            "path_params": {
+              "code": "de"
+            }
+          },
+          "expect": {
+            "status": 204,
+            "body": "empty"
+          }
+        },
+        {
+          "actor": "root",
+          "request": {
+            "method": "GET",
+            "path": "/cms/locales"
+          },
+          "expect": {
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.locales",
+                "op": "type",
+                "value": "array"
+              },
+              {
+                "path": "$.locales",
+                "op": "len_eq",
+                "value": 0
+              }
+            ]
+          }
+        }
+      ],
+      "note": "Guards against a nil slice serialising as null."
+    },
+    {
+      "id": "LOCALES-LIST-009",
+      "group": "GET /cms/locales",
+      "title": "list reflects a new locale (cache invalidated)",
+      "source": "inferred",
+      "tags": ["cache"],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "GET",
+            "path": "/cms/locales"
+          },
+          "expect": {
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.locales",
+                "op": "type",
+                "value": "array"
+              },
+              {
+                "path": "$.locales",
+                "op": "len_eq",
+                "value": 3
+              }
+            ]
+          }
+        },
+        {
+          "actor": "root",
+          "request": {
+            "method": "POST",
+            "path": "/cms/locales",
+            "body": {
+              "name": "French",
+              "code": "fr"
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 201,
+            "body": "empty"
+          }
+        },
+        {
+          "actor": "root",
+          "request": {
+            "method": "GET",
+            "path": "/cms/locales"
+          },
+          "expect": {
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.locales",
+                "op": "type",
+                "value": "array"
+              },
+              {
+                "path": "$.locales[*].code",
+                "op": "includes",
+                "value": "fr"
+              },
+              {
+                "path": "$.locales[?(@.code=='fr')].name",
+                "op": "eq",
+                "value": "French"
+              },
+              {
+                "path": "$.locales",
+                "op": "len_eq",
+                "value": 4
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-LIST-010",
+      "group": "GET /cms/locales",
+      "title": "list reflects a deleted locale (cache invalidated)",
+      "source": "inferred",
+      "tags": ["cache"],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "GET",
+            "path": "/cms/locales"
+          },
+          "expect": {
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.locales",
+                "op": "type",
+                "value": "array"
+              },
+              {
+                "path": "$.locales",
+                "op": "len_eq",
+                "value": 3
+              }
+            ]
+          }
+        },
+        {
+          "actor": "root",
+          "request": {
+            "method": "DELETE",
+            "path": "/cms/locales/{code}",
+            "path_params": {
+              "code": "de"
+            }
+          },
+          "expect": {
+            "status": 204,
+            "body": "empty"
+          }
+        },
+        {
+          "actor": "root",
+          "request": {
+            "method": "GET",
+            "path": "/cms/locales"
+          },
+          "expect": {
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.locales",
+                "op": "type",
+                "value": "array"
+              },
+              {
+                "path": "$.locales[*].code",
+                "op": "includes",
+                "value": "en"
+              },
+              {
+                "path": "$.locales[*].code",
+                "op": "includes",
+                "value": "ru"
+              },
+              {
+                "path": "$.locales[*].code",
+                "op": "excludes",
+                "value": "de"
+              },
+              {
+                "path": "$.locales",
+                "op": "len_eq",
+                "value": 2
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-LIST-011",
+      "group": "GET /cms/locales",
+      "title": "Content-Type is not required or validated (header not listed in docs)",
+      "source": "inferred",
+      "tags": ["verify_bodiless"],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "GET",
+            "path": "/cms/locales",
+            "headers": {
+              "Content-Type": "text/plain"
+            }
+          },
+          "expect": {
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.locales",
+                "op": "type",
+                "value": "array"
+              },
+              {
+                "path": "$.locales",
+                "op": "len_eq",
+                "value": 3
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-LIST-012",
+      "group": "GET /cms/locales",
+      "title": "body of exactly 4096 bytes is ignored",
+      "source": "inferred",
+      "tags": ["boundary", "verify_bodiless"],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "GET",
+            "path": "/cms/locales",
+            "body_generator": {
+              "json_padded_bytes": 4096,
+              "base": {}
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.locales",
+                "op": "type",
+                "value": "array"
+              },
+              {
+                "path": "$.locales",
+                "op": "len_eq",
+                "value": 3
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-LIST-013",
+      "group": "GET /cms/locales",
+      "title": "413: body of 4097 bytes",
+      "source": "stated",
+      "tags": ["boundary", "verify_bodiless"],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "GET",
+            "path": "/cms/locales",
+            "body_generator": {
+              "json_padded_bytes": 4097,
+              "base": {}
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 413,
+            "body": "any"
+          }
+        }
+      ],
+      "note": "Docs say the body is ignored but also list a 4 KiB limit; assumes the limit is enforced before the handler."
+    },
+    {
+      "id": "LOCALES-CREATE-001",
+      "group": "POST /cms/locales",
+      "title": "creates a locale; it appears in the list",
+      "source": "documented",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "POST",
+            "path": "/cms/locales",
+            "body": {
+              "name": "French",
+              "code": "fr"
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 201,
+            "body": "empty"
+          }
+        },
+        {
+          "actor": "root",
+          "request": {
+            "method": "GET",
+            "path": "/cms/locales"
+          },
+          "expect": {
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.locales",
+                "op": "type",
+                "value": "array"
+              },
+              {
+                "path": "$.locales[*].code",
+                "op": "includes",
+                "value": "fr"
+              },
+              {
+                "path": "$.locales[*].code",
+                "op": "includes",
+                "value": "en"
+              },
+              {
+                "path": "$.locales[*].code",
+                "op": "includes",
+                "value": "ru"
+              },
+              {
+                "path": "$.locales[*].code",
+                "op": "includes",
+                "value": "de"
+              },
+              {
+                "path": "$.locales[?(@.code=='fr')].name",
+                "op": "eq",
+                "value": "French"
+              },
+              {
+                "path": "$.locales",
+                "op": "len_eq",
+                "value": 4
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-CREATE-002",
+      "group": "POST /cms/locales",
+      "title": "unicode name round-trips unchanged",
+      "source": "inferred",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "POST",
+            "path": "/cms/locales",
+            "body": {
+              "name": "日本語",
+              "code": "ja"
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 201,
+            "body": "empty"
+          }
+        },
+        {
+          "actor": "root",
+          "request": {
+            "method": "GET",
+            "path": "/cms/locales"
+          },
+          "expect": {
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.locales",
+                "op": "type",
+                "value": "array"
+              },
+              {
+                "path": "$.locales[*].code",
+                "op": "includes",
+                "value": "ja"
+              },
+              {
+                "path": "$.locales[?(@.code=='ja')].name",
+                "op": "eq",
+                "value": "日本語"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-CREATE-003",
+      "group": "POST /cms/locales",
+      "title": "name with punctuation, spaces and markup is stored as given",
+      "source": "inferred",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "POST",
+            "path": "/cms/locales",
+            "body": {
+              "name": "<b>Chinese (Simplified) & Co</b>",
+              "code": "zh"
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 201,
+            "body": "empty"
+          }
+        },
+        {
+          "actor": "root",
+          "request": {
+            "method": "GET",
+            "path": "/cms/locales"
+          },
+          "expect": {
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.locales",
+                "op": "type",
+                "value": "array"
+              },
+              {
+                "path": "$.locales[*].code",
+                "op": "includes",
+                "value": "zh"
+              },
+              {
+                "path": "$.locales[?(@.code=='zh')].name",
+                "op": "eq",
+                "value": "<b>Chinese (Simplified) & Co</b>"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-CREATE-004",
+      "group": "POST /cms/locales",
+      "title": "name is trimmed",
+      "source": "inferred",
+      "tags": ["verify_name_rules"],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "POST",
+            "path": "/cms/locales",
+            "body": {
+              "name": "  French  ",
+              "code": "fr"
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 201,
+            "body": "empty"
+          }
+        },
+        {
+          "actor": "root",
+          "request": {
+            "method": "GET",
+            "path": "/cms/locales"
+          },
+          "expect": {
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.locales",
+                "op": "type",
+                "value": "array"
+              },
+              {
+                "path": "$.locales[?(@.code=='fr')].name",
+                "op": "eq",
+                "value": "French"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-CREATE-005",
+      "group": "POST /cms/locales",
+      "title": "single character name",
+      "source": "inferred",
+      "tags": ["verify_name_rules"],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "POST",
+            "path": "/cms/locales",
+            "body": {
+              "name": "F",
+              "code": "fr"
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 201,
+            "body": "empty"
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-CREATE-006",
+      "group": "POST /cms/locales",
+      "title": "100 character name",
+      "source": "inferred",
+      "tags": ["verify_name_rules"],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "POST",
+            "path": "/cms/locales",
+            "body": {
+              "name": {
+                "$repeat": {
+                  "s": "n",
+                  "n": 100
+                }
+              },
+              "code": "fr"
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 201,
+            "body": "empty"
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-CREATE-007",
+      "group": "POST /cms/locales",
+      "title": "unknown fields are ignored",
+      "source": "inferred",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "POST",
+            "path": "/cms/locales",
+            "body": {
+              "name": "French",
+              "code": "fr",
+              "extra": {
+                "a": 1
+              },
+              "id": 99
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 201,
+            "body": "empty"
+          }
+        },
+        {
+          "actor": "root",
+          "request": {
+            "method": "GET",
+            "path": "/cms/locales"
+          },
+          "expect": {
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.locales",
+                "op": "type",
+                "value": "array"
+              },
+              {
+                "path": "$.locales[*].code",
+                "op": "includes",
+                "value": "fr"
+              },
+              {
+                "path": "$.locales",
+                "op": "len_eq",
+                "value": 4
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-CREATE-008",
+      "group": "POST /cms/locales",
+      "title": "same name under a different code is allowed",
+      "source": "inferred",
+      "tags": ["verify_name_rules"],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "POST",
+            "path": "/cms/locales",
+            "body": {
+              "name": "English",
+              "code": "ee"
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 201,
+            "body": "empty"
+          }
+        },
+        {
+          "actor": "root",
+          "request": {
+            "method": "GET",
+            "path": "/cms/locales"
+          },
+          "expect": {
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.locales",
+                "op": "type",
+                "value": "array"
+              },
+              {
+                "path": "$.locales[*].code",
+                "op": "includes",
+                "value": "en"
+              },
+              {
+                "path": "$.locales[*].code",
+                "op": "includes",
+                "value": "ee"
+              },
+              {
+                "path": "$.locales",
+                "op": "len_eq",
+                "value": 4
+              }
+            ]
+          }
+        }
+      ],
+      "note": "Docs define a conflict only for an existing code."
+    },
+    {
+      "id": "LOCALES-CREATE-009",
+      "group": "POST /cms/locales",
+      "title": "first/last ISO 639-1 code `aa` accepted",
+      "source": "inferred",
+      "tags": ["boundary"],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "POST",
+            "path": "/cms/locales",
+            "body": {
+              "name": "Boundary",
+              "code": "aa"
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 201,
+            "body": "empty"
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-CREATE-010",
+      "group": "POST /cms/locales",
+      "title": "first/last ISO 639-1 code `zu` accepted",
+      "source": "inferred",
+      "tags": ["boundary"],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "POST",
+            "path": "/cms/locales",
+            "body": {
+              "name": "Boundary",
+              "code": "zu"
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 201,
+            "body": "empty"
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-CREATE-011",
+      "group": "POST /cms/locales",
+      "title": "uppercase code is normalised to lowercase",
+      "source": "inferred",
+      "tags": ["verify_normalisation"],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "POST",
+            "path": "/cms/locales",
+            "body": {
+              "name": "French",
+              "code": "FR"
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 201,
+            "body": "empty"
+          }
+        },
+        {
+          "actor": "root",
+          "request": {
+            "method": "GET",
+            "path": "/cms/locales"
+          },
+          "expect": {
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.locales",
+                "op": "type",
+                "value": "array"
+              },
+              {
+                "path": "$.locales[*].code",
+                "op": "includes",
+                "value": "fr"
+              },
+              {
+                "path": "$.locales[*].code",
+                "op": "excludes",
+                "value": "FR"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-CREATE-012",
+      "group": "POST /cms/locales",
+      "title": "padded code is trimmed",
+      "source": "inferred",
+      "tags": ["verify_normalisation"],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "POST",
+            "path": "/cms/locales",
+            "body": {
+              "name": "French",
+              "code": " fr "
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 201,
+            "body": "empty"
+          }
+        },
+        {
+          "actor": "root",
+          "request": {
+            "method": "GET",
+            "path": "/cms/locales"
+          },
+          "expect": {
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.locales",
+                "op": "type",
+                "value": "array"
+              },
+              {
+                "path": "$.locales[*].code",
+                "op": "includes",
+                "value": "fr"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-CREATE-013",
+      "group": "POST /cms/locales",
+      "title": "locale can be re-created after deletion",
+      "source": "inferred",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "DELETE",
+            "path": "/cms/locales/{code}",
+            "path_params": {
+              "code": "de"
+            }
+          },
+          "expect": {
+            "status": 204,
+            "body": "empty"
+          }
+        },
+        {
+          "actor": "root",
+          "request": {
+            "method": "POST",
+            "path": "/cms/locales",
+            "body": {
+              "name": "Deutsch",
+              "code": "de"
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 201,
+            "body": "empty"
+          }
+        },
+        {
+          "actor": "root",
+          "request": {
+            "method": "GET",
+            "path": "/cms/locales"
+          },
+          "expect": {
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.locales",
+                "op": "type",
+                "value": "array"
+              },
+              {
+                "path": "$.locales[*].code",
+                "op": "includes",
+                "value": "de"
+              },
+              {
+                "path": "$.locales",
+                "op": "len_eq",
+                "value": 3
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-CREATE-014",
+      "group": "POST /cms/locales",
+      "title": "created locale can be deleted",
+      "source": "inferred",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "POST",
+            "path": "/cms/locales",
+            "body": {
+              "name": "French",
+              "code": "fr"
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 201,
+            "body": "empty"
+          }
+        },
+        {
+          "actor": "root",
+          "request": {
+            "method": "DELETE",
+            "path": "/cms/locales/{code}",
+            "path_params": {
+              "code": "fr"
+            }
+          },
+          "expect": {
+            "status": 204,
+            "body": "empty"
+          }
+        },
+        {
+          "actor": "root",
+          "request": {
+            "method": "GET",
+            "path": "/cms/locales"
+          },
+          "expect": {
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.locales",
+                "op": "type",
+                "value": "array"
+              },
+              {
+                "path": "$.locales[*].code",
+                "op": "excludes",
+                "value": "fr"
+              },
+              {
+                "path": "$.locales",
+                "op": "len_eq",
+                "value": 3
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-CREATE-015",
+      "group": "POST /cms/locales",
+      "title": "400: invalid code (empty string); nothing created",
+      "source": "documented",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "POST",
+            "path": "/cms/locales",
+            "body": {
+              "name": "French",
+              "code": ""
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 400,
+            "body": "plain_text"
+          }
+        },
+        {
+          "actor": "root",
+          "request": {
+            "method": "GET",
+            "path": "/cms/locales"
+          },
+          "expect": {
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.locales",
+                "op": "type",
+                "value": "array"
+              },
+              {
+                "path": "$.locales",
+                "op": "len_eq",
+                "value": 3
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-CREATE-016",
+      "group": "POST /cms/locales",
+      "title": "400: invalid code (whitespace only); nothing created",
+      "source": "inferred",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "POST",
+            "path": "/cms/locales",
+            "body": {
+              "name": "French",
+              "code": "   "
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 400,
+            "body": "plain_text"
+          }
+        },
+        {
+          "actor": "root",
+          "request": {
+            "method": "GET",
+            "path": "/cms/locales"
+          },
+          "expect": {
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.locales",
+                "op": "type",
+                "value": "array"
+              },
+              {
+                "path": "$.locales",
+                "op": "len_eq",
+                "value": 3
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-CREATE-017",
+      "group": "POST /cms/locales",
+      "title": "400: invalid code (1 letter); nothing created",
+      "source": "inferred",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "POST",
+            "path": "/cms/locales",
+            "body": {
+              "name": "French",
+              "code": "f"
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 400,
+            "body": "plain_text"
+          }
+        },
+        {
+          "actor": "root",
+          "request": {
+            "method": "GET",
+            "path": "/cms/locales"
+          },
+          "expect": {
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.locales",
+                "op": "type",
+                "value": "array"
+              },
+              {
+                "path": "$.locales",
+                "op": "len_eq",
+                "value": 3
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-CREATE-018",
+      "group": "POST /cms/locales",
+      "title": "400: invalid code (3 letters (ISO 639-2)); nothing created",
+      "source": "documented",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "POST",
+            "path": "/cms/locales",
+            "body": {
+              "name": "French",
+              "code": "fra"
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 400,
+            "body": "plain_text"
+          }
+        },
+        {
+          "actor": "root",
+          "request": {
+            "method": "GET",
+            "path": "/cms/locales"
+          },
+          "expect": {
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.locales",
+                "op": "type",
+                "value": "array"
+              },
+              {
+                "path": "$.locales",
+                "op": "len_eq",
+                "value": 3
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-CREATE-019",
+      "group": "POST /cms/locales",
+      "title": "400: invalid code (letter + digit); nothing created",
+      "source": "inferred",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "POST",
+            "path": "/cms/locales",
+            "body": {
+              "name": "French",
+              "code": "f1"
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 400,
+            "body": "plain_text"
+          }
+        },
+        {
+          "actor": "root",
+          "request": {
+            "method": "GET",
+            "path": "/cms/locales"
+          },
+          "expect": {
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.locales",
+                "op": "type",
+                "value": "array"
+              },
+              {
+                "path": "$.locales",
+                "op": "len_eq",
+                "value": 3
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-CREATE-020",
+      "group": "POST /cms/locales",
+      "title": "400: invalid code (digits only); nothing created",
+      "source": "inferred",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "POST",
+            "path": "/cms/locales",
+            "body": {
+              "name": "French",
+              "code": "12"
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 400,
+            "body": "plain_text"
+          }
+        },
+        {
+          "actor": "root",
+          "request": {
+            "method": "GET",
+            "path": "/cms/locales"
+          },
+          "expect": {
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.locales",
+                "op": "type",
+                "value": "array"
+              },
+              {
+                "path": "$.locales",
+                "op": "len_eq",
+                "value": 3
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-CREATE-021",
+      "group": "POST /cms/locales",
+      "title": "400: invalid code (region subtag (fr-FR)); nothing created",
+      "source": "documented",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "POST",
+            "path": "/cms/locales",
+            "body": {
+              "name": "French",
+              "code": "fr-FR"
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 400,
+            "body": "plain_text"
+          }
+        },
+        {
+          "actor": "root",
+          "request": {
+            "method": "GET",
+            "path": "/cms/locales"
+          },
+          "expect": {
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.locales",
+                "op": "type",
+                "value": "array"
+              },
+              {
+                "path": "$.locales",
+                "op": "len_eq",
+                "value": 3
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-CREATE-022",
+      "group": "POST /cms/locales",
+      "title": "400: invalid code (underscore region (fr_FR)); nothing created",
+      "source": "inferred",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "POST",
+            "path": "/cms/locales",
+            "body": {
+              "name": "French",
+              "code": "fr_FR"
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 400,
+            "body": "plain_text"
+          }
+        },
+        {
+          "actor": "root",
+          "request": {
+            "method": "GET",
+            "path": "/cms/locales"
+          },
+          "expect": {
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.locales",
+                "op": "type",
+                "value": "array"
+              },
+              {
+                "path": "$.locales",
+                "op": "len_eq",
+                "value": 3
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-CREATE-023",
+      "group": "POST /cms/locales",
+      "title": "400: invalid code (Cyrillic look-alikes); nothing created",
+      "source": "inferred",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "POST",
+            "path": "/cms/locales",
+            "body": {
+              "name": "French",
+              "code": "еn"
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 400,
+            "body": "plain_text"
+          }
+        },
+        {
+          "actor": "root",
+          "request": {
+            "method": "GET",
+            "path": "/cms/locales"
+          },
+          "expect": {
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.locales",
+                "op": "type",
+                "value": "array"
+              },
+              {
+                "path": "$.locales",
+                "op": "len_eq",
+                "value": 3
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-CREATE-024",
+      "group": "POST /cms/locales",
+      "title": "400: invalid code (fullwidth letters); nothing created",
+      "source": "inferred",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "POST",
+            "path": "/cms/locales",
+            "body": {
+              "name": "French",
+              "code": "ｆｒ"
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 400,
+            "body": "plain_text"
+          }
+        },
+        {
+          "actor": "root",
+          "request": {
+            "method": "GET",
+            "path": "/cms/locales"
+          },
+          "expect": {
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.locales",
+                "op": "type",
+                "value": "array"
+              },
+              {
+                "path": "$.locales",
+                "op": "len_eq",
+                "value": 3
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-CREATE-025",
+      "group": "POST /cms/locales",
+      "title": "400: invalid code (space inside); nothing created",
+      "source": "inferred",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "POST",
+            "path": "/cms/locales",
+            "body": {
+              "name": "French",
+              "code": "f r"
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 400,
+            "body": "plain_text"
+          }
+        },
+        {
+          "actor": "root",
+          "request": {
+            "method": "GET",
+            "path": "/cms/locales"
+          },
+          "expect": {
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.locales",
+                "op": "type",
+                "value": "array"
+              },
+              {
+                "path": "$.locales",
+                "op": "len_eq",
+                "value": 3
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-CREATE-026",
+      "group": "POST /cms/locales",
+      "title": "400: invalid code (emoji); nothing created",
+      "source": "inferred",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "POST",
+            "path": "/cms/locales",
+            "body": {
+              "name": "French",
+              "code": "😀"
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 400,
+            "body": "plain_text"
+          }
+        },
+        {
+          "actor": "root",
+          "request": {
+            "method": "GET",
+            "path": "/cms/locales"
+          },
+          "expect": {
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.locales",
+                "op": "type",
+                "value": "array"
+              },
+              {
+                "path": "$.locales",
+                "op": "len_eq",
+                "value": 3
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-CREATE-027",
+      "group": "POST /cms/locales",
+      "title": "400: invalid code (slash); nothing created",
+      "source": "inferred",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "POST",
+            "path": "/cms/locales",
+            "body": {
+              "name": "French",
+              "code": "f/"
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 400,
+            "body": "plain_text"
+          }
+        },
+        {
+          "actor": "root",
+          "request": {
+            "method": "GET",
+            "path": "/cms/locales"
+          },
+          "expect": {
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.locales",
+                "op": "type",
+                "value": "array"
+              },
+              {
+                "path": "$.locales",
+                "op": "len_eq",
+                "value": 3
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-CREATE-028",
+      "group": "POST /cms/locales",
+      "title": "400: invalid code (colon); nothing created",
+      "source": "inferred",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "POST",
+            "path": "/cms/locales",
+            "body": {
+              "name": "French",
+              "code": "f:"
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 400,
+            "body": "plain_text"
+          }
+        },
+        {
+          "actor": "root",
+          "request": {
+            "method": "GET",
+            "path": "/cms/locales"
+          },
+          "expect": {
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.locales",
+                "op": "type",
+                "value": "array"
+              },
+              {
+                "path": "$.locales",
+                "op": "len_eq",
+                "value": 3
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-CREATE-029",
+      "group": "POST /cms/locales",
+      "title": "400: invalid code (brace); nothing created",
+      "source": "inferred",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "POST",
+            "path": "/cms/locales",
+            "body": {
+              "name": "French",
+              "code": "{f"
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 400,
+            "body": "plain_text"
+          }
+        },
+        {
+          "actor": "root",
+          "request": {
+            "method": "GET",
+            "path": "/cms/locales"
+          },
+          "expect": {
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.locales",
+                "op": "type",
+                "value": "array"
+              },
+              {
+                "path": "$.locales",
+                "op": "len_eq",
+                "value": 3
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-CREATE-030",
+      "group": "POST /cms/locales",
+      "title": "400: invalid code (wildcard); nothing created",
+      "source": "inferred",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "POST",
+            "path": "/cms/locales",
+            "body": {
+              "name": "French",
+              "code": "f*"
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 400,
+            "body": "plain_text"
+          }
+        },
+        {
+          "actor": "root",
+          "request": {
+            "method": "GET",
+            "path": "/cms/locales"
+          },
+          "expect": {
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.locales",
+                "op": "type",
+                "value": "array"
+              },
+              {
+                "path": "$.locales",
+                "op": "len_eq",
+                "value": 3
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-CREATE-031",
+      "group": "POST /cms/locales",
+      "title": "400: invalid code (null byte); nothing created",
+      "source": "inferred",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "POST",
+            "path": "/cms/locales",
+            "body": {
+              "name": "French",
+              "code": "f\u0000"
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 400,
+            "body": "plain_text"
+          }
+        },
+        {
+          "actor": "root",
+          "request": {
+            "method": "GET",
+            "path": "/cms/locales"
+          },
+          "expect": {
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.locales",
+                "op": "type",
+                "value": "array"
+              },
+              {
+                "path": "$.locales",
+                "op": "len_eq",
+                "value": 3
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-CREATE-032",
+      "group": "POST /cms/locales",
+      "title": "400: invalid code (embedded newline); nothing created",
+      "source": "inferred",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "POST",
+            "path": "/cms/locales",
+            "body": {
+              "name": "French",
+              "code": "f\nr"
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 400,
+            "body": "plain_text"
+          }
+        },
+        {
+          "actor": "root",
+          "request": {
+            "method": "GET",
+            "path": "/cms/locales"
+          },
+          "expect": {
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.locales",
+                "op": "type",
+                "value": "array"
+              },
+              {
+                "path": "$.locales",
+                "op": "len_eq",
+                "value": 3
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-CREATE-033",
+      "group": "POST /cms/locales",
+      "title": "400: well-formed but unassigned code (zz)",
+      "source": "inferred",
+      "tags": ["verify_iso_list"],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "POST",
+            "path": "/cms/locales",
+            "body": {
+              "name": "Nowhere",
+              "code": "zz"
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 400,
+            "body": "plain_text"
+          }
+        },
+        {
+          "actor": "root",
+          "request": {
+            "method": "GET",
+            "path": "/cms/locales"
+          },
+          "expect": {
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.locales",
+                "op": "type",
+                "value": "array"
+              },
+              {
+                "path": "$.locales",
+                "op": "len_eq",
+                "value": 3
+              }
+            ]
+          }
+        }
+      ],
+      "note": "Assumes the code is checked against the ISO 639-1 list, not only its shape."
+    },
+    {
+      "id": "LOCALES-CREATE-034",
+      "group": "POST /cms/locales",
+      "title": "400: code missing",
+      "source": "documented",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "POST",
+            "path": "/cms/locales",
+            "body": {
+              "name": "French"
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 400,
+            "body": "plain_text"
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-CREATE-035",
+      "group": "POST /cms/locales",
+      "title": "400: code type is null",
+      "source": "documented",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "POST",
+            "path": "/cms/locales",
+            "body_raw": "{\"name\":\"French\",\"code\":null}",
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 400,
+            "body": "plain_text"
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-CREATE-036",
+      "group": "POST /cms/locales",
+      "title": "400: code type is number",
+      "source": "documented",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "POST",
+            "path": "/cms/locales",
+            "body_raw": "{\"name\":\"French\",\"code\":12}",
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 400,
+            "body": "plain_text"
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-CREATE-037",
+      "group": "POST /cms/locales",
+      "title": "400: code type is boolean",
+      "source": "documented",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "POST",
+            "path": "/cms/locales",
+            "body_raw": "{\"name\":\"French\",\"code\":true}",
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 400,
+            "body": "plain_text"
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-CREATE-038",
+      "group": "POST /cms/locales",
+      "title": "400: code type is array",
+      "source": "documented",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "POST",
+            "path": "/cms/locales",
+            "body_raw": "{\"name\":\"French\",\"code\":[\"fr\"]}",
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 400,
+            "body": "plain_text"
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-CREATE-039",
+      "group": "POST /cms/locales",
+      "title": "400: code type is object",
+      "source": "documented",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "POST",
+            "path": "/cms/locales",
+            "body_raw": "{\"name\":\"French\",\"code\":{\"a\":1}}",
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 400,
+            "body": "plain_text"
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-CREATE-040",
+      "group": "POST /cms/locales",
+      "title": "400: name missing",
+      "source": "inferred",
+      "tags": ["verify_name_rules"],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "POST",
+            "path": "/cms/locales",
+            "body": {
+              "code": "fr"
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 400,
+            "body": "plain_text"
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-CREATE-041",
+      "group": "POST /cms/locales",
+      "title": "400: name empty string",
+      "source": "inferred",
+      "tags": ["verify_name_rules"],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "POST",
+            "path": "/cms/locales",
+            "body": {
+              "name": "",
+              "code": "fr"
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 400,
+            "body": "plain_text"
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-CREATE-042",
+      "group": "POST /cms/locales",
+      "title": "400: name whitespace only",
+      "source": "inferred",
+      "tags": ["verify_name_rules"],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "POST",
+            "path": "/cms/locales",
+            "body": {
+              "name": "   ",
+              "code": "fr"
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 400,
+            "body": "plain_text"
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-CREATE-043",
+      "group": "POST /cms/locales",
+      "title": "400: name with embedded newline",
+      "source": "inferred",
+      "tags": ["verify_name_rules"],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "POST",
+            "path": "/cms/locales",
+            "body": {
+              "name": "Fre\nnch",
+              "code": "fr"
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 400,
+            "body": "plain_text"
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-CREATE-044",
+      "group": "POST /cms/locales",
+      "title": "400: name of 3000 characters",
+      "source": "inferred",
+      "tags": ["undocumented_limit", "verify_name_rules"],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "POST",
+            "path": "/cms/locales",
+            "body": {
+              "name": {
+                "$repeat": {
+                  "s": "n",
+                  "n": 3000
+                }
+              },
+              "code": "fr"
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 400,
+            "body": "plain_text"
+          }
+        }
+      ],
+      "note": "Under the 4 KiB body limit; assumes a name-length cap exists."
+    },
+    {
+      "id": "LOCALES-CREATE-045",
+      "group": "POST /cms/locales",
+      "title": "400: name type is null",
+      "source": "documented",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "POST",
+            "path": "/cms/locales",
+            "body_raw": "{\"name\":null,\"code\":\"fr\"}",
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 400,
+            "body": "plain_text"
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-CREATE-046",
+      "group": "POST /cms/locales",
+      "title": "400: name type is number",
+      "source": "documented",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "POST",
+            "path": "/cms/locales",
+            "body_raw": "{\"name\":12,\"code\":\"fr\"}",
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 400,
+            "body": "plain_text"
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-CREATE-047",
+      "group": "POST /cms/locales",
+      "title": "400: name type is boolean",
+      "source": "documented",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "POST",
+            "path": "/cms/locales",
+            "body_raw": "{\"name\":true,\"code\":\"fr\"}",
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 400,
+            "body": "plain_text"
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-CREATE-048",
+      "group": "POST /cms/locales",
+      "title": "400: name type is array",
+      "source": "documented",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "POST",
+            "path": "/cms/locales",
+            "body_raw": "{\"name\":[\"x\"],\"code\":\"fr\"}",
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 400,
+            "body": "plain_text"
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-CREATE-049",
+      "group": "POST /cms/locales",
+      "title": "400: name type is object",
+      "source": "documented",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "POST",
+            "path": "/cms/locales",
+            "body_raw": "{\"name\":{\"a\":1},\"code\":\"fr\"}",
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 400,
+            "body": "plain_text"
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-CREATE-050",
+      "group": "POST /cms/locales",
+      "title": "400: empty object",
+      "source": "documented",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "POST",
+            "path": "/cms/locales",
+            "body": {},
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 400,
+            "body": "plain_text"
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-CREATE-051",
+      "group": "POST /cms/locales",
+      "title": "409: code already exists; original untouched",
+      "source": "documented",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "POST",
+            "path": "/cms/locales",
+            "body": {
+              "name": "Anglais",
+              "code": "en"
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 409,
+            "body": "plain_text"
+          }
+        },
+        {
+          "actor": "root",
+          "request": {
+            "method": "GET",
+            "path": "/cms/locales"
+          },
+          "expect": {
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.locales",
+                "op": "type",
+                "value": "array"
+              },
+              {
+                "path": "$.locales[?(@.code=='en')].name",
+                "op": "eq",
+                "value": "English"
+              },
+              {
+                "path": "$.locales",
+                "op": "len_eq",
+                "value": 3
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-CREATE-052",
+      "group": "POST /cms/locales",
+      "title": "409: identical locale posted again",
+      "source": "documented",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "POST",
+            "path": "/cms/locales",
+            "body": {
+              "name": "English",
+              "code": "en"
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 409,
+            "body": "plain_text"
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-CREATE-053",
+      "group": "POST /cms/locales",
+      "title": "409: created twice",
+      "source": "documented",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "POST",
+            "path": "/cms/locales",
+            "body": {
+              "name": "French",
+              "code": "fr"
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 201,
+            "body": "empty"
+          }
+        },
+        {
+          "actor": "root",
+          "request": {
+            "method": "POST",
+            "path": "/cms/locales",
+            "body": {
+              "name": "French",
+              "code": "fr"
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 409,
+            "body": "plain_text"
+          }
+        },
+        {
+          "actor": "root",
+          "request": {
+            "method": "GET",
+            "path": "/cms/locales"
+          },
+          "expect": {
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.locales",
+                "op": "type",
+                "value": "array"
+              },
+              {
+                "path": "$.locales[*].code",
+                "op": "includes",
+                "value": "fr"
+              },
+              {
+                "path": "$.locales",
+                "op": "len_eq",
+                "value": 4
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-CREATE-054",
+      "group": "POST /cms/locales",
+      "title": "409: uppercase variant of an existing code",
+      "source": "inferred",
+      "tags": ["verify_normalisation"],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "POST",
+            "path": "/cms/locales",
+            "body": {
+              "name": "English",
+              "code": "EN"
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 409,
+            "body": "plain_text"
+          }
+        },
+        {
+          "actor": "root",
+          "request": {
+            "method": "GET",
+            "path": "/cms/locales"
+          },
+          "expect": {
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.locales",
+                "op": "type",
+                "value": "array"
+              },
+              {
+                "path": "$.locales",
+                "op": "len_eq",
+                "value": 3
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-CREATE-055",
+      "group": "POST /cms/locales",
+      "title": "409: padded variant of an existing code",
+      "source": "inferred",
+      "tags": ["verify_normalisation"],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "POST",
+            "path": "/cms/locales",
+            "body": {
+              "name": "English",
+              "code": " en "
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 409,
+            "body": "plain_text"
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-CREATE-056",
+      "group": "POST /cms/locales",
+      "title": "400 (validation) wins over 409 (conflict)",
+      "source": "inferred",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "POST",
+            "path": "/cms/locales",
+            "body": {
+              "name": "",
+              "code": "en"
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 400,
+            "body": "plain_text"
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-CREATE-057",
+      "group": "POST /cms/locales",
+      "title": "actor `root` may create",
+      "source": "documented",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "POST",
+            "path": "/cms/locales",
+            "body": {
+              "name": "French",
+              "code": "fr"
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 201,
+            "body": "empty"
+          }
+        },
+        {
+          "actor": "root",
+          "request": {
+            "method": "GET",
+            "path": "/cms/locales"
+          },
+          "expect": {
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.locales",
+                "op": "type",
+                "value": "array"
+              },
+              {
+                "path": "$.locales[*].code",
+                "op": "includes",
+                "value": "fr"
+              },
+              {
+                "path": "$.locales",
+                "op": "len_eq",
+                "value": 4
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-CREATE-058",
+      "group": "POST /cms/locales",
+      "title": "actor `creator` may create",
+      "source": "documented",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "creator",
+          "request": {
+            "method": "POST",
+            "path": "/cms/locales",
+            "body": {
+              "name": "French",
+              "code": "fr"
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 201,
+            "body": "empty"
+          }
+        },
+        {
+          "actor": "root",
+          "request": {
+            "method": "GET",
+            "path": "/cms/locales"
+          },
+          "expect": {
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.locales",
+                "op": "type",
+                "value": "array"
+              },
+              {
+                "path": "$.locales[*].code",
+                "op": "includes",
+                "value": "fr"
+              },
+              {
+                "path": "$.locales",
+                "op": "len_eq",
+                "value": 4
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-CREATE-059",
+      "group": "POST /cms/locales",
+      "title": "actor `deleter` lacks locales:create -> 401, nothing created",
+      "source": "documented",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "deleter",
+          "request": {
+            "method": "POST",
+            "path": "/cms/locales",
+            "body": {
+              "name": "French",
+              "code": "fr"
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 401,
+            "body": "plain_text"
+          }
+        },
+        {
+          "actor": "root",
+          "request": {
+            "method": "GET",
+            "path": "/cms/locales"
+          },
+          "expect": {
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.locales",
+                "op": "type",
+                "value": "array"
+              },
+              {
+                "path": "$.locales[*].code",
+                "op": "excludes",
+                "value": "fr"
+              },
+              {
+                "path": "$.locales",
+                "op": "len_eq",
+                "value": 3
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-CREATE-060",
+      "group": "POST /cms/locales",
+      "title": "actor `reader` lacks locales:create -> 401, nothing created",
+      "source": "documented",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "reader",
+          "request": {
+            "method": "POST",
+            "path": "/cms/locales",
+            "body": {
+              "name": "French",
+              "code": "fr"
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 401,
+            "body": "plain_text"
+          }
+        },
+        {
+          "actor": "root",
+          "request": {
+            "method": "GET",
+            "path": "/cms/locales"
+          },
+          "expect": {
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.locales",
+                "op": "type",
+                "value": "array"
+              },
+              {
+                "path": "$.locales[*].code",
+                "op": "excludes",
+                "value": "fr"
+              },
+              {
+                "path": "$.locales",
+                "op": "len_eq",
+                "value": 3
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-CREATE-061",
+      "group": "POST /cms/locales",
+      "title": "insufficient permission wins over invalid body",
+      "source": "inferred",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "reader",
+          "request": {
+            "method": "POST",
+            "path": "/cms/locales",
+            "body": {
+              "name": "",
+              "code": ""
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 401,
+            "body": "plain_text"
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-CREATE-062",
+      "group": "POST /cms/locales",
+      "title": "insufficient permission wins over conflict (no existence leak)",
+      "source": "inferred",
+      "tags": ["security"],
+      "steps": [
+        {
+          "actor": "reader",
+          "request": {
+            "method": "POST",
+            "path": "/cms/locales",
+            "body": {
+              "name": "English",
+              "code": "en"
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 401,
+            "body": "plain_text"
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-TRANSPORT-CREATE-001",
+      "group": "POST /cms/locales",
+      "title": "415: Content-Type text/plain",
+      "source": "stated",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "POST",
+            "path": "/cms/locales",
+            "body": {
+              "name": "French",
+              "code": "fr"
+            },
+            "headers": {
+              "Content-Type": "text/plain"
+            }
+          },
+          "expect": {
+            "status": 415,
+            "body": "any"
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-TRANSPORT-CREATE-002",
+      "group": "POST /cms/locales",
+      "title": "415: Content-Type application/xml",
+      "source": "stated",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "POST",
+            "path": "/cms/locales",
+            "body": {
+              "name": "French",
+              "code": "fr"
+            },
+            "headers": {
+              "Content-Type": "application/xml"
+            }
+          },
+          "expect": {
+            "status": 415,
+            "body": "any"
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-TRANSPORT-CREATE-003",
+      "group": "POST /cms/locales",
+      "title": "415: Content-Type multipart/form-data",
+      "source": "stated",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "POST",
+            "path": "/cms/locales",
+            "body": {
+              "name": "French",
+              "code": "fr"
+            },
+            "headers": {
+              "Content-Type": "multipart/form-data; boundary=x"
+            }
+          },
+          "expect": {
+            "status": 415,
+            "body": "any"
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-TRANSPORT-CREATE-004",
+      "group": "POST /cms/locales",
+      "title": "415: Content-Type application/x-www-form-urlencoded",
+      "source": "stated",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "POST",
+            "path": "/cms/locales",
+            "body": {
+              "name": "French",
+              "code": "fr"
+            },
+            "headers": {
+              "Content-Type": "application/x-www-form-urlencoded"
+            }
+          },
+          "expect": {
+            "status": 415,
+            "body": "any"
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-TRANSPORT-CREATE-005",
+      "group": "POST /cms/locales",
+      "title": "415: Content-Type header missing",
+      "source": "stated",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "POST",
+            "path": "/cms/locales",
+            "body": {
+              "name": "French",
+              "code": "fr"
+            },
+            "headers": {
+              "Content-Type": null
+            }
+          },
+          "expect": {
+            "status": 415,
+            "body": "any"
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-TRANSPORT-CREATE-006",
+      "group": "POST /cms/locales",
+      "title": "Content-Type with charset parameter accepted",
+      "source": "inferred",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "POST",
+            "path": "/cms/locales",
+            "body": {
+              "name": "French",
+              "code": "fr"
+            },
+            "headers": {
+              "Content-Type": "application/json; charset=utf-8"
+            }
+          },
+          "expect": {
+            "status": 201,
+            "body": "empty"
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-TRANSPORT-CREATE-007",
+      "group": "POST /cms/locales",
+      "title": "Content-Type media type is case-insensitive",
+      "source": "inferred",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "POST",
+            "path": "/cms/locales",
+            "body": {
+              "name": "French",
+              "code": "fr"
+            },
+            "headers": {
+              "Content-Type": "Application/JSON"
+            }
+          },
+          "expect": {
+            "status": 201,
+            "body": "empty"
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-TRANSPORT-CREATE-008",
+      "group": "POST /cms/locales",
+      "title": "body of exactly 4096 bytes is accepted",
+      "source": "inferred",
+      "tags": ["boundary"],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "POST",
+            "path": "/cms/locales",
+            "body_generator": {
+              "json_padded_bytes": 4096,
+              "base": {
+                "name": "French",
+                "code": "fr"
+              }
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 201,
+            "body": "empty"
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-TRANSPORT-CREATE-009",
+      "group": "POST /cms/locales",
+      "title": "413: body of 4097 bytes",
+      "source": "stated",
+      "tags": ["boundary"],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "POST",
+            "path": "/cms/locales",
+            "body_generator": {
+              "json_padded_bytes": 4097,
+              "base": {
+                "name": "French",
+                "code": "fr"
+              }
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 413,
+            "body": "any"
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-TRANSPORT-CREATE-010",
+      "group": "POST /cms/locales",
+      "title": "400: truncated JSON",
+      "source": "documented",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "POST",
+            "path": "/cms/locales",
+            "body_raw": "{",
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 400,
+            "body": "plain_text"
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-TRANSPORT-CREATE-011",
+      "group": "POST /cms/locales",
+      "title": "400: empty body",
+      "source": "documented",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "POST",
+            "path": "/cms/locales",
+            "body_raw": "",
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 400,
+            "body": "plain_text"
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-TRANSPORT-CREATE-012",
+      "group": "POST /cms/locales",
+      "title": "400: JSON array instead of object",
+      "source": "documented",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "POST",
+            "path": "/cms/locales",
+            "body_raw": "[]",
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 400,
+            "body": "plain_text"
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-TRANSPORT-CREATE-013",
+      "group": "POST /cms/locales",
+      "title": "400: JSON string instead of object",
+      "source": "documented",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "POST",
+            "path": "/cms/locales",
+            "body_raw": "\"text\"",
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 400,
+            "body": "plain_text"
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-TRANSPORT-CREATE-014",
+      "group": "POST /cms/locales",
+      "title": "400: plain text",
+      "source": "documented",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "POST",
+            "path": "/cms/locales",
+            "body_raw": "hello",
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 400,
+            "body": "plain_text"
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-TRANSPORT-CREATE-015",
+      "group": "POST /cms/locales",
+      "title": "400: unterminated string",
+      "source": "documented",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "POST",
+            "path": "/cms/locales",
+            "body_raw": "{\"a\":\"b",
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 400,
+            "body": "plain_text"
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-TRANSPORT-CREATE-016",
+      "group": "POST /cms/locales",
+      "title": "400: JSON null",
+      "source": "inferred",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "POST",
+            "path": "/cms/locales",
+            "body_raw": "null",
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 400,
+            "body": "plain_text"
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-DELETE-001",
+      "group": "DELETE /cms/locales/{code}",
+      "title": "deletes a locale; it disappears from the list",
+      "source": "documented",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "DELETE",
+            "path": "/cms/locales/{code}",
+            "path_params": {
+              "code": "de"
+            }
+          },
+          "expect": {
+            "status": 204,
+            "body": "empty"
+          }
+        },
+        {
+          "actor": "root",
+          "request": {
+            "method": "GET",
+            "path": "/cms/locales"
+          },
+          "expect": {
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.locales",
+                "op": "type",
+                "value": "array"
+              },
+              {
+                "path": "$.locales[*].code",
+                "op": "includes",
+                "value": "en"
+              },
+              {
+                "path": "$.locales[*].code",
+                "op": "includes",
+                "value": "ru"
+              },
+              {
+                "path": "$.locales[*].code",
+                "op": "excludes",
+                "value": "de"
+              },
+              {
+                "path": "$.locales",
+                "op": "len_eq",
+                "value": 2
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-DELETE-002",
+      "group": "DELETE /cms/locales/{code}",
+      "title": "deleting twice -> second is 404",
+      "source": "documented",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "DELETE",
+            "path": "/cms/locales/{code}",
+            "path_params": {
+              "code": "de"
+            }
+          },
+          "expect": {
+            "status": 204,
+            "body": "empty"
+          }
+        },
+        {
+          "actor": "root",
+          "request": {
+            "method": "DELETE",
+            "path": "/cms/locales/{code}",
+            "path_params": {
+              "code": "de"
+            }
+          },
+          "expect": {
+            "status": 404,
+            "body": "plain_text"
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-DELETE-003",
+      "group": "DELETE /cms/locales/{code}",
+      "title": "valid but unknown code -> 404",
+      "source": "documented",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "DELETE",
+            "path": "/cms/locales/{code}",
+            "path_params": {
+              "code": "fr"
+            }
+          },
+          "expect": {
+            "status": 404,
+            "body": "plain_text"
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-DELETE-004",
+      "group": "DELETE /cms/locales/{code}",
+      "title": "deleting an unknown code changes nothing",
+      "source": "inferred",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "DELETE",
+            "path": "/cms/locales/{code}",
+            "path_params": {
+              "code": "fr"
+            }
+          },
+          "expect": {
+            "status": 404,
+            "body": "plain_text"
+          }
+        },
+        {
+          "actor": "root",
+          "request": {
+            "method": "GET",
+            "path": "/cms/locales"
+          },
+          "expect": {
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.locales",
+                "op": "type",
+                "value": "array"
+              },
+              {
+                "path": "$.locales",
+                "op": "len_eq",
+                "value": 3
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-DELETE-005",
+      "group": "DELETE /cms/locales/{code}",
+      "title": "uppercase code in path is normalised",
+      "source": "inferred",
+      "tags": ["verify_normalisation"],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "DELETE",
+            "path": "/cms/locales/{code}",
+            "path_params": {
+              "code": "DE"
+            }
+          },
+          "expect": {
+            "status": 204,
+            "body": "empty"
+          }
+        },
+        {
+          "actor": "root",
+          "request": {
+            "method": "GET",
+            "path": "/cms/locales"
+          },
+          "expect": {
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.locales",
+                "op": "type",
+                "value": "array"
+              },
+              {
+                "path": "$.locales[*].code",
+                "op": "excludes",
+                "value": "de"
+              },
+              {
+                "path": "$.locales",
+                "op": "len_eq",
+                "value": 2
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-DELETE-006",
+      "group": "DELETE /cms/locales/{code}",
+      "title": "padded code in path is trimmed",
+      "source": "inferred",
+      "tags": ["verify_normalisation"],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "DELETE",
+            "path": "/cms/locales/{code}",
+            "path_params": {
+              "code": " de "
+            }
+          },
+          "expect": {
+            "status": 204,
+            "body": "empty"
+          }
+        },
+        {
+          "actor": "root",
+          "request": {
+            "method": "GET",
+            "path": "/cms/locales"
+          },
+          "expect": {
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.locales",
+                "op": "type",
+                "value": "array"
+              },
+              {
+                "path": "$.locales[*].code",
+                "op": "excludes",
+                "value": "de"
+              },
+              {
+                "path": "$.locales",
+                "op": "len_eq",
+                "value": 2
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-DELETE-007",
+      "group": "DELETE /cms/locales/{code}",
+      "title": "all locales can be deleted one by one",
+      "source": "inferred",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "DELETE",
+            "path": "/cms/locales/{code}",
+            "path_params": {
+              "code": "en"
+            }
+          },
+          "expect": {
+            "status": 204,
+            "body": "empty"
+          }
+        },
+        {
+          "actor": "root",
+          "request": {
+            "method": "DELETE",
+            "path": "/cms/locales/{code}",
+            "path_params": {
+              "code": "ru"
+            }
+          },
+          "expect": {
+            "status": 204,
+            "body": "empty"
+          }
+        },
+        {
+          "actor": "root",
+          "request": {
+            "method": "DELETE",
+            "path": "/cms/locales/{code}",
+            "path_params": {
+              "code": "de"
+            }
+          },
+          "expect": {
+            "status": 204,
+            "body": "empty"
+          }
+        },
+        {
+          "actor": "root",
+          "request": {
+            "method": "GET",
+            "path": "/cms/locales"
+          },
+          "expect": {
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.locales",
+                "op": "type",
+                "value": "array"
+              },
+              {
+                "path": "$.locales",
+                "op": "len_eq",
+                "value": 0
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-DELETE-008",
+      "group": "DELETE /cms/locales/{code}",
+      "title": "400: invalid code in path (whitespace only); nothing deleted",
+      "source": "inferred",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "DELETE",
+            "path": "/cms/locales/{code}",
+            "path_params": {
+              "code": "   "
+            }
+          },
+          "expect": {
+            "status": 400,
+            "body": "plain_text"
+          }
+        },
+        {
+          "actor": "root",
+          "request": {
+            "method": "GET",
+            "path": "/cms/locales"
+          },
+          "expect": {
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.locales",
+                "op": "type",
+                "value": "array"
+              },
+              {
+                "path": "$.locales",
+                "op": "len_eq",
+                "value": 3
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-DELETE-009",
+      "group": "DELETE /cms/locales/{code}",
+      "title": "400: invalid code in path (1 letter); nothing deleted",
+      "source": "inferred",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "DELETE",
+            "path": "/cms/locales/{code}",
+            "path_params": {
+              "code": "f"
+            }
+          },
+          "expect": {
+            "status": 400,
+            "body": "plain_text"
+          }
+        },
+        {
+          "actor": "root",
+          "request": {
+            "method": "GET",
+            "path": "/cms/locales"
+          },
+          "expect": {
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.locales",
+                "op": "type",
+                "value": "array"
+              },
+              {
+                "path": "$.locales",
+                "op": "len_eq",
+                "value": 3
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-DELETE-010",
+      "group": "DELETE /cms/locales/{code}",
+      "title": "400: invalid code in path (3 letters (ISO 639-2)); nothing deleted",
+      "source": "documented",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "DELETE",
+            "path": "/cms/locales/{code}",
+            "path_params": {
+              "code": "fra"
+            }
+          },
+          "expect": {
+            "status": 400,
+            "body": "plain_text"
+          }
+        },
+        {
+          "actor": "root",
+          "request": {
+            "method": "GET",
+            "path": "/cms/locales"
+          },
+          "expect": {
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.locales",
+                "op": "type",
+                "value": "array"
+              },
+              {
+                "path": "$.locales",
+                "op": "len_eq",
+                "value": 3
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-DELETE-011",
+      "group": "DELETE /cms/locales/{code}",
+      "title": "400: invalid code in path (letter + digit); nothing deleted",
+      "source": "inferred",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "DELETE",
+            "path": "/cms/locales/{code}",
+            "path_params": {
+              "code": "f1"
+            }
+          },
+          "expect": {
+            "status": 400,
+            "body": "plain_text"
+          }
+        },
+        {
+          "actor": "root",
+          "request": {
+            "method": "GET",
+            "path": "/cms/locales"
+          },
+          "expect": {
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.locales",
+                "op": "type",
+                "value": "array"
+              },
+              {
+                "path": "$.locales",
+                "op": "len_eq",
+                "value": 3
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-DELETE-012",
+      "group": "DELETE /cms/locales/{code}",
+      "title": "400: invalid code in path (digits only); nothing deleted",
+      "source": "inferred",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "DELETE",
+            "path": "/cms/locales/{code}",
+            "path_params": {
+              "code": "12"
+            }
+          },
+          "expect": {
+            "status": 400,
+            "body": "plain_text"
+          }
+        },
+        {
+          "actor": "root",
+          "request": {
+            "method": "GET",
+            "path": "/cms/locales"
+          },
+          "expect": {
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.locales",
+                "op": "type",
+                "value": "array"
+              },
+              {
+                "path": "$.locales",
+                "op": "len_eq",
+                "value": 3
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-DELETE-013",
+      "group": "DELETE /cms/locales/{code}",
+      "title": "400: invalid code in path (region subtag (fr-FR)); nothing deleted",
+      "source": "documented",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "DELETE",
+            "path": "/cms/locales/{code}",
+            "path_params": {
+              "code": "fr-FR"
+            }
+          },
+          "expect": {
+            "status": 400,
+            "body": "plain_text"
+          }
+        },
+        {
+          "actor": "root",
+          "request": {
+            "method": "GET",
+            "path": "/cms/locales"
+          },
+          "expect": {
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.locales",
+                "op": "type",
+                "value": "array"
+              },
+              {
+                "path": "$.locales",
+                "op": "len_eq",
+                "value": 3
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-DELETE-014",
+      "group": "DELETE /cms/locales/{code}",
+      "title": "400: invalid code in path (underscore region (fr_FR)); nothing deleted",
+      "source": "inferred",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "DELETE",
+            "path": "/cms/locales/{code}",
+            "path_params": {
+              "code": "fr_FR"
+            }
+          },
+          "expect": {
+            "status": 400,
+            "body": "plain_text"
+          }
+        },
+        {
+          "actor": "root",
+          "request": {
+            "method": "GET",
+            "path": "/cms/locales"
+          },
+          "expect": {
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.locales",
+                "op": "type",
+                "value": "array"
+              },
+              {
+                "path": "$.locales",
+                "op": "len_eq",
+                "value": 3
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-DELETE-015",
+      "group": "DELETE /cms/locales/{code}",
+      "title": "400: invalid code in path (Cyrillic look-alikes); nothing deleted",
+      "source": "inferred",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "DELETE",
+            "path": "/cms/locales/{code}",
+            "path_params": {
+              "code": "еn"
+            }
+          },
+          "expect": {
+            "status": 400,
+            "body": "plain_text"
+          }
+        },
+        {
+          "actor": "root",
+          "request": {
+            "method": "GET",
+            "path": "/cms/locales"
+          },
+          "expect": {
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.locales",
+                "op": "type",
+                "value": "array"
+              },
+              {
+                "path": "$.locales",
+                "op": "len_eq",
+                "value": 3
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-DELETE-016",
+      "group": "DELETE /cms/locales/{code}",
+      "title": "400: invalid code in path (fullwidth letters); nothing deleted",
+      "source": "inferred",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "DELETE",
+            "path": "/cms/locales/{code}",
+            "path_params": {
+              "code": "ｆｒ"
+            }
+          },
+          "expect": {
+            "status": 400,
+            "body": "plain_text"
+          }
+        },
+        {
+          "actor": "root",
+          "request": {
+            "method": "GET",
+            "path": "/cms/locales"
+          },
+          "expect": {
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.locales",
+                "op": "type",
+                "value": "array"
+              },
+              {
+                "path": "$.locales",
+                "op": "len_eq",
+                "value": 3
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-DELETE-017",
+      "group": "DELETE /cms/locales/{code}",
+      "title": "400: invalid code in path (space inside); nothing deleted",
+      "source": "inferred",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "DELETE",
+            "path": "/cms/locales/{code}",
+            "path_params": {
+              "code": "f r"
+            }
+          },
+          "expect": {
+            "status": 400,
+            "body": "plain_text"
+          }
+        },
+        {
+          "actor": "root",
+          "request": {
+            "method": "GET",
+            "path": "/cms/locales"
+          },
+          "expect": {
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.locales",
+                "op": "type",
+                "value": "array"
+              },
+              {
+                "path": "$.locales",
+                "op": "len_eq",
+                "value": 3
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-DELETE-018",
+      "group": "DELETE /cms/locales/{code}",
+      "title": "400: invalid code in path (emoji); nothing deleted",
+      "source": "inferred",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "DELETE",
+            "path": "/cms/locales/{code}",
+            "path_params": {
+              "code": "😀"
+            }
+          },
+          "expect": {
+            "status": 400,
+            "body": "plain_text"
+          }
+        },
+        {
+          "actor": "root",
+          "request": {
+            "method": "GET",
+            "path": "/cms/locales"
+          },
+          "expect": {
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.locales",
+                "op": "type",
+                "value": "array"
+              },
+              {
+                "path": "$.locales",
+                "op": "len_eq",
+                "value": 3
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-DELETE-019",
+      "group": "DELETE /cms/locales/{code}",
+      "title": "400: invalid code in path (slash); nothing deleted",
+      "source": "inferred",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "DELETE",
+            "path": "/cms/locales/{code}",
+            "path_params": {
+              "code": "f/"
+            }
+          },
+          "expect": {
+            "status": 400,
+            "body": "plain_text"
+          }
+        },
+        {
+          "actor": "root",
+          "request": {
+            "method": "GET",
+            "path": "/cms/locales"
+          },
+          "expect": {
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.locales",
+                "op": "type",
+                "value": "array"
+              },
+              {
+                "path": "$.locales",
+                "op": "len_eq",
+                "value": 3
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-DELETE-020",
+      "group": "DELETE /cms/locales/{code}",
+      "title": "400: invalid code in path (colon); nothing deleted",
+      "source": "inferred",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "DELETE",
+            "path": "/cms/locales/{code}",
+            "path_params": {
+              "code": "f:"
+            }
+          },
+          "expect": {
+            "status": 400,
+            "body": "plain_text"
+          }
+        },
+        {
+          "actor": "root",
+          "request": {
+            "method": "GET",
+            "path": "/cms/locales"
+          },
+          "expect": {
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.locales",
+                "op": "type",
+                "value": "array"
+              },
+              {
+                "path": "$.locales",
+                "op": "len_eq",
+                "value": 3
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-DELETE-021",
+      "group": "DELETE /cms/locales/{code}",
+      "title": "400: invalid code in path (brace); nothing deleted",
+      "source": "inferred",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "DELETE",
+            "path": "/cms/locales/{code}",
+            "path_params": {
+              "code": "{f"
+            }
+          },
+          "expect": {
+            "status": 400,
+            "body": "plain_text"
+          }
+        },
+        {
+          "actor": "root",
+          "request": {
+            "method": "GET",
+            "path": "/cms/locales"
+          },
+          "expect": {
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.locales",
+                "op": "type",
+                "value": "array"
+              },
+              {
+                "path": "$.locales",
+                "op": "len_eq",
+                "value": 3
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-DELETE-022",
+      "group": "DELETE /cms/locales/{code}",
+      "title": "400: invalid code in path (wildcard); nothing deleted",
+      "source": "inferred",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "DELETE",
+            "path": "/cms/locales/{code}",
+            "path_params": {
+              "code": "f*"
+            }
+          },
+          "expect": {
+            "status": 400,
+            "body": "plain_text"
+          }
+        },
+        {
+          "actor": "root",
+          "request": {
+            "method": "GET",
+            "path": "/cms/locales"
+          },
+          "expect": {
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.locales",
+                "op": "type",
+                "value": "array"
+              },
+              {
+                "path": "$.locales",
+                "op": "len_eq",
+                "value": 3
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-DELETE-023",
+      "group": "DELETE /cms/locales/{code}",
+      "title": "400: invalid code in path (null byte); nothing deleted",
+      "source": "inferred",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "DELETE",
+            "path": "/cms/locales/{code}",
+            "path_params": {
+              "code": "f\u0000"
+            }
+          },
+          "expect": {
+            "status": 400,
+            "body": "plain_text"
+          }
+        },
+        {
+          "actor": "root",
+          "request": {
+            "method": "GET",
+            "path": "/cms/locales"
+          },
+          "expect": {
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.locales",
+                "op": "type",
+                "value": "array"
+              },
+              {
+                "path": "$.locales",
+                "op": "len_eq",
+                "value": 3
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-DELETE-024",
+      "group": "DELETE /cms/locales/{code}",
+      "title": "400: invalid code in path (embedded newline); nothing deleted",
+      "source": "inferred",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "DELETE",
+            "path": "/cms/locales/{code}",
+            "path_params": {
+              "code": "f\nr"
+            }
+          },
+          "expect": {
+            "status": 400,
+            "body": "plain_text"
+          }
+        },
+        {
+          "actor": "root",
+          "request": {
+            "method": "GET",
+            "path": "/cms/locales"
+          },
+          "expect": {
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.locales",
+                "op": "type",
+                "value": "array"
+              },
+              {
+                "path": "$.locales",
+                "op": "len_eq",
+                "value": 3
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-DELETE-025",
+      "group": "DELETE /cms/locales/{code}",
+      "title": "400: well-formed but unassigned code (zz)",
+      "source": "inferred",
+      "tags": ["verify_iso_list"],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "DELETE",
+            "path": "/cms/locales/{code}",
+            "path_params": {
+              "code": "zz"
+            }
+          },
+          "expect": {
+            "status": 400,
+            "body": "plain_text"
+          }
+        },
+        {
+          "actor": "root",
+          "request": {
+            "method": "GET",
+            "path": "/cms/locales"
+          },
+          "expect": {
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.locales",
+                "op": "type",
+                "value": "array"
+              },
+              {
+                "path": "$.locales",
+                "op": "len_eq",
+                "value": 3
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-DELETE-026",
+      "group": "DELETE /cms/locales/{code}",
+      "title": "request body is ignored",
+      "source": "documented",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "DELETE",
+            "path": "/cms/locales/{code}",
+            "path_params": {
+              "code": "de"
+            },
+            "body": {
+              "x": 1
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 204,
+            "body": "empty"
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-DELETE-027",
+      "group": "DELETE /cms/locales/{code}",
+      "title": "body of exactly 4096 bytes is ignored",
+      "source": "inferred",
+      "tags": ["boundary", "verify_bodiless"],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "DELETE",
+            "path": "/cms/locales/{code}",
+            "path_params": {
+              "code": "de"
+            },
+            "body_generator": {
+              "json_padded_bytes": 4096,
+              "base": {}
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 204,
+            "body": "empty"
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-DELETE-028",
+      "group": "DELETE /cms/locales/{code}",
+      "title": "413: body of 4097 bytes",
+      "source": "stated",
+      "tags": ["boundary", "verify_bodiless"],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "DELETE",
+            "path": "/cms/locales/{code}",
+            "path_params": {
+              "code": "de"
+            },
+            "body_generator": {
+              "json_padded_bytes": 4097,
+              "base": {}
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 413,
+            "body": "any"
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-DELETE-029",
+      "group": "DELETE /cms/locales/{code}",
+      "title": "Content-Type is not required or validated (header not listed in docs)",
+      "source": "inferred",
+      "tags": ["verify_bodiless"],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "DELETE",
+            "path": "/cms/locales/{code}",
+            "path_params": {
+              "code": "de"
+            },
+            "headers": {
+              "Content-Type": "text/plain"
+            }
+          },
+          "expect": {
+            "status": 204,
+            "body": "empty"
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-DELETE-030",
+      "group": "DELETE /cms/locales/{code}",
+      "title": "actor `root` may delete",
+      "source": "documented",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "DELETE",
+            "path": "/cms/locales/{code}",
+            "path_params": {
+              "code": "de"
+            }
+          },
+          "expect": {
+            "status": 204,
+            "body": "empty"
+          }
+        },
+        {
+          "actor": "root",
+          "request": {
+            "method": "GET",
+            "path": "/cms/locales"
+          },
+          "expect": {
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.locales",
+                "op": "type",
+                "value": "array"
+              },
+              {
+                "path": "$.locales[*].code",
+                "op": "excludes",
+                "value": "de"
+              },
+              {
+                "path": "$.locales",
+                "op": "len_eq",
+                "value": 2
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-DELETE-031",
+      "group": "DELETE /cms/locales/{code}",
+      "title": "actor `creator` lacks locales:delete -> 401, locale remains",
+      "source": "documented",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "creator",
+          "request": {
+            "method": "DELETE",
+            "path": "/cms/locales/{code}",
+            "path_params": {
+              "code": "de"
+            }
+          },
+          "expect": {
+            "status": 401,
+            "body": "plain_text"
+          }
+        },
+        {
+          "actor": "root",
+          "request": {
+            "method": "GET",
+            "path": "/cms/locales"
+          },
+          "expect": {
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.locales",
+                "op": "type",
+                "value": "array"
+              },
+              {
+                "path": "$.locales[*].code",
+                "op": "includes",
+                "value": "de"
+              },
+              {
+                "path": "$.locales",
+                "op": "len_eq",
+                "value": 3
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-DELETE-032",
+      "group": "DELETE /cms/locales/{code}",
+      "title": "actor `deleter` may delete",
+      "source": "documented",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "deleter",
+          "request": {
+            "method": "DELETE",
+            "path": "/cms/locales/{code}",
+            "path_params": {
+              "code": "de"
+            }
+          },
+          "expect": {
+            "status": 204,
+            "body": "empty"
+          }
+        },
+        {
+          "actor": "root",
+          "request": {
+            "method": "GET",
+            "path": "/cms/locales"
+          },
+          "expect": {
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.locales",
+                "op": "type",
+                "value": "array"
+              },
+              {
+                "path": "$.locales[*].code",
+                "op": "excludes",
+                "value": "de"
+              },
+              {
+                "path": "$.locales",
+                "op": "len_eq",
+                "value": 2
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-DELETE-033",
+      "group": "DELETE /cms/locales/{code}",
+      "title": "actor `reader` lacks locales:delete -> 401, locale remains",
+      "source": "documented",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "reader",
+          "request": {
+            "method": "DELETE",
+            "path": "/cms/locales/{code}",
+            "path_params": {
+              "code": "de"
+            }
+          },
+          "expect": {
+            "status": 401,
+            "body": "plain_text"
+          }
+        },
+        {
+          "actor": "root",
+          "request": {
+            "method": "GET",
+            "path": "/cms/locales"
+          },
+          "expect": {
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.locales",
+                "op": "type",
+                "value": "array"
+              },
+              {
+                "path": "$.locales[*].code",
+                "op": "includes",
+                "value": "de"
+              },
+              {
+                "path": "$.locales",
+                "op": "len_eq",
+                "value": 3
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-DELETE-034",
+      "group": "DELETE /cms/locales/{code}",
+      "title": "unauthorised actor + unknown code -> 401 (authz before existence)",
+      "source": "inferred",
+      "tags": ["security"],
+      "steps": [
+        {
+          "actor": "reader",
+          "request": {
+            "method": "DELETE",
+            "path": "/cms/locales/{code}",
+            "path_params": {
+              "code": "fr"
+            }
+          },
+          "expect": {
+            "status": 401,
+            "body": "plain_text"
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-DELETE-035",
+      "group": "DELETE /cms/locales/{code}",
+      "title": "unauthorised actor + invalid code -> 401 (auth first)",
+      "source": "inferred",
+      "tags": ["verify_check_order"],
+      "steps": [
+        {
+          "actor": "reader",
+          "request": {
+            "method": "DELETE",
+            "path": "/cms/locales/{code}",
+            "path_params": {
+              "code": "f"
+            }
+          },
+          "expect": {
+            "status": 401,
+            "body": "plain_text"
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-GENERIC-001",
+      "group": "cross-cutting",
+      "title": "routing: PUT /cms/locales",
+      "source": "inferred",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "PUT",
+            "path": "/cms/locales",
+            "body": {},
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 405,
+            "body": "any"
+          }
+        }
+      ],
+      "note": "Assumes Go 1.22+ ServeMux semantics."
+    },
+    {
+      "id": "LOCALES-GENERIC-002",
+      "group": "cross-cutting",
+      "title": "routing: DELETE /cms/locales (collection)",
+      "source": "inferred",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "DELETE",
+            "path": "/cms/locales"
+          },
+          "expect": {
+            "status": 405,
+            "body": "any"
+          }
+        }
+      ],
+      "note": "Assumes Go 1.22+ ServeMux semantics."
+    },
+    {
+      "id": "LOCALES-GENERIC-003",
+      "group": "cross-cutting",
+      "title": "routing: PATCH /cms/locales/en",
+      "source": "inferred",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "PATCH",
+            "path": "/cms/locales/en",
+            "body": {},
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 405,
+            "body": "any"
+          }
+        }
+      ],
+      "note": "Assumes Go 1.22+ ServeMux semantics."
+    },
+    {
+      "id": "LOCALES-GENERIC-004",
+      "group": "cross-cutting",
+      "title": "routing: GET /cms/locales/en",
+      "source": "inferred",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "GET",
+            "path": "/cms/locales/en"
+          },
+          "expect": {
+            "status": 405,
+            "body": "any"
+          }
+        }
+      ],
+      "note": "Assumes Go 1.22+ ServeMux semantics."
+    },
+    {
+      "id": "LOCALES-GENERIC-005",
+      "group": "cross-cutting",
+      "title": "routing: POST /cms/locales/en",
+      "source": "inferred",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "POST",
+            "path": "/cms/locales/en",
+            "body": {},
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 405,
+            "body": "any"
+          }
+        }
+      ],
+      "note": "Assumes Go 1.22+ ServeMux semantics."
+    },
+    {
+      "id": "LOCALES-GENERIC-006",
+      "group": "cross-cutting",
+      "title": "routing: trailing slash /cms/locales/",
+      "source": "inferred",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "GET",
+            "path": "/cms/locales/"
+          },
+          "expect": {
+            "status": 404,
+            "body": "any"
+          }
+        }
+      ]
+    },
+    {
+      "id": "LOCALES-GENERIC-007",
+      "group": "cross-cutting",
+      "title": "routing: unknown sub-route /cms/locales/en/names",
+      "source": "inferred",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "GET",
+            "path": "/cms/locales/en/names"
+          },
+          "expect": {
+            "status": 404,
+            "body": "any"
+          }
+        }
+      ]
+    }
+  ]
+}

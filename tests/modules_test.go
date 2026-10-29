@@ -4,9 +4,9 @@ import (
 	"gocms/internal/auth"
 	"gocms/internal/cache"
 	"gocms/internal/category"
+	"gocms/internal/domain"
 	"gocms/internal/locale"
 	"gocms/internal/password"
-	"gocms/internal/session"
 	"gocms/internal/user"
 	"time"
 
@@ -24,9 +24,11 @@ const (
 )
 
 type AuthModule struct {
-	Consumer *auth.EventConsumer
-	Service  *auth.Service
-	Handler  *auth.Handler
+	Consumer    *auth.EventConsumer
+	Service     *auth.Service
+	Handler     *auth.Handler
+	UserRepo    auth.UserRepository
+	SessionRepo auth.SessionRepository
 }
 
 type UserModule struct {
@@ -81,20 +83,37 @@ type LocaleModule struct {
 	DedupRepo locale.Repository
 }
 
-func NewAuthModule(users auth.UserManager, sessions session.Repository) *AuthModule {
-	consumer := auth.NewEventConsumer(sessions, users)
-	service := auth.NewService(users, sessions)
+func NewAuthModule(db *gorm.DB, redis *redis.Client, passwords password.PasswordService) (*AuthModule, error) {
+	keys, err := cache.NewKeyspace(cache.KeyConfig{
+		Prefix: []string{"cms"},
+	}, "sessions")
+	if err != nil {
+		return nil, err
+	}
+
+	userRepo := user.NewGORMRepository(db)
+	sessionRepo := auth.NewRedisSessionRepository(redis, keys, 24*time.Hour)
+	consumer := auth.NewEventConsumer(sessionRepo, userRepo)
+	service := auth.NewService(sessionRepo, userRepo, passwords)
 	handler := auth.NewHandler(service)
 	return &AuthModule{
-		Consumer: consumer,
-		Service:  service,
-		Handler:  handler,
-	}
+		Consumer:    consumer,
+		Service:     service,
+		Handler:     handler,
+		UserRepo:    userRepo,
+		SessionRepo: sessionRepo,
+	}, nil
 }
 
-func NewUserModule(db *gorm.DB, search meilisearch.ServiceManager, redis *redis.Client, pwd password.PasswordService) (*UserModule, error) {
+func NewUserModule(
+	db *gorm.DB,
+	search meilisearch.ServiceManager,
+	redis *redis.Client,
+	creds domain.AuthService,
+	passwords password.PasswordService,
+) (*UserModule, error) {
 	keys, err := cache.NewKeyspace(cache.KeyConfig{
-		Prefix: []string{"cms", "test"},
+		Prefix: []string{"cms"},
 	}, "users")
 	if err != nil {
 		return nil, err
@@ -104,7 +123,7 @@ func NewUserModule(db *gorm.DB, search meilisearch.ServiceManager, redis *redis.
 	redisRepo := user.NewRedisRepository(flowRepo, redis, 30*time.Minute, keys)
 	searchEngine := user.NewMeilisearchEngine(search, UsersSearchIndexName)
 	consumer := user.NewEventConsumer(gormRepo, searchEngine)
-	service := user.NewService(redisRepo, searchEngine, pwd)
+	service := user.NewService(redisRepo, searchEngine, creds, passwords)
 	handler := user.NewHandler(service)
 	return &UserModule{
 		Consumer:          consumer,
@@ -138,9 +157,14 @@ func NewPostModule(db *gorm.DB, search meilisearch.ServiceManager, redis *redis.
 	}
 }
 
-func NewCategoryModule(db *gorm.DB, search meilisearch.ServiceManager, redis *redis.Client) (*CategoryModule, error) {
+func NewCategoryModule(
+	db *gorm.DB,
+	search meilisearch.ServiceManager,
+	redis *redis.Client,
+	creds domain.AuthService,
+) (*CategoryModule, error) {
 	keys, err := cache.NewKeyspace(cache.KeyConfig{
-		Prefix: []string{"cms", "test"},
+		Prefix: []string{"cms"},
 	}, "categories")
 	if err != nil {
 		return nil, err
@@ -150,7 +174,7 @@ func NewCategoryModule(db *gorm.DB, search meilisearch.ServiceManager, redis *re
 	flowRepo := category.NewFlowRepository(gormRepo, 20*time.Second, keys)
 	redisRepo := category.NewRedisRepository(flowRepo, redis, 120*time.Minute, keys)
 	searchEngine := category.NewMeilisearchEngine(search, CategoriesSearchIndexName)
-	service := category.NewService(redisRepo, searchEngine)
+	service := category.NewService(redisRepo, searchEngine, creds)
 	handler := category.NewHandler(service)
 	return &CategoryModule{
 		Service:           service,
@@ -203,9 +227,9 @@ func NewAdsModule(db *gorm.DB, search meilisearch.ServiceManager, redis *redis.C
 	}
 }
 
-func NewLocaleModule(db *gorm.DB, redis *redis.Client) (*LocaleModule, error) {
+func NewLocaleModule(db *gorm.DB, redis *redis.Client, creds domain.AuthService) (*LocaleModule, error) {
 	keys, err := cache.NewKeyspace(cache.KeyConfig{
-		Prefix: []string{"cms", "test"},
+		Prefix: []string{"cms"},
 	}, "locales")
 	if err != nil {
 		return nil, err
@@ -214,7 +238,7 @@ func NewLocaleModule(db *gorm.DB, redis *redis.Client) (*LocaleModule, error) {
 	gormRepo := locale.NewGORMRepository(db)
 	flowRepo := locale.NewFlowRepository(gormRepo, 20*time.Second, keys)
 	redisRepo := locale.NewRedisRepository(flowRepo, redis, 24*time.Hour, keys)
-	service := locale.NewService(redisRepo)
+	service := locale.NewService(redisRepo, creds)
 	handler := locale.NewHandler(service)
 	return &LocaleModule{
 		Service:   service,

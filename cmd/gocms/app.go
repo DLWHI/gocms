@@ -10,7 +10,6 @@ import (
 	"gocms/internal/password"
 	"gocms/internal/public"
 	"gocms/internal/server"
-	"gocms/internal/session"
 	"log/slog"
 	"sync"
 	"time"
@@ -76,24 +75,26 @@ func (app *Container) Init(ctx context.Context, cfg Config) error {
 	}
 
 	passwords := password.NewBCryptService(12, 8)
-	sessions := session.NewRedisRepository(redis, 24*time.Hour)
 
-	categories, err := NewCategoryModule(db, search, redis)
+	auth, err := NewAuthModule(db, redis, passwords)
 	if err != nil {
 		return err
 	}
-	users, err := NewUserModule(db, search, redis, passwords)
+	categories, err := NewCategoryModule(db, search, redis, auth.Service)
+	if err != nil {
+		return err
+	}
+	users, err := NewUserModule(db, search, redis, auth.Service, passwords)
 	if err != nil {
 		return err
 	}
 	posts := NewPostModule(db, search, redis)
 	ads := NewAdsModule(db, search, redis)
 	editors := NewEditorModule(db, search, redis)
-	locales, err := NewLocaleModule(db, redis)
+	locales, err := NewLocaleModule(db, redis, auth.Service)
 	if err != nil {
 		return err
 	}
-	auth := NewAuthModule(users.Service, sessions)
 
 	views := analytics.NewRedisCounter(app.Redis, posts.Service)
 
@@ -108,7 +109,7 @@ func (app *Container) Init(ctx context.Context, cfg Config) error {
 
 	storageHandler := DefaultStorageHandler(cfg)
 
-	router := NewRouter(sessions)
+	router := NewRouter(auth.SessionRepo)
 
 	router.AddAuthRoutes(auth.Handler)
 	router.AddPostRoutes(posts.Handler)

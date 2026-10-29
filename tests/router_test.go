@@ -3,7 +3,6 @@ package tests
 import (
 	"gocms/internal/auth"
 	"gocms/internal/server"
-	"gocms/internal/session"
 	"gocms/internal/storage"
 	"gocms/internal/user"
 	"net/http"
@@ -20,7 +19,7 @@ type Router struct {
 	auth server.Middleware
 }
 
-func NewRouter(provider session.Repository) *Router {
+func NewRouter(provider auth.SessionRepository) *Router {
 	return &Router{
 		mux:  http.NewServeMux(),
 		auth: auth.NewSessionMiddleware(provider).Wrap,

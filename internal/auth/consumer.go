@@ -3,19 +3,17 @@ package auth
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"gocms/internal/domain"
 	"gocms/internal/logger"
-	"gocms/internal/session"
 )
 
 type EventConsumer struct {
-	users    UserService
-	sessions session.Repository
+	users    UserRepository
+	sessions SessionRepository
 }
 
-func NewEventConsumer(repo session.Repository, manager UserService) *EventConsumer {
+func NewEventConsumer(repo SessionRepository, manager UserRepository) *EventConsumer {
 	return &EventConsumer{
 		sessions: repo,
 		users:    manager,
@@ -35,25 +33,7 @@ func (s *EventConsumer) RevokeSessions(ctx context.Context, data []byte) error {
 			return err
 		}
 		return nil
-	case domain.UserActionUpdate:
-		user, err := s.users.Get(ctx, payload.Username)
-		if err != nil {
-			if errors.Is(err, domain.ErrExpired) {
-				return nil
-			}
-			logger.Error("Auth.Service", "Failed to update user's sessions", err, "username", payload.Username)
-			return err
-		}
-
-		if err := s.sessions.Update(ctx, payload.Username, user); err != nil {
-			if errors.Is(err, domain.ErrExpired) {
-				return nil
-			}
-			logger.Error("Auth.Service", "Failed to update user's sessions", err, "username", payload.Username)
-			return err
-		}
-		return nil
-	case domain.UserActionCreate, domain.UserActionLogin:
+	case domain.UserActionCreate, domain.UserActionLogin, domain.UserActionUpdate:
 		return nil
 	}
 	return fmt.Errorf("%w: unknown action", domain.ErrInval)

@@ -1,19 +1,25 @@
 package domain
 
+const (
+	ActionCreateName = "create"
+	ActionEditName   = "edit"
+	ActionDeleteName = "delete"
+)
+
 var actions = map[string]uint32{
-	"delete": 0x04,
-	"edit":   0x02,
-	"create": 0x01,
+	ActionDeleteName: 0x04,
+	ActionEditName:   0x02,
+	ActionCreateName: 0x01,
 }
 
 var entites = map[string]uint32{
-	"posts":      0,
-	"categories": 3,
-	"ads":        6,
-	"views":      9,
-	"users":      12,
-	"editors":    15,
-	"locales":    18,
+	"posts":            0,
+	CategoryEntityName: 3,
+	"ads":              6,
+	"views":            9,
+	UserEntityName:     12,
+	"editors":          15,
+	LocaleEntityName:   18,
 }
 
 const (

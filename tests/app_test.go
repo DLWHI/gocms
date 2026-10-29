@@ -10,7 +10,6 @@ import (
 	"gocms/internal/logger"
 	"gocms/internal/outbox"
 	"gocms/internal/password"
-	"gocms/internal/session"
 	"gocms/internal/user"
 	"log/slog"
 	"sync"
@@ -67,24 +66,26 @@ func (app *Container) Init(ctx context.Context) error {
 	}
 
 	passwords := password.NewBCryptService(12, 8)
-	sessions := session.NewRedisRepository(redis, 24*time.Hour)
 
-	categories, err := NewCategoryModule(db, search, redis)
+	auth, err := NewAuthModule(db, redis, passwords)
 	if err != nil {
-		return fmt.Errorf("Failed to initialize users module: %w", err)
+		return err
 	}
-	users, err := NewUserModule(db, search, redis, passwords)
+	categories, err := NewCategoryModule(db, search, redis, auth.Service)
 	if err != nil {
-		return fmt.Errorf("Failed to initialize users module: %w", err)
+		return err
+	}
+	users, err := NewUserModule(db, search, redis, auth.Service, passwords)
+	if err != nil {
+		return err
 	}
 	posts := NewPostModule(db, search, redis)
 	ads := NewAdsModule(db, search, redis)
 	editors := NewEditorModule(db, search, redis)
-	locales, err := NewLocaleModule(db, redis)
+	locales, err := NewLocaleModule(db, redis, auth.Service)
 	if err != nil {
-		return fmt.Errorf("Failed to initialize users module: %w", err)
+		return err
 	}
-	auth := NewAuthModule(users.Service, sessions)
 
 	// views := analytics.NewRedisCounter(redis, posts.Service)
 
@@ -99,7 +100,7 @@ func (app *Container) Init(ctx context.Context) error {
 
 	storageHandler := DefaultStorageHandler()
 
-	router := NewRouter(sessions)
+	router := NewRouter(auth.SessionRepo)
 
 	router.AddAuthRoutes(auth.Handler)
 	// router.AddPostRoutes(posts.Handler)

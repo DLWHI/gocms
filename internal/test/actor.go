@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"gocms/internal/domain"
-	"gocms/internal/session"
 	"gocms/internal/user"
 	"io"
 	"net/http"
@@ -45,11 +44,13 @@ func (a *Actor) PerformLogin(ctx context.Context, e *Environment, passwd Passwor
 		return fmt.Errorf("Error while performing login, expected status code 200, got %d", w.Result().StatusCode)
 	}
 
-	var response session.Session
+	var response struct {
+		Token string `json:"token"`
+	}
 	if err := json.NewDecoder(w.Body).Decode(&response); err != nil {
 		return err
 	}
-	a.Session = response.ID
+	a.Session = response.Token
 	return nil
 }
 

@@ -83,7 +83,7 @@ func (r *GORMRepository) Update(ctx context.Context, username string, diff *doma
 	}))
 }
 
-func (r *GORMRepository) UpdateLogin(ctx context.Context, username string, timestamp time.Time) (*domain.User, error) {
+func (r *GORMRepository) UpdateLogin(ctx context.Context, username string, timestamp time.Time) error {
 	var user Record
 	err := r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		err := tx.Model(&Record{}).
@@ -116,20 +116,20 @@ func (r *GORMRepository) UpdateLogin(ctx context.Context, username string, times
 		return nil
 	})
 	if err != nil {
-		return nil, r.mapErr(err)
+		return r.mapErr(err)
 	}
-	return user.ToDomain(), nil
+	return nil
 }
 
-func (r *GORMRepository) UpdatePassword(ctx context.Context, username string, pwdhash []byte) error {
-	if len(pwdhash) == 0 {
+func (r *GORMRepository) UpdatePassword(ctx context.Context, username string, hash []byte) error {
+	if len(hash) == 0 {
 		return fmt.Errorf("%w: empty password", domain.ErrInval)
 	}
 	return r.mapErr(r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		result := tx.Model(&Record{}).
 			Where("username = ?", username).
 			Updates(map[string]interface{}{
-				"password": pwdhash,
+				"password": hash,
 				"version":  gorm.Expr("version + 1"),
 			})
 		if result.Error != nil {

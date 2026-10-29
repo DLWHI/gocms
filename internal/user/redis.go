@@ -39,13 +39,12 @@ func (r *RedisRepository) Create(ctx context.Context, user *domain.User, pwdhash
 	return nil
 }
 
-func (r *RedisRepository) UpdateLogin(ctx context.Context, username string, timestamp time.Time) (*domain.User, error) {
-	user, err := r.Repository.UpdateLogin(ctx, username, timestamp)
-	if err != nil {
-		return nil, err
+func (r *RedisRepository) UpdateLogin(ctx context.Context, username string, timestamp time.Time) error {
+	if err := r.Repository.UpdateLogin(ctx, username, timestamp); err != nil {
+		return err
 	}
 	r.invalidate(ctx, r.keys.Key(username), r.keys.List(activeList))
-	return user, nil
+	return nil
 }
 
 func (r *RedisRepository) Update(ctx context.Context, username string, diff *domain.UserDiff) error {

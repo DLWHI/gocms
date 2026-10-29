@@ -48,14 +48,18 @@ func (h *Handler) login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	session, err := h.userService.Login(r.Context(), payload.Username, payload.Passwd)
+	token, err := h.userService.Login(r.Context(), payload.Username, payload.Passwd)
 	if err != nil {
 		server.WriteServerError(w, "Auth", err)
 		return
 	}
 
+	res := map[string]string{
+		"token": token,
+	}
+
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(&session)
+	json.NewEncoder(w).Encode(&res)
 }
 
 // POST /logout - Log out
@@ -64,7 +68,7 @@ func (h *Handler) logout(w http.ResponseWriter, r *http.Request) {
 		server.WriteServerError(w, "Auth", err)
 		return
 	}
-	w.WriteHeader(http.StatusOK)
+	w.WriteHeader(http.StatusNoContent)
 }
 
 // GET /profile - Get current user/Validate session
@@ -110,5 +114,5 @@ func (h *Handler) changePasswd(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
+	w.WriteHeader(http.StatusNoContent)
 }

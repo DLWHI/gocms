@@ -14,29 +14,19 @@ import (
 type Service struct {
 	repo Repository
 	se   SearchEngine
+	auth domain.AuthService
 }
 
-func NewService(db Repository, se SearchEngine) *Service {
+func NewService(repo Repository, se SearchEngine, auth domain.AuthService) *Service {
 	return &Service{
-		repo: db,
+		repo: repo,
 		se:   se,
+		auth: auth,
 	}
-}
-
-func (s *Service) resolveLocale(ctx context.Context, value string) (string, error) {
-	normalized := strings.TrimSpace(strings.ToLower(value))
-	if normalized == "" {
-		locale, ok := ctx.Value("locale").(string)
-		if !ok {
-			return "", fmt.Errorf("%w: empty locale", domain.ErrInval)
-		}
-		return locale, nil
-	}
-	return normalized, nil
 }
 
 func (s *Service) Create(ctx context.Context, category *domain.Category) (string, error) {
-	if !auth.HasPermission(ctx, "categories", "create") {
+	if !s.auth.Authorize(ctx, domain.CategoryEntityName, domain.ActionCreateName) {
 		return "", domain.ErrCred
 	}
 
@@ -50,7 +40,7 @@ func (s *Service) Create(ctx context.Context, category *domain.Category) (string
 
 	normalized := strings.TrimSpace(strings.ToLower(category.Locale))
 	if normalized == "" {
-		locale, ok := ctx.Value("locale").(string)
+		locale, ok := ctx.Value(domain.LocaleKey).(string)
 		if !ok {
 			return "", fmt.Errorf("%w: empty locale", domain.ErrInval)
 		}
@@ -68,7 +58,7 @@ func (s *Service) Create(ctx context.Context, category *domain.Category) (string
 }
 
 func (s *Service) Edit(ctx context.Context, slug string, diff *domain.CategoryDiff) (string, error) {
-	if !auth.HasPermission(ctx, "categories", "edit") {
+	if !s.auth.Authorize(ctx, domain.CategoryEntityName, domain.ActionEditName) {
 		return "", domain.ErrCred
 	}
 
@@ -77,7 +67,7 @@ func (s *Service) Edit(ctx context.Context, slug string, diff *domain.CategoryDi
 		return "", err
 	}
 
-	locale, ok := ctx.Value("locale").(string)
+	locale, ok := ctx.Value(domain.LocaleKey).(string)
 	if !ok {
 		return "", fmt.Errorf("%w: empty locale", domain.ErrInval)
 	}
@@ -103,7 +93,7 @@ func (s *Service) Edit(ctx context.Context, slug string, diff *domain.CategoryDi
 }
 
 func (s *Service) Get(ctx context.Context, slug string) (*domain.Category, error) {
-	locale, ok := ctx.Value("locale").(string)
+	locale, ok := ctx.Value(domain.LocaleKey).(string)
 	if !ok {
 		return nil, fmt.Errorf("%w: empty locale", domain.ErrInval)
 	}
@@ -120,7 +110,7 @@ func (s *Service) Get(ctx context.Context, slug string) (*domain.Category, error
 }
 
 func (s *Service) All(ctx context.Context) ([]domain.Category, error) {
-	locale, ok := ctx.Value("locale").(string)
+	locale, ok := ctx.Value(domain.LocaleKey).(string)
 	if !ok {
 		return nil, fmt.Errorf("%w: empty locale", domain.ErrInval)
 	}
@@ -135,7 +125,7 @@ func (s *Service) All(ctx context.Context) ([]domain.Category, error) {
 }
 
 func (s *Service) AllNotHidden(ctx context.Context) ([]domain.Category, error) {
-	locale, ok := ctx.Value("locale").(string)
+	locale, ok := ctx.Value(domain.LocaleKey).(string)
 	if !ok {
 		return nil, fmt.Errorf("%w: empty locale", domain.ErrInval)
 	}
@@ -170,7 +160,7 @@ func (s *Service) Search(ctx context.Context, filters *SearchParams) (*SearchRes
 }
 
 func (s *Service) Delete(ctx context.Context, slug string) error {
-	if !auth.HasPermission(ctx, "categories", "delete") {
+	if !auth.HasPermission(ctx, domain.CategoryEntityName, domain.ActionDeleteName) {
 		return domain.ErrCred
 	}
 

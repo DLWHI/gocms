@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"gocms/internal/domain"
 	"gocms/internal/logger"
-	"gocms/internal/session"
 	"net/http"
 	"strings"
 
@@ -15,9 +14,7 @@ import (
 )
 
 const (
-	UserPermissionKey = "userperm"
-	UserNameKey       = "username"
-	SessionIDKey      = "session"
+	BearerPrefix = "Bearer "
 )
 
 type JWTMiddleware struct {
@@ -25,7 +22,7 @@ type JWTMiddleware struct {
 }
 
 type SessionMiddleware struct {
-	provider session.Repository
+	provider SessionRepository
 }
 
 type TestMiddleware struct {
@@ -39,7 +36,7 @@ func NewJWTMiddleware(jwtSecret *rsa.PublicKey) *JWTMiddleware {
 	}
 }
 
-func NewSessionMiddleware(provider session.Repository) *SessionMiddleware {
+func NewSessionMiddleware(provider SessionRepository) *SessionMiddleware {
 	return &SessionMiddleware{
 		provider: provider,
 	}
@@ -85,8 +82,7 @@ func (m *JWTMiddleware) Wrap(next http.Handler) http.Handler {
 			return
 		}
 
-		ctx := context.WithValue(r.Context(), UserNameKey, claims.Username)
-		ctx = context.WithValue(ctx, UserPermissionKey, claims.Permissions)
+		ctx := context.WithValue(r.Context(), domain.UsernameKey, claims.Username)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
@@ -99,15 +95,14 @@ func (m *SessionMiddleware) Wrap(next http.Handler) http.Handler {
 			return
 		}
 
-		const prefix = "Bearer "
-		if !strings.HasPrefix(authHeader, prefix) {
+		if !strings.HasPrefix(authHeader, BearerPrefix) {
 			http.Error(w, "Unauthorized: unknown bearer", http.StatusUnauthorized)
 			return
 		}
-		sessionID := strings.TrimPrefix(authHeader, prefix)
+		sessionID := strings.TrimPrefix(authHeader, BearerPrefix)
 		ctx := r.Context()
 
-		session, err := m.provider.Validate(ctx, sessionID)
+		username, session, err := m.provider.Validate(ctx, sessionID)
 		if err != nil {
 			if errors.Is(err, domain.ErrExpired) {
 				http.Error(w, "Unauthorized: Expired or invalid session", http.StatusUnauthorized)
@@ -118,9 +113,8 @@ func (m *SessionMiddleware) Wrap(next http.Handler) http.Handler {
 			return
 		}
 
-		ctx = context.WithValue(ctx, UserNameKey, session.User.Username)
-		ctx = context.WithValue(ctx, UserPermissionKey, session.User.Permissions)
-		ctx = context.WithValue(ctx, SessionIDKey, session.ID)
+		ctx = context.WithValue(ctx, domain.UsernameKey, username)
+		ctx = context.WithValue(ctx, domain.SessionIDKey, session)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
@@ -128,25 +122,15 @@ func (m *SessionMiddleware) Wrap(next http.Handler) http.Handler {
 func (m *TestMiddleware) Wrap(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
-		ctx = context.WithValue(ctx, UserNameKey, m.username)
-		ctx = context.WithValue(ctx, UserPermissionKey, m.level)
+		ctx = context.WithValue(ctx, domain.UsernameKey, m.username)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
 
 func HasPermission(ctx context.Context, entity string, action string) bool {
-	level, ok := ctx.Value(UserPermissionKey).(uint32)
-	if !ok {
-		return false
-	}
-
-	return domain.HasPermission(level, entity, action)
+	return false
 }
 
 func IsSubsetOf(ctx context.Context, permissions uint32) bool {
-	level, ok := ctx.Value(UserPermissionKey).(uint32)
-	if !ok {
-		return false
-	}
-	return (level & permissions) == permissions
+	return false
 }

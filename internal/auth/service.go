@@ -10,11 +10,11 @@ import (
 )
 
 type Service struct {
-	users    UserManager
+	users    UserService
 	sessions session.Repository
 }
 
-func NewService(users UserManager, sessions session.Repository) *Service {
+func NewService(users UserService, sessions session.Repository) *Service {
 	return &Service{
 		users:    users,
 		sessions: sessions,
@@ -55,21 +55,6 @@ func (s *Service) Logout(ctx context.Context) error {
 		return err
 	}
 	return nil
-}
-
-func (s *Service) UpdateProfile(ctx context.Context) (*session.Session, error) {
-	session, ok := ctx.Value(SessionIDKey).(string)
-	if !ok {
-		return nil, domain.ErrExpired
-	}
-
-	user, err := s.sessions.Validate(ctx, session)
-	if err != nil {
-		logger.Error("Auth.Service", "Failed to retrieve the current user", err)
-		return nil, err
-	}
-
-	return user, nil
 }
 
 func (s *Service) CurrentUser(ctx context.Context) (*session.Session, error) {

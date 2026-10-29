@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"gocms/internal/cache"
+	"gocms/internal/domain"
 	"gocms/internal/logger"
 
 	"github.com/redis/go-redis/v9"
@@ -30,8 +31,8 @@ func NewRedisRepository(origin Repository, client *redis.Client, ttl time.Durati
 	}
 }
 
-func (r *RedisRepository) Create(ctx context.Context, name string, code string) error {
-	if err := r.Repository.Create(ctx, name, code); err != nil {
+func (r *RedisRepository) Create(ctx context.Context, locale *domain.Locale) error {
+	if err := r.Repository.Create(ctx, locale); err != nil {
 		return err
 	}
 	if err := r.cache.Invalidate(ctx, r.keys.List(allList)); err != nil {
@@ -40,8 +41,8 @@ func (r *RedisRepository) Create(ctx context.Context, name string, code string) 
 	return nil
 }
 
-func (r *RedisRepository) GetAll(ctx context.Context) ([]Locale, error) {
-	var locales []Locale
+func (r *RedisRepository) GetAll(ctx context.Context) ([]domain.Locale, error) {
+	var locales []domain.Locale
 	var token string
 	key := r.keys.List(allList)
 	err := r.cache.Get(ctx, key, &locales)

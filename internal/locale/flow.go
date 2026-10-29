@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"gocms/internal/cache"
+	"gocms/internal/domain"
 	"gocms/internal/flow"
 )
 
@@ -23,15 +24,15 @@ func NewFlowRepository(origin Repository, timeout time.Duration, config cache.Ke
 	}
 }
 
-func (r *FlowRepository) Create(ctx context.Context, name string, code string) error {
-	if err := r.Repository.Create(ctx, name, code); err != nil {
+func (r *FlowRepository) Create(ctx context.Context, locale *domain.Locale) error {
+	if err := r.Repository.Create(ctx, locale); err != nil {
 		return err
 	}
 	r.group.Forget(r.keys.List(allList))
 	return nil
 }
 
-func (r *FlowRepository) GetAll(ctx context.Context) ([]Locale, error) {
+func (r *FlowRepository) GetAll(ctx context.Context) ([]domain.Locale, error) {
 	ch := r.group.DoChan(r.keys.List(allList), func() (any, error) {
 		bg, cancel := context.WithTimeout(context.Background(), r.timeout)
 		defer cancel()
@@ -52,7 +53,7 @@ func (r *FlowRepository) GetAll(ctx context.Context) ([]Locale, error) {
 		if res.Err != nil {
 			return nil, res.Err
 		}
-		return res.Val.([]Locale), nil
+		return res.Val.([]domain.Locale), nil
 	}
 }
 

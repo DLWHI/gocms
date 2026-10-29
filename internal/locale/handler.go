@@ -2,6 +2,7 @@ package locale
 
 import (
 	"encoding/json"
+	"gocms/internal/domain"
 	"gocms/internal/server"
 	"net/http"
 )
@@ -29,16 +30,13 @@ func NewHandler(s *Service) *Handler {
 
 // POST /locales - Add locale
 func (h *Handler) create(w http.ResponseWriter, r *http.Request) {
-	var payload struct {
-		Name string `json:"name"`
-		Code string `json:"code"`
-	}
+	var payload domain.Locale
 	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
 		server.WriteDecodeError(w, err)
 		return
 	}
 
-	if err := h.localeService.Create(r.Context(), payload.Name, payload.Code); err != nil {
+	if err := h.localeService.Create(r.Context(), &payload); err != nil {
 		server.WriteServerError(w, "Locale", err)
 		return
 	}
@@ -54,8 +52,12 @@ func (h *Handler) get(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	res := map[string][]domain.Locale{
+		"locales": locales,
+	}
+
 	w.Header().Set("Content-Type", "application/json")
-	_ = json.NewEncoder(w).Encode(locales)
+	_ = json.NewEncoder(w).Encode(res)
 }
 
 // DELETE /locales/{code} - Delete locale

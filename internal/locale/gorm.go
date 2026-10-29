@@ -20,15 +20,11 @@ func NewGORMRepository(db *gorm.DB) *GORMRepository {
 	return &GORMRepository{db: db}
 }
 
-func (r *GORMRepository) Create(ctx context.Context, name string, code string) error {
-	locale := Locale{
-		Name: name,
-		Code: code,
-	}
-	return r.db.WithContext(ctx).Create(&locale).Error
+func (r *GORMRepository) Create(ctx context.Context, locale *domain.Locale) error {
+	return r.db.WithContext(ctx).Create(ToRecord(locale)).Error
 }
 
-func (r *GORMRepository) GetAll(ctx context.Context) ([]Locale, error) {
+func (r *GORMRepository) GetAll(ctx context.Context) ([]domain.Locale, error) {
 	locales := make([]Locale, 0)
 
 	err := r.db.WithContext(ctx).
@@ -37,7 +33,13 @@ func (r *GORMRepository) GetAll(ctx context.Context) ([]Locale, error) {
 		return nil, err
 	}
 
-	return locales, nil
+	vals := make([]domain.Locale, 0, len(locales))
+
+	for _, locale := range locales {
+		vals = append(vals, *locale.ToDomain())
+	}
+
+	return vals, nil
 }
 
 func (r *GORMRepository) Delete(ctx context.Context, code string) error {
@@ -55,4 +57,18 @@ func (r *GORMRepository) Delete(ctx context.Context, code string) error {
 
 func (Locale) TableName() string {
 	return "locales"
+}
+
+func ToRecord(locale *domain.Locale) *Locale {
+	return &Locale{
+		Name: locale.Name,
+		Code: locale.Code,
+	}
+}
+
+func (l *Locale) ToDomain() *domain.Locale {
+	return &domain.Locale{
+		Name: l.Name,
+		Code: l.Code,
+	}
 }

@@ -40,12 +40,12 @@ func NormalizeCode(value string) (string, error) {
 	return strings.ToLower(normalized), nil
 }
 
-func (s *Service) Create(ctx context.Context, name string, code string) error {
+func (s *Service) Create(ctx context.Context, locale *domain.Locale) error {
 	if !auth.HasPermission(ctx, "locales", "create") {
 		return domain.ErrCred
 	}
 
-	if err := s.repo.Create(ctx, name, code); err != nil {
+	if err := s.repo.Create(ctx, locale); err != nil {
 		logger.Error("Locale.Service", "Failed to create locale", err)
 		return err
 	}
@@ -53,7 +53,7 @@ func (s *Service) Create(ctx context.Context, name string, code string) error {
 	return nil
 }
 
-func (s *Service) GetAll(ctx context.Context) ([]Locale, error) {
+func (s *Service) GetAll(ctx context.Context) ([]domain.Locale, error) {
 	locales, err := s.repo.GetAll(ctx)
 	if err != nil {
 		logger.Error("Locale.Service", "Failed to list locales", err)

@@ -11,11 +11,11 @@ import (
 )
 
 type EventConsumer struct {
-	users    UserManager
+	users    UserService
 	sessions session.Repository
 }
 
-func NewEventConsumer(repo session.Repository, manager UserManager) *EventConsumer {
+func NewEventConsumer(repo session.Repository, manager UserService) *EventConsumer {
 	return &EventConsumer{
 		sessions: repo,
 		users:    manager,
@@ -31,22 +31,25 @@ func (s *EventConsumer) RevokeSessions(ctx context.Context, data []byte) error {
 	switch payload.Action {
 	case domain.UserActionPassword, domain.UserActionSuspend:
 		if err := s.sessions.RevokeUser(ctx, payload.Username); err != nil {
-			if !errors.Is(err, domain.ErrExpired) {
-				logger.Error("Auth.Service", "Failed to revoke user's sessions", err, "username", payload.Username)
-			}
+			logger.Error("Auth.Service", "Failed to revoke user's sessions", err, "username", payload.Username)
 			return err
 		}
 		return nil
 	case domain.UserActionUpdate:
 		user, err := s.users.Get(ctx, payload.Username)
 		if err != nil {
+			if errors.Is(err, domain.ErrExpired) {
+				return nil
+			}
+			logger.Error("Auth.Service", "Failed to update user's sessions", err, "username", payload.Username)
 			return err
 		}
 
 		if err := s.sessions.Update(ctx, payload.Username, user); err != nil {
-			if !errors.Is(err, domain.ErrExpired) {
-				logger.Error("Auth.Service", "Failed to revoke user's sessions", err, "username", payload.Username)
+			if errors.Is(err, domain.ErrExpired) {
+				return nil
 			}
+			logger.Error("Auth.Service", "Failed to update user's sessions", err, "username", payload.Username)
 			return err
 		}
 		return nil

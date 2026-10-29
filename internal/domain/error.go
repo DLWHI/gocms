@@ -1,18 +1,19 @@
 package domain
 
-type Constant string
+type Error string
 
-func (e Constant) Error() string {
+func (e Error) Error() string {
 	return string(e)
 }
 
 const (
-	ErrNotFound  = Constant("Entity not found")
-	ErrInval     = Constant("Invalid argument")
-	ErrCred      = Constant("Invalid username or password")
-	ErrExpired   = Constant("Session expired")
-	ErrPerm      = Constant("Insufficient permissions")
-	ErrLock      = Constant("Record is locked")
-	ErrRetry     = Constant("Retry operation")
-	ErrDuplicate = Constant("Entity with same key exists")
+	ErrNotFound  = Error("Entity not found")
+	ErrInval     = Error("Invalid argument")
+	ErrCred      = Error("Invalid username or password")
+	ErrExpired   = Error("Session expired")
+	ErrPerm      = Error("Insufficient permissions")
+	ErrLock      = Error("Record is locked")
+	ErrRetry     = Error("Retry operation")
+	ErrDuplicate = Error("Entity with same key exists")
+	ErrAbnormal  = Error("Operation interrupted unexpectedly")
 )

@@ -1,24 +1,47 @@
 package domain
 
+import (
+	"fmt"
+	"strings"
+)
+
+const (
+	CategoryActionCreate = 1 << iota
+	CategoryActionUpdate
+	CategoryActionDelete
+
+	CategoryEventName  = "category"
+	CategoryEntityName = "categories"
+
+	MaxCategoryNameLength = 254
+)
+
 type Category struct {
-	Slug    string `json:"slug" gorm:"size:255;primaryKey"`
-	Hidden  bool   `json:"hidden"`
-	Navbar  bool   `json:"navbar"`
-	Version uint   `json:"-" gorm:"default:1"`
+	ID     string `json:"id,omitempty"`
+	Slug   Slug   `json:"slug"`
+	Hidden bool   `json:"hidden"`
+	Navbar bool   `json:"navbar"`
+	Locale string `json:"locale"`
+	Name   string `json:"name"`
 }
 
-type CategoryTranslation struct {
-	Locale       string   `json:"locale" gorm:"size:8;primaryKey;foreignKey:locales(code);constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
-	Name         string   `json:"name"`
-	CategorySlug string   `json:"slug" gorm:"size:255;primaryKey"`
-	Category     Category `json:"category_meta" gorm:"foreignKey:CategorySlug;references:Slug;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
-	Version      uint     `json:"-" gorm:"default:1"`
+type CategoryDiff struct {
+	Slug   *Slug   `json:"slug"`
+	Hidden *bool   `json:"hidden"`
+	Navbar *bool   `json:"navbar"`
+	Name   *string `json:"name"`
 }
 
-func (Category) TableName() string {
-	return "categories"
+type CategoryEvent struct {
+	Action int    `json:"action"`
+	Slug   string `json:"slug"`
 }
 
-func (CategoryTranslation) TableName() string {
-	return "category_translations"
+func NormalizeCategoryName(value string) (string, error) {
+	normalized := strings.TrimSpace(value)
+	if len(normalized) > MaxCategoryNameLength {
+		return "", fmt.Errorf("%w: category name is longer than %d chars", ErrInval, MaxCategoryNameLength)
+	}
+
+	return normalized, nil
 }

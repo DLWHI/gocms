@@ -96,6 +96,32 @@ func (r *RedisClient) Invalidate(ctx context.Context, keys ...string) error {
 	return nil
 }
 
+func (r *RedisClient) InvalidatePattern(ctx context.Context, pattern string) error {
+	keys := make([]string, 0, 10)
+	iter := r.Client.Scan(ctx, 0, pattern, 10).Iterator()
+
+	for iter.Next(ctx) {
+		keys = append(keys, iter.Val())
+
+		if len(keys) > 9 {
+			if _, err := r.Client.Unlink(ctx, keys...).Result(); err != nil {
+				return err
+			}
+			keys = keys[:0]
+		}
+	}
+	if err := iter.Err(); err != nil {
+		return err
+	}
+
+	if len(keys) > 0 {
+		if _, err := r.Client.Unlink(ctx, keys...).Result(); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 // func (r *RedisClient) Gen(ctx context.Context, key string) (int64, error) {
 // 	gen, err := r.rdb.Get(ctx, genKey(slug)).Int64()
 // 	if err != nil && !errors.Is(err, redis.Nil) {

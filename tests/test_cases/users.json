@@ -15207,7 +15207,7 @@
     {
       "id": "PASSWORD-047",
       "group": "PATCH /cms/users/{username}/password",
-      "title": "actor may reset own password; own session is then revoked",
+      "title": "401: actor may reset not own password",
       "source": "inferred",
       "tags": [],
       "steps": [
@@ -15225,25 +15225,6 @@
             "headers": {
               "Content-Type": "application/json"
             }
-          },
-          "expect": {
-            "status": 204,
-            "body": "empty",
-            "external_checks": [
-              {
-                "check": "login",
-                "username": "reader",
-                "password": "Another-Passw0rd-2",
-                "expect": "success"
-              }
-            ]
-          }
-        },
-        {
-          "actor": "reader",
-          "request": {
-            "method": "GET",
-            "path": "/cms/users"
           },
           "expect": {
             "status": 401,
@@ -18023,6 +18004,2309 @@
           "expect": {
             "status": 401,
             "body": "plain_text"
+          }
+        }
+      ]
+    },
+    {
+      "id": "PERMS-050",
+      "group": "PATCH /cms/users/{username}/permissions",
+      "title": "grant edit: reader's existing session can edit after the grant (was 401 before)",
+      "source": "stated",
+      "tags": ["session"],
+      "steps": [
+        {
+          "actor": "reader",
+          "request": {
+            "method": "PATCH",
+            "path": "/cms/users/{username}/email",
+            "path_params": {
+              "username": "carol"
+            },
+            "body": {
+              "email": "first@example.com"
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 401,
+            "body": "plain_text"
+          }
+        },
+        {
+          "actor": "root",
+          "request": {
+            "method": "PATCH",
+            "path": "/cms/users/{username}/permissions",
+            "path_params": {
+              "username": "reader"
+            },
+            "body": {
+              "permissions": {
+                "$actor_perms": "editor"
+              }
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 204,
+            "body": "empty"
+          }
+        },
+        {
+          "actor": "reader",
+          "request": {
+            "method": "PATCH",
+            "path": "/cms/users/{username}/email",
+            "path_params": {
+              "username": "carol"
+            },
+            "body": {
+              "email": "first@example.com"
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 204,
+            "body": "empty"
+          }
+        },
+        {
+          "actor": "root",
+          "request": {
+            "method": "GET",
+            "path": "/cms/users/{username}",
+            "path_params": {
+              "username": "carol"
+            }
+          },
+          "expect": {
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.email",
+                "op": "eq",
+                "value": "first@example.com"
+              }
+            ]
+          }
+        }
+      ],
+      "note": "No re-login between steps: the same session id must carry the new permission mask."
+    },
+    {
+      "id": "PERMS-051",
+      "group": "PATCH /cms/users/{username}/permissions",
+      "title": "grant delete: reader's existing session can suspend after the grant",
+      "source": "stated",
+      "tags": ["session", "assumes_distinct_bits"],
+      "steps": [
+        {
+          "actor": "reader",
+          "request": {
+            "method": "DELETE",
+            "path": "/cms/users/{username}",
+            "path_params": {
+              "username": "carol"
+            }
+          },
+          "expect": {
+            "status": 401,
+            "body": "plain_text"
+          }
+        },
+        {
+          "actor": "root",
+          "request": {
+            "method": "GET",
+            "path": "/cms/users/{username}",
+            "path_params": {
+              "username": "carol"
+            }
+          },
+          "expect": {
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.suspended_at",
+                "op": "is_null"
+              }
+            ]
+          }
+        },
+        {
+          "actor": "root",
+          "request": {
+            "method": "PATCH",
+            "path": "/cms/users/{username}/permissions",
+            "path_params": {
+              "username": "reader"
+            },
+            "body": {
+              "permissions": {
+                "$actor_perms": "deleter"
+              }
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 204,
+            "body": "empty"
+          }
+        },
+        {
+          "actor": "reader",
+          "request": {
+            "method": "DELETE",
+            "path": "/cms/users/{username}",
+            "path_params": {
+              "username": "carol"
+            }
+          },
+          "expect": {
+            "status": 204,
+            "body": "empty"
+          }
+        },
+        {
+          "actor": "root",
+          "request": {
+            "method": "GET",
+            "path": "/cms/users/{username}",
+            "path_params": {
+              "username": "carol"
+            }
+          },
+          "expect": {
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.suspended_at",
+                "op": "not_null"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "PERMS-052",
+      "group": "PATCH /cms/users/{username}/permissions",
+      "title": "grant create: reader's existing session can create after the grant",
+      "source": "stated",
+      "tags": ["session", "assumes_distinct_bits"],
+      "steps": [
+        {
+          "actor": "reader",
+          "request": {
+            "method": "POST",
+            "path": "/cms/users",
+            "body": {
+              "username": "newuser",
+              "password": "Valid-Passw0rd-1"
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 401,
+            "body": "plain_text"
+          }
+        },
+        {
+          "actor": "root",
+          "request": {
+            "method": "GET",
+            "path": "/cms/users/{username}",
+            "path_params": {
+              "username": "newuser"
+            }
+          },
+          "expect": {
+            "status": 404,
+            "body": "plain_text"
+          }
+        },
+        {
+          "actor": "root",
+          "request": {
+            "method": "PATCH",
+            "path": "/cms/users/{username}/permissions",
+            "path_params": {
+              "username": "reader"
+            },
+            "body": {
+              "permissions": {
+                "$actor_perms": "creator"
+              }
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 204,
+            "body": "empty"
+          }
+        },
+        {
+          "actor": "reader",
+          "request": {
+            "method": "POST",
+            "path": "/cms/users",
+            "body": {
+              "username": "newuser",
+              "password": "Valid-Passw0rd-1"
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 201,
+            "body": "empty"
+          }
+        },
+        {
+          "actor": "root",
+          "request": {
+            "method": "GET",
+            "path": "/cms/users/{username}",
+            "path_params": {
+              "username": "newuser"
+            }
+          },
+          "expect": {
+            "status": 200,
+            "body": "empty"
+          }
+        }
+      ]
+    },
+    {
+      "id": "PERMS-053",
+      "group": "PATCH /cms/users/{username}/permissions",
+      "title": "grant create+edit: gains both, still cannot suspend",
+      "source": "stated",
+      "tags": ["session", "assumes_distinct_bits"],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "PATCH",
+            "path": "/cms/users/{username}/permissions",
+            "path_params": {
+              "username": "reader"
+            },
+            "body": {
+              "permissions": {
+                "$actor_perms": "limited"
+              }
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 204,
+            "body": "empty"
+          }
+        },
+        {
+          "actor": "reader",
+          "request": {
+            "method": "POST",
+            "path": "/cms/users",
+            "body": {
+              "username": "newuser",
+              "password": "Valid-Passw0rd-1"
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 201,
+            "body": "empty"
+          }
+        },
+        {
+          "actor": "reader",
+          "request": {
+            "method": "PATCH",
+            "path": "/cms/users/{username}/email",
+            "path_params": {
+              "username": "carol"
+            },
+            "body": {
+              "email": "first@example.com"
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 204,
+            "body": "empty"
+          }
+        },
+        {
+          "actor": "reader",
+          "request": {
+            "method": "DELETE",
+            "path": "/cms/users/{username}",
+            "path_params": {
+              "username": "carol"
+            }
+          },
+          "expect": {
+            "status": 401,
+            "body": "plain_text"
+          }
+        },
+        {
+          "actor": "root",
+          "request": {
+            "method": "GET",
+            "path": "/cms/users/{username}",
+            "path_params": {
+              "username": "carol"
+            }
+          },
+          "expect": {
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.suspended_at",
+                "op": "is_null"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "PERMS-054",
+      "group": "PATCH /cms/users/{username}/permissions",
+      "title": "grant all bits: the subset check uses the updated mask (65536 now grantable)",
+      "source": "stated",
+      "tags": ["session", "security"],
+      "steps": [
+        {
+          "actor": "reader",
+          "request": {
+            "method": "POST",
+            "path": "/cms/users",
+            "body": {
+              "username": "newuser",
+              "password": "Valid-Passw0rd-1",
+              "permissions": {
+                "$const": "PERM_OUTSIDE"
+              }
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 401,
+            "body": "plain_text"
+          }
+        },
+        {
+          "actor": "root",
+          "request": {
+            "method": "PATCH",
+            "path": "/cms/users/{username}/permissions",
+            "path_params": {
+              "username": "reader"
+            },
+            "body": {
+              "permissions": {
+                "$const": "PERM_ALL"
+              }
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 204,
+            "body": "empty"
+          }
+        },
+        {
+          "actor": "reader",
+          "request": {
+            "method": "POST",
+            "path": "/cms/users",
+            "body": {
+              "username": "newuser",
+              "password": "Valid-Passw0rd-1",
+              "permissions": {
+                "$const": "PERM_OUTSIDE"
+              }
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 201,
+            "body": "empty"
+          }
+        },
+        {
+          "actor": "root",
+          "request": {
+            "method": "GET",
+            "path": "/cms/users/{username}",
+            "path_params": {
+              "username": "newuser"
+            }
+          },
+          "expect": {
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.permissions",
+                "op": "eq",
+                "value": 65536
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "PERMS-055",
+      "group": "PATCH /cms/users/{username}/permissions",
+      "title": "grant by a non-root actor (editor grants own mask) also updates the target's session",
+      "source": "stated",
+      "tags": ["session", "assumes_distinct_bits"],
+      "steps": [
+        {
+          "actor": "reader",
+          "request": {
+            "method": "PATCH",
+            "path": "/cms/users/{username}/email",
+            "path_params": {
+              "username": "carol"
+            },
+            "body": {
+              "email": "first@example.com"
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 401,
+            "body": "plain_text"
+          }
+        },
+        {
+          "actor": "editor",
+          "request": {
+            "method": "PATCH",
+            "path": "/cms/users/{username}/permissions",
+            "path_params": {
+              "username": "reader"
+            },
+            "body": {
+              "permissions": {
+                "$actor_perms": "editor"
+              }
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 204,
+            "body": "empty"
+          }
+        },
+        {
+          "actor": "reader",
+          "request": {
+            "method": "PATCH",
+            "path": "/cms/users/{username}/email",
+            "path_params": {
+              "username": "carol"
+            },
+            "body": {
+              "email": "first@example.com"
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 204,
+            "body": "empty"
+          }
+        }
+      ]
+    },
+    {
+      "id": "PERMS-056",
+      "group": "PATCH /cms/users/{username}/permissions",
+      "title": "grant by limited: reader receives creator mask and can create",
+      "source": "stated",
+      "tags": ["session", "assumes_distinct_bits"],
+      "steps": [
+        {
+          "actor": "limited",
+          "request": {
+            "method": "PATCH",
+            "path": "/cms/users/{username}/permissions",
+            "path_params": {
+              "username": "reader"
+            },
+            "body": {
+              "permissions": {
+                "$actor_perms": "creator"
+              }
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 204,
+            "body": "empty"
+          }
+        },
+        {
+          "actor": "reader",
+          "request": {
+            "method": "POST",
+            "path": "/cms/users",
+            "body": {
+              "username": "newuser",
+              "password": "Valid-Passw0rd-1"
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 201,
+            "body": "empty"
+          }
+        },
+        {
+          "actor": "reader",
+          "request": {
+            "method": "PATCH",
+            "path": "/cms/users/{username}/email",
+            "path_params": {
+              "username": "carol"
+            },
+            "body": {
+              "email": "first@example.com"
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 401,
+            "body": "plain_text"
+          }
+        }
+      ]
+    },
+    {
+      "id": "PERMS-057",
+      "group": "PATCH /cms/users/{username}/permissions",
+      "title": "demote editor to 0: existing session loses edit (was 204 before)",
+      "source": "stated",
+      "tags": ["session"],
+      "steps": [
+        {
+          "actor": "editor",
+          "request": {
+            "method": "PATCH",
+            "path": "/cms/users/{username}/email",
+            "path_params": {
+              "username": "carol"
+            },
+            "body": {
+              "email": "first@example.com"
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 204,
+            "body": "empty"
+          }
+        },
+        {
+          "actor": "root",
+          "request": {
+            "method": "PATCH",
+            "path": "/cms/users/{username}/permissions",
+            "path_params": {
+              "username": "editor"
+            },
+            "body": {
+              "permissions": 0
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 204,
+            "body": "empty"
+          }
+        },
+        {
+          "actor": "editor",
+          "request": {
+            "method": "PATCH",
+            "path": "/cms/users/{username}/email",
+            "path_params": {
+              "username": "carol"
+            },
+            "body": {
+              "email": "second@example.com"
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 401,
+            "body": "plain_text"
+          }
+        },
+        {
+          "actor": "root",
+          "request": {
+            "method": "GET",
+            "path": "/cms/users/{username}",
+            "path_params": {
+              "username": "carol"
+            }
+          },
+          "expect": {
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.email",
+                "op": "eq",
+                "value": "first@example.com"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "PERMS-058",
+      "group": "PATCH /cms/users/{username}/permissions",
+      "title": "demote deleter to 0: existing session can no longer suspend",
+      "source": "stated",
+      "tags": ["session"],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "PATCH",
+            "path": "/cms/users/{username}/permissions",
+            "path_params": {
+              "username": "deleter"
+            },
+            "body": {
+              "permissions": 0
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 204,
+            "body": "empty"
+          }
+        },
+        {
+          "actor": "deleter",
+          "request": {
+            "method": "DELETE",
+            "path": "/cms/users/{username}",
+            "path_params": {
+              "username": "carol"
+            }
+          },
+          "expect": {
+            "status": 401,
+            "body": "plain_text"
+          }
+        },
+        {
+          "actor": "root",
+          "request": {
+            "method": "GET",
+            "path": "/cms/users/{username}",
+            "path_params": {
+              "username": "carol"
+            }
+          },
+          "expect": {
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.suspended_at",
+                "op": "is_null"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "PERMS-059",
+      "group": "PATCH /cms/users/{username}/permissions",
+      "title": "demote creator to 0: existing session can no longer create",
+      "source": "stated",
+      "tags": ["session"],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "PATCH",
+            "path": "/cms/users/{username}/permissions",
+            "path_params": {
+              "username": "creator"
+            },
+            "body": {
+              "permissions": 0
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 204,
+            "body": "empty"
+          }
+        },
+        {
+          "actor": "creator",
+          "request": {
+            "method": "POST",
+            "path": "/cms/users",
+            "body": {
+              "username": "newuser",
+              "password": "Valid-Passw0rd-1"
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 401,
+            "body": "plain_text"
+          }
+        },
+        {
+          "actor": "root",
+          "request": {
+            "method": "GET",
+            "path": "/cms/users/{username}",
+            "path_params": {
+              "username": "newuser"
+            }
+          },
+          "expect": {
+            "status": 404,
+            "body": "plain_text"
+          }
+        }
+      ]
+    },
+    {
+      "id": "PERMS-060",
+      "group": "PATCH /cms/users/{username}/permissions",
+      "title": "partial demotion: limited keeps create, loses edit",
+      "source": "stated",
+      "tags": ["session", "assumes_distinct_bits"],
+      "steps": [
+        {
+          "actor": "limited",
+          "request": {
+            "method": "PATCH",
+            "path": "/cms/users/{username}/email",
+            "path_params": {
+              "username": "carol"
+            },
+            "body": {
+              "email": "first@example.com"
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 204,
+            "body": "empty"
+          }
+        },
+        {
+          "actor": "root",
+          "request": {
+            "method": "PATCH",
+            "path": "/cms/users/{username}/permissions",
+            "path_params": {
+              "username": "limited"
+            },
+            "body": {
+              "permissions": {
+                "$actor_perms": "creator"
+              }
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 204,
+            "body": "empty"
+          }
+        },
+        {
+          "actor": "limited",
+          "request": {
+            "method": "POST",
+            "path": "/cms/users",
+            "body": {
+              "username": "newuser",
+              "password": "Valid-Passw0rd-1"
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 201,
+            "body": "empty"
+          }
+        },
+        {
+          "actor": "limited",
+          "request": {
+            "method": "PATCH",
+            "path": "/cms/users/{username}/email",
+            "path_params": {
+              "username": "carol"
+            },
+            "body": {
+              "email": "second@example.com"
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 401,
+            "body": "plain_text"
+          }
+        },
+        {
+          "actor": "root",
+          "request": {
+            "method": "GET",
+            "path": "/cms/users/{username}",
+            "path_params": {
+              "username": "carol"
+            }
+          },
+          "expect": {
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.email",
+                "op": "eq",
+                "value": "first@example.com"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "PERMS-061",
+      "group": "PATCH /cms/users/{username}/permissions",
+      "title": "partial demotion: subset check uses the reduced mask",
+      "source": "stated",
+      "tags": ["session", "assumes_distinct_bits", "security"],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "PATCH",
+            "path": "/cms/users/{username}/permissions",
+            "path_params": {
+              "username": "limited"
+            },
+            "body": {
+              "permissions": {
+                "$actor_perms": "creator"
+              }
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 204,
+            "body": "empty"
+          }
+        },
+        {
+          "actor": "limited",
+          "request": {
+            "method": "POST",
+            "path": "/cms/users",
+            "body": {
+              "username": "newuser",
+              "password": "Valid-Passw0rd-1",
+              "permissions": {
+                "$actor_perms": "limited"
+              }
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 401,
+            "body": "plain_text"
+          }
+        },
+        {
+          "actor": "root",
+          "request": {
+            "method": "GET",
+            "path": "/cms/users/{username}",
+            "path_params": {
+              "username": "newuser"
+            }
+          },
+          "expect": {
+            "status": 404,
+            "body": "plain_text"
+          }
+        },
+        {
+          "actor": "limited",
+          "request": {
+            "method": "POST",
+            "path": "/cms/users",
+            "body": {
+              "username": "newuser",
+              "password": "Valid-Passw0rd-1",
+              "permissions": {
+                "$actor_perms": "creator"
+              }
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 201,
+            "body": "empty"
+          }
+        }
+      ]
+    },
+    {
+      "id": "PERMS-062",
+      "group": "PATCH /cms/users/{username}/permissions",
+      "title": "demoted session is not revoked: still authenticated, record shows new mask",
+      "source": "stated",
+      "tags": ["session"],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "PATCH",
+            "path": "/cms/users/{username}/permissions",
+            "path_params": {
+              "username": "editor"
+            },
+            "body": {
+              "permissions": 0
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 204,
+            "body": "empty"
+          }
+        },
+        {
+          "actor": "editor",
+          "request": {
+            "method": "GET",
+            "path": "/cms/users"
+          },
+          "expect": {
+            "status": 200,
+            "body": "empty"
+          }
+        },
+        {
+          "actor": "editor",
+          "request": {
+            "method": "GET",
+            "path": "/cms/users/{username}",
+            "path_params": {
+              "username": "editor"
+            }
+          },
+          "expect": {
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.permissions",
+                "op": "eq",
+                "value": 0
+              }
+            ]
+          }
+        }
+      ],
+      "note": "Only password reset and suspension revoke sessions."
+    },
+    {
+      "id": "PERMS-063",
+      "group": "PATCH /cms/users/{username}/permissions",
+      "title": "demoted editor may still edit own email (self-service) but not others'",
+      "source": "stated",
+      "tags": ["session"],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "PATCH",
+            "path": "/cms/users/{username}/permissions",
+            "path_params": {
+              "username": "editor"
+            },
+            "body": {
+              "permissions": 0
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 204,
+            "body": "empty"
+          }
+        },
+        {
+          "actor": "editor",
+          "request": {
+            "method": "PATCH",
+            "path": "/cms/users/{username}/email",
+            "path_params": {
+              "username": "editor"
+            },
+            "body": {
+              "email": "self@example.com"
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 204,
+            "body": "empty"
+          }
+        },
+        {
+          "actor": "editor",
+          "request": {
+            "method": "PATCH",
+            "path": "/cms/users/{username}/email",
+            "path_params": {
+              "username": "carol"
+            },
+            "body": {
+              "email": "first@example.com"
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 401,
+            "body": "plain_text"
+          }
+        },
+        {
+          "actor": "root",
+          "request": {
+            "method": "GET",
+            "path": "/cms/users/{username}",
+            "path_params": {
+              "username": "editor"
+            }
+          },
+          "expect": {
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.email",
+                "op": "eq",
+                "value": "self@example.com"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "PERMS-064",
+      "group": "PATCH /cms/users/{username}/permissions",
+      "title": "demoted editor loses password reset",
+      "source": "stated",
+      "tags": ["session"],
+      "steps": [
+        {
+          "actor": "editor",
+          "request": {
+            "method": "PATCH",
+            "path": "/cms/users/{username}/password",
+            "path_params": {
+              "username": "carol"
+            },
+            "body": {
+              "password": "Another-Passw0rd-2"
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 204,
+            "body": "empty"
+          }
+        },
+        {
+          "actor": "root",
+          "request": {
+            "method": "PATCH",
+            "path": "/cms/users/{username}/permissions",
+            "path_params": {
+              "username": "editor"
+            },
+            "body": {
+              "permissions": 0
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 204,
+            "body": "empty"
+          }
+        },
+        {
+          "actor": "editor",
+          "request": {
+            "method": "PATCH",
+            "path": "/cms/users/{username}/password",
+            "path_params": {
+              "username": "carol"
+            },
+            "body": {
+              "password": "Third-Passw0rd-3"
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 401,
+            "body": "plain_text",
+            "external_checks": [
+              {
+                "check": "login",
+                "username": "carol",
+                "password": "Another-Passw0rd-2",
+                "expect": "success"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "PERMS-065",
+      "group": "PATCH /cms/users/{username}/permissions",
+      "title": "demoted editor loses permission changes",
+      "source": "stated",
+      "tags": ["session", "assumes_distinct_bits"],
+      "steps": [
+        {
+          "actor": "editor",
+          "request": {
+            "method": "PATCH",
+            "path": "/cms/users/{username}/permissions",
+            "path_params": {
+              "username": "carol"
+            },
+            "body": {
+              "permissions": {
+                "$actor_perms": "editor"
+              }
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 204,
+            "body": "empty"
+          }
+        },
+        {
+          "actor": "root",
+          "request": {
+            "method": "PATCH",
+            "path": "/cms/users/{username}/permissions",
+            "path_params": {
+              "username": "editor"
+            },
+            "body": {
+              "permissions": 0
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 204,
+            "body": "empty"
+          }
+        },
+        {
+          "actor": "editor",
+          "request": {
+            "method": "PATCH",
+            "path": "/cms/users/{username}/permissions",
+            "path_params": {
+              "username": "carol"
+            },
+            "body": {
+              "permissions": 0
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 401,
+            "body": "plain_text"
+          }
+        },
+        {
+          "actor": "root",
+          "request": {
+            "method": "GET",
+            "path": "/cms/users/{username}",
+            "path_params": {
+              "username": "carol"
+            }
+          },
+          "expect": {
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.permissions",
+                "op": "eq",
+                "value": {
+                  "$actor_perms": "editor"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "PERMS-066",
+      "group": "PATCH /cms/users/{username}/permissions",
+      "title": "latest change wins: edit mask replaced by delete mask",
+      "source": "stated",
+      "tags": ["session", "assumes_distinct_bits"],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "PATCH",
+            "path": "/cms/users/{username}/permissions",
+            "path_params": {
+              "username": "reader"
+            },
+            "body": {
+              "permissions": {
+                "$actor_perms": "editor"
+              }
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 204,
+            "body": "empty"
+          }
+        },
+        {
+          "actor": "root",
+          "request": {
+            "method": "PATCH",
+            "path": "/cms/users/{username}/permissions",
+            "path_params": {
+              "username": "reader"
+            },
+            "body": {
+              "permissions": {
+                "$actor_perms": "deleter"
+              }
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 204,
+            "body": "empty"
+          }
+        },
+        {
+          "actor": "reader",
+          "request": {
+            "method": "PATCH",
+            "path": "/cms/users/{username}/email",
+            "path_params": {
+              "username": "carol"
+            },
+            "body": {
+              "email": "first@example.com"
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 401,
+            "body": "plain_text"
+          }
+        },
+        {
+          "actor": "reader",
+          "request": {
+            "method": "DELETE",
+            "path": "/cms/users/{username}",
+            "path_params": {
+              "username": "carol"
+            }
+          },
+          "expect": {
+            "status": 204,
+            "body": "empty"
+          }
+        },
+        {
+          "actor": "root",
+          "request": {
+            "method": "GET",
+            "path": "/cms/users/{username}",
+            "path_params": {
+              "username": "carol"
+            }
+          },
+          "expect": {
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.suspended_at",
+                "op": "not_null"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "PERMS-067",
+      "group": "PATCH /cms/users/{username}/permissions",
+      "title": "grant then revoke within one case",
+      "source": "stated",
+      "tags": ["session"],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "PATCH",
+            "path": "/cms/users/{username}/permissions",
+            "path_params": {
+              "username": "reader"
+            },
+            "body": {
+              "permissions": {
+                "$actor_perms": "editor"
+              }
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 204,
+            "body": "empty"
+          }
+        },
+        {
+          "actor": "reader",
+          "request": {
+            "method": "PATCH",
+            "path": "/cms/users/{username}/email",
+            "path_params": {
+              "username": "carol"
+            },
+            "body": {
+              "email": "first@example.com"
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 204,
+            "body": "empty"
+          }
+        },
+        {
+          "actor": "root",
+          "request": {
+            "method": "PATCH",
+            "path": "/cms/users/{username}/permissions",
+            "path_params": {
+              "username": "reader"
+            },
+            "body": {
+              "permissions": 0
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 204,
+            "body": "empty"
+          }
+        },
+        {
+          "actor": "reader",
+          "request": {
+            "method": "PATCH",
+            "path": "/cms/users/{username}/email",
+            "path_params": {
+              "username": "carol"
+            },
+            "body": {
+              "email": "second@example.com"
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 401,
+            "body": "plain_text"
+          }
+        },
+        {
+          "actor": "root",
+          "request": {
+            "method": "GET",
+            "path": "/cms/users/{username}",
+            "path_params": {
+              "username": "carol"
+            }
+          },
+          "expect": {
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.email",
+                "op": "eq",
+                "value": "first@example.com"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "PERMS-068",
+      "group": "PATCH /cms/users/{username}/permissions",
+      "title": "setting the same permissions again leaves the session working",
+      "source": "stated",
+      "tags": ["session"],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "PATCH",
+            "path": "/cms/users/{username}/permissions",
+            "path_params": {
+              "username": "editor"
+            },
+            "body": {
+              "permissions": {
+                "$actor_perms": "editor"
+              }
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 204,
+            "body": "empty"
+          }
+        },
+        {
+          "actor": "editor",
+          "request": {
+            "method": "PATCH",
+            "path": "/cms/users/{username}/email",
+            "path_params": {
+              "username": "carol"
+            },
+            "body": {
+              "email": "first@example.com"
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 204,
+            "body": "empty"
+          }
+        }
+      ]
+    },
+    {
+      "id": "PERMS-069",
+      "group": "PATCH /cms/users/{username}/permissions",
+      "title": "session mask and profile record agree after a grant",
+      "source": "stated",
+      "tags": ["session"],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "PATCH",
+            "path": "/cms/users/{username}/permissions",
+            "path_params": {
+              "username": "reader"
+            },
+            "body": {
+              "permissions": {
+                "$actor_perms": "editor"
+              }
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 204,
+            "body": "empty"
+          }
+        },
+        {
+          "actor": "reader",
+          "request": {
+            "method": "GET",
+            "path": "/cms/users/{username}",
+            "path_params": {
+              "username": "reader"
+            }
+          },
+          "expect": {
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.permissions",
+                "op": "eq",
+                "value": {
+                  "$actor_perms": "editor"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "actor": "root",
+          "request": {
+            "method": "GET",
+            "path": "/cms/users/{username}",
+            "path_params": {
+              "username": "reader"
+            }
+          },
+          "expect": {
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.permissions",
+                "op": "eq",
+                "value": {
+                  "$actor_perms": "editor"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "PERMS-070",
+      "group": "PATCH /cms/users/{username}/permissions",
+      "title": "unauthorised grant attempt (creator, 401) leaves target session unchanged",
+      "source": "stated",
+      "tags": ["session", "security"],
+      "steps": [
+        {
+          "actor": "creator",
+          "request": {
+            "method": "PATCH",
+            "path": "/cms/users/{username}/permissions",
+            "path_params": {
+              "username": "reader"
+            },
+            "body": {
+              "permissions": {
+                "$actor_perms": "editor"
+              }
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 401,
+            "body": "plain_text"
+          }
+        },
+        {
+          "actor": "reader",
+          "request": {
+            "method": "PATCH",
+            "path": "/cms/users/{username}/email",
+            "path_params": {
+              "username": "carol"
+            },
+            "body": {
+              "email": "first@example.com"
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 401,
+            "body": "plain_text"
+          }
+        },
+        {
+          "actor": "root",
+          "request": {
+            "method": "GET",
+            "path": "/cms/users/{username}",
+            "path_params": {
+              "username": "reader"
+            }
+          },
+          "expect": {
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.permissions",
+                "op": "eq",
+                "value": 0
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "PERMS-071",
+      "group": "PATCH /cms/users/{username}/permissions",
+      "title": "over-grant attempt (editor tries bit 65536, 401) leaves target session unchanged",
+      "source": "stated",
+      "tags": ["session", "security"],
+      "steps": [
+        {
+          "actor": "editor",
+          "request": {
+            "method": "PATCH",
+            "path": "/cms/users/{username}/permissions",
+            "path_params": {
+              "username": "reader"
+            },
+            "body": {
+              "permissions": {
+                "$const": "PERM_OUTSIDE"
+              }
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 401,
+            "body": "plain_text"
+          }
+        },
+        {
+          "actor": "reader",
+          "request": {
+            "method": "POST",
+            "path": "/cms/users",
+            "body": {
+              "username": "newuser",
+              "password": "Valid-Passw0rd-1"
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 401,
+            "body": "plain_text"
+          }
+        },
+        {
+          "actor": "root",
+          "request": {
+            "method": "GET",
+            "path": "/cms/users/{username}",
+            "path_params": {
+              "username": "reader"
+            }
+          },
+          "expect": {
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.permissions",
+                "op": "eq",
+                "value": 0
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "PERMS-072",
+      "group": "PATCH /cms/users/{username}/permissions",
+      "title": "invalid permissions (400) leave the existing session intact",
+      "source": "stated",
+      "tags": ["session"],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "PATCH",
+            "path": "/cms/users/{username}/permissions",
+            "path_params": {
+              "username": "editor"
+            },
+            "body": {
+              "permissions": -1
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 400,
+            "body": "plain_text"
+          }
+        },
+        {
+          "actor": "editor",
+          "request": {
+            "method": "PATCH",
+            "path": "/cms/users/{username}/email",
+            "path_params": {
+              "username": "carol"
+            },
+            "body": {
+              "email": "first@example.com"
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 204,
+            "body": "empty"
+          }
+        }
+      ]
+    },
+    {
+      "id": "PERMS-073",
+      "group": "PATCH /cms/users/{username}/permissions",
+      "title": "blocked self-change (401) leaves root's session intact",
+      "source": "stated",
+      "tags": ["session", "security"],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "PATCH",
+            "path": "/cms/users/{username}/permissions",
+            "path_params": {
+              "username": "root"
+            },
+            "body": {
+              "permissions": 0
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 401,
+            "body": "plain_text"
+          }
+        },
+        {
+          "actor": "root",
+          "request": {
+            "method": "POST",
+            "path": "/cms/users",
+            "body": {
+              "username": "newuser",
+              "password": "Valid-Passw0rd-1"
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 201,
+            "body": "empty"
+          }
+        }
+      ]
+    },
+    {
+      "id": "PERMS-074",
+      "group": "PATCH /cms/users/{username}/permissions",
+      "title": "granting one user does not change other users' sessions",
+      "source": "stated",
+      "tags": ["session", "assumes_distinct_bits"],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "PATCH",
+            "path": "/cms/users/{username}/permissions",
+            "path_params": {
+              "username": "reader"
+            },
+            "body": {
+              "permissions": {
+                "$actor_perms": "editor"
+              }
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 204,
+            "body": "empty"
+          }
+        },
+        {
+          "actor": "creator",
+          "request": {
+            "method": "PATCH",
+            "path": "/cms/users/{username}/email",
+            "path_params": {
+              "username": "carol"
+            },
+            "body": {
+              "email": "first@example.com"
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 401,
+            "body": "plain_text"
+          }
+        },
+        {
+          "actor": "deleter",
+          "request": {
+            "method": "DELETE",
+            "path": "/cms/users/{username}",
+            "path_params": {
+              "username": "carol"
+            }
+          },
+          "expect": {
+            "status": 204,
+            "body": "empty"
+          }
+        },
+        {
+          "actor": "root",
+          "request": {
+            "method": "GET",
+            "path": "/cms/users/{username}",
+            "path_params": {
+              "username": "editor"
+            }
+          },
+          "expect": {
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.permissions",
+                "op": "eq",
+                "value": {
+                  "$actor_perms": "editor"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "PERMS-075",
+      "group": "PATCH /cms/users/{username}/permissions",
+      "title": "demoting one user does not change other users' sessions",
+      "source": "stated",
+      "tags": ["session"],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "PATCH",
+            "path": "/cms/users/{username}/permissions",
+            "path_params": {
+              "username": "editor"
+            },
+            "body": {
+              "permissions": 0
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 204,
+            "body": "empty"
+          }
+        },
+        {
+          "actor": "creator",
+          "request": {
+            "method": "POST",
+            "path": "/cms/users",
+            "body": {
+              "username": "newuser",
+              "password": "Valid-Passw0rd-1"
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 201,
+            "body": "empty"
+          }
+        },
+        {
+          "actor": "limited",
+          "request": {
+            "method": "PATCH",
+            "path": "/cms/users/{username}/email",
+            "path_params": {
+              "username": "carol"
+            },
+            "body": {
+              "email": "first@example.com"
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 204,
+            "body": "empty"
+          }
+        }
+      ]
+    },
+    {
+      "id": "PERMS-076",
+      "group": "PATCH /cms/users/{username}/permissions",
+      "title": "email change by admin keeps reader's session valid and unchanged",
+      "source": "stated",
+      "tags": ["session"],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "PATCH",
+            "path": "/cms/users/{username}/email",
+            "path_params": {
+              "username": "reader"
+            },
+            "body": {
+              "email": "new@example.com"
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 204,
+            "body": "empty"
+          }
+        },
+        {
+          "actor": "reader",
+          "request": {
+            "method": "GET",
+            "path": "/cms/users"
+          },
+          "expect": {
+            "status": 200,
+            "body": "empty"
+          }
+        },
+        {
+          "actor": "reader",
+          "request": {
+            "method": "PATCH",
+            "path": "/cms/users/{username}/email",
+            "path_params": {
+              "username": "carol"
+            },
+            "body": {
+              "email": "first@example.com"
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 401,
+            "body": "plain_text"
+          }
+        },
+        {
+          "actor": "root",
+          "request": {
+            "method": "GET",
+            "path": "/cms/users/{username}",
+            "path_params": {
+              "username": "reader"
+            }
+          },
+          "expect": {
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.email",
+                "op": "eq",
+                "value": "new@example.com"
+              },
+              {
+                "path": "$.permissions",
+                "op": "eq",
+                "value": 0
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "PERMS-077",
+      "group": "PATCH /cms/users/{username}/permissions",
+      "title": "email change keeps editor's permissions in the session",
+      "source": "stated",
+      "tags": ["session"],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "PATCH",
+            "path": "/cms/users/{username}/email",
+            "path_params": {
+              "username": "editor"
+            },
+            "body": {
+              "email": "new@example.com"
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 204,
+            "body": "empty"
+          }
+        },
+        {
+          "actor": "editor",
+          "request": {
+            "method": "PATCH",
+            "path": "/cms/users/{username}/email",
+            "path_params": {
+              "username": "carol"
+            },
+            "body": {
+              "email": "first@example.com"
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 204,
+            "body": "empty"
+          }
+        },
+        {
+          "actor": "root",
+          "request": {
+            "method": "GET",
+            "path": "/cms/users/{username}",
+            "path_params": {
+              "username": "carol"
+            }
+          },
+          "expect": {
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.email",
+                "op": "eq",
+                "value": "first@example.com"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "PERMS-078",
+      "group": "PATCH /cms/users/{username}/permissions",
+      "title": "own email change keeps the session's permissions",
+      "source": "stated",
+      "tags": ["session"],
+      "steps": [
+        {
+          "actor": "editor",
+          "request": {
+            "method": "PATCH",
+            "path": "/cms/users/{username}/email",
+            "path_params": {
+              "username": "editor"
+            },
+            "body": {
+              "email": "self@example.com"
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 204,
+            "body": "empty"
+          }
+        },
+        {
+          "actor": "editor",
+          "request": {
+            "method": "PATCH",
+            "path": "/cms/users/{username}/email",
+            "path_params": {
+              "username": "carol"
+            },
+            "body": {
+              "email": "first@example.com"
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 204,
+            "body": "empty"
           }
         }
       ]

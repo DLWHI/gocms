@@ -26,13 +26,13 @@ const (
 	AdsSearchIndexName        = "ads"
 )
 
-type AuthBundle struct {
+type AuthModule struct {
 	Consumer *auth.EventConsumer
 	Service  *auth.Service
 	Handler  *auth.Handler
 }
 
-type UserBundle struct {
+type UserModule struct {
 	Consumer          *user.EventConsumer
 	Service           *user.Service
 	Handler           *user.Handler
@@ -42,7 +42,7 @@ type UserBundle struct {
 	MeilisearchEngine *user.MeilisearchEngine
 }
 
-type PostBundle struct {
+type PostModule struct {
 	Service           *post.Service
 	Handler           *post.Handler
 	RedisRepo         *post.RedisRepository
@@ -50,7 +50,7 @@ type PostBundle struct {
 	MeilisearchEngine *post.MeilisearchEngine
 }
 
-type EditorBundle struct {
+type EditorModule struct {
 	Service           *editor.Service
 	Handler           *editor.Handler
 	RedisRepo         *editor.RedisRepository
@@ -58,7 +58,7 @@ type EditorBundle struct {
 	MeilisearchEngine *editor.MeilisearchEngine
 }
 
-type CategoryBundle struct {
+type CategoryModule struct {
 	Consumer          *category.EventConsumer
 	Service           *category.Service
 	Handler           *category.Handler
@@ -68,7 +68,7 @@ type CategoryBundle struct {
 	MeilisearchEngine *category.MeilisearchEngine
 }
 
-type AdsBundle struct {
+type AdsModule struct {
 	Service           *ads.Service
 	Handler           *ads.Handler
 	RedisRepo         *ads.RedisRepository
@@ -76,7 +76,7 @@ type AdsBundle struct {
 	MeilisearchEngine *ads.MeilisearchEngine
 }
 
-type LocaleBundle struct {
+type LocaleModule struct {
 	Service   *locale.Service
 	Handler   *locale.Handler
 	CacheRepo locale.Repository
@@ -84,18 +84,18 @@ type LocaleBundle struct {
 	DedupRepo locale.Repository
 }
 
-func NewAuthBundle(users auth.UserManager, sessions session.Repository) *AuthBundle {
+func NewAuthModule(users auth.UserManager, sessions session.Repository) *AuthModule {
 	consumer := auth.NewEventConsumer(sessions, users)
 	service := auth.NewService(users, sessions)
 	handler := auth.NewHandler(service)
-	return &AuthBundle{
+	return &AuthModule{
 		Consumer: consumer,
 		Service:  service,
 		Handler:  handler,
 	}
 }
 
-func NewUserBundle(db *gorm.DB, search meilisearch.ServiceManager, redis *redis.Client, pwd password.PasswordService) (*UserBundle, error) {
+func NewUserModule(db *gorm.DB, search meilisearch.ServiceManager, redis *redis.Client, pwd password.PasswordService) (*UserModule, error) {
 	keys, err := cache.NewKeyspace(cache.KeyConfig{
 		Prefix: []string{"cms"},
 	}, "users")
@@ -109,7 +109,7 @@ func NewUserBundle(db *gorm.DB, search meilisearch.ServiceManager, redis *redis.
 	consumer := user.NewEventConsumer(gormRepo, searchEngine)
 	service := user.NewService(redisRepo, searchEngine, pwd)
 	handler := user.NewHandler(service)
-	return &UserBundle{
+	return &UserModule{
 		Consumer:          consumer,
 		Service:           service,
 		Handler:           handler,
@@ -120,7 +120,7 @@ func NewUserBundle(db *gorm.DB, search meilisearch.ServiceManager, redis *redis.
 	}, nil
 }
 
-func NewPostBundle(db *gorm.DB, search meilisearch.ServiceManager, redis *redis.Client) *PostBundle {
+func NewPostModule(db *gorm.DB, search meilisearch.ServiceManager, redis *redis.Client) *PostModule {
 	redisCfg := post.RedisConfig{
 		Client:    redis,
 		TTL:       30 * time.Minute,
@@ -132,7 +132,7 @@ func NewPostBundle(db *gorm.DB, search meilisearch.ServiceManager, redis *redis.
 	searchEngine := post.NewMeilisearchEngine(search, PostsSearchIndexName)
 	service := post.NewService(cacheRepo, searchEngine)
 	handler := post.NewHandler(service)
-	return &PostBundle{
+	return &PostModule{
 		Service:           service,
 		Handler:           handler,
 		RedisRepo:         cacheRepo,
@@ -141,7 +141,7 @@ func NewPostBundle(db *gorm.DB, search meilisearch.ServiceManager, redis *redis.
 	}
 }
 
-func NewCategoryBundle(db *gorm.DB, search meilisearch.ServiceManager, redis *redis.Client) (*CategoryBundle, error) {
+func NewCategoryModule(db *gorm.DB, search meilisearch.ServiceManager, redis *redis.Client) (*CategoryModule, error) {
 	keys, err := cache.NewKeyspace(cache.KeyConfig{
 		Prefix: []string{"cms"},
 	}, "categories")
@@ -155,7 +155,7 @@ func NewCategoryBundle(db *gorm.DB, search meilisearch.ServiceManager, redis *re
 	searchEngine := category.NewMeilisearchEngine(search, CategoriesSearchIndexName)
 	service := category.NewService(redisRepo, searchEngine)
 	handler := category.NewHandler(service)
-	return &CategoryBundle{
+	return &CategoryModule{
 		Service:           service,
 		Handler:           handler,
 		CacheRepo:         redisRepo,
@@ -164,7 +164,7 @@ func NewCategoryBundle(db *gorm.DB, search meilisearch.ServiceManager, redis *re
 	}, nil
 }
 
-func NewEditorBundle(db *gorm.DB, search meilisearch.ServiceManager, redis *redis.Client) *EditorBundle {
+func NewEditorModule(db *gorm.DB, search meilisearch.ServiceManager, redis *redis.Client) *EditorModule {
 	redisCfg := editor.RedisConfig{
 		Client:    redis,
 		TTL:       60 * time.Minute,
@@ -176,7 +176,7 @@ func NewEditorBundle(db *gorm.DB, search meilisearch.ServiceManager, redis *redi
 	searchEngine := editor.NewMeilisearchEngine(search, EditorsSearchIndexName)
 	service := editor.NewService(cacheRepo, searchEngine)
 	handler := editor.NewHandler(service)
-	return &EditorBundle{
+	return &EditorModule{
 		Service:           service,
 		Handler:           handler,
 		RedisRepo:         cacheRepo,
@@ -185,7 +185,7 @@ func NewEditorBundle(db *gorm.DB, search meilisearch.ServiceManager, redis *redi
 	}
 }
 
-func NewAdsBundle(db *gorm.DB, search meilisearch.ServiceManager, redis *redis.Client) *AdsBundle {
+func NewAdsModule(db *gorm.DB, search meilisearch.ServiceManager, redis *redis.Client) *AdsModule {
 	redisCfg := ads.RedisConfig{
 		Client:    redis,
 		TTL:       60 * time.Minute,
@@ -197,7 +197,7 @@ func NewAdsBundle(db *gorm.DB, search meilisearch.ServiceManager, redis *redis.C
 	searchEngine := ads.NewMeilisearchEngine(search, AdsSearchIndexName)
 	service := ads.NewService(cacheRepo, searchEngine)
 	handler := ads.NewHandler(service)
-	return &AdsBundle{
+	return &AdsModule{
 		Service:           service,
 		Handler:           handler,
 		RedisRepo:         cacheRepo,
@@ -206,7 +206,7 @@ func NewAdsBundle(db *gorm.DB, search meilisearch.ServiceManager, redis *redis.C
 	}
 }
 
-func NewLocaleBundle(db *gorm.DB, redis *redis.Client) (*LocaleBundle, error) {
+func NewLocaleModule(db *gorm.DB, redis *redis.Client) (*LocaleModule, error) {
 	keys, err := cache.NewKeyspace(cache.KeyConfig{
 		Prefix: []string{"cms"},
 	}, "locales")
@@ -219,7 +219,7 @@ func NewLocaleBundle(db *gorm.DB, redis *redis.Client) (*LocaleBundle, error) {
 	redisRepo := locale.NewRedisRepository(flowRepo, redis, 24*time.Hour, keys)
 	service := locale.NewService(redisRepo)
 	handler := locale.NewHandler(service)
-	return &LocaleBundle{
+	return &LocaleModule{
 		Service:   service,
 		Handler:   handler,
 		CacheRepo: redisRepo,

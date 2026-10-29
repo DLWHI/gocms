@@ -38,13 +38,13 @@ type Container struct {
 	Meilisearch meilisearch.ServiceManager
 	Passwords   password.PasswordService
 
-	Categories *CategoryBundle
-	Users      *UserBundle
-	Posts      *PostBundle
-	Ads        *AdsBundle
-	Editors    *EditorBundle
-	Locales    *LocaleBundle
-	Auth       *AuthBundle
+	Categories *CategoryModule
+	Users      *UserModule
+	Posts      *PostModule
+	Ads        *AdsModule
+	Editors    *EditorModule
+	Locales    *LocaleModule
+	Auth       *AuthModule
 
 	Server       flow.Runner
 	ViewsCounter flow.Runner
@@ -78,22 +78,22 @@ func (app *Container) Init(ctx context.Context, cfg Config) error {
 	passwords := password.NewBCryptService(12, 8)
 	sessions := session.NewRedisRepository(redis, 24*time.Hour)
 
-	categories, err := NewCategoryBundle(db, search, redis)
+	categories, err := NewCategoryModule(db, search, redis)
 	if err != nil {
 		return err
 	}
-	users, err := NewUserBundle(db, search, redis, passwords)
+	users, err := NewUserModule(db, search, redis, passwords)
 	if err != nil {
 		return err
 	}
-	posts := NewPostBundle(db, search, redis)
-	ads := NewAdsBundle(db, search, redis)
-	editors := NewEditorBundle(db, search, redis)
-	locales, err := NewLocaleBundle(db, redis)
+	posts := NewPostModule(db, search, redis)
+	ads := NewAdsModule(db, search, redis)
+	editors := NewEditorModule(db, search, redis)
+	locales, err := NewLocaleModule(db, redis)
 	if err != nil {
 		return err
 	}
-	auth := NewAuthBundle(users.Service, sessions)
+	auth := NewAuthModule(users.Service, sessions)
 
 	views := analytics.NewRedisCounter(app.Redis, posts.Service)
 

@@ -62,7 +62,7 @@ func (r *GORMRepository) Create(ctx context.Context, category *domain.Category) 
 func (r *GORMRepository) Update(ctx context.Context, slug string, locale string, diff *domain.CategoryDiff) error {
 	return r.mapErr(flow.DoWithRetry(ctx, r.retries, r.backoff, func() error {
 		return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-			recordUpdate, translationUpdate := patch(diff)
+			recordUpdate, translationUpdate := r.patch(diff)
 			if len(recordUpdate)+len(translationUpdate) == 0 {
 				return nil
 			}
@@ -210,7 +210,7 @@ func (r *GORMRepository) Delete(ctx context.Context, slug string) error {
 	return nil
 }
 
-func (r *GORMRepository) mapErr(err error) error {
+func (*GORMRepository) mapErr(err error) error {
 	switch {
 	case err == nil:
 		return nil
@@ -223,7 +223,7 @@ func (r *GORMRepository) mapErr(err error) error {
 	}
 }
 
-func (r *GORMRepository) writeMessage(tx *gorm.DB, action int, slug string) error {
+func (*GORMRepository) writeMessage(tx *gorm.DB, action int, slug string) error {
 	payload := domain.CategoryEvent{
 		Action: action,
 		Slug:   slug,
@@ -234,15 +234,7 @@ func (r *GORMRepository) writeMessage(tx *gorm.DB, action int, slug string) erro
 	return nil
 }
 
-func (Record) TableName() string {
-	return "categories"
-}
-
-func (RecordTranslation) TableName() string {
-	return "category_translations"
-}
-
-func patch(diff *domain.CategoryDiff) (RecordPatch, TranslationPatch) {
+func (*GORMRepository) patch(diff *domain.CategoryDiff) (RecordPatch, TranslationPatch) {
 	record := make(map[string]interface{}, 0)
 	translation := make(map[string]interface{}, 0)
 	if diff.Slug != nil {
@@ -267,6 +259,14 @@ func patch(diff *domain.CategoryDiff) (RecordPatch, TranslationPatch) {
 	}
 
 	return RecordPatch(record), TranslationPatch(translation)
+}
+
+func (*Record) TableName() string {
+	return "categories"
+}
+
+func (*RecordTranslation) TableName() string {
+	return "category_translations"
 }
 
 func (cm *RecordTranslation) ToDomain() *domain.Category {

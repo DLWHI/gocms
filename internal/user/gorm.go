@@ -21,12 +21,6 @@ type Record struct {
 	Version     uint           `gorm:"default:1"`
 }
 
-type RecordPatch = map[string]interface{}
-
-func (Record) TableName() string {
-	return domain.UserEntityName
-}
-
 type GORMRepository struct {
 	db      *gorm.DB
 	retries uint
@@ -64,7 +58,7 @@ func (r *GORMRepository) Create(ctx context.Context, user *domain.User, pwdhash 
 
 func (r *GORMRepository) Update(ctx context.Context, username string, diff *domain.UserDiff) error {
 	return r.mapErr(r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		update := patch(diff)
+		update := r.patch(diff)
 		if len(update) > 0 {
 			result := tx.Model(&Record{}).
 				Where("username = ?", username).
@@ -219,7 +213,7 @@ func (r *GORMRepository) Suspend(ctx context.Context, username string) error {
 	return nil
 }
 
-func (r *GORMRepository) writeMessage(tx *gorm.DB, action int, username string) error {
+func (*GORMRepository) writeMessage(tx *gorm.DB, action int, username string) error {
 	payload := domain.UserEvent{
 		Username: username,
 		Action:   action,
@@ -230,7 +224,7 @@ func (r *GORMRepository) writeMessage(tx *gorm.DB, action int, username string) 
 	return nil
 }
 
-func (r *GORMRepository) mapErr(err error) error {
+func (*GORMRepository) mapErr(err error) error {
 	switch {
 	case err == nil:
 		return nil
@@ -243,7 +237,7 @@ func (r *GORMRepository) mapErr(err error) error {
 	}
 }
 
-func patch(diff *domain.UserDiff) RecordPatch {
+func (*GORMRepository) patch(diff *domain.UserDiff) map[string]interface{} {
 	record := make(map[string]interface{}, 0)
 
 	if diff.Email != nil {
@@ -257,6 +251,10 @@ func patch(diff *domain.UserDiff) RecordPatch {
 		record["version"] = gorm.Expr("version + 1")
 	}
 	return record
+}
+
+func (*Record) TableName() string {
+	return domain.UserEntityName
 }
 
 func (rd *Record) ToDomain() *domain.User {

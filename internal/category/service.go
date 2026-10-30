@@ -36,7 +36,7 @@ func (s *Service) Create(ctx context.Context, category *domain.Category) (string
 		return "", err
 	}
 	created.Slug = slug
-
+	created.Name = strings.TrimSpace(category.Name)
 	normalized := strings.TrimSpace(strings.ToLower(category.Locale))
 	if normalized == "" {
 		locale, ok := ctx.Value(domain.LocaleKey).(string)
@@ -77,6 +77,11 @@ func (s *Service) Edit(ctx context.Context, slug string, diff *domain.CategoryDi
 			return "", err
 		}
 		diff.Slug = &normalized
+	}
+
+	if diff.Name != nil {
+		trimmed := strings.TrimSpace(*diff.Name)
+		diff.Name = &trimmed
 	}
 
 	if err := s.repo.Update(ctx, slug, locale, diff); err != nil {

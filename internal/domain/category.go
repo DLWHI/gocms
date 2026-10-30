@@ -13,7 +13,7 @@ const (
 	CategoryEventName  = "category"
 	CategoryEntityName = "categories"
 
-	MaxCategoryNameLength = 254
+	CategoryMaxNameLength = 254
 )
 
 type Category struct {
@@ -40,8 +40,8 @@ type CategoryEvent struct {
 
 func NormalizeCategoryName(value string) (string, error) {
 	normalized := strings.TrimSpace(value)
-	if len(normalized) > MaxCategoryNameLength {
-		return "", fmt.Errorf("%w: category name is longer than %d chars", ErrInval, MaxCategoryNameLength)
+	if len(normalized) > CategoryMaxNameLength {
+		return "", fmt.Errorf("%w: category name is longer than %d chars", ErrInval, CategoryMaxNameLength)
 	}
 
 	return normalized, nil

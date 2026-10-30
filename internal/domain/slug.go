@@ -5,8 +5,6 @@ import (
 	"strings"
 )
 
-type Slug = string
-
 const (
 	MaxSlugLength = 256
 )
@@ -17,13 +15,13 @@ func IsInvalidSlugRune(r rune) bool {
 	return !(isAlpha || isDigit || r == '-' || r == '_')
 }
 
-func NormalizeSlug(value string) (Slug, error) {
+func NormalizeSlug(value string) (string, error) {
 	normalized := strings.TrimSpace(value)
 	if normalized == "" {
 		return "", fmt.Errorf("%w: slug cannot be empty", ErrInval)
 	}
-	if len(normalized) > MaxUsernameLength {
-		return "", fmt.Errorf("%w: slug is longer than %d chars", ErrInval, MaxUsernameLength)
+	if len(normalized) > MaxSlugLength {
+		return "", fmt.Errorf("%w: slug is longer than %d chars", ErrInval, MaxSlugLength)
 	}
 	if strings.IndexFunc(normalized, IsInvalidSlugRune) >= 0 {
 		return "", fmt.Errorf("%w: slug must contain only letters, numbers, dashes or underscores", ErrInval)

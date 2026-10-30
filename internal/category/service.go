@@ -25,7 +25,7 @@ func NewService(repo Repository, se SearchEngine, auth domain.AuthService) *Serv
 
 func (s *Service) Create(ctx context.Context, category *domain.Category) (string, error) {
 	if !s.auth.Authorize(ctx, domain.CategoryEntityName, domain.ActionCreateName) {
-		return "", domain.ErrCred
+		return "", domain.ErrPerm
 	}
 
 	var created domain.Category
@@ -58,7 +58,7 @@ func (s *Service) Create(ctx context.Context, category *domain.Category) (string
 
 func (s *Service) Edit(ctx context.Context, slug string, diff *domain.CategoryDiff) (string, error) {
 	if !s.auth.Authorize(ctx, domain.CategoryEntityName, domain.ActionEditName) {
-		return "", domain.ErrCred
+		return "", domain.ErrPerm
 	}
 
 	slug, err := domain.NormalizeSlug(slug)
@@ -181,7 +181,7 @@ func (s *Service) Search(ctx context.Context, filters *SearchParams) (*SearchRes
 
 func (s *Service) Delete(ctx context.Context, slug string) error {
 	if !s.auth.Authorize(ctx, domain.CategoryEntityName, domain.ActionDeleteName) {
-		return domain.ErrCred
+		return domain.ErrPerm
 	}
 
 	slug, err := domain.NormalizeSlug(slug)

@@ -6,7 +6,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"gocms/internal/auth"
 	"gocms/internal/domain"
 	"gocms/internal/logger"
 	"os"
@@ -39,7 +38,8 @@ func ReadBytes(prompt string) ([]byte, error) {
 }
 
 func CreateUser(ctx context.Context, app *Container) error {
-	svc := app.Users.Service
+	repo := app.Users.DBRepo
+	passwords := app.Passwords
 
 	var username string
 	var password []byte
@@ -94,6 +94,9 @@ func CreateUser(ctx context.Context, app *Container) error {
 			return err
 		}
 
+		if err := passwords.IsValidPassword(input); err != nil {
+			fmt.Printf("Invalid password: %v\n", err)
+		}
 		if bytes.Equal(input, confirm) {
 			clear(confirm)
 			password = input
@@ -109,9 +112,7 @@ func CreateUser(ctx context.Context, app *Container) error {
 		Permissions: permissions,
 	}
 
-	injected := context.WithValue(ctx, auth.UserPermissionKey, domain.PermissionsOnEntity("users", "create"))
-
-	if _, err := svc.Create(injected, &user, password); err != nil {
+	if err := repo.Create(ctx, &user, password); err != nil {
 		logger.Error("User create", "Failed to register new user", err)
 		return err
 	}

@@ -2,6 +2,7 @@ package test
 
 import (
 	"context"
+	"gocms/internal/category"
 	"gocms/internal/domain"
 	"gocms/internal/locale"
 	"gocms/internal/user"
@@ -15,6 +16,7 @@ type Fixtures struct {
 	Actors          map[string]*Actor `json:"actors"`
 	Users           []domain.User     `json:"users"`
 	Locales         []domain.Locale   `json:"locales"`
+	Categories      []domain.Category `json:"categories"`
 }
 
 func (f *Fixtures) ApplyFixtures(ctx context.Context, e *Environment) error {
@@ -73,6 +75,20 @@ func (f *Fixtures) ApplyFixtures(ctx context.Context, e *Environment) error {
 
 	for _, l := range f.Locales {
 		if err := db.WithContext(ctx).Save(locale.ToRecord(&l)).Error; err != nil {
+			return err
+		}
+	}
+
+	for _, c := range f.Categories {
+		record := category.ToRecord(&c)
+		if err := db.WithContext(ctx).Save(record).Error; err != nil {
+			return err
+		}
+		task, err := ms.CategoriesIndex.AddDocumentsWithContext(ctx, &c, nil)
+		if err != nil {
+			return err
+		}
+		if err := ms.WaitForTask(ctx, task); err != nil {
 			return err
 		}
 	}

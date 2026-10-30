@@ -175,3 +175,57 @@ func TestLocales(t *testing.T) {
 	}
 
 }
+
+func TestCategories(t *testing.T) {
+	filter := ""
+	ran := 0
+	succeed := 0
+	defer func() {
+		logger.Info("Tests", fmt.Sprintf("Finished running locale tests. Ran = %d tests. Passed = %d. Failed = %d", ran, succeed, ran-succeed))
+	}()
+
+	ctx, cancel := signal.NotifyContext(t.Context(), os.Interrupt, syscall.SIGTERM)
+	defer cancel()
+	logger.Info("Test.Categories", "Loading test data")
+	data, err := test.LoadDataFromFile("./test_cases/locales.json", "1")
+	if err != nil {
+		logger.Error("Test.Categories", "Failed to load test data", err)
+		t.FailNow()
+	}
+	Env.TestData = data
+
+	for _, testcase := range data.Cases {
+		if matched, err := regexp.MatchString(filter, testcase.ID); err != nil || !matched {
+			if err != nil {
+				logger.Warn("Test.Categories", "Failed to apply filter", err)
+			}
+			continue
+		}
+
+		if err = data.Fixtures.ApplyFixtures(ctx, Env); err != nil {
+			logger.Error("Test.Categories", "Failed to apply fixtures", err)
+			t.FailNow()
+		}
+
+		logger.Info("Test.Categories", fmt.Sprintf("Running test: %s", testcase.ID))
+		var status error
+		ran++
+		for _, step := range testcase.Steps {
+			if res, err := step.Perform(ctx, data, Env); err != nil {
+				status = err
+				logger.Error("Test.Locales", fmt.Sprintf("Test %s failed", testcase.ID), err, "case", testcase, "step", step, "response", res)
+				t.Fail()
+				break
+			}
+		}
+		if status == nil {
+			succeed++
+			logger.Info("Test.Categories", fmt.Sprintf("Test %s passed", testcase.ID))
+		}
+		if err := Env.Clear(ctx); err != nil {
+			logger.Error("Test.Categories", "Failed to clear environment", err)
+			t.FailNow()
+		}
+	}
+
+}

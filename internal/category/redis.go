@@ -54,7 +54,7 @@ func (r *RedisRepository) Update(ctx context.Context, slug string, locale string
 func (r *RedisRepository) Get(ctx context.Context, slug string, locale string) (*domain.Category, error) {
 	var category domain.Category
 	var token string
-	key := r.keys.Key(notHiddenListBase + "-" + locale)
+	key := r.keys.Key(slug + "-" + locale)
 	err := r.cache.Get(ctx, key, &category)
 	switch {
 	case err == nil:
@@ -88,7 +88,7 @@ func (r *RedisRepository) Get(ctx context.Context, slug string, locale string) (
 func (r *RedisRepository) GetAll(ctx context.Context, locale string) ([]domain.Category, error) {
 	var categories []domain.Category
 	var token string
-	key := r.keys.Key(notHiddenListBase + "-" + locale)
+	key := r.keys.List(notHiddenListBase + "-" + locale)
 	err := r.cache.Get(ctx, key, &categories)
 	switch {
 	case err == nil:

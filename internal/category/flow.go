@@ -35,13 +35,13 @@ func (r *FlowRepository) Update(ctx context.Context, slug string, locale string,
 	if err := r.Repository.Update(ctx, slug, locale, diff); err != nil {
 		return err
 	}
-	r.group.ForgetPattern(r.keys.List(notHiddenListBase + "-*"))
 	r.group.ForgetPattern(r.keys.Key(slug + "-*"))
+	r.group.ForgetPattern(r.keys.List(notHiddenListBase + "-*"))
 	return nil
 }
 
 func (r *FlowRepository) Get(ctx context.Context, slug string, locale string) (*domain.Category, error) {
-	key := r.keys.Key(notHiddenListBase + "-" + locale)
+	key := r.keys.Key(slug + "-" + locale)
 	ch := r.group.DoChan(key, func() (any, error) {
 		bg, cancel := context.WithTimeout(context.WithoutCancel(ctx), r.timeout)
 		defer cancel()
@@ -66,7 +66,7 @@ func (r *FlowRepository) Get(ctx context.Context, slug string, locale string) (*
 }
 
 func (r *FlowRepository) GetAll(ctx context.Context, locale string) ([]domain.Category, error) {
-	key := r.keys.Key(notHiddenListBase + "-" + locale)
+	key := r.keys.List(notHiddenListBase + "-" + locale)
 	ch := r.group.DoChan(key, func() (any, error) {
 		bg, cancel := context.WithTimeout(context.WithoutCancel(ctx), r.timeout)
 		defer cancel()
@@ -94,7 +94,7 @@ func (r *FlowRepository) Delete(ctx context.Context, slug string) error {
 	if err := r.Repository.Delete(ctx, slug); err != nil {
 		return err
 	}
-	r.group.ForgetPattern(r.keys.List(notHiddenListBase + "-*"))
 	r.group.ForgetPattern(r.keys.Key(slug + "-*"))
+	r.group.ForgetPattern(r.keys.List(notHiddenListBase + "-*"))
 	return nil
 }

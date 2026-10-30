@@ -33,7 +33,7 @@ func NewMeilisearchEngine(client meilisearch.ServiceManager, index string) *Meil
 	}
 }
 
-func (ms *MeilisearchEngine) buildFilter(params *SearchParams) string {
+func (*MeilisearchEngine) buildFilter(params *SearchParams) string {
 	var clauses []string
 
 	if params.Locale != "" {
@@ -50,7 +50,7 @@ func (ms *MeilisearchEngine) buildFilter(params *SearchParams) string {
 	return strings.Join(clauses, " AND ")
 }
 
-func (ms *MeilisearchEngine) buildSort(params *SearchParams) []string {
+func (*MeilisearchEngine) buildSort(params *SearchParams) []string {
 	var sortParams []string
 
 	if !strings.HasPrefix(params.SortBy, "name") {

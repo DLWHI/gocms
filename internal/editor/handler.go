@@ -13,7 +13,6 @@ import (
 // POST /editors - Create editor
 // GET /editors/{username} - Get editor
 // PATCH /editors/{username} - Update editor
-// PATCH /editors/{username}/permission - Update editors permissions
 // DELETE /editors/{username} - Delete editor
 
 // ------------------------------------------------------------------

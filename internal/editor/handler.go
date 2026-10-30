@@ -47,6 +47,13 @@ func (h *Handler) search(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	filters.Select = []string{
+		"name",
+		"slug",
+		"locale",
+		"deleted_at",
+	}
+
 	editors, err := h.editorService.Search(r.Context(), &filters)
 	if err != nil {
 		server.WriteServerError(w, "Editor", err)

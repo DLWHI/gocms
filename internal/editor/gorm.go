@@ -168,7 +168,7 @@ func (r *GORMRepository) GetAll(ctx context.Context, locale string) ([]domain.Ed
 
 	result := r.db.WithContext(ctx).
 		Model(&RecordTranslation{}).
-		Preload("Editor").
+		Joins("Editor").
 		Where("locale = ?", locale).
 		Find(&editors)
 	if result.Error != nil {

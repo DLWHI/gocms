@@ -54,17 +54,17 @@ func (a *Actor) PerformLogin(ctx context.Context, e *Environment, passwd Passwor
 	return nil
 }
 
-func (a *Actor) ToRecord(pwdhash []byte) user.Record {
+func (a *Actor) ToRecord(pwdhash []byte) *user.Record {
 	var u user.Record
 	u.Password = pwdhash
 	u.Username = a.Username
 	u.Permissions = a.Permissions
-	return u
+	return &u
 }
 
-func (a *Actor) ToDomain() domain.User {
+func (a *Actor) ToDomain() *domain.User {
 	var u domain.User
 	u.Username = a.Username
 	u.Permissions = a.Permissions
-	return u
+	return &u
 }

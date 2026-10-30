@@ -3,6 +3,7 @@ package test
 import (
 	"context"
 	"gocms/internal/domain"
+	"gocms/internal/locale"
 	"gocms/internal/user"
 )
 
@@ -10,6 +11,7 @@ type Fixtures struct {
 	DefaultPassword Password          `json:"default_password"`
 	Actors          map[string]*Actor `json:"actors"`
 	Users           []domain.User     `json:"users"`
+	Locales         []domain.Locale   `json:"locales"`
 }
 
 func (f *Fixtures) ApplyFixtures(ctx context.Context, e *Environment) error {
@@ -21,12 +23,10 @@ func (f *Fixtures) ApplyFixtures(ctx context.Context, e *Environment) error {
 	}
 
 	for _, actor := range f.Actors {
-		record := actor.ToRecord(hash)
-		if err := db.WithContext(ctx).Save(&record).Error; err != nil {
+		if err := db.WithContext(ctx).Save(actor.ToRecord(hash)).Error; err != nil {
 			return err
 		}
-		udomain := actor.ToDomain()
-		task, err := ms.UsersIndex.AddDocumentsWithContext(ctx, &udomain, nil)
+		task, err := ms.UsersIndex.AddDocumentsWithContext(ctx, actor.ToDomain(), nil)
 		if err != nil {
 			return err
 		}
@@ -46,7 +46,7 @@ func (f *Fixtures) ApplyFixtures(ctx context.Context, e *Environment) error {
 	for _, u := range f.Users {
 		record := user.ToRecord(&u)
 		record.Password = hash
-		if err := db.WithContext(ctx).Save(&record).Error; err != nil {
+		if err := db.WithContext(ctx).Save(record).Error; err != nil {
 			return err
 		}
 		task, err := ms.UsersIndex.AddDocumentsWithContext(ctx, &u, nil)
@@ -54,6 +54,12 @@ func (f *Fixtures) ApplyFixtures(ctx context.Context, e *Environment) error {
 			return err
 		}
 		if err := ms.WaitForTask(ctx, task); err != nil {
+			return err
+		}
+	}
+
+	for _, l := range f.Locales {
+		if err := db.WithContext(ctx).Save(locale.ToRecord(&l)).Error; err != nil {
 			return err
 		}
 	}

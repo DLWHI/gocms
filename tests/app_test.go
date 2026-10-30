@@ -150,7 +150,7 @@ func (app *Container) WireEvents(dispatcher outbox.Publisher) {
 	// app.Subscriptions = append(app.Subscriptions, dispatcher.Subscribe("post", app.Posts.Service.SyncSearch))
 	app.Subscriptions = append(app.Subscriptions, dispatcher.Subscribe(domain.UserEventName, app.Users.Consumer.SyncSearch))
 	app.Subscriptions = append(app.Subscriptions, dispatcher.Subscribe(domain.UserEventName, app.Auth.Consumer.RevokeSessions))
-	// app.Subscriptions = append(app.Subscriptions, dispatcher.Subscribe("category", app.Categories.Service.SyncSearch))
+	app.Subscriptions = append(app.Subscriptions, dispatcher.Subscribe(domain.CategoryEventName, app.Categories.Consumer.SyncSearch))
 	app.Subscriptions = append(app.Subscriptions, dispatcher.Subscribe(domain.EditorEventName, app.Editors.Consumer.SyncSearch))
 	// app.Subscriptions = append(app.Subscriptions, dispatcher.Subscribe("ads", app.Ads.Service.SyncSearch))
 }

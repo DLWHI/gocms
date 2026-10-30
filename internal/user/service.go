@@ -181,13 +181,13 @@ func (s *Service) ChangePermissions(ctx context.Context, username string, diff *
 	}
 
 	if diff.Permissions == nil {
-		return fmt.Errorf("%w: missing email", domain.ErrInval)
+		return fmt.Errorf("%w: missing permissions", domain.ErrInval)
 	}
 
 	if !s.auth.IsSubsetOf(ctx, *diff.Permissions) {
 		return domain.ErrPerm
 	}
-	diff.Permissions = nil
+	diff.Email = nil
 
 	if err := s.repo.Update(ctx, username, diff); err != nil {
 		if !errors.Is(err, domain.ErrNotFound) {

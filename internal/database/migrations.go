@@ -18,6 +18,7 @@ func SoftMigrate(db *gorm.DB) error {
 		&ads.Model{},
 		&user.Record{},
 		&editor.Record{},
+		&editor.RecordTranslation{},
 		&post.Meta{},
 		&post.Translation{},
 		&category.Record{},
@@ -42,17 +43,7 @@ func HardMigrate(db *gorm.DB) error {
 		return err
 	}
 
-	if err := db.Migrator().DropTable(
-		&ads.Model{},
-		&locale.Record{},
-		&editor.Record{},
-		&user.Record{},
-		&post.Meta{},
-		&post.Translation{},
-		&category.Record{},
-		&category.RecordTranslation{},
-		&outbox.Message{},
-	); err != nil {
+	if err := DropAll(db); err != nil {
 		return err
 	}
 
@@ -64,5 +55,27 @@ func HardMigrate(db *gorm.DB) error {
 		return err
 	}
 
+	return nil
+}
+
+func DropAll(db *gorm.DB) error {
+	err := db.Migrator().DropTable("post_categories")
+	if err != nil {
+		return err
+	}
+	if err := db.Migrator().DropTable(
+		&ads.Model{},
+		&user.Record{},
+		&editor.Record{},
+		&editor.RecordTranslation{},
+		&post.Meta{},
+		&post.Translation{},
+		&category.Record{},
+		&category.RecordTranslation{},
+		&locale.Record{},
+		&outbox.Message{},
+	); err != nil {
+		return err
+	}
 	return nil
 }

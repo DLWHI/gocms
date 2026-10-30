@@ -5,6 +5,9 @@ import (
 	"gocms/internal/domain"
 	"gocms/internal/locale"
 	"gocms/internal/user"
+	"time"
+
+	"gorm.io/gorm"
 )
 
 type Fixtures struct {
@@ -46,6 +49,16 @@ func (f *Fixtures) ApplyFixtures(ctx context.Context, e *Environment) error {
 	for _, u := range f.Users {
 		record := user.ToRecord(&u)
 		record.Password = hash
+		if u.SuspendedAt != nil {
+			record.SuspendedAt = gorm.DeletedAt{
+				Valid: true,
+				Time:  time.Unix(*u.SuspendedAt, 0),
+			}
+		}
+		if u.LastLogin != nil {
+			t := time.Unix(*u.LastLogin, 0)
+			record.LastLogin = &t
+		}
 		if err := db.WithContext(ctx).Save(record).Error; err != nil {
 			return err
 		}

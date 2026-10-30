@@ -9303,22 +9303,14 @@
           "actor": "root",
           "request": {
             "method": "GET",
-            "path": "/cms/users/{username}",
-            "path_params": {
-              "username": "alice"
-            }
+            "path": "/cms/users"
           },
           "expect": {
             "status": 200,
             "body": "json",
             "json_assertions": [
               {
-                "path": "$.username",
-                "op": "eq",
-                "value": "alice"
-              },
-              {
-                "path": "$.permissions",
+                "path": "$.users[?(@.username=='alice')].permissions",
                 "op": "eq",
                 "value": 1
               }

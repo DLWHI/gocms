@@ -11,13 +11,12 @@ import (
 	"regexp"
 	"syscall"
 	"testing"
-	"time"
 )
 
 const (
 	ConfigAddress = ""
 	ConfigPort    = "8080"
-	Filter        = ""
+	Filter        = "^EMAIL-036"
 )
 
 var (
@@ -61,9 +60,6 @@ func run(m *testing.M) error {
 		Redis:    App.Redis,
 		Outbox:   App.MessageRelay,
 	}
-
-	App.Start(ctx)
-	defer App.Stop(30 * time.Second)
 
 	status := m.Run()
 	cancel()

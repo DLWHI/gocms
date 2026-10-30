@@ -3,14 +3,12 @@ package tests
 import (
 	"context"
 	"fmt"
-	"gocms/internal/ads"
 	"gocms/internal/database"
 	"gocms/internal/domain"
 	"gocms/internal/flow"
 	"gocms/internal/logger"
 	"gocms/internal/outbox"
 	"gocms/internal/password"
-	"gocms/internal/user"
 	"log/slog"
 	"sync"
 	"time"
@@ -163,20 +161,7 @@ func (app *Container) TearDown() {
 		sub.Unsubscribe()
 	}
 
-	err := app.DB.Migrator().DropTable("post_categories")
-	if err != nil {
-		logger.Error("Wipe", "Failed to drop table records", err)
-	}
-	if err := app.DB.WithContext(ctx).Migrator().DropTable(&ads.Model{},
-		&user.Record{},
-		// &editor.Model{},
-		// &post.Meta{},
-		// &post.Translation{},
-		// &category.Record{},
-		// &category.RecordTranslation{},
-		// &locale.Locale{},
-		&outbox.Message{},
-	); err != nil {
+	if err := database.DropAll(app.DB); err != nil {
 		logger.Error("Wipe", "Failed to drop table records", err)
 	}
 
@@ -209,32 +194,6 @@ func (app *Container) TearDown() {
 	if err != nil {
 		logger.Error("Init", "Failed to close Redis connection", err)
 	}
-}
-
-func (app *Container) Start(ctx context.Context) {
-	// app.group.Add(1)
-	// go app.ViewsCounter.Start(ctx, &app.group, time.Minute*30)
-	// app.group.Add(1)
-	// go app.OutboxRunner.Start(ctx, &app.group, 100*time.Millisecond)
-}
-
-func (app *Container) Stop(timeout time.Duration) bool {
-	logger.Info("Wipe", "Stopping application")
-	ctx, cancel := context.WithTimeout(context.Background(), timeout)
-	defer cancel()
-
-	success := true
-
-	// if err := app.ViewsCounter.Stop(ctx); err != nil {
-	// 	success = false
-	// }
-	if err := app.OutboxRunner.Stop(ctx); err != nil {
-		success = false
-	}
-
-	app.group.Wait()
-
-	return success
 }
 
 func Migrate(ctx context.Context, app *Container) error {

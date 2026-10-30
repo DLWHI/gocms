@@ -15,9 +15,9 @@ import (
 )
 
 const (
-	RequestLimit = 4 * 1024          // 4 KB
-	ContentLimit = 2 * 1024 * 1024   // 2 MB
-	FileLimit    = 512 * 1024 * 1024 // 512 MB
+	RequestLimit = 4 * 1024          // 4 KiB
+	ContentLimit = 2 * 1024 * 1024   // 2 MiB
+	FileLimit    = 512 * 1024 * 1024 // 512 MiB
 )
 
 type Router struct {

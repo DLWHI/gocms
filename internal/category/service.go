@@ -37,16 +37,11 @@ func (s *Service) Create(ctx context.Context, category *domain.Category) (string
 	}
 	created.Slug = slug
 	created.Name = strings.TrimSpace(category.Name)
-	normalized := strings.TrimSpace(strings.ToLower(category.Locale))
-	if normalized == "" {
-		locale, ok := ctx.Value(domain.LocaleKey).(string)
-		if !ok {
-			return "", fmt.Errorf("%w: empty locale", domain.ErrInval)
-		}
-		created.Locale = locale
-	} else {
-		created.Locale = normalized
+	locale, err := domain.ResolveLocale(ctx, category.Locale)
+	if err != nil {
+		return "", err
 	}
+	created.Locale = locale
 
 	if err := s.repo.Create(ctx, &created); err != nil {
 		logger.Error("Category.Service", "Failed to create category", err)
@@ -66,9 +61,9 @@ func (s *Service) Edit(ctx context.Context, slug string, diff *domain.CategoryDi
 		return "", err
 	}
 
-	locale, ok := ctx.Value(domain.LocaleKey).(string)
-	if !ok {
-		return "", fmt.Errorf("%w: empty locale", domain.ErrInval)
+	locale, err := domain.ResolveLocale(ctx, diff.Locale)
+	if err != nil {
+		return "", err
 	}
 
 	if diff.Slug != nil {
@@ -159,6 +154,12 @@ func (s *Service) AllNotHidden(ctx context.Context) ([]domain.Category, error) {
 
 func (s *Service) Search(ctx context.Context, filters *SearchParams) (*SearchResult, error) {
 	search.ClampParams(&filters.Params)
+
+	locale, err := domain.ResolveLocale(ctx, filters.Locale)
+	if err != nil {
+		return nil, err
+	}
+	filters.Locale = locale
 
 	categories, err := s.se.Search(ctx, filters)
 	if err != nil {

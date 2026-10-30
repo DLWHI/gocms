@@ -18,7 +18,7 @@ const (
 
 type Category struct {
 	ID     string `json:"id,omitempty"`
-	Slug   Slug   `json:"slug"`
+	Slug   string `json:"slug"`
 	Hidden bool   `json:"hidden"`
 	Navbar bool   `json:"navbar"`
 	Locale string `json:"locale"`
@@ -26,10 +26,11 @@ type Category struct {
 }
 
 type CategoryDiff struct {
-	Slug   *Slug   `json:"slug"`
+	Slug   *string `json:"slug"`
 	Hidden *bool   `json:"hidden"`
 	Navbar *bool   `json:"navbar"`
 	Name   *string `json:"name"`
+	Locale string  `json:"locale"`
 }
 
 type CategoryEvent struct {

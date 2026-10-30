@@ -191,7 +191,7 @@ func (s *Service) Delete(ctx context.Context, slug string) error {
 
 	if err := s.repo.Delete(ctx, slug); err != nil {
 		if !errors.Is(err, domain.ErrNotFound) {
-			logger.Error("Category.Service", "Failed to update category", err)
+			logger.Error("Category.Service", "Failed to delete category", err)
 		}
 		return err
 	}

@@ -7,7 +7,6 @@ import (
 	"gocms/internal/domain"
 	"gocms/internal/logger"
 	"gocms/internal/search"
-	"strings"
 )
 
 type Service struct {
@@ -36,12 +35,18 @@ func (s *Service) Create(ctx context.Context, category *domain.Category) (string
 		return "", err
 	}
 	created.Slug = slug
-	created.Name = strings.TrimSpace(category.Name)
+
 	locale, err := domain.ResolveLocale(ctx, category.Locale)
 	if err != nil {
 		return "", err
 	}
 	created.Locale = locale
+
+	name, err := domain.NormalizeCategoryName(category.Name)
+	if err != nil {
+		return "", err
+	}
+	created.Name = name
 
 	if err := s.repo.Create(ctx, &created); err != nil {
 		logger.Error("Category.Service", "Failed to create category", err)
@@ -75,8 +80,11 @@ func (s *Service) Edit(ctx context.Context, slug string, diff *domain.CategoryDi
 	}
 
 	if diff.Name != nil {
-		trimmed := strings.TrimSpace(*diff.Name)
-		diff.Name = &trimmed
+		normalized, err := domain.NormalizeCategoryName(*diff.Name)
+		if err != nil {
+			return "", err
+		}
+		diff.Name = &normalized
 	}
 
 	if err := s.repo.Update(ctx, slug, locale, diff); err != nil {

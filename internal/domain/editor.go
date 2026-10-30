@@ -1,14 +1,49 @@
 package domain
 
+import (
+	"fmt"
+	"strings"
+)
+
+const (
+	EditorActionCreate = 1 << iota
+	EditorActionUpdate
+	EditorActionDelete
+
+	EditorEventName  = "editor"
+	EditorEntityName = "editors"
+
+	MaxEditorNameLength = 254
+)
+
 type Editor struct {
-	Locale   string `json:"locale" gorm:"size:8;primaryKey;foreignKey:locales(code);constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
-	Name     string `json:"name"`
-	Bio      string `json:"bio"`
-	User     string `json:"username" gorm:"primaryKey;size:64;"`
-	UserData User   `json:"user_data" gorm:"foreignKey:User;references:Username;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
-	Version  uint   `json:"-" gorm:"default:1"`
+	ID        string `json:"id,omitempty"`
+	Slug      string `json:"slug"`
+	Bio       string `json:"bio,omitempty"`
+	Name      string `json:"name"`
+	Locale    string `json:"locale"`
+	DeletedAt *int64 `json:"suspended_at,omitempty"`
+	Owner     string `json:"owner"`
 }
 
-func (Editor) TableName() string {
-	return "editors"
+type EditorDiff struct {
+	Slug   *string `json:"slug"`
+	Bio    *string `json:"bio"`
+	Name   *string `json:"name"`
+	Owner  *string `json:"owner"`
+	Locale string  `json:"locale"`
+}
+
+type EditorEvent struct {
+	Slug   string `json:"slug"`
+	Action int    `json:"action"`
+}
+
+func NormalizeEditorName(value string) (string, error) {
+	normalized := strings.TrimSpace(value)
+	if len(normalized) > CategoryMaxNameLength {
+		return "", fmt.Errorf("%w: category name is longer than %d chars", ErrInval, CategoryMaxNameLength)
+	}
+
+	return normalized, nil
 }

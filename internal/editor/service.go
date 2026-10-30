@@ -2,110 +2,131 @@ package editor
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
-	"gocms/internal/auth"
 	"gocms/internal/domain"
 	"gocms/internal/logger"
 	"gocms/internal/search"
-	"strings"
 )
 
 type Service struct {
 	repo Repository
 	se   SearchEngine
+	auth domain.AuthService
 }
 
-func NewService(db Repository, se SearchEngine) *Service {
+func NewService(db Repository, se SearchEngine, auth domain.AuthService) *Service {
 	return &Service{
 		repo: db,
 		se:   se,
+		auth: auth,
 	}
 }
 
-func (s *Service) Create(ctx context.Context, editor *Document) error {
-	if !auth.HasPermission(ctx, "editors", "create") {
-		return domain.ErrCred
+func (s *Service) Create(ctx context.Context, editor *domain.Editor) (string, error) {
+	if !s.auth.Authorize(ctx, domain.EditorEntityName, domain.ActionCreateName) {
+		return "", domain.ErrPerm
 	}
 
-	editor.Locale = strings.TrimSpace(strings.ToLower(editor.Locale))
-	if editor.Locale == "" {
-		locale := ctx.Value("locale")
-		if locale == nil {
-			return fmt.Errorf("%w: empty locale", domain.ErrInval)
-		}
-		editor.Locale = locale.(string)
+	created := *editor
+	slug, err := domain.NormalizeSlug(editor.Slug)
+	if err != nil {
+		return "", err
 	}
+	created.Slug = slug
 
-	model := editor.ToModel()
-	if err := s.repo.Create(ctx, &model); err != nil {
+	locale, err := domain.ResolveLocale(ctx, editor.Locale)
+	if err != nil {
+		return "", err
+	}
+	created.Locale = locale
+
+	name, err := domain.NormalizeEditorName(editor.Name)
+	if err != nil {
+		return "", err
+	}
+	created.Name = name
+
+	if err := s.repo.Create(ctx, &created); err != nil {
 		logger.Error("Editor.Service", "Failed to create editor profile", err)
-		return err
+		return "", err
 	}
 
-	return nil
+	return created.Slug, nil
 }
 
-func (s *Service) Edit(ctx context.Context, editor *Document) error {
-	initiator := ctx.Value("username")
-
-	if initiator == nil || initiator.(string) != editor.User {
-		return domain.ErrCred
+func (s *Service) Edit(ctx context.Context, slug string, diff *domain.EditorDiff) (string, error) {
+	if !s.auth.Authorize(ctx, domain.EditorEntityName, domain.ActionEditName) {
+		return "", domain.ErrPerm
 	}
 
-	editor.Locale = strings.TrimSpace(strings.ToLower(editor.Locale))
-	if editor.Locale == "" {
-		locale := ctx.Value("locale")
-		if locale == nil {
-			return fmt.Errorf("%w: empty locale", domain.ErrInval)
+	slug, err := domain.NormalizeSlug(slug)
+	if err != nil {
+		return "", err
+	}
+
+	locale, err := domain.ResolveLocale(ctx, diff.Locale)
+	if err != nil {
+		return "", err
+	}
+
+	if diff.Slug != nil {
+		normalized, err := domain.NormalizeSlug(*diff.Slug)
+		if err != nil {
+			return "", err
 		}
-		editor.Locale = locale.(string)
+		diff.Slug = &normalized
 	}
 
-	model := editor.ToModel()
-	if err := s.repo.Update(ctx, &model); err != nil {
-		logger.Error("Editor.Service", "Failed to update editor profile", err)
-		return err
+	if diff.Name != nil {
+		normalized, err := domain.NormalizeCategoryName(*diff.Name)
+		if err != nil {
+			return "", err
+		}
+		diff.Name = &normalized
 	}
 
-	return nil
+	if err := s.repo.Update(ctx, slug, locale, diff); err != nil {
+		if !errors.Is(err, domain.ErrNotFound) {
+			logger.Error("Editor.Service", "Failed to update editor profile", err)
+		}
+		return "", err
+	}
+
+	if diff.Slug != nil {
+		return *diff.Slug, nil
+	} else {
+		return slug, nil
+	}
 }
 
-func (s *Service) Get(ctx context.Context, username string) (*Document, error) {
-	locale := ctx.Value("locale")
-	if locale == nil {
+func (s *Service) Get(ctx context.Context, slug string) (*domain.Editor, error) {
+	locale, ok := ctx.Value(domain.LocaleKey).(string)
+	if !ok {
 		return nil, fmt.Errorf("%w: empty locale", domain.ErrInval)
 	}
 
-	editor, err := s.repo.Get(ctx, username, locale.(string))
+	editor, err := s.repo.GetAny(ctx, slug, locale)
 	if err != nil {
-		logger.Error("Editor.Service", "Failed to retrieve editor profile", err)
+		if !errors.Is(err, domain.ErrNotFound) {
+			logger.Error("Editor.Service", "Failed to retrieve editor profile", err)
+		}
 		return nil, err
 	}
 
-	doc := editor.ToDoc()
-	return &doc, nil
+	return editor, nil
 }
 
-func (s *Service) All(ctx context.Context, suspended *bool) ([]Document, error) {
-	locale := ctx.Value("locale")
-	if locale == nil {
+func (s *Service) All(ctx context.Context) ([]domain.Editor, error) {
+	locale, ok := ctx.Value(domain.LocaleKey).(string)
+	if !ok {
 		return nil, fmt.Errorf("%w: empty locale", domain.ErrInval)
 	}
 
-	model, err := s.repo.GetAll(ctx, locale.(string), suspended)
+	editors, err := s.repo.GetAll(ctx, locale)
 	if err != nil {
 		logger.Error("Editor.Service", "Failed to list editor profiles", err)
 		return nil, err
-	}
-
-	editors := make([]Document, 0, len(model))
-
-	for _, editor := range model {
-		if !editor.UserData.SuspendedAt.Valid {
-			editors = append(editors, editor.ToDoc())
-		}
 	}
 
 	return editors, nil
@@ -113,6 +134,12 @@ func (s *Service) All(ctx context.Context, suspended *bool) ([]Document, error) 
 
 func (s *Service) Search(ctx context.Context, filters *SearchParams) (*SearchResult, error) {
 	search.ClampParams(&filters.Params)
+
+	locale, err := domain.ResolveLocale(ctx, filters.Locale)
+	if err != nil {
+		return nil, err
+	}
+	filters.Locale = locale
 
 	editors, err := s.se.Search(ctx, filters)
 	if err != nil {
@@ -123,45 +150,17 @@ func (s *Service) Search(ctx context.Context, filters *SearchParams) (*SearchRes
 	return editors, nil
 }
 
-func (s *Service) Suspend(ctx context.Context, username string) error {
-	if !auth.HasPermission(ctx, "editors", "delete") {
-		return domain.ErrCred
+func (s *Service) Delete(ctx context.Context, username string) error {
+	if !s.auth.Authorize(ctx, domain.EditorEntityName, domain.ActionDeleteName) {
+		return domain.ErrPerm
 	}
 
 	if err := s.repo.Delete(ctx, username); err != nil {
-		logger.Error("Editor.Service", "Failed to suspend editor profile", err)
+		if !errors.Is(err, domain.ErrNotFound) {
+			logger.Error("Editor.Service", "Failed to delete editor profile", err)
+		}
 		return err
 	}
 
 	return nil
-}
-
-func (s *Service) SyncSearch(ctx context.Context, data []byte) error {
-	var payload MessagePayload
-	if err := json.Unmarshal(data, &payload); err != nil {
-		return err
-	}
-
-	switch payload.Action {
-	case "create", "update":
-		editor, err := s.repo.Get(ctx, payload.Username, payload.Locale)
-		if err != nil {
-			if errors.Is(err, domain.ErrNotFound) {
-				return nil
-			}
-			return err
-		}
-		doc := editor.ToDoc()
-
-		if err := s.se.Index(ctx, &doc); err != nil {
-			return err
-		}
-		return nil
-	case "delete":
-		if err := s.se.Delete(ctx, payload.Username, *payload.SuspendedAt); err != nil {
-			return err
-		}
-		return nil
-	}
-	return fmt.Errorf("%w: unknown action", domain.ErrInval)
 }

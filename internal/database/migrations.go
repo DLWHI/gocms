@@ -17,7 +17,7 @@ func SoftMigrate(db *gorm.DB) error {
 	err := db.AutoMigrate(
 		&ads.Model{},
 		&user.Record{},
-		&editor.Model{},
+		&editor.Record{},
 		&post.Meta{},
 		&post.Translation{},
 		&category.Record{},
@@ -45,7 +45,7 @@ func HardMigrate(db *gorm.DB) error {
 	if err := db.Migrator().DropTable(
 		&ads.Model{},
 		&locale.Record{},
-		&editor.Model{},
+		&editor.Record{},
 		&user.Record{},
 		&post.Meta{},
 		&post.Translation{},

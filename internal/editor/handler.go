@@ -2,6 +2,7 @@ package editor
 
 import (
 	"encoding/json"
+	"gocms/internal/domain"
 	"gocms/internal/server"
 	"net/http"
 )
@@ -43,7 +44,7 @@ func (h *Handler) search(w http.ResponseWriter, r *http.Request) {
 	var filters SearchParams
 
 	if err := json.NewDecoder(r.Body).Decode(&filters); err != nil {
-		http.Error(w, "Invalid JSON payload", http.StatusBadRequest)
+		server.WriteDecodeError(w, err)
 		return
 	}
 
@@ -59,25 +60,29 @@ func (h *Handler) search(w http.ResponseWriter, r *http.Request) {
 
 // GET /editors - Get all editors
 func (h *Handler) all(w http.ResponseWriter, r *http.Request) {
-	editors, err := h.editorService.All(r.Context(), nil)
+	editors, err := h.editorService.All(r.Context())
 	if err != nil {
 		server.WriteServerError(w, "Editor", err)
 		return
 	}
 
+	res := map[string][]domain.Editor{
+		"editors": editors,
+	}
+
 	w.Header().Set("Content-Type", "application/json")
-	_ = json.NewEncoder(w).Encode(&editors)
+	_ = json.NewEncoder(w).Encode(&res)
 }
 
 // POST /editors - Create editor
 func (h *Handler) create(w http.ResponseWriter, r *http.Request) {
-	var editor Document
+	var editor domain.Editor
 	if err := json.NewDecoder(r.Body).Decode(&editor); err != nil {
-		http.Error(w, "Invalid JSON payload", http.StatusBadRequest)
+		server.WriteDecodeError(w, err)
 		return
 	}
 
-	if err := h.editorService.Create(r.Context(), &editor); err != nil {
+	if _, err := h.editorService.Create(r.Context(), &editor); err != nil {
 		server.WriteServerError(w, "Editor", err)
 		return
 	}
@@ -85,15 +90,15 @@ func (h *Handler) create(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 }
 
-// GET /editors/{username} - Get editor
+// GET /editors/{slug} - Get editor
 func (h *Handler) get(w http.ResponseWriter, r *http.Request) {
-	username := r.PathValue("username")
-
-	if username == "" {
-		http.Error(w, "Invalid user", http.StatusBadRequest)
+	slug := r.PathValue("slug")
+	if slug == "" {
+		server.WritePathError(w, "Missing editor slug")
+		return
 	}
 
-	editor, err := h.editorService.Get(r.Context(), username)
+	editor, err := h.editorService.Get(r.Context(), slug)
 	if err != nil {
 		server.WriteServerError(w, "Editor", err)
 		return
@@ -103,45 +108,40 @@ func (h *Handler) get(w http.ResponseWriter, r *http.Request) {
 	_ = json.NewEncoder(w).Encode(editor)
 }
 
-// PATCH /editors/{username} - Update editor
+// PATCH /editors/{slug} - Update editor
 func (h *Handler) update(w http.ResponseWriter, r *http.Request) {
-	username := r.PathValue("username")
-	if username == "" {
-		http.Error(w, "Unknown user", http.StatusBadRequest)
+	editor := r.PathValue("slug")
+	if editor == "" {
+		server.WritePathError(w, "Missing editor slug")
 		return
 	}
 
-	var editor Document
-	if err := json.NewDecoder(r.Body).Decode(&editor); err != nil {
-		http.Error(w, "Invalid JSON payload", http.StatusBadRequest)
+	var diff domain.EditorDiff
+	if err := json.NewDecoder(r.Body).Decode(&diff); err != nil {
+		server.WriteDecodeError(w, err)
 		return
 	}
 
-	if editor.User != username {
-		http.Error(w, "User mismatch, are you ebanuti?", http.StatusBadRequest)
-		return
-	}
-
-	if err := h.editorService.Edit(r.Context(), &editor); err != nil {
+	if _, err := h.editorService.Edit(r.Context(), editor, &diff); err != nil {
 		server.WriteServerError(w, "Editor", err)
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
+	w.WriteHeader(http.StatusNoContent)
 }
 
-// DELETE /editors/{username} - Delete editor user
+// DELETE /editors/{slug} - Delete editor user
 func (h *Handler) delete(w http.ResponseWriter, r *http.Request) {
-	username := r.PathValue("username")
-	if username == "" {
-		http.Error(w, "Unknown user", http.StatusBadRequest)
+	editor := r.PathValue("username")
+	if editor == "" {
+		server.WritePathError(w, "Missing editor slug")
 		return
 	}
 
-	if err := h.editorService.Suspend(r.Context(), username); err != nil {
+	if err := h.editorService.Delete(r.Context(), editor); err != nil {
 		server.WriteServerError(w, "Editor", err)
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
+	w.WriteHeader(http.StatusNoContent)
 }

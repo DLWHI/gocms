@@ -269,27 +269,27 @@ func (*RecordTranslation) TableName() string {
 	return "category_translations"
 }
 
-func (cm *RecordTranslation) ToDomain() *domain.Category {
-	var cd domain.Category
+func (rd *RecordTranslation) ToDomain() *domain.Category {
+	var res domain.Category
 
-	cd.Slug = cm.Category.Slug
-	cd.Hidden = cm.Category.Hidden
-	cd.Navbar = cm.Category.Navbar
-	cd.Name = cm.Name
-	cd.Locale = cm.Locale
-	return &cd
+	res.Slug = rd.Category.Slug
+	res.Hidden = rd.Category.Hidden
+	res.Navbar = rd.Category.Navbar
+	res.Name = rd.Name
+	res.Locale = rd.Locale
+	return &res
 }
 
-func ToRecord(cd *domain.Category) *RecordTranslation {
-	var cm RecordTranslation
+func ToRecord(data *domain.Category) *RecordTranslation {
+	var res RecordTranslation
 
-	cm.CategorySlug = cd.Slug
-	cm.Name = cd.Name
-	cm.Locale = cd.Locale
-	cm.Category = Record{
-		Slug:   cd.Slug,
-		Hidden: cd.Hidden,
-		Navbar: cd.Navbar,
+	res.CategorySlug = data.Slug
+	res.Name = data.Name
+	res.Locale = data.Locale
+	res.Category = Record{
+		Slug:   data.Slug,
+		Hidden: data.Hidden,
+		Navbar: data.Navbar,
 	}
-	return &cm
+	return &res
 }

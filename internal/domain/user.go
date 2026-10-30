@@ -60,6 +60,9 @@ func NormalizeUsername(value string) (string, error) {
 }
 
 func NormalizeEmail(email string) (string, error) {
+	if email == "" {
+		return email, nil
+	}
 	if len(email) > MaxEmailLength {
 		return "", fmt.Errorf("%w: email too long", ErrInval)
 	}

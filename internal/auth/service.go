@@ -27,7 +27,7 @@ func (s *Service) PasswordMatches(ctx context.Context, username string, passwd p
 	hash, err := s.users.GetPasswordHash(ctx, username)
 	defer clear(hash)
 	if err != nil {
-		if !errors.Is(err, domain.ErrNotFound) {
+		if errors.Is(err, domain.ErrNotFound) {
 			return domain.ErrCred
 		}
 		logger.Error("Auth.Service", "Failed to retrieve user credentials for login", err)

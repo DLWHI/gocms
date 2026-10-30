@@ -88,7 +88,9 @@ func (s *Service) Edit(ctx context.Context, slug string, diff *domain.CategoryDi
 	}
 
 	if err := s.repo.Update(ctx, slug, locale, diff); err != nil {
-		logger.Error("Category.Service", "Failed to update category", err)
+		if !errors.Is(err, domain.ErrNotFound) {
+			logger.Error("Category.Service", "Failed to update category", err)
+		}
 		return "", err
 	}
 
@@ -188,7 +190,9 @@ func (s *Service) Delete(ctx context.Context, slug string) error {
 	}
 
 	if err := s.repo.Delete(ctx, slug); err != nil {
-		logger.Error("Category.Service", "Failed to delete category", err)
+		if !errors.Is(err, domain.ErrNotFound) {
+			logger.Error("Category.Service", "Failed to update category", err)
+		}
 		return err
 	}
 

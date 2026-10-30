@@ -6,6 +6,8 @@ import (
 	"math"
 	"mime"
 	"net/http"
+
+	"github.com/theory/jsonpath"
 )
 
 type Operation = string
@@ -51,10 +53,12 @@ func (r *ExpectedResult) Check(d *Data, res *http.Response) error {
 }
 
 func (a *Assertion) Assert(d *Data, body map[string]JSONValue) error {
-	values, err := ResolvePath(body, a.Path)
+	selector, err := jsonpath.Parse(a.Path)
 	if err != nil {
 		return err
 	}
+	values := selector.Select(body)
+
 	expected, err := d.Resolve(a.Value)
 	if err != nil {
 		return fmt.Errorf("Invalid expect value submitted to assertion: %w", err)

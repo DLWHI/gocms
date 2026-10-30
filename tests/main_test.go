@@ -16,7 +16,7 @@ import (
 const (
 	ConfigAddress = ""
 	ConfigPort    = "8080"
-	Filter        = "^EMAIL-036"
+	Filter        = "^LIST-012"
 )
 
 var (

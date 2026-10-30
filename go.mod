@@ -8,6 +8,7 @@ require (
 	github.com/meilisearch/meilisearch-go v0.36.3
 	github.com/redis/go-redis/v9 v9.22.0
 	github.com/spf13/pflag v1.0.10
+	github.com/theory/jsonpath v0.12.2
 	golang.org/x/crypto v0.51.0
 	golang.org/x/image v0.46.0
 	golang.org/x/sync v0.23.0

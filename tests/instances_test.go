@@ -23,7 +23,7 @@ func MySQLDatabase(app *Container) (*gorm.DB, error) {
 		Name:     "test",
 	}
 
-	DB, err := database.NewMySQLConnection(&dbCfg, logger.Warn)
+	DB, err := database.NewMySQLConnection(&dbCfg, logger.Silent)
 	if err != nil {
 		return nil, err
 	}

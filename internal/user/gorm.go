@@ -279,18 +279,6 @@ func (rd *Record) ToDomain() *domain.User {
 func ToRecord(data *domain.User) *Record {
 	var res Record
 
-	if data.SuspendedAt != nil {
-		res.SuspendedAt = gorm.DeletedAt{
-			Time:  time.Unix(*data.SuspendedAt, 0).UTC(),
-			Valid: true,
-		}
-	}
-
-	if data.LastLogin != nil {
-		t := time.Unix(*data.LastLogin, 0).UTC()
-		res.LastLogin = &t
-	}
-
 	res.Username = data.Username
 	res.Email = data.Email
 	res.Permissions = data.Permissions

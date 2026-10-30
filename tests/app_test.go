@@ -81,7 +81,10 @@ func (app *Container) Init(ctx context.Context) error {
 	}
 	posts := NewPostModule(db, search, redis)
 	ads := NewAdsModule(db, search, redis)
-	editors := NewEditorModule(db, search, redis)
+	editors, err := NewEditorModule(db, search, redis, auth.Service)
+	if err != nil {
+		return err
+	}
 	locales, err := NewLocaleModule(db, redis, auth.Service)
 	if err != nil {
 		return err
@@ -148,7 +151,7 @@ func (app *Container) WireEvents(dispatcher outbox.Publisher) {
 	app.Subscriptions = append(app.Subscriptions, dispatcher.Subscribe(domain.UserEventName, app.Users.Consumer.SyncSearch))
 	app.Subscriptions = append(app.Subscriptions, dispatcher.Subscribe(domain.UserEventName, app.Auth.Consumer.RevokeSessions))
 	// app.Subscriptions = append(app.Subscriptions, dispatcher.Subscribe("category", app.Categories.Service.SyncSearch))
-	// app.Subscriptions = append(app.Subscriptions, dispatcher.Subscribe("editor", app.Editors.Service.SyncSearch))
+	app.Subscriptions = append(app.Subscriptions, dispatcher.Subscribe(domain.EditorEventName, app.Editors.Consumer.SyncSearch))
 	// app.Subscriptions = append(app.Subscriptions, dispatcher.Subscribe("ads", app.Ads.Service.SyncSearch))
 }
 

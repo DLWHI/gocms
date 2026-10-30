@@ -162,8 +162,7 @@ func (h *Handler) localesAll(w http.ResponseWriter, r *http.Request) {
 
 // GET /editors - Get all editors
 func (h *Handler) editorsAll(w http.ResponseWriter, r *http.Request) {
-	falseVal := false
-	res, err := h.editors.All(r.Context(), &falseVal)
+	res, err := h.editors.All(r.Context())
 	if err != nil {
 		server.WriteServerError(w, "Editor", err)
 		return

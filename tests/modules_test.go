@@ -5,6 +5,7 @@ import (
 	"gocms/internal/cache"
 	"gocms/internal/category"
 	"gocms/internal/domain"
+	"gocms/internal/editor"
 	"gocms/internal/locale"
 	"gocms/internal/password"
 	"gocms/internal/user"
@@ -50,11 +51,13 @@ type PostModule struct {
 }
 
 type EditorModule struct {
-	// Service           *editor.Service
-	// Handler           *editor.Handler
-	// RedisRepo         *editor.RedisRepository
-	// GORMRepo          *editor.GORMRepository
-	// MeilisearchEngine *editor.MeilisearchEngine
+	Consumer          *editor.EventConsumer
+	Service           *editor.Service
+	Handler           *editor.Handler
+	CacheRepoRepo     editor.Repository
+	DBRepo            editor.Repository
+	DedupRepo         editor.Repository
+	MeilisearchEngine *editor.MeilisearchEngine
 }
 
 type CategoryModule struct {
@@ -185,25 +188,34 @@ func NewCategoryModule(
 	}, nil
 }
 
-func NewEditorModule(db *gorm.DB, search meilisearch.ServiceManager, redis *redis.Client) *EditorModule {
-	// redisCfg := editor.RedisConfig{
-	// 	Client:    redis,
-	// 	TTL:       3 * time.Minute,
-	// 	KeyFormat: "test_cms:editors:%s:%s",
-	// }
-
-	// repo := editor.NewGORMRepository(db)
-	// cacheRepo := editor.NewRedisRepository(repo, &redisCfg)
-	// searchEngine := editor.NewMeilisearchEngine(search, EditorsSearchIndexName)
-	// service := editor.NewService(cacheRepo, searchEngine)
-	// handler := editor.NewHandler(service)
-	return &EditorModule{
-		// Service:           service,
-		// Handler:           handler,
-		// RedisRepo:         cacheRepo,
-		// GORMRepo:          repo,
-		// MeilisearchEngine: searchEngine,
+func NewEditorModule(
+	db *gorm.DB,
+	search meilisearch.ServiceManager,
+	redis *redis.Client,
+	creds domain.AuthService,
+) (*EditorModule, error) {
+	keys, err := cache.NewKeyspace(cache.KeyConfig{
+		Prefix: []string{"cms"},
+	}, "categories")
+	if err != nil {
+		return nil, err
 	}
+
+	gormRepo := editor.NewGORMRepository(db)
+	flowRepo := editor.NewFlowRepository(gormRepo, 20*time.Second, keys)
+	redisRepo := editor.NewRedisRepository(flowRepo, redis, 120*time.Minute, keys)
+	searchEngine := editor.NewMeilisearchEngine(search, EditorsSearchIndexName)
+	service := editor.NewService(redisRepo, searchEngine, creds)
+	handler := editor.NewHandler(service)
+	return &EditorModule{
+		Consumer:          &editor.EventConsumer{},
+		Service:           service,
+		Handler:           handler,
+		CacheRepoRepo:     redisRepo,
+		DBRepo:            gormRepo,
+		DedupRepo:         flowRepo,
+		MeilisearchEngine: searchEngine,
+	}, nil
 }
 
 func NewAdsModule(db *gorm.DB, search meilisearch.ServiceManager, redis *redis.Client) *AdsModule {

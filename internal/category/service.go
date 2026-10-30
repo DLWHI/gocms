@@ -97,6 +97,11 @@ func (s *Service) Get(ctx context.Context, slug string) (*domain.Category, error
 		return nil, fmt.Errorf("%w: empty locale", domain.ErrInval)
 	}
 
+	slug, err := domain.NormalizeSlug(slug)
+	if err != nil {
+		return nil, err
+	}
+
 	category, err := s.repo.Get(ctx, slug, locale)
 	if err != nil {
 		if !errors.Is(err, domain.ErrNotFound) {
@@ -161,6 +166,11 @@ func (s *Service) Search(ctx context.Context, filters *SearchParams) (*SearchRes
 func (s *Service) Delete(ctx context.Context, slug string) error {
 	if !s.auth.Authorize(ctx, domain.CategoryEntityName, domain.ActionDeleteName) {
 		return domain.ErrCred
+	}
+
+	slug, err := domain.NormalizeSlug(slug)
+	if err != nil {
+		return err
 	}
 
 	if err := s.repo.Delete(ctx, slug); err != nil {

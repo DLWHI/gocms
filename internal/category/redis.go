@@ -46,8 +46,8 @@ func (r *RedisRepository) Update(ctx context.Context, slug string, locale string
 	if err := r.Repository.Update(ctx, slug, locale, diff); err != nil {
 		return err
 	}
-	r.invalidateGroups(ctx, r.keys.Key(slug+"-*"))
-	r.invalidateGroups(ctx, r.keys.List(notHiddenListBase+"-*"))
+	r.invalidateGroup(ctx, r.keys.Key(slug+"-*"))
+	r.invalidateGroup(ctx, r.keys.List(notHiddenListBase+"-*"))
 	return nil
 }
 
@@ -122,12 +122,12 @@ func (r *RedisRepository) Delete(ctx context.Context, slug string) error {
 	if err := r.Repository.Delete(ctx, slug); err != nil {
 		return err
 	}
-	r.invalidateGroups(ctx, r.keys.Key(slug+"-*"))
-	r.invalidateGroups(ctx, r.keys.List(notHiddenListBase+"-*"))
+	r.invalidateGroup(ctx, r.keys.Key(slug+"-*"))
+	r.invalidateGroup(ctx, r.keys.List(notHiddenListBase+"-*"))
 	return nil
 }
 
-func (r *RedisRepository) invalidateGroups(ctx context.Context, pattern string) {
+func (r *RedisRepository) invalidateGroup(ctx context.Context, pattern string) {
 	if err := r.cache.InvalidatePattern(ctx, pattern); err != nil {
 		logger.Warn("User.Redis", "Redis error while trying to delete key pattern", err, "keys", pattern)
 	}

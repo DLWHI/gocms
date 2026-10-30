@@ -245,7 +245,7 @@
       "tags": [],
       "steps": [
         {
-          "actor": "garbage_session",
+          "actor": "anonymous",
           "request": {
             "method": "POST",
             "path": "/cms/categories",
@@ -255,6 +255,7 @@
               "locale": "en"
             },
             "headers": {
+              "Authorization": "<Garbage>",
               "Content-Type": "application/json"
             }
           },
@@ -273,7 +274,7 @@
       "tags": [],
       "steps": [
         {
-          "actor": "expired_session",
+          "actor": "anonymous",
           "request": {
             "method": "POST",
             "path": "/cms/categories",
@@ -283,6 +284,7 @@
               "locale": "en"
             },
             "headers": {
+              "Authorization": "Bearer anonymous.dXNlcjpwYXNz.u9t8y4h3gubq3ifewh",
               "Content-Type": "application/json"
             }
           },
@@ -410,7 +412,7 @@
       "tags": [],
       "steps": [
         {
-          "actor": "garbage_session",
+          "actor": "anonymous",
           "request": {
             "method": "POST",
             "path": "/cms/categories/search",
@@ -418,6 +420,7 @@
               "locale": "en"
             },
             "headers": {
+              "Authorization": "<Garbage>",
               "Content-Type": "application/json"
             }
           },
@@ -436,7 +439,7 @@
       "tags": [],
       "steps": [
         {
-          "actor": "expired_session",
+          "actor": "anonymous",
           "request": {
             "method": "POST",
             "path": "/cms/categories/search",
@@ -444,6 +447,7 @@
               "locale": "en"
             },
             "headers": {
+              "Authorization": "Bearer anonymous.dXNlcjpwYXNz.u9t8y4h3gubq3ifewh",
               "Content-Type": "application/json"
             }
           },
@@ -559,11 +563,12 @@
       "tags": [],
       "steps": [
         {
-          "actor": "garbage_session",
+          "actor": "anonymous",
           "request": {
             "method": "GET",
             "path": "/cms/categories",
             "headers": {
+              "Authorization": "<Garbage>",
               "Accept-Language": "en"
             }
           },
@@ -582,11 +587,12 @@
       "tags": [],
       "steps": [
         {
-          "actor": "expired_session",
+          "actor": "anonymous",
           "request": {
             "method": "GET",
             "path": "/cms/categories",
             "headers": {
+              "Authorization": "Bearer anonymous.dXNlcjpwYXNz.u9t8y4h3gubq3ifewh",
               "Accept-Language": "en"
             }
           },
@@ -714,7 +720,7 @@
       "tags": [],
       "steps": [
         {
-          "actor": "garbage_session",
+          "actor": "anonymous",
           "request": {
             "method": "GET",
             "path": "/cms/categories/{slug}",
@@ -722,6 +728,7 @@
               "slug": "news"
             },
             "headers": {
+              "Authorization": "<Garbage>",
               "Accept-Language": "en"
             }
           },
@@ -740,7 +747,7 @@
       "tags": [],
       "steps": [
         {
-          "actor": "expired_session",
+          "actor": "anonymous",
           "request": {
             "method": "GET",
             "path": "/cms/categories/{slug}",
@@ -748,6 +755,7 @@
               "slug": "news"
             },
             "headers": {
+              "Authorization": "Bearer anonymous.dXNlcjpwYXNz.u9t8y4h3gubq3ifewh",
               "Accept-Language": "en"
             }
           },
@@ -891,7 +899,7 @@
       "tags": [],
       "steps": [
         {
-          "actor": "garbage_session",
+          "actor": "anonymous",
           "request": {
             "method": "PATCH",
             "path": "/cms/categories/{slug}",
@@ -903,6 +911,7 @@
               "locale": "en"
             },
             "headers": {
+              "Authorization": "<Garbage>",
               "Content-Type": "application/json"
             }
           },
@@ -921,7 +930,7 @@
       "tags": [],
       "steps": [
         {
-          "actor": "expired_session",
+          "actor": "anonymous",
           "request": {
             "method": "PATCH",
             "path": "/cms/categories/{slug}",
@@ -933,6 +942,7 @@
               "locale": "en"
             },
             "headers": {
+              "Authorization": "Bearer anonymous.dXNlcjpwYXNz.u9t8y4h3gubq3ifewh",
               "Content-Type": "application/json"
             }
           },
@@ -1054,12 +1064,15 @@
       "tags": [],
       "steps": [
         {
-          "actor": "garbage_session",
+          "actor": "anonymous",
           "request": {
             "method": "DELETE",
             "path": "/cms/categories/{slug}",
             "path_params": {
               "slug": "news"
+            },
+            "headers": {
+              "Authorization": "<Garbage>"
             }
           },
           "expect": {
@@ -1077,12 +1090,15 @@
       "tags": [],
       "steps": [
         {
-          "actor": "expired_session",
+          "actor": "anonymous",
           "request": {
             "method": "DELETE",
             "path": "/cms/categories/{slug}",
             "path_params": {
               "slug": "news"
+            },
+            "headers": {
+              "Authorization": "Bearer anonymous.dXNlcjpwYXNz.u9t8y4h3gubq3ifewh"
             }
           },
           "expect": {

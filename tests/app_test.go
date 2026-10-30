@@ -106,10 +106,10 @@ func (app *Container) Init(ctx context.Context) error {
 	router.AddAuthRoutes(auth.Handler)
 	// router.AddPostRoutes(posts.Handler)
 	router.AddUserRoutes(users.Handler)
-	// router.AddCategoryRoutes(categories.Handler)
+	router.AddCategoryRoutes(categories.Handler)
 	// router.AddAdsRoutes(ads.Handler)
-	// router.AddEditorRoutes(editors.Handler)
-	// router.AddLocaleRoutes(locales.Handler)
+	router.AddEditorRoutes(editors.Handler)
+	router.AddLocaleRoutes(locales.Handler)
 	router.AddStorageRoutes(storageHandler)
 	// router.AddPublicoutes(publicHandler)
 

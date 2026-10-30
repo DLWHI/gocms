@@ -154,10 +154,13 @@
       "tags": [],
       "steps": [
         {
-          "actor": "garbage_session",
+          "actor": "anonymous",
           "request": {
             "method": "GET",
-            "path": "/cms/locales"
+            "path": "/cms/locales",
+            "headers": {
+              "Authorization": "<Garbage>"
+            }
           },
           "expect": {
             "status": 401,
@@ -174,10 +177,13 @@
       "tags": [],
       "steps": [
         {
-          "actor": "expired_session",
+          "actor": "anonymous",
           "request": {
             "method": "GET",
-            "path": "/cms/locales"
+            "path": "/cms/locales",
+            "headers": {
+              "Authorization": "Bearer anonymous.dXNlcjpwYXNz.u9t8y4h3gubq3ifewh"
+            }
           },
           "expect": {
             "status": 401,
@@ -307,7 +313,7 @@
       "tags": [],
       "steps": [
         {
-          "actor": "garbage_session",
+          "actor": "anonymous",
           "request": {
             "method": "POST",
             "path": "/cms/locales",
@@ -316,6 +322,7 @@
               "code": "fr"
             },
             "headers": {
+              "Authorization": "<Garbage>",
               "Content-Type": "application/json"
             }
           },
@@ -334,7 +341,7 @@
       "tags": [],
       "steps": [
         {
-          "actor": "expired_session",
+          "actor": "anonymous",
           "request": {
             "method": "POST",
             "path": "/cms/locales",
@@ -343,6 +350,7 @@
               "code": "fr"
             },
             "headers": {
+              "Authorization": "Bearer anonymous.dXNlcjpwYXNz.u9t8y4h3gubq3ifewh",
               "Content-Type": "application/json"
             }
           },
@@ -464,12 +472,15 @@
       "tags": [],
       "steps": [
         {
-          "actor": "garbage_session",
+          "actor": "anonymous",
           "request": {
             "method": "DELETE",
             "path": "/cms/locales/{code}",
             "path_params": {
               "code": "de"
+            },
+            "headers": {
+              "Authorization": "<Garbage>"
             }
           },
           "expect": {
@@ -487,12 +498,15 @@
       "tags": [],
       "steps": [
         {
-          "actor": "expired_session",
+          "actor": "anonymous",
           "request": {
             "method": "DELETE",
             "path": "/cms/locales/{code}",
             "path_params": {
               "code": "de"
+            },
+            "headers": {
+              "Authorization": "Bearer anonymous.dXNlcjpwYXNz.u9t8y4h3gubq3ifewh"
             }
           },
           "expect": {

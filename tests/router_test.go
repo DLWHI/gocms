@@ -2,6 +2,9 @@ package tests
 
 import (
 	"gocms/internal/auth"
+	"gocms/internal/category"
+	"gocms/internal/editor"
+	"gocms/internal/locale"
 	"gocms/internal/server"
 	"gocms/internal/storage"
 	"gocms/internal/user"
@@ -63,35 +66,35 @@ func (router *Router) AddUserRoutes(handler *user.Handler) {
 	router.mux.Handle("DELETE /cms/users/{username}", m(handler.Suspend))
 }
 
-// func (router *Router) AddEditorRoutes(handler *editor.Handler) {
-// 	streamLimiter := server.NewRequestLimiter(ContentLimit)
-// 	m := server.ChainMiddleware(
-// 		streamLimiter.Wrap,
-// 		router.auth,
-// 		server.RequireJSON,
-// 		locale.Middleware,
-// 	)
+func (router *Router) AddEditorRoutes(handler *editor.Handler) {
+	streamLimiter := server.NewRequestLimiter(ContentLimit)
+	m := server.ChainMiddleware(
+		streamLimiter.Wrap,
+		router.auth,
+		server.RequireJSON,
+		locale.Middleware,
+	)
 
-// 	router.mux.Handle("POST /cms/editors/search", m(handler.Search))
-// 	router.mux.Handle("GET /cms/editors", m(handler.All))
-// 	router.mux.Handle("POST /cms/editors", m(handler.Create))
-// 	router.mux.Handle("GET /cms/editors/{username}", m(handler.Get))
-// 	router.mux.Handle("PATCH /cms/editors/{username}", m(handler.Update))
-// 	router.mux.Handle("DELETE /cms/editors/{username}", m(handler.Delete))
-// }
+	router.mux.Handle("POST /cms/editors/search", m(handler.Search))
+	router.mux.Handle("GET /cms/editors", m(handler.All))
+	router.mux.Handle("POST /cms/editors", m(handler.Create))
+	router.mux.Handle("GET /cms/editors/{username}", m(handler.Get))
+	router.mux.Handle("PATCH /cms/editors/{username}", m(handler.Update))
+	router.mux.Handle("DELETE /cms/editors/{username}", m(handler.Delete))
+}
 
-// func (router *Router) AddLocaleRoutes(handler *locale.Handler) {
-// 	limiter := server.NewRequestLimiter(RequestLimit)
-// 	m := server.ChainMiddleware(
-// 		limiter.Wrap,
-// 		router.auth,
-// 		server.RequireJSON,
-// 	)
+func (router *Router) AddLocaleRoutes(handler *locale.Handler) {
+	limiter := server.NewRequestLimiter(RequestLimit)
+	m := server.ChainMiddleware(
+		limiter.Wrap,
+		router.auth,
+		server.RequireJSON,
+	)
 
-// 	router.mux.Handle("GET /cms/locales", m(handler.Get))
-// 	router.mux.Handle("POST /cms/locales", m(handler.Create))
-// 	router.mux.Handle("DELETE /cms/locales/{code}", m(handler.Delete))
-// }
+	router.mux.Handle("GET /cms/locales", m(handler.Get))
+	router.mux.Handle("POST /cms/locales", m(handler.Create))
+	router.mux.Handle("DELETE /cms/locales/{code}", m(handler.Delete))
+}
 
 // func (router *Router) AddPostRoutes(handler *post.Handler) {
 // 	streamLimiter := server.NewRequestLimiter(ContentLimit)
@@ -111,22 +114,22 @@ func (router *Router) AddUserRoutes(handler *user.Handler) {
 // 	router.mux.Handle("DELETE /cms/posts/{id}/{locale}", m(handler.DeleteLocale))
 // }
 
-// func (router *Router) AddCategoryRoutes(handler *category.Handler) {
-// 	limiter := server.NewRequestLimiter(RequestLimit)
-// 	m := server.ChainMiddleware(
-// 		limiter.Wrap,
-// 		router.auth,
-// 		server.RequireJSON,
-// 		locale.Middleware,
-// 	)
+func (router *Router) AddCategoryRoutes(handler *category.Handler) {
+	limiter := server.NewRequestLimiter(RequestLimit)
+	m := server.ChainMiddleware(
+		limiter.Wrap,
+		router.auth,
+		server.RequireJSON,
+		locale.Middleware,
+	)
 
-// 	router.mux.Handle("POST /cms/categories/search", m(handler.Search))
-// 	router.mux.Handle("GET /cms/categories", m(handler.All))
-// 	router.mux.Handle("POST /cms/categories", m(handler.Create))
-// 	router.mux.Handle("GET /cms/categories/{slug}", m(handler.Get))
-// 	router.mux.Handle("PATCH /cms/categories/{slug}", m(handler.Update))
-// 	router.mux.Handle("DELETE /cms/categories/{slug}", m(handler.Delete))
-// }
+	router.mux.Handle("POST /cms/categories/search", m(handler.Search))
+	router.mux.Handle("GET /cms/categories", m(handler.All))
+	router.mux.Handle("POST /cms/categories", m(handler.Create))
+	router.mux.Handle("GET /cms/categories/{slug}", m(handler.Get))
+	router.mux.Handle("PATCH /cms/categories/{slug}", m(handler.Update))
+	router.mux.Handle("DELETE /cms/categories/{slug}", m(handler.Delete))
+}
 
 // func (router *Router) AddAdsRoutes(handler *ads.Handler) {
 // 	limiter := server.NewRequestLimiter(RequestLimit)

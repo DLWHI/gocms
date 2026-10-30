@@ -254,6 +254,7 @@
               "email": "newuser@example.com"
             },
             "headers": {
+              "Authorization": "Bearer anonymous.dXNlcjpwYXNz.u9t8y4h3gubq3ifewh",
               "Content-Type": "application/json"
             }
           },
@@ -4120,6 +4121,7 @@
             "path": "/cms/users/search",
             "body": {},
             "headers": {
+              "Authorization": "Bearer anonymous.dXNlcjpwYXNz.u9t8y4h3gubq3ifewh",
               "Content-Type": "application/json"
             }
           },
@@ -8719,7 +8721,9 @@
           "request": {
             "method": "GET",
             "path": "/cms/users",
-            "headers": {}
+            "headers": {
+              "Authorization": "Bearer anonymous.dXNlcjpwYXNz.u9t8y4h3gubq3ifewh"
+            }
           },
           "expect": {
             "status": 401,
@@ -9464,7 +9468,9 @@
             "path_params": {
               "username": "alice"
             },
-            "headers": {}
+            "headers": {
+              "Authorization": "Bearer anonymous.dXNlcjpwYXNz.u9t8y4h3gubq3ifewh"
+            }
           },
           "expect": {
             "status": 401,
@@ -10396,6 +10402,7 @@
               "email": "new@example.com"
             },
             "headers": {
+              "Authorization": "Bearer anonymous.dXNlcjpwYXNz.u9t8y4h3gubq3ifewh",
               "Content-Type": "application/json"
             }
           },
@@ -13099,6 +13106,7 @@
               "password": "Another-Passw0rd-2"
             },
             "headers": {
+              "Authorization": "Bearer anonymous.dXNlcjpwYXNz.u9t8y4h3gubq3ifewh",
               "Content-Type": "application/json"
             }
           },

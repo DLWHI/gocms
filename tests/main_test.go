@@ -16,7 +16,6 @@ import (
 const (
 	ConfigAddress = ""
 	ConfigPort    = "8080"
-	Filter        = "^LIST-012"
 )
 
 var (
@@ -70,13 +69,15 @@ func run(m *testing.M) error {
 }
 
 func TestUsers(t *testing.T) {
+	filter := ""
 	ran := 0
 	succeed := 0
 	defer func() {
 		logger.Info("Tests", fmt.Sprintf("Finished running user tests. Ran = %d tests. Passed = %d. Failed = %d", ran, succeed, ran-succeed))
 	}()
 
-	ctx := t.Context()
+	ctx, cancel := signal.NotifyContext(t.Context(), os.Interrupt, syscall.SIGTERM)
+	defer cancel()
 	logger.Info("Test.Users", "Loading test data")
 	data, err := test.LoadDataFromFile("./test_cases/users.json", "1")
 	if err != nil {
@@ -86,7 +87,7 @@ func TestUsers(t *testing.T) {
 	Env.TestData = data
 
 	for _, testcase := range data.Cases {
-		if matched, err := regexp.MatchString(Filter, testcase.ID); err != nil || !matched {
+		if matched, err := regexp.MatchString(filter, testcase.ID); err != nil || !matched {
 			if err != nil {
 				logger.Warn("Test.User", "Failed to apply filter", err)
 			}
@@ -122,13 +123,15 @@ func TestUsers(t *testing.T) {
 }
 
 func TestLocales(t *testing.T) {
+	filter := ""
 	ran := 0
 	succeed := 0
 	defer func() {
 		logger.Info("Tests", fmt.Sprintf("Finished running locale tests. Ran = %d tests. Passed = %d. Failed = %d", ran, succeed, ran-succeed))
 	}()
 
-	ctx := t.Context()
+	ctx, cancel := signal.NotifyContext(t.Context(), os.Interrupt, syscall.SIGTERM)
+	defer cancel()
 	logger.Info("Test.Locales", "Loading test data")
 	data, err := test.LoadDataFromFile("./test_cases/locales.json", "1")
 	if err != nil {
@@ -138,7 +141,7 @@ func TestLocales(t *testing.T) {
 	Env.TestData = data
 
 	for _, testcase := range data.Cases {
-		if matched, err := regexp.MatchString(Filter, testcase.ID); err != nil || !matched {
+		if matched, err := regexp.MatchString(filter, testcase.ID); err != nil || !matched {
 			if err != nil {
 				logger.Warn("Test.Locales", "Failed to apply filter", err)
 			}

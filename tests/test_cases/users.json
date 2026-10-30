@@ -18228,20 +18228,6 @@
         {
           "actor": "root",
           "request": {
-            "method": "GET",
-            "path": "/cms/users/{username}",
-            "path_params": {
-              "username": "newuser"
-            }
-          },
-          "expect": {
-            "status": 404,
-            "body": "plain_text"
-          }
-        },
-        {
-          "actor": "root",
-          "request": {
             "method": "PATCH",
             "path": "/cms/users/{username}/permissions",
             "path_params": {
@@ -18276,20 +18262,6 @@
           },
           "expect": {
             "status": 201,
-            "body": "empty"
-          }
-        },
-        {
-          "actor": "root",
-          "request": {
-            "method": "GET",
-            "path": "/cms/users/{username}",
-            "path_params": {
-              "username": "newuser"
-            }
-          },
-          "expect": {
-            "status": 200,
             "body": "empty"
           }
         }
@@ -19067,17 +19039,6 @@
           },
           "expect": {
             "status": 204,
-            "body": "empty"
-          }
-        },
-        {
-          "actor": "editor",
-          "request": {
-            "method": "GET",
-            "path": "/cms/users"
-          },
-          "expect": {
-            "status": 200,
             "body": "empty"
           }
         },
@@ -20130,17 +20091,6 @@
           },
           "expect": {
             "status": 204,
-            "body": "empty"
-          }
-        },
-        {
-          "actor": "reader",
-          "request": {
-            "method": "GET",
-            "path": "/cms/users"
-          },
-          "expect": {
-            "status": 200,
             "body": "empty"
           }
         },

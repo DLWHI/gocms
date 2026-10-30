@@ -152,7 +152,7 @@ func (h *Handler) resetPassword(w http.ResponseWriter, r *http.Request) {
 		Password password.Password `json:"password"`
 	}
 
-	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil || payload.Password == nil {
+	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
 		clear(payload.Password)
 		server.WriteDecodeError(w, err)
 		return

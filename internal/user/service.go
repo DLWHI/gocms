@@ -42,13 +42,11 @@ func (s *Service) Create(ctx context.Context, user *domain.User, password passwo
 	}
 	created.Username = username
 
-	if user.Email != "" {
-		email, err := domain.NormalizeEmail(user.Email)
-		if err != nil {
-			return "", err
-		}
-		created.Email = email
+	email, err := domain.NormalizeEmail(user.Email)
+	if err != nil {
+		return "", err
 	}
+	created.Email = email
 
 	hash, err := s.passwords.Hash(password)
 	if err != nil {
@@ -148,13 +146,14 @@ func (s *Service) ChangeEmail(ctx context.Context, username string, diff *domain
 	}
 
 	if diff.Email == nil {
-		return fmt.Errorf("%v: missing email", domain.ErrInval)
+		return fmt.Errorf("%w: missing email", domain.ErrInval)
 	}
 	email, err := domain.NormalizeEmail(*diff.Email)
 	if err != nil {
 		return err
 	}
 	diff.Email = &email
+	diff.Permissions = nil
 
 	if err := s.repo.Update(ctx, username, diff); err != nil {
 		if !errors.Is(err, domain.ErrNotFound) {
@@ -182,12 +181,13 @@ func (s *Service) ChangePermissions(ctx context.Context, username string, diff *
 	}
 
 	if diff.Permissions == nil {
-		return fmt.Errorf("%v: missing email", domain.ErrInval)
+		return fmt.Errorf("%w: missing email", domain.ErrInval)
 	}
 
 	if !s.auth.IsSubsetOf(ctx, *diff.Permissions) {
 		return domain.ErrPerm
 	}
+	diff.Permissions = nil
 
 	if err := s.repo.Update(ctx, username, diff); err != nil {
 		if !errors.Is(err, domain.ErrNotFound) {

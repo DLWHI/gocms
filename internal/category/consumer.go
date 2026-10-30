@@ -30,7 +30,7 @@ func (s *EventConsumer) SyncSearch(ctx context.Context, data []byte) error {
 	case domain.CategoryActionCreate, domain.CategoryActionUpdate:
 		translations, err := s.db.GetTranslations(ctx, payload.Slug)
 		if err != nil {
-			logger.Error("User.Service", "Failed to retreive category from db", err, "payload", payload)
+			logger.Error("User.Service", "Failed to retreive category translations from db", err, "payload", payload)
 			return err
 		}
 

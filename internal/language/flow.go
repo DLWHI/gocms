@@ -37,12 +37,12 @@ func (r *FlowRepository) GetAll(ctx context.Context) ([]domain.Language, error) 
 		bg, cancel := context.WithTimeout(context.Background(), r.timeout)
 		defer cancel()
 
-		locales, err := r.Repository.GetAll(bg)
+		langs, err := r.Repository.GetAll(bg)
 		if err != nil {
 			return nil, err
 		}
 
-		return locales, err
+		return langs, err
 	})
 
 	select {

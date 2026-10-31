@@ -142,11 +142,11 @@ func (s *Service) All(ctx context.Context) ([]domain.Editor, error) {
 func (s *Service) Search(ctx context.Context, filters *SearchParams) (*SearchResult, error) {
 	search.ClampParams(&filters.Params)
 
-	locale, err := domain.ResolveLang(ctx, filters.Lang)
+	lang, err := domain.ResolveLang(ctx, filters.Lang)
 	if err != nil {
 		return nil, err
 	}
-	filters.Lang = locale
+	filters.Lang = lang
 
 	editors, err := s.se.Search(ctx, filters)
 	if err != nil {

@@ -19,7 +19,7 @@ type Record struct {
 }
 
 type RecordTranslation struct {
-	Locale       string `gorm:"size:8;primaryKey;foreignKey:locales(code);constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	Lang         string `gorm:"size:8;primaryKey;foreignKey:languages(code);constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 	Name         string ``
 	CategorySlug string `gorm:"size:255;primaryKey"`
 	Category     Record `gorm:"foreignKey:CategorySlug;references:Slug;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
@@ -62,7 +62,7 @@ func (r *GORMRepository) Create(ctx context.Context, category *domain.Category) 
 	return nil
 }
 
-func (r *GORMRepository) Update(ctx context.Context, slug string, locale string, diff *domain.CategoryDiff) error {
+func (r *GORMRepository) Update(ctx context.Context, slug string, lang string, diff *domain.CategoryDiff) error {
 	return flow.DoWithRetry(ctx, r.retries, r.backoff, func() error {
 		return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 			recordUpdate, translationUpdate := r.patch(diff)
@@ -75,7 +75,7 @@ func (r *GORMRepository) Update(ctx context.Context, slug string, locale string,
 			}
 			err := tx.Table("categories AS c").
 				Select("c.version AS record, COALESCE(ct.version, 0) AS translation").
-				Joins("LEFT JOIN category_translations ct ON ct.category_slug = c.slug AND ct.locale = ?", locale).
+				Joins("LEFT JOIN category_translations ct ON ct.category_slug = c.slug AND ct.lang = ?", lang).
 				Where("c.slug = ?", slug).
 				Take(&version).Error
 			if err != nil {
@@ -100,7 +100,7 @@ func (r *GORMRepository) Update(ctx context.Context, slug string, locale string,
 			if len(translationUpdate) > 0 {
 				if version.Translation == 0 {
 					translationUpdate["category_slug"] = slug
-					translationUpdate["locale"] = locale
+					translationUpdate["lang"] = lang
 					result := tx.Model(&RecordTranslation{}).
 						Create(recordUpdate)
 					if result.Error != nil {
@@ -111,7 +111,7 @@ func (r *GORMRepository) Update(ctx context.Context, slug string, locale string,
 					}
 				} else {
 					result := tx.Model(&RecordTranslation{}).
-						Where("category_slug = ? AND locale = ? AND version = ?", slug, locale, version).
+						Where("category_slug = ? AND lang = ? AND version = ?", slug, lang, version).
 						Updates(recordUpdate)
 					if result.Error != nil {
 						return result.Error
@@ -129,11 +129,11 @@ func (r *GORMRepository) Update(ctx context.Context, slug string, locale string,
 	})
 }
 
-func (r *GORMRepository) Get(ctx context.Context, slug string, locale string) (*domain.Category, error) {
+func (r *GORMRepository) Get(ctx context.Context, slug string, lang string) (*domain.Category, error) {
 	var record RecordTranslation
 	result := r.db.WithContext(ctx).Model(&RecordTranslation{}).
 		Preload("Category").
-		Where("category_slug = ? AND locale = ?", slug, locale).
+		Where("category_slug = ? AND lang = ?", slug, lang).
 		Take(&record)
 	if result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
@@ -168,12 +168,12 @@ func (r *GORMRepository) GetTranslations(ctx context.Context, slug string) ([]do
 	return vals, nil
 }
 
-func (r *GORMRepository) GetAll(ctx context.Context, locale string) ([]domain.Category, error) {
+func (r *GORMRepository) GetAll(ctx context.Context, lang string) ([]domain.Category, error) {
 	var categories []RecordTranslation
 
 	result := r.db.WithContext(ctx).Model(&RecordTranslation{}).
 		Preload("Category").
-		Where("locale = ?", locale).
+		Where("lang = ?", lang).
 		Find(&categories)
 
 	if result.Error != nil {
@@ -266,7 +266,7 @@ func (rd *RecordTranslation) ToDomain() *domain.Category {
 	res.Hidden = rd.Category.Hidden
 	res.Navbar = rd.Category.Navbar
 	res.Name = rd.Name
-	res.Locale = rd.Locale
+	res.Lang = rd.Lang
 	return &res
 }
 
@@ -275,7 +275,7 @@ func ToRecord(data *domain.Category) *RecordTranslation {
 
 	res.CategorySlug = data.Slug
 	res.Name = data.Name
-	res.Locale = data.Locale
+	res.Lang = data.Lang
 	res.Category = Record{
 		Slug:   data.Slug,
 		Hidden: data.Hidden,

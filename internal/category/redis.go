@@ -35,15 +35,15 @@ func (r *RedisRepository) Create(ctx context.Context, category *domain.Category)
 	if err := r.Repository.Create(ctx, category); err != nil {
 		return err
 	}
-	key := r.keys.List(notHiddenListBase + "-" + category.Locale)
+	key := r.keys.List(notHiddenListBase + "-" + category.Lang)
 	if err := r.cache.Invalidate(ctx, key); err != nil {
 		logger.Warn("User.Redis", "Redis error while trying to delete key", err, "key", key)
 	}
 	return nil
 }
 
-func (r *RedisRepository) Update(ctx context.Context, slug string, locale string, diff *domain.CategoryDiff) error {
-	if err := r.Repository.Update(ctx, slug, locale, diff); err != nil {
+func (r *RedisRepository) Update(ctx context.Context, slug string, lang string, diff *domain.CategoryDiff) error {
+	if err := r.Repository.Update(ctx, slug, lang, diff); err != nil {
 		return err
 	}
 	r.invalidateGroup(ctx, r.keys.Key(slug+"-*"))
@@ -51,10 +51,10 @@ func (r *RedisRepository) Update(ctx context.Context, slug string, locale string
 	return nil
 }
 
-func (r *RedisRepository) Get(ctx context.Context, slug string, locale string) (*domain.Category, error) {
+func (r *RedisRepository) Get(ctx context.Context, slug string, lang string) (*domain.Category, error) {
 	var category domain.Category
 	var token string
-	key := r.keys.Key(slug + "-" + locale)
+	key := r.keys.Key(slug + "-" + lang)
 	err := r.cache.Get(ctx, key, &category)
 	switch {
 	case err == nil:
@@ -68,7 +68,7 @@ func (r *RedisRepository) Get(ctx context.Context, slug string, locale string) (
 		logger.Warn("User.Redis", "Redis error while trying to retrieve key", err, "key", key)
 	}
 
-	c, err := r.Repository.Get(ctx, slug, locale)
+	c, err := r.Repository.Get(ctx, slug, lang)
 	if err != nil {
 		return nil, err
 	}
@@ -85,10 +85,10 @@ func (r *RedisRepository) Get(ctx context.Context, slug string, locale string) (
 	return &category, nil
 }
 
-func (r *RedisRepository) GetAll(ctx context.Context, locale string) ([]domain.Category, error) {
+func (r *RedisRepository) GetAll(ctx context.Context, lang string) ([]domain.Category, error) {
 	var categories []domain.Category
 	var token string
-	key := r.keys.List(notHiddenListBase + "-" + locale)
+	key := r.keys.List(notHiddenListBase + "-" + lang)
 	err := r.cache.Get(ctx, key, &categories)
 	switch {
 	case err == nil:
@@ -102,7 +102,7 @@ func (r *RedisRepository) GetAll(ctx context.Context, locale string) ([]domain.C
 		logger.Warn("User.Redis", "Redis error while trying to retrieve key", err, "key", key)
 	}
 
-	c, err := r.Repository.GetAll(ctx, locale)
+	c, err := r.Repository.GetAll(ctx, lang)
 	if err != nil {
 		return nil, err
 	}

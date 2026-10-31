@@ -14,7 +14,7 @@ type Category struct {
 	Slug   string `json:"slug"`
 	Hidden bool   `json:"hidden"`
 	Navbar bool   `json:"navbar"`
-	Locale string `json:"locale"`
+	Lang   string `json:"lang"`
 	Name   string `json:"name"`
 }
 
@@ -23,7 +23,7 @@ type CategoryDiff struct {
 	Hidden *bool   `json:"hidden"`
 	Navbar *bool   `json:"navbar"`
 	Name   *string `json:"name"`
-	Locale string  `json:"locale"`
+	Lang   string  `json:"lang"`
 }
 
 type CategoryEvent struct {

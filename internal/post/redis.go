@@ -112,9 +112,9 @@ func (r *RedisRepository) Get(ctx context.Context, id uint) (*Meta, error) {
 	return &post, nil
 }
 
-func (r *RedisRepository) GetTranslation(ctx context.Context, id uint, locale string) (*Translation, error) {
+func (r *RedisRepository) GetTranslation(ctx context.Context, id uint, language string) (*Translation, error) {
 	var post Translation
-	key := fmt.Sprintf(r.keyFormat, id, locale)
+	key := fmt.Sprintf(r.keyFormat, id, language)
 
 	if err := cache.UnmarshalRedisKey(r.rdb, ctx, key, &post); err != nil {
 		if !errors.Is(err, redis.Nil) {
@@ -128,7 +128,7 @@ func (r *RedisRepository) GetTranslation(ctx context.Context, id uint, locale st
 		bg, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 		defer cancel()
 
-		post, err := r.origin.GetTranslation(bg, id, locale)
+		post, err := r.origin.GetTranslation(bg, id, language)
 		if err != nil {
 			if !errors.Is(err, domain.ErrNotFound) {
 				r.group.Forget(key)
@@ -215,12 +215,12 @@ func (r *RedisRepository) Delete(ctx context.Context, id uint) error {
 	return nil
 }
 
-func (r *RedisRepository) DeleteTranslation(ctx context.Context, id uint, locale string) error {
-	if err := r.origin.DeleteTranslation(ctx, id, locale); err != nil {
+func (r *RedisRepository) DeleteTranslation(ctx context.Context, id uint, language string) error {
+	if err := r.origin.DeleteTranslation(ctx, id, language); err != nil {
 		return err
 	}
 
-	key := fmt.Sprintf(r.keyFormat, id, locale)
+	key := fmt.Sprintf(r.keyFormat, id, language)
 	if _, err := r.rdb.Del(ctx, key).Result(); err != nil {
 		logger.Warn("Post.Redis", "Failed to delete from cache.", err)
 	}

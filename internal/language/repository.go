@@ -1,4 +1,4 @@
-package locale
+package language
 
 import (
 	"context"
@@ -8,7 +8,7 @@ import (
 const allList = "all"
 
 type Repository interface {
-	Create(ctx context.Context, locale *domain.Locale) error
-	GetAll(ctx context.Context) ([]domain.Locale, error)
+	Create(ctx context.Context, lang *domain.Language) error
+	GetAll(ctx context.Context) ([]domain.Language, error)
 	Delete(ctx context.Context, code string) error
 }

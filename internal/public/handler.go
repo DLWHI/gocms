@@ -6,7 +6,7 @@ import (
 	"gocms/internal/analytics"
 	"gocms/internal/category"
 	"gocms/internal/editor"
-	"gocms/internal/locale"
+	"gocms/internal/language"
 	"gocms/internal/post"
 	"gocms/internal/server"
 	"net/http"
@@ -19,7 +19,7 @@ import (
 // GET /posts/{id}?slug={slug} - Get published post by id
 //
 // GET /categories - Get all categories
-// GET /locales - Get all locales
+// GET /languages - Get all languages
 //
 // GET /editors - Get all editors
 // GET /editors/{username} - Get editor
@@ -33,7 +33,7 @@ type Handler struct {
 	PostSearch    http.Handler
 	PostGet       http.Handler
 	CategoriesAll http.Handler
-	LocalesAll    http.Handler
+	LanguagesAll  http.Handler
 	EditorAll     http.Handler
 	EditorGet     http.Handler
 	EditorBio     http.Handler
@@ -42,23 +42,23 @@ type Handler struct {
 	posts         *post.Service
 	editors       *editor.Service
 	categories    *category.Service
-	locales       *locale.Service
+	languages     *language.Service
 	ads           *ads.Service
 	views         analytics.PostViewCounterService
 }
 
-func NewHandler(ps *post.Service, es *editor.Service, cs *category.Service, ls *locale.Service, as *ads.Service, vc analytics.PostViewCounterService) *Handler {
+func NewHandler(ps *post.Service, es *editor.Service, cs *category.Service, ls *language.Service, as *ads.Service, vc analytics.PostViewCounterService) *Handler {
 	var hndl Handler
 	hndl.posts = ps
 	hndl.editors = es
 	hndl.categories = cs
-	hndl.locales = ls
+	hndl.languages = ls
 	hndl.ads = as
 	hndl.views = vc
 	hndl.PostSearch = http.HandlerFunc(hndl.postsSearch)
 	hndl.PostGet = http.HandlerFunc(hndl.postsGet)
 	hndl.CategoriesAll = http.HandlerFunc(hndl.categoriesAll)
-	hndl.LocalesAll = http.HandlerFunc(hndl.localesAll)
+	hndl.LanguagesAll = http.HandlerFunc(hndl.languagesAll)
 	hndl.EditorAll = http.HandlerFunc(hndl.editorsAll)
 	hndl.EditorGet = http.HandlerFunc(hndl.editorsGet)
 	hndl.Ads = http.HandlerFunc(hndl.adsGet)
@@ -84,7 +84,7 @@ func (h *Handler) postsSearch(w http.ResponseWriter, r *http.Request) {
 		"title",
 		"description",
 		"slug",
-		"locale",
+		"language",
 		"published_at",
 		"views",
 		"preview",
@@ -148,16 +148,16 @@ func (h *Handler) categoriesAll(w http.ResponseWriter, r *http.Request) {
 	_ = json.NewEncoder(w).Encode(&categories)
 }
 
-// GET /locales - Get all locales
-func (h *Handler) localesAll(w http.ResponseWriter, r *http.Request) {
-	locales, err := h.locales.GetAll(r.Context())
+// GET /languages - Get all languages
+func (h *Handler) languagesAll(w http.ResponseWriter, r *http.Request) {
+	languages, err := h.languages.GetAll(r.Context())
 	if err != nil {
 		server.WriteServerError(w, "Categories", err)
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	_ = json.NewEncoder(w).Encode(&locales)
+	_ = json.NewEncoder(w).Encode(&languages)
 }
 
 // GET /editors - Get all editors

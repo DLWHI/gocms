@@ -14,17 +14,17 @@ type Editor struct {
 	Slug      string `json:"slug"`
 	Bio       string `json:"bio,omitempty"`
 	Name      string `json:"name"`
-	Locale    string `json:"locale"`
+	Lang      string `json:"lang"`
 	DeletedAt *int64 `json:"suspended_at,omitempty"`
 	Owner     string `json:"owner"`
 }
 
 type EditorDiff struct {
-	Slug   *string `json:"slug"`
-	Bio    *string `json:"bio"`
-	Name   *string `json:"name"`
-	Owner  *string `json:"owner"`
-	Locale string  `json:"locale"`
+	Slug  *string `json:"slug"`
+	Bio   *string `json:"bio"`
+	Name  *string `json:"name"`
+	Owner *string `json:"owner"`
+	Lang  string  `json:"lang"`
 }
 
 type EditorEvent struct {

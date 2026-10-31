@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"gocms/internal/category"
 	"gocms/internal/domain"
-	"gocms/internal/locale"
+	"gocms/internal/language"
 	"gocms/internal/user"
 	"time"
 
@@ -16,7 +16,7 @@ type Fixtures struct {
 	DefaultPassword Password          `json:"default_password"`
 	Actors          map[string]*Actor `json:"actors"`
 	Users           []domain.User     `json:"users"`
-	Locales         []domain.Locale   `json:"locales"`
+	Languages       []domain.Language `json:"languages"`
 	Categories      []domain.Category `json:"categories"`
 }
 
@@ -74,8 +74,8 @@ func (f *Fixtures) ApplyFixtures(ctx context.Context, e *Environment) error {
 		}
 	}
 
-	for _, l := range f.Locales {
-		if err := db.WithContext(ctx).Save(locale.ToRecord(&l)).Error; err != nil {
+	for _, l := range f.Languages {
+		if err := db.WithContext(ctx).Save(language.ToRecord(&l)).Error; err != nil {
 			return err
 		}
 	}
@@ -85,7 +85,7 @@ func (f *Fixtures) ApplyFixtures(ctx context.Context, e *Environment) error {
 		if err := db.WithContext(ctx).Save(record).Error; err != nil {
 			return err
 		}
-		c.ID = fmt.Sprintf("%s-%s", c.Slug, c.Locale)
+		c.ID = fmt.Sprintf("%s-%s", c.Slug, c.Lang)
 		task, err := ms.CategoriesIndex.AddDocumentsWithContext(ctx, &c, nil)
 		if err != nil {
 			return err

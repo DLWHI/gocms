@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"gocms/internal/category"
 	"gocms/internal/domain"
-	"gocms/internal/locale"
+	"gocms/internal/language"
 	"gocms/internal/outbox"
 	"gocms/internal/password"
 	"gocms/internal/user"
@@ -176,7 +176,7 @@ func (e *Environment) Clear(ctx context.Context) error {
 	if err := e.DB.Unscoped().Where("1 = 1").Delete(&user.Record{}).Error; err != nil {
 		return err
 	}
-	if err := e.DB.Unscoped().Where("1 = 1").Delete(&locale.Record{}).Error; err != nil {
+	if err := e.DB.Unscoped().Where("1 = 1").Delete(&language.Record{}).Error; err != nil {
 		return err
 	}
 	if err := e.DB.Unscoped().Where("1 = 1").Delete(&category.Record{}).Error; err != nil {

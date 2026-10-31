@@ -36,11 +36,11 @@ func (s *Service) Create(ctx context.Context, category *domain.Category) (string
 	}
 	created.Slug = slug
 
-	locale, err := domain.ResolveLocale(ctx, category.Locale)
+	lang, err := domain.ResolveLang(ctx, category.Lang)
 	if err != nil {
 		return "", err
 	}
-	created.Locale = locale
+	created.Lang = lang
 
 	name, err := domain.NormalizeName(category.Name)
 	if err != nil {
@@ -68,7 +68,7 @@ func (s *Service) Edit(ctx context.Context, slug string, diff *domain.CategoryDi
 		return "", err
 	}
 
-	locale, err := domain.ResolveLocale(ctx, diff.Locale)
+	lang, err := domain.ResolveLang(ctx, diff.Lang)
 	if err != nil {
 		return "", err
 	}
@@ -89,7 +89,7 @@ func (s *Service) Edit(ctx context.Context, slug string, diff *domain.CategoryDi
 		diff.Name = &normalized
 	}
 
-	if err := s.repo.Update(ctx, slug, locale, diff); err != nil {
+	if err := s.repo.Update(ctx, slug, lang, diff); err != nil {
 		if !errors.Is(err, domain.ErrNotFound) {
 			logger.Error("Category.Service", "Failed to update category", err)
 		}
@@ -104,9 +104,9 @@ func (s *Service) Edit(ctx context.Context, slug string, diff *domain.CategoryDi
 }
 
 func (s *Service) Get(ctx context.Context, slug string) (*domain.Category, error) {
-	locale, ok := ctx.Value(domain.LocaleKey).(string)
+	lang, ok := ctx.Value(domain.LangKey).(string)
 	if !ok {
-		return nil, fmt.Errorf("%w: empty locale", domain.ErrInval)
+		return nil, fmt.Errorf("%w: missing language", domain.ErrInval)
 	}
 
 	slug, err := domain.NormalizeSlug(slug)
@@ -114,7 +114,7 @@ func (s *Service) Get(ctx context.Context, slug string) (*domain.Category, error
 		return nil, err
 	}
 
-	category, err := s.repo.Get(ctx, slug, locale)
+	category, err := s.repo.Get(ctx, slug, lang)
 	if err != nil {
 		if !errors.Is(err, domain.ErrNotFound) {
 			logger.Error("Category.Service", "Failed to retrieve category", err)
@@ -126,12 +126,12 @@ func (s *Service) Get(ctx context.Context, slug string) (*domain.Category, error
 }
 
 func (s *Service) All(ctx context.Context) ([]domain.Category, error) {
-	locale, ok := ctx.Value(domain.LocaleKey).(string)
+	lang, ok := ctx.Value(domain.LangKey).(string)
 	if !ok {
-		return nil, fmt.Errorf("%w: empty locale", domain.ErrInval)
+		return nil, fmt.Errorf("%w: missing language", domain.ErrInval)
 	}
 
-	categories, err := s.repo.GetAll(ctx, locale)
+	categories, err := s.repo.GetAll(ctx, lang)
 	if err != nil {
 		logger.Error("Category.Service", "Failed to list categories", err)
 		return nil, err
@@ -141,12 +141,12 @@ func (s *Service) All(ctx context.Context) ([]domain.Category, error) {
 }
 
 func (s *Service) AllNotHidden(ctx context.Context) ([]domain.Category, error) {
-	locale, ok := ctx.Value(domain.LocaleKey).(string)
+	lang, ok := ctx.Value(domain.LangKey).(string)
 	if !ok {
-		return nil, fmt.Errorf("%w: empty locale", domain.ErrInval)
+		return nil, fmt.Errorf("%w: missing language", domain.ErrInval)
 	}
 
-	categories, err := s.repo.GetAll(ctx, locale)
+	categories, err := s.repo.GetAll(ctx, lang)
 	if err != nil {
 		logger.Error("Category.Service", "Failed to list categories", err)
 		return nil, err
@@ -167,11 +167,11 @@ func (s *Service) AllNotHidden(ctx context.Context) ([]domain.Category, error) {
 func (s *Service) Search(ctx context.Context, filters *SearchParams) (*SearchResult, error) {
 	search.ClampParams(&filters.Params)
 
-	locale, err := domain.ResolveLocale(ctx, filters.Locale)
+	lang, err := domain.ResolveLang(ctx, filters.Lang)
 	if err != nil {
 		return nil, err
 	}
-	filters.Locale = locale
+	filters.Lang = lang
 
 	categories, err := s.se.Search(ctx, filters)
 	if err != nil {

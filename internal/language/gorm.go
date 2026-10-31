@@ -1,4 +1,4 @@
-package locale
+package language
 
 import (
 	"context"
@@ -21,8 +21,8 @@ func NewGORMRepository(db *gorm.DB) *GORMRepository {
 	return &GORMRepository{db: db}
 }
 
-func (r *GORMRepository) Create(ctx context.Context, locale *domain.Locale) error {
-	if err := r.db.WithContext(ctx).Create(ToRecord(locale)).Error; err != nil {
+func (r *GORMRepository) Create(ctx context.Context, lang *domain.Language) error {
+	if err := r.db.WithContext(ctx).Create(ToRecord(lang)).Error; err != nil {
 		if errors.Is(err, gorm.ErrDuplicatedKey) {
 			return domain.ErrDuplicate
 		}
@@ -31,19 +31,19 @@ func (r *GORMRepository) Create(ctx context.Context, locale *domain.Locale) erro
 	return nil
 }
 
-func (r *GORMRepository) GetAll(ctx context.Context) ([]domain.Locale, error) {
-	locales := make([]Record, 0)
+func (r *GORMRepository) GetAll(ctx context.Context) ([]domain.Language, error) {
+	langs := make([]Record, 0)
 
 	err := r.db.WithContext(ctx).
-		Find(&locales).Error
+		Find(&langs).Error
 	if err != nil {
 		return nil, err
 	}
 
-	vals := make([]domain.Locale, 0, len(locales))
+	vals := make([]domain.Language, 0, len(langs))
 
-	for _, locale := range locales {
-		vals = append(vals, *locale.ToDomain())
+	for _, lang := range langs {
+		vals = append(vals, *lang.ToDomain())
 	}
 
 	return vals, nil
@@ -63,18 +63,18 @@ func (r *GORMRepository) Delete(ctx context.Context, code string) error {
 }
 
 func (Record) TableName() string {
-	return "locales"
+	return "languages"
 }
 
-func ToRecord(locale *domain.Locale) *Record {
+func ToRecord(lang *domain.Language) *Record {
 	return &Record{
-		Name: locale.Name,
-		Code: locale.Code,
+		Name: lang.Name,
+		Code: lang.Code,
 	}
 }
 
-func (l *Record) ToDomain() *domain.Locale {
-	return &domain.Locale{
+func (l *Record) ToDomain() *domain.Language {
+	return &domain.Language{
 		Name: l.Name,
 		Code: l.Code,
 	}

@@ -29,16 +29,16 @@ type Translation struct {
 	Media       string `json:"media"`
 	MediaSource string `json:"media_source"`
 	MediaType   string `json:"media_type"`
-	Locale      string `json:"locale" gorm:"size:8;primaryKey;foreignKey:locales(code);constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	Language    string `json:"language" gorm:"size:8;primaryKey;foreignKey:languages(code);constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 	PostID      uint   `json:"post_id" gorm:"primaryKey"`
 	Post        Meta   `json:"post_meta" gorm:"foreignKey:PostID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 	Version     uint   `json:"-" gorm:"default:1"`
 }
 
 type MessagePayload struct {
-	ID     uint   `json:"id"`
-	Locale string `json:"locale"`
-	Action string `json:"action"`
+	ID       uint   `json:"id"`
+	Language string `json:"language"`
+	Action   string `json:"action"`
 }
 
 type Document struct {
@@ -49,7 +49,7 @@ type Document struct {
 	Markdown    string   `json:"markdown,omitempty"`
 	Slug        string   `json:"slug"`
 	Keywords    string   `json:"keywords,omitempty"`
-	Locale      string   `json:"locale"`
+	Language    string   `json:"language"`
 	CreatedAt   int64    `json:"created_at,omitempty"`
 	PublishedAt *int64   `json:"published_at"`
 	Views       uint     `json:"views"`
@@ -67,7 +67,7 @@ type SearchParams struct {
 	Categories        []string   `json:"categories,omitempty"`
 	ExcludeCategories []string   `json:"exclude_categories,omitempty"`
 	Authors           []string   `json:"authors,omitempty"`
-	Locale            string     `json:"locale,omitempty"`
+	Language          string     `json:"language,omitempty"`
 	CreatedAfter      *time.Time `json:"created_after,omitempty"`
 	CreatedBefore     *time.Time `json:"created_before,omitempty"`
 	PublishedAfter    *time.Time `json:"published_after,omitempty"`
@@ -83,18 +83,18 @@ type Repository interface {
 	UpdateTranslation(ctx context.Context, post *Translation) error
 	IncrementViews(ctx context.Context, id uint, value uint) error
 	Get(ctx context.Context, id uint) (*Meta, error)
-	GetTranslation(ctx context.Context, id uint, locale string) (*Translation, error)
+	GetTranslation(ctx context.Context, id uint, language string) (*Translation, error)
 	GetCategories(ctx context.Context, id uint) ([]string, error)
 	Delete(ctx context.Context, id uint) error
-	DeleteTranslation(ctx context.Context, id uint, locale string) error
+	DeleteTranslation(ctx context.Context, id uint, language string) error
 }
 
 type SearchEngine interface {
 	Index(ctx context.Context, post *Document) error
-	Get(ctx context.Context, id uint, locale string) (*Document, error)
+	Get(ctx context.Context, id uint, language string) (*Document, error)
 	Search(ctx context.Context, post *SearchParams) (*SearchResult, error)
 	Delete(ctx context.Context, id uint) error
-	DeleteTranslation(ctx context.Context, id uint, locale string) error
+	DeleteTranslation(ctx context.Context, id uint, language string) error
 }
 
 func (Meta) TableName() string {
@@ -150,7 +150,7 @@ func (pm *Translation) ToDoc() Document {
 	pd.Description = pm.Description
 	pd.Slug = pm.Post.Slug
 	pd.Keywords = pm.Keywords
-	pd.Locale = pm.Locale
+	pd.Language = pm.Language
 	pd.CreatedAt = pm.Post.CreatedAt.Unix()
 	pd.Views = pm.Post.Views
 	pd.Preview = pm.Post.Preview
@@ -180,7 +180,7 @@ func (pd *Document) ToModel() Translation {
 	pm.Title = pd.Title
 	pm.Description = pd.Description
 	pm.Keywords = pd.Keywords
-	pm.Locale = pd.Locale
+	pm.Language = pd.Language
 	pm.Post.ID = pd.PostID
 	pm.Post.Slug = pd.Slug
 	pm.Post.CreatedAt = time.Unix(pd.CreatedAt, 0).UTC()

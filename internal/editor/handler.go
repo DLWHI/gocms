@@ -50,7 +50,7 @@ func (h *Handler) search(w http.ResponseWriter, r *http.Request) {
 	filters.Select = []string{
 		"name",
 		"slug",
-		"locale",
+		"lang",
 		"deleted_at",
 	}
 

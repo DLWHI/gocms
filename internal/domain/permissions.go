@@ -19,14 +19,14 @@ var entites = map[string]uint32{
 	"views":            9,
 	UserEntityName:     12,
 	"editors":          15,
-	LocaleEntityName:   18,
+	LangEntityName:     18,
 }
 
 const (
 	RoleEditor     = uint32(0x00000019) // posts:create, categories:create;edit
 	RoleTranslator = uint32(0x00000033) // posts:create, posts:edit, categories;edit
-	RoleLeadEditor = uint32(0x001F8FFB) // posts:create;edit, categories:all, ads:all, views:all, editors:all, locales:all
-	RoleAdmin      = uint32(0x001FF3F6) // posts:edit;delete, categories:all, ads:all, users:all, editors:all, locales:all
+	RoleLeadEditor = uint32(0x001F8FFB) // posts:create;edit, categories:all, ads:all, views:all, editors:all, languages:all
+	RoleAdmin      = uint32(0x001FF3F6) // posts:edit;delete, categories:all, ads:all, users:all, editors:all, languages:all
 	RoleRoot       = uint32(0xFFFFFFFF) // everything possible, even future
 )
 

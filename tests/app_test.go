@@ -31,7 +31,7 @@ type Container struct {
 	Posts      *PostModule
 	Ads        *AdsModule
 	Editors    *EditorModule
-	Locales    *LocaleModule
+	Langs      *LangModule
 	Auth       *AuthModule
 
 	PasswordService password.PasswordService
@@ -83,7 +83,7 @@ func (app *Container) Init(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	locales, err := NewLocaleModule(ctx, db, nil, auth.Service)
+	langs, err := NewLangModule(ctx, db, nil, auth.Service)
 	if err != nil {
 		return err
 	}
@@ -94,7 +94,7 @@ func (app *Container) Init(ctx context.Context) error {
 	// 	posts.Service,
 	// 	editors.Service,
 	// 	categories.Service,
-	// 	locales.Service,
+	// 	langs.Service,
 	// 	ads.Service,
 	// 	views,
 	// )
@@ -109,7 +109,7 @@ func (app *Container) Init(ctx context.Context) error {
 	router.AddCategoryRoutes(categories.Handler)
 	// router.AddAdsRoutes(ads.Handler)
 	router.AddEditorRoutes(editors.Handler)
-	router.AddLocaleRoutes(locales.Handler)
+	router.AddLangRoutes(langs.Handler)
 	router.AddStorageRoutes(storageHandler)
 	// router.AddPublicoutes(publicHandler)
 
@@ -125,7 +125,7 @@ func (app *Container) Init(ctx context.Context) error {
 	app.Posts = posts
 	app.Ads = ads
 	app.Editors = editors
-	app.Locales = locales
+	app.Langs = langs
 	app.Auth = auth
 
 	app.PasswordService = passwords

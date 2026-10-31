@@ -67,7 +67,7 @@ func (r *GORMRepository) Create(ctx context.Context, post *Translation) error {
 		if err := tx.Create(post).Error; err != nil {
 			return err
 		}
-		if err := writeMessage(tx, "create", post.PostID, post.Locale); err != nil {
+		if err := writeMessage(tx, "create", post.PostID, post.Language); err != nil {
 			return err
 		}
 		return nil
@@ -134,7 +134,7 @@ func (r *GORMRepository) UpdateTranslation(ctx context.Context, diff *Translatio
 			ptdiff := translationDiff(diff)
 			err := tx.Table("posts AS p").
 				Select("p.version as post, pt.version as translation").
-				Joins("LEFT JOIN post_translations AS pt ON pt.post_id = p.id AND pt.locale = ?", diff.Locale).
+				Joins("LEFT JOIN post_translations AS pt ON pt.post_id = p.id AND pt.language = ?", diff.Language).
 				Where("p.id = ?", diff.PostID).
 				Take(&version).Error
 			if err != nil {
@@ -166,7 +166,7 @@ func (r *GORMRepository) UpdateTranslation(ctx context.Context, diff *Translatio
 					}
 				} else {
 					result := tx.Model(&Translation{}).
-						Where("post_id = ? AND locale = ? AND version = ?", diff.PostID, diff.Locale, version.Translation).
+						Where("post_id = ? AND language = ? AND version = ?", diff.PostID, diff.Language, version.Translation).
 						Updates(ptdiff)
 					if result.Error != nil {
 						return result.Error
@@ -177,7 +177,7 @@ func (r *GORMRepository) UpdateTranslation(ctx context.Context, diff *Translatio
 				}
 			}
 
-			if err := writeMessage(tx, "update", diff.PostID, diff.Locale); err != nil {
+			if err := writeMessage(tx, "update", diff.PostID, diff.Language); err != nil {
 				return err
 			}
 
@@ -244,7 +244,7 @@ func (r *GORMRepository) Get(ctx context.Context, id uint) (*Meta, error) {
 	return &post, nil
 }
 
-func (r *GORMRepository) GetTranslation(ctx context.Context, id uint, locale string) (*Translation, error) {
+func (r *GORMRepository) GetTranslation(ctx context.Context, id uint, language string) (*Translation, error) {
 	var res struct {
 		Meta
 		Title       string
@@ -253,14 +253,14 @@ func (r *GORMRepository) GetTranslation(ctx context.Context, id uint, locale str
 		MediaType   string
 		Description string
 		Keywords    string
-		Locale      string
+		Language    string
 	}
 
 	err := r.db.WithContext(ctx).
 		Table("posts AS p").
 		Select("*").
-		Joins("INNER JOIN post_translations AS pt ON pt.post_id = p.id AND pt.locale = ?").
-		Where("p.id = ?", id, locale).
+		Joins("INNER JOIN post_translations AS pt ON pt.post_id = p.id AND pt.language = ?").
+		Where("p.id = ?", id, language).
 		Take(&res).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -273,7 +273,7 @@ func (r *GORMRepository) GetTranslation(ctx context.Context, id uint, locale str
 		Title:       res.Title,
 		Description: res.Description,
 		Keywords:    res.Keywords,
-		Locale:      locale,
+		Language:    language,
 		Media:       res.Media,
 		MediaSource: res.MediaSource,
 		MediaType:   res.MediaType,
@@ -314,25 +314,25 @@ func (r *GORMRepository) Delete(ctx context.Context, id uint) error {
 	})
 }
 
-func (r *GORMRepository) DeleteTranslation(ctx context.Context, id uint, locale string) error {
+func (r *GORMRepository) DeleteTranslation(ctx context.Context, id uint, language string) error {
 	return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		result := tx.Where("post_id = ? AND locale = ?", id, locale).
+		result := tx.Where("post_id = ? AND language = ?", id, language).
 			Delete(&Translation{})
 		if result.RowsAffected == 0 {
 			return domain.ErrNotFound
 		}
-		if err := writeMessage(tx, "delete.translation", id, locale); err != nil {
+		if err := writeMessage(tx, "delete.translation", id, language); err != nil {
 			return err
 		}
 		return nil
 	})
 }
 
-func writeMessage(tx *gorm.DB, action string, id uint, locale string) error {
+func writeMessage(tx *gorm.DB, action string, id uint, language string) error {
 	payload := MessagePayload{
-		ID:     id,
-		Locale: locale,
-		Action: action,
+		ID:       id,
+		Language: language,
+		Action:   action,
 	}
 	if err := outbox.WriteMessage(tx, "post", "Post.Repository", &payload); err != nil {
 		return err

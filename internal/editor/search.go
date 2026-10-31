@@ -8,7 +8,7 @@ import (
 
 type SearchParams struct {
 	search.Params
-	Locale        string `json:"locale"`
+	Lang          string `json:"lang"`
 	Owner         string `json:"owner"`
 	Deleted       *bool  `json:"deleted"`
 	DeletedAfter  *int64 `json:"deleted_after"`
@@ -19,7 +19,7 @@ type SearchResult = search.Result[domain.Editor]
 
 type SearchEngine interface {
 	Index(ctx context.Context, slug string, group ...domain.Editor) error
-	Get(ctx context.Context, username string, locale string) (*domain.Editor, error)
+	Get(ctx context.Context, username string, lang string) (*domain.Editor, error)
 	Search(ctx context.Context, filters *SearchParams) (*SearchResult, error)
 	Delete(ctx context.Context, username string) error
 }

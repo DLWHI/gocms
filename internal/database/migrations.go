@@ -4,7 +4,7 @@ import (
 	"gocms/internal/ads"
 	"gocms/internal/category"
 	"gocms/internal/editor"
-	"gocms/internal/locale"
+	"gocms/internal/language"
 	"gocms/internal/outbox"
 	"gocms/internal/post"
 	"gocms/internal/user"
@@ -23,7 +23,7 @@ func SoftMigrate(db *gorm.DB) error {
 		&post.Translation{},
 		&category.Record{},
 		&category.RecordTranslation{},
-		&locale.Record{},
+		&language.Record{},
 		&outbox.Message{},
 	)
 
@@ -72,7 +72,7 @@ func DropAll(db *gorm.DB) error {
 		&post.Translation{},
 		&category.Record{},
 		&category.RecordTranslation{},
-		&locale.Record{},
+		&language.Record{},
 		&outbox.Message{},
 	); err != nil {
 		return err

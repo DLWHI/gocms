@@ -26,7 +26,7 @@ func NewMeilisearchEngine(client meilisearch.ServiceManager, index string) *Meil
 			},
 			Settings: meilisearch.Settings{
 				SearchableAttributes: []string{"slug", "name"},
-				FilterableAttributes: []string{"locale", "deleted_at", "owner"},
+				FilterableAttributes: []string{"lang", "deleted_at", "owner"},
 				SortableAttributes:   []string{"slug", "name", "deleted_at"},
 			},
 		},
@@ -36,8 +36,8 @@ func NewMeilisearchEngine(client meilisearch.ServiceManager, index string) *Meil
 func (*MeilisearchEngine) buildFilter(params *SearchParams) string {
 	var clauses []string
 
-	if params.Locale != "" {
-		clauses = append(clauses, fmt.Sprintf("locale = %q", params.Locale))
+	if params.Lang != "" {
+		clauses = append(clauses, fmt.Sprintf("lang = %q", params.Lang))
 	}
 	if params.Deleted != nil {
 		if *params.Deleted {
@@ -79,7 +79,7 @@ func (ms *MeilisearchEngine) Index(ctx context.Context, slug string, group ...do
 		if group[i].Slug != slug {
 			return fmt.Errorf("%v: group item not from provided category slug", domain.ErrInval)
 		}
-		group[i].ID = fmt.Sprintf("%s-%s", slug, group[i].Locale)
+		group[i].ID = fmt.Sprintf("%s-%s", slug, group[i].Lang)
 	}
 
 	task, err := index.AddDocumentsWithContext(ctx, group, nil)
@@ -92,9 +92,9 @@ func (ms *MeilisearchEngine) Index(ctx context.Context, slug string, group ...do
 	return err
 }
 
-func (ms *MeilisearchEngine) Get(ctx context.Context, username string, locale string) (*domain.Editor, error) {
+func (ms *MeilisearchEngine) Get(ctx context.Context, username string, lang string) (*domain.Editor, error) {
 	var editor domain.Editor
-	editor.ID = fmt.Sprintf("%s-%s", editor.Slug, editor.Locale)
+	editor.ID = fmt.Sprintf("%s-%s", editor.Slug, editor.Lang)
 	err := ms.search.Client.Index(ms.search.Config.Uid).GetDocumentWithContext(ctx, editor.ID, nil, &editor)
 	if err != nil {
 		var meiliErr *meilisearch.Error

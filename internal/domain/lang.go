@@ -7,11 +7,11 @@ import (
 )
 
 const (
-	LocaleEntityName = "locales"
+	LangEntityName = "languages"
 
-	LocaleKey = "locale"
+	LangKey = "language"
 
-	LocaleMaxNameLength = 64
+	LangMaxNameLength = 64
 )
 
 var iso6391 = map[string]struct{}{
@@ -40,32 +40,32 @@ var iso6391 = map[string]struct{}{
 	"wo": {}, "xh": {}, "yi": {}, "yo": {}, "za": {}, "zh": {}, "zu": {},
 }
 
-type Locale struct {
+type Language struct {
 	Name string `json:"name"`
 	Code string `json:"code"`
 }
 
-func ResolveLocale(ctx context.Context, value string) (string, error) {
+func ResolveLang(ctx context.Context, value string) (string, error) {
 	normalized := strings.TrimSpace(value)
 	if normalized == "" {
-		locale, ok := ctx.Value(LocaleKey).(string)
-		if !ok || locale == "" {
-			return "", fmt.Errorf("%w: empty or invalid locale", ErrInval)
+		code, ok := ctx.Value(LangKey).(string)
+		if !ok || code == "" {
+			return "", fmt.Errorf("%w: empty or invalid language code", ErrInval)
 		}
-		return locale, nil
+		return code, nil
 	}
 	_, exists := iso6391[normalized]
 	if !exists {
-		return "", fmt.Errorf("%w: invalid locale", ErrInval)
+		return "", fmt.Errorf("%w: invalid language code", ErrInval)
 	}
 	return normalized, nil
 }
 
-func NormalizeLocaleCode(value string) (string, error) {
+func NormalizeLangCode(value string) (string, error) {
 	normalized := strings.TrimSpace(value)
 	_, exists := iso6391[normalized]
 	if !exists {
-		return "", fmt.Errorf("%w: invalid locale", ErrInval)
+		return "", fmt.Errorf("%w: invalid language code", ErrInval)
 	}
 	return normalized, nil
 }

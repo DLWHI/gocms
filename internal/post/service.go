@@ -56,13 +56,13 @@ func (s *Service) sanitize(ctx context.Context, post *Document) error {
 		return fmt.Errorf("%w: no spaces allowed in slug", domain.ErrInval)
 	}
 
-	post.Locale = strings.TrimSpace(strings.ToLower(post.Locale))
-	if post.Locale == "" {
-		locale := ctx.Value("locale")
-		if locale == nil {
-			return fmt.Errorf("%w: empty locale", domain.ErrInval)
+	post.Language = strings.TrimSpace(strings.ToLower(post.Language))
+	if post.Language == "" {
+		language := ctx.Value("language")
+		if language == nil {
+			return fmt.Errorf("%w: empty language", domain.ErrInval)
 		}
-		post.Locale = locale.(string)
+		post.Language = language.(string)
 	}
 
 	post.Keywords = strings.TrimSpace(post.Keywords)
@@ -148,13 +148,13 @@ func (s *Service) SetViews(ctx context.Context, id uint, value uint) error {
 func (s *Service) Search(ctx context.Context, filters *SearchParams) (*SearchResult, error) {
 	search.ClampParams(&filters.Params)
 
-	if filters.Locale == "" {
-		locale := ctx.Value("locale")
-		if locale == nil {
-			return nil, fmt.Errorf("%w: empty locale", domain.ErrInval)
+	if filters.Language == "" {
+		language := ctx.Value("language")
+		if language == nil {
+			return nil, fmt.Errorf("%w: empty language", domain.ErrInval)
 		}
 
-		filters.Locale = locale.(string)
+		filters.Language = language.(string)
 	}
 
 	posts, err := s.se.Search(ctx, filters)
@@ -166,12 +166,12 @@ func (s *Service) Search(ctx context.Context, filters *SearchParams) (*SearchRes
 }
 
 func (s *Service) Get(ctx context.Context, id uint) (*Document, error) {
-	locale := ctx.Value("locale")
-	if locale == nil {
-		return nil, fmt.Errorf("%w: empty locale", domain.ErrInval)
+	language := ctx.Value("language")
+	if language == nil {
+		return nil, fmt.Errorf("%w: empty language", domain.ErrInval)
 	}
 
-	post, err := s.repo.GetTranslation(ctx, id, locale.(string))
+	post, err := s.repo.GetTranslation(ctx, id, language.(string))
 	if err != nil {
 		logger.Error("Post.Service", "Failed to retrieve post", err)
 		return nil, err
@@ -188,12 +188,12 @@ func (s *Service) Get(ctx context.Context, id uint) (*Document, error) {
 }
 
 func (s *Service) Read(ctx context.Context, id uint, slug string) (*Document, error) {
-	locale := ctx.Value("locale")
-	if locale == nil {
-		return nil, fmt.Errorf("%w: empty locale", domain.ErrInval)
+	language := ctx.Value("language")
+	if language == nil {
+		return nil, fmt.Errorf("%w: empty language", domain.ErrInval)
 	}
 
-	post, err := s.repo.GetTranslation(ctx, id, locale.(string))
+	post, err := s.repo.GetTranslation(ctx, id, language.(string))
 	if err != nil {
 		logger.Error("Post.Service", "Failed to retrieve post translation", err)
 		return nil, err
@@ -238,20 +238,20 @@ func (s *Service) Delete(ctx context.Context, id uint) error {
 	return nil
 }
 
-func (s *Service) DeleteTranslation(ctx context.Context, id uint, locale string) error {
-	if locale == "" {
-		l := ctx.Value("locale")
+func (s *Service) DeleteTranslation(ctx context.Context, id uint, language string) error {
+	if language == "" {
+		l := ctx.Value("language")
 		if l == nil {
-			return fmt.Errorf("%w: empty locale", domain.ErrInval)
+			return fmt.Errorf("%w: empty language", domain.ErrInval)
 		}
-		locale = l.(string)
+		language = l.(string)
 	}
 
 	if err := s.hasPermissionsOnPost(ctx, "delete", id); err != nil {
 		return err
 	}
 
-	if err := s.repo.DeleteTranslation(ctx, id, locale); err != nil {
+	if err := s.repo.DeleteTranslation(ctx, id, language); err != nil {
 		logger.Error("Post.Service", "Failed to delete post translation", err)
 		return err
 	}
@@ -268,7 +268,7 @@ func (s *Service) SyncSearch(ctx context.Context, data []byte) error {
 	switch payload.Action {
 	case "create", "update":
 		var doc Document
-		if payload.Locale == "" {
+		if payload.Language == "" {
 			post, err := s.repo.Get(ctx, payload.ID)
 			if err != nil {
 				if errors.Is(err, domain.ErrNotFound) {
@@ -278,7 +278,7 @@ func (s *Service) SyncSearch(ctx context.Context, data []byte) error {
 			}
 			doc = post.ToDoc()
 		} else {
-			post, err := s.repo.GetTranslation(ctx, payload.ID, payload.Locale)
+			post, err := s.repo.GetTranslation(ctx, payload.ID, payload.Language)
 			if err != nil {
 				if errors.Is(err, domain.ErrNotFound) {
 					return nil
@@ -302,7 +302,7 @@ func (s *Service) SyncSearch(ctx context.Context, data []byte) error {
 		}
 		return nil
 	case "delete.translation":
-		if err := s.se.DeleteTranslation(ctx, payload.ID, payload.Locale); err != nil {
+		if err := s.se.DeleteTranslation(ctx, payload.ID, payload.Language); err != nil {
 			return err
 		}
 		return nil

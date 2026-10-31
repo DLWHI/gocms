@@ -1,4 +1,4 @@
-package locale
+package language
 
 import (
 	"context"
@@ -31,24 +31,24 @@ func NewRedisRepository(origin Repository, client *redis.Client, ttl time.Durati
 	}
 }
 
-func (r *RedisRepository) Create(ctx context.Context, locale *domain.Locale) error {
-	if err := r.Repository.Create(ctx, locale); err != nil {
+func (r *RedisRepository) Create(ctx context.Context, lang *domain.Language) error {
+	if err := r.Repository.Create(ctx, lang); err != nil {
 		return err
 	}
 	if err := r.cache.Invalidate(ctx, r.keys.List(allList)); err != nil {
-		logger.Warn("Locale.Redis", "Failed to delete locale cache entries.", err)
+		logger.Warn("Language.Redis", "Failed to delete language cache entries.", err)
 	}
 	return nil
 }
 
-func (r *RedisRepository) GetAll(ctx context.Context) ([]domain.Locale, error) {
-	var locales []domain.Locale
+func (r *RedisRepository) GetAll(ctx context.Context) ([]domain.Language, error) {
+	var langs []domain.Language
 	var token string
 	key := r.keys.List(allList)
-	err := r.cache.Get(ctx, key, &locales)
+	err := r.cache.Get(ctx, key, &langs)
 	switch {
 	case err == nil:
-		return locales, nil
+		return langs, nil
 	case errors.Is(err, redis.Nil):
 		token, err = r.cache.Lease(ctx, key)
 		if err != nil {
@@ -58,19 +58,19 @@ func (r *RedisRepository) GetAll(ctx context.Context) ([]domain.Locale, error) {
 		logger.Warn("User.Redis", "Redis error while trying to retrieve key", err, "key", key)
 	}
 
-	locales, err = r.Repository.GetAll(ctx)
+	langs, err = r.Repository.GetAll(ctx)
 	if err != nil {
 		return nil, err
 	}
 
 	if token != "" {
-		if err := r.cache.Return(ctx, key, token, &locales, r.ttl); err != nil {
+		if err := r.cache.Return(ctx, key, token, &langs, r.ttl); err != nil {
 			if !errors.Is(err, redis.Nil) {
 				logger.Warn("User.Redis", "Redis error while trying to store key", err, "key", key)
 			}
 		}
 	}
-	return locales, nil
+	return langs, nil
 }
 
 func (r *RedisRepository) Delete(ctx context.Context, code string) error {
@@ -78,7 +78,7 @@ func (r *RedisRepository) Delete(ctx context.Context, code string) error {
 		return err
 	}
 	if err := r.cache.Invalidate(ctx, r.keys.List(allList)); err != nil {
-		logger.Warn("Locale.Redis", "Failed to delete locale cache entries.", err)
+		logger.Warn("Language.Redis", "Failed to delete language cache entries.", err)
 	}
 	return nil
 }

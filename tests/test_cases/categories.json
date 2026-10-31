@@ -2,7 +2,7 @@
   "meta": {
     "format_version": 1,
     "source_document": "docs/categories.md",
-    "reset": "Reset DB, cache and search index to `fixtures` before every case. Seed fixtures.locales first, then fixtures.categories: one object per translation (the domain Category: slug, hidden, navbar, locale, name). hidden and navbar are shared per slug, so every row of a slug repeats the same values; the loader should assert that rows of one slug agree. Actor rows are seeded by the harness; inject sessions directly.",
+    "reset": "Reset DB, cache and search index to `fixtures` before every case. Seed fixtures.languages first, then fixtures.categories: one object per translation (the domain Category: slug, hidden, navbar, locale, name). hidden and navbar are shared per slug, so every row of a slug repeats the same values; the loader should assert that rows of one slug agree. Actor rows are seeded by the harness; inject sessions directly.",
     "actor": "Key into fixtures.actors, or: anonymous, garbage_session, expired_session. Actor caps are per entity: caps.categories = [create, edit, delete]; root also holds caps.locales = [create, delete] for the cross-system cases. Listing, reading and searching need only a valid session.",
     "request": "path_params are unescaped and must be percent-encoded when substituted. Accept-Language is sent only when a case sets it. headers: null removes a default header. A request with a body carries Content-Type: application/json unless overridden. body_generator {json_padded_bytes: N, base} = valid JSON of exactly N bytes, padded with an unknown field.",
     "expect.body": "empty | plain_text | json | any",
@@ -42,7 +42,7 @@
         "caps": {}
       }
     },
-    "locales": [
+    "languages": [
       {
         "name": "English",
         "code": "en"
@@ -61,7 +61,7 @@
         "slug": "news",
         "hidden": false,
         "navbar": true,
-        "locale": "en",
+        "lang": "en",
         "name": "News"
       },
       {
@@ -3066,7 +3066,7 @@
     {
       "id": "CATEGORIES-CREATE-008",
       "group": "POST /cms/categories",
-      "title": "400: empty body locale is invalid even with Accept-Language",
+      "title": "Locale inferred from Accept-Language if empty body locale",
       "source": "inferred",
       "tags": ["verify_locale_precedence"],
       "steps": [
@@ -3086,8 +3086,33 @@
             }
           },
           "expect": {
-            "status": 400,
-            "body": "plain_text"
+            "status": 201,
+            "body": "empty"
+          }
+        },
+        {
+          "actor": "root",
+          "request": {
+            "method": "GET",
+            "path": "/cms/categories/{slug}",
+            "path_params": {
+              "slug": "gadgets"
+            },
+            "headers": {
+              "Content-Type": "application/json",
+              "Accept-Language": "en"
+            }
+          },
+          "expect": {
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.locale",
+                "op": "eq",
+                "value": "en"
+              }
+            ]
           }
         }
       ]
@@ -3095,7 +3120,7 @@
     {
       "id": "CATEGORIES-CREATE-009",
       "group": "POST /cms/categories",
-      "title": "uppercase body locale is normalised",
+      "title": "400: uppercase body locale is rejected",
       "source": "inferred",
       "tags": ["verify_normalisation"],
       "steps": [
@@ -3114,37 +3139,8 @@
             }
           },
           "expect": {
-            "status": 201,
-            "body": "empty"
-          }
-        },
-        {
-          "actor": "root",
-          "request": {
-            "method": "GET",
-            "path": "/cms/categories/{slug}",
-            "path_params": {
-              "slug": "gadgets"
-            },
-            "headers": {
-              "Accept-Language": "en"
-            }
-          },
-          "expect": {
-            "status": 200,
-            "body": "json",
-            "json_assertions": [
-              {
-                "path": "$.slug",
-                "op": "eq",
-                "value": "gadgets"
-              },
-              {
-                "path": "$.locale",
-                "op": "eq",
-                "value": "en"
-              }
-            ]
+            "status": 400,
+            "body": "plain_text"
           }
         }
       ]

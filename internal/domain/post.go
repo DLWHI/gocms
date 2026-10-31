@@ -25,7 +25,7 @@ type PostTranslation struct {
 	Media       string `json:"media"`
 	MediaSource string `json:"media_source"`
 	MediaType   string `json:"media_type"`
-	Locale      string `json:"locale" gorm:"size:8;primaryKey;foreignKey:locales(code);constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	Language    string `json:"language" gorm:"size:8;primaryKey;foreignKey:languages(code);constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 	PostID      uint   `json:"post_id" gorm:"primaryKey"`
 	Post        Post   `json:"post_meta" gorm:"foreignKey:PostID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 	Version     uint   `json:"-" gorm:"default:1"`

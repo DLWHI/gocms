@@ -27,12 +27,12 @@ func (r *FlowRepository) Create(ctx context.Context, category *domain.Category) 
 	if err := r.Repository.Create(ctx, category); err != nil {
 		return err
 	}
-	r.group.Forget(r.keys.List(notHiddenListBase + "-" + category.Locale))
+	r.group.Forget(r.keys.List(notHiddenListBase + "-" + category.Lang))
 	return nil
 }
 
-func (r *FlowRepository) Update(ctx context.Context, slug string, locale string, diff *domain.CategoryDiff) error {
-	if err := r.Repository.Update(ctx, slug, locale, diff); err != nil {
+func (r *FlowRepository) Update(ctx context.Context, slug string, lang string, diff *domain.CategoryDiff) error {
+	if err := r.Repository.Update(ctx, slug, lang, diff); err != nil {
 		return err
 	}
 	r.group.ForgetPattern(r.keys.Key(slug + "-*"))
@@ -40,13 +40,13 @@ func (r *FlowRepository) Update(ctx context.Context, slug string, locale string,
 	return nil
 }
 
-func (r *FlowRepository) Get(ctx context.Context, slug string, locale string) (*domain.Category, error) {
-	key := r.keys.Key(slug + "-" + locale)
+func (r *FlowRepository) Get(ctx context.Context, slug string, lang string) (*domain.Category, error) {
+	key := r.keys.Key(slug + "-" + lang)
 	ch := r.group.DoChan(key, func() (any, error) {
 		bg, cancel := context.WithTimeout(context.WithoutCancel(ctx), r.timeout)
 		defer cancel()
 
-		retrieved, err := r.Repository.Get(bg, slug, locale)
+		retrieved, err := r.Repository.Get(bg, slug, lang)
 		if err != nil {
 			return nil, err
 		}
@@ -65,13 +65,13 @@ func (r *FlowRepository) Get(ctx context.Context, slug string, locale string) (*
 	}
 }
 
-func (r *FlowRepository) GetAll(ctx context.Context, locale string) ([]domain.Category, error) {
-	key := r.keys.List(notHiddenListBase + "-" + locale)
+func (r *FlowRepository) GetAll(ctx context.Context, lang string) ([]domain.Category, error) {
+	key := r.keys.List(notHiddenListBase + "-" + lang)
 	ch := r.group.DoChan(key, func() (any, error) {
 		bg, cancel := context.WithTimeout(context.WithoutCancel(ctx), r.timeout)
 		defer cancel()
 
-		retrieved, err := r.Repository.GetAll(bg, locale)
+		retrieved, err := r.Repository.GetAll(bg, lang)
 		if err != nil {
 			return nil, err
 		}

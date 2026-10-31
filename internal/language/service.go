@@ -1,4 +1,4 @@
-package locale
+package language
 
 import (
 	"context"
@@ -21,20 +21,20 @@ func NewService(repo Repository, auth domain.AuthService) *Service {
 	}
 }
 
-func (s *Service) Create(ctx context.Context, locale *domain.Locale) error {
-	if !s.auth.Authorize(ctx, domain.LocaleEntityName, domain.ActionCreateName) {
+func (s *Service) Create(ctx context.Context, lang *domain.Language) error {
+	if !s.auth.Authorize(ctx, domain.LangEntityName, domain.ActionCreateName) {
 		return domain.ErrCred
 	}
 
-	created := *locale
+	created := *lang
 
-	name, err := domain.NormalizeName(locale.Name)
+	name, err := domain.NormalizeName(lang.Name)
 	if err != nil {
 		return err
 	}
 	created.Name = name
 
-	code, err := domain.NormalizeLocaleCode(locale.Code)
+	code, err := domain.NormalizeLangCode(lang.Code)
 	if err != nil {
 		return err
 	}
@@ -42,7 +42,7 @@ func (s *Service) Create(ctx context.Context, locale *domain.Locale) error {
 
 	if err := s.repo.Create(ctx, &created); err != nil {
 		if !errors.Is(err, domain.ErrDuplicate) {
-			logger.Error("Locale.Service", "Failed to create locale", err)
+			logger.Error("Language.Service", "Failed to create language", err)
 		}
 		return err
 	}
@@ -50,29 +50,29 @@ func (s *Service) Create(ctx context.Context, locale *domain.Locale) error {
 	return nil
 }
 
-func (s *Service) GetAll(ctx context.Context) ([]domain.Locale, error) {
-	locales, err := s.repo.GetAll(ctx)
+func (s *Service) GetAll(ctx context.Context) ([]domain.Language, error) {
+	langs, err := s.repo.GetAll(ctx)
 	if err != nil {
-		logger.Error("Locale.Service", "Failed to list locales", err)
+		logger.Error("Language.Service", "Failed to list languages", err)
 		return nil, err
 	}
 
-	return locales, nil
+	return langs, nil
 }
 
 func (s *Service) Delete(ctx context.Context, code string) error {
-	if !s.auth.Authorize(ctx, domain.LocaleEntityName, domain.ActionDeleteName) {
+	if !s.auth.Authorize(ctx, domain.LangEntityName, domain.ActionDeleteName) {
 		return domain.ErrCred
 	}
 
-	code, err := domain.NormalizeLocaleCode(code)
+	code, err := domain.NormalizeLangCode(code)
 	if err != nil {
 		return err
 	}
 
 	if err := s.repo.Delete(ctx, code); err != nil {
 		if !errors.Is(err, domain.ErrNotFound) {
-			logger.Error("Locale.Service", "Failed to delete locale", err)
+			logger.Error("Language.Service", "Failed to delete language", err)
 		}
 		return err
 	}

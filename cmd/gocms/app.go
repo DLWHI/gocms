@@ -42,7 +42,7 @@ type Container struct {
 	Posts      *PostModule
 	Ads        *AdsModule
 	Editors    *EditorModule
-	Locales    *LocaleModule
+	Langs      *LangModule
 	Auth       *AuthModule
 
 	Server       flow.Runner
@@ -94,7 +94,7 @@ func (app *Container) Init(ctx context.Context, cfg Config) error {
 	if err != nil {
 		return err
 	}
-	locales, err := NewLocaleModule(ctx, db, auth.Service)
+	langs, err := NewLangModule(ctx, db, auth.Service)
 	if err != nil {
 		return err
 	}
@@ -105,7 +105,7 @@ func (app *Container) Init(ctx context.Context, cfg Config) error {
 		posts.Service,
 		editors.Service,
 		categories.Service,
-		locales.Service,
+		langs.Service,
 		ads.Service,
 		views,
 	)
@@ -120,7 +120,7 @@ func (app *Container) Init(ctx context.Context, cfg Config) error {
 	router.AddCategoryRoutes(categories.Handler)
 	router.AddAdsRoutes(ads.Handler)
 	router.AddEditorRoutes(editors.Handler)
-	router.AddLocaleRoutes(locales.Handler)
+	router.AddLangRoutes(langs.Handler)
 	router.AddStorageRoutes(storageHandler)
 	router.AddPublicoutes(publicHandler)
 
@@ -139,7 +139,7 @@ func (app *Container) Init(ctx context.Context, cfg Config) error {
 	app.Posts = posts
 	app.Ads = ads
 	app.Editors = editors
-	app.Locales = locales
+	app.Langs = langs
 	app.Auth = auth
 
 	app.Server = server

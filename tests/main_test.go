@@ -123,19 +123,19 @@ func TestUsers(t *testing.T) {
 
 }
 
-func TestLocales(t *testing.T) {
+func TestLanguages(t *testing.T) {
 	ran := 0
 	succeed := 0
 	defer func() {
-		logger.Info("Tests", fmt.Sprintf("Finished running locale tests. Ran = %d tests. Passed = %d. Failed = %d", ran, succeed, ran-succeed))
+		logger.Info("Tests", fmt.Sprintf("Finished running language tests. Ran = %d tests. Passed = %d. Failed = %d", ran, succeed, ran-succeed))
 	}()
 
 	ctx, cancel := signal.NotifyContext(t.Context(), os.Interrupt, syscall.SIGTERM)
 	defer cancel()
-	logger.Info("Test.Locales", "Loading test data")
-	data, err := test.LoadDataFromFile("./test_cases/locales.json", "1")
+	logger.Info("Test.Languages", "Loading test data")
+	data, err := test.LoadDataFromFile("./test_cases/languages.json", "1")
 	if err != nil {
-		logger.Error("Test.Locales", "Failed to load test data", err)
+		logger.Error("Test.Languages", "Failed to load test data", err)
 		t.FailNow()
 	}
 	Env.TestData = data
@@ -143,34 +143,34 @@ func TestLocales(t *testing.T) {
 	for _, testcase := range data.Cases {
 		if matched, err := regexp.MatchString(Filter, testcase.ID); err != nil || !matched {
 			if err != nil {
-				logger.Warn("Test.Locales", "Failed to apply filter", err)
+				logger.Warn("Test.LocalLanguageses", "Failed to apply filter", err)
 			}
 			continue
 		}
 
 		if err = data.Fixtures.ApplyFixtures(ctx, Env); err != nil {
-			logger.Error("Test.Locales", "Failed to apply fixtures", err)
+			logger.Error("Test.Languages", "Failed to apply fixtures", err)
 			t.FailNow()
 		}
 
-		logger.Info("Test.Locales", fmt.Sprintf("Running test: %s", testcase.ID))
+		logger.Info("Test.Languages", fmt.Sprintf("Running test: %s", testcase.ID))
 		var result *test.Result
 		ran++
 		for _, step := range testcase.Steps {
 			result = step.Perform(ctx, data, Env)
 			if result != nil {
 				failMessage := fmt.Sprintf("Test %s failed", testcase.ID)
-				logger.Error("Test.Locales", failMessage, result.Reason, "case", testcase, "step", step, "response_code", result.ResponseStatus, "message", result.Message)
+				logger.Error("Test.Languages", failMessage, result.Reason, "case", testcase, "step", step, "response_code", result.ResponseStatus, "message", result.Message)
 				t.Fail()
 				break
 			}
 		}
 		if result == nil {
 			succeed++
-			logger.Info("Test.Locales", fmt.Sprintf("Test %s passed", testcase.ID))
+			logger.Info("Test.Languages", fmt.Sprintf("Test %s passed", testcase.ID))
 		}
 		if err := Env.Clear(ctx); err != nil {
-			logger.Error("Test.Locales", "Failed to clear environment", err)
+			logger.Error("Test.Languages", "Failed to clear environment", err)
 			t.FailNow()
 		}
 	}

@@ -26,7 +26,7 @@ func NewMeilisearchEngine(client meilisearch.ServiceManager, index string) *Meil
 			},
 			Settings: meilisearch.Settings{
 				SearchableAttributes: []string{"title", "description", "keywords"},
-				FilterableAttributes: []string{"post_id", "locale", "author", "created_at", "published_at", "categories"},
+				FilterableAttributes: []string{"post_id", "language", "author", "created_at", "published_at", "categories"},
 				SortableAttributes:   []string{"post_id", "title", "author", "created_at", "published_at", "views"},
 			},
 		},
@@ -64,8 +64,8 @@ func buildFilter(params *SearchParams) string {
 		clauses = append(clauses, authorClauses)
 	}
 
-	if params.Locale != "" {
-		clauses = append(clauses, fmt.Sprintf("locale = %q", params.Locale))
+	if params.Language != "" {
+		clauses = append(clauses, fmt.Sprintf("language = %q", params.Language))
 	}
 
 	if params.CreatedAfter != nil {
@@ -109,9 +109,9 @@ func buildSort(params *SearchParams) []string {
 
 func (r *MeilisearchEngine) Index(ctx context.Context, post *Document) error {
 	index := r.search.Client.Index(r.search.Config.Uid)
-	post.ID = fmt.Sprintf("%d-%s", post.PostID, post.Locale)
+	post.ID = fmt.Sprintf("%d-%s", post.PostID, post.Language)
 	req := &meilisearch.DocumentsQuery{
-		Filter: fmt.Sprintf("post_id = %d AND locale != %q", post.PostID, post.Locale),
+		Filter: fmt.Sprintf("post_id = %d AND language != %q", post.PostID, post.Language),
 	}
 
 	var res meilisearch.DocumentsResult
@@ -138,7 +138,7 @@ func (r *MeilisearchEngine) Index(ctx context.Context, post *Document) error {
 		posts[i].Views = post.Views
 		posts[i].Slug = post.Slug
 	}
-	if post.Locale != "" {
+	if post.Language != "" {
 		posts = append(posts, *post)
 	}
 
@@ -152,9 +152,9 @@ func (r *MeilisearchEngine) Index(ctx context.Context, post *Document) error {
 	return err
 }
 
-func (r *MeilisearchEngine) Get(ctx context.Context, id uint, locale string) (*Document, error) {
+func (r *MeilisearchEngine) Get(ctx context.Context, id uint, language string) (*Document, error) {
 	var post Document
-	docID := fmt.Sprintf("%d-%s", id, locale)
+	docID := fmt.Sprintf("%d-%s", id, language)
 	err := r.search.Client.Index(r.search.Config.Uid).GetDocumentWithContext(ctx, docID, nil, &post)
 	if err != nil {
 		if errors.Is(err, meilisearch.ErrInvalidRequestMethod) {
@@ -179,8 +179,8 @@ func (r *MeilisearchEngine) Delete(ctx context.Context, id uint) error {
 	return nil
 }
 
-func (r *MeilisearchEngine) DeleteTranslation(ctx context.Context, id uint, locale string) error {
-	docID := fmt.Sprintf("%d-%s", id, locale)
+func (r *MeilisearchEngine) DeleteTranslation(ctx context.Context, id uint, language string) error {
+	docID := fmt.Sprintf("%d-%s", id, language)
 	index := r.search.Client.Index(r.search.Config.Uid)
 	task, err := index.DeleteDocumentWithContext(ctx, docID, nil)
 	if err != nil {

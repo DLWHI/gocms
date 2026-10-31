@@ -5,7 +5,7 @@ import (
 	"gocms/internal/auth"
 	"gocms/internal/category"
 	"gocms/internal/editor"
-	"gocms/internal/locale"
+	"gocms/internal/language"
 	"gocms/internal/post"
 	"gocms/internal/public"
 	"gocms/internal/server"
@@ -75,7 +75,7 @@ func (router *Router) AddEditorRoutes(handler *editor.Handler) {
 		streamLimiter.Wrap,
 		server.RequireJSON,
 		router.auth,
-		locale.Middleware,
+		language.Middleware,
 	)
 
 	router.mux.Handle("POST /cms/editors/search", m(handler.Search))
@@ -86,7 +86,7 @@ func (router *Router) AddEditorRoutes(handler *editor.Handler) {
 	router.mux.Handle("DELETE /cms/editors/{username}", m(handler.Delete))
 }
 
-func (router *Router) AddLocaleRoutes(handler *locale.Handler) {
+func (router *Router) AddLangRoutes(handler *language.Handler) {
 	limiter := server.NewRequestLimiter(RequestLimit)
 	m := server.ChainMiddleware(
 		limiter.Wrap,
@@ -94,9 +94,9 @@ func (router *Router) AddLocaleRoutes(handler *locale.Handler) {
 		router.auth,
 	)
 
-	router.mux.Handle("GET /cms/locales", m(handler.Get))
-	router.mux.Handle("POST /cms/locales", m(handler.Create))
-	router.mux.Handle("DELETE /cms/locales/{code}", m(handler.Delete))
+	router.mux.Handle("GET /cms/languages", m(handler.Get))
+	router.mux.Handle("POST /cms/languages", m(handler.Create))
+	router.mux.Handle("DELETE /cms/languages/{code}", m(handler.Delete))
 }
 
 func (router *Router) AddPostRoutes(handler *post.Handler) {
@@ -105,7 +105,7 @@ func (router *Router) AddPostRoutes(handler *post.Handler) {
 		streamLimiter.Wrap,
 		server.RequireJSON,
 		router.auth,
-		locale.Middleware,
+		language.Middleware,
 	)
 
 	router.mux.Handle("POST /cms/posts", m(handler.Create))
@@ -114,7 +114,7 @@ func (router *Router) AddPostRoutes(handler *post.Handler) {
 	router.mux.Handle("PATCH /cms/posts/{id}", m(handler.Update))
 	router.mux.Handle("PATCH /cms/posts/{id}/views", m(handler.UpdateViews))
 	router.mux.Handle("DELETE /cms/posts/{id}", m(handler.Delete))
-	router.mux.Handle("DELETE /cms/posts/{id}/{locale}", m(handler.DeleteLocale))
+	router.mux.Handle("DELETE /cms/posts/{id}/{lang}", m(handler.Deletelanguage))
 }
 
 func (router *Router) AddCategoryRoutes(handler *category.Handler) {
@@ -123,7 +123,7 @@ func (router *Router) AddCategoryRoutes(handler *category.Handler) {
 		limiter.Wrap,
 		server.RequireJSON,
 		router.auth,
-		locale.Middleware,
+		language.Middleware,
 	)
 
 	router.mux.Handle("POST /cms/categories/search", m(handler.Search))
@@ -175,10 +175,10 @@ func (router *Router) AddPublicoutes(handler *public.Handler) {
 	m := server.ChainMiddleware(
 		limiter.Wrap,
 		server.RequireJSON,
-		locale.Middleware,
+		language.Middleware,
 	)
 
-	router.mux.Handle("GET /public/locales", limiter.Wrap(handler.LocalesAll))
+	router.mux.Handle("GET /public/languages", limiter.Wrap(handler.languagesAll))
 	router.mux.Handle("POST /public/posts", m(handler.PostSearch))
 	router.mux.Handle("GET /public/posts/{id}", m(handler.PostGet))
 	router.mux.Handle("GET /public/categories", m(handler.CategoriesAll))

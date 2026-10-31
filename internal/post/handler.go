@@ -14,19 +14,19 @@ import (
 // PATCH /posts/{id} - Update post translation
 // PATCH /posts/{id}/views - Override posts views
 // DELETE /posts/{id} - Delete post with all translations
-// DELETE /posts/{id}/{locale} - Delete post translation
+// DELETE /posts/{id}/{lang} - Delete post translation
 //
 // ------------------------------------------------------------------
 
 type Handler struct {
-	Create       http.Handler
-	Search       http.Handler
-	Get          http.Handler
-	Update       http.Handler
-	UpdateViews  http.Handler
-	Delete       http.Handler
-	DeleteLocale http.Handler
-	postService  *Service
+	Create         http.Handler
+	Search         http.Handler
+	Get            http.Handler
+	Update         http.Handler
+	UpdateViews    http.Handler
+	Delete         http.Handler
+	DeleteLanguage http.Handler
+	postService    *Service
 }
 
 func NewHandler(s *Service) *Handler {
@@ -38,7 +38,7 @@ func NewHandler(s *Service) *Handler {
 	hndl.Update = http.HandlerFunc(hndl.update)
 	hndl.UpdateViews = http.HandlerFunc(hndl.updateViews)
 	hndl.Delete = http.HandlerFunc(hndl.delete)
-	hndl.DeleteLocale = http.HandlerFunc(hndl.deleteLocale)
+	hndl.DeleteLanguage = http.HandlerFunc(hndl.deleteLanguage)
 	return &hndl
 }
 
@@ -72,7 +72,7 @@ func (h *Handler) search(w http.ResponseWriter, r *http.Request) {
 	filters.Select = []string{
 		"post_id",
 		"title",
-		"locale",
+		"language",
 		"published_at",
 		"created_at",
 		"views",
@@ -170,16 +170,16 @@ func (h *Handler) delete(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-// DELETE /posts/{id}/{locale} - Delete post translation
-func (h *Handler) deleteLocale(w http.ResponseWriter, r *http.Request) {
-	locale := r.PathValue("locale")
+// DELETE /posts/{id}/{language} - Delete post translation
+func (h *Handler) deleteLanguage(w http.ResponseWriter, r *http.Request) {
+	language := r.PathValue("language")
 	id, err := strconv.ParseUint(r.PathValue("id"), 10, 64)
 	if err != nil {
 		http.Error(w, "Invalid ID", http.StatusBadRequest)
 		return
 	}
 
-	if err := h.postService.DeleteTranslation(r.Context(), uint(id), locale); err != nil {
+	if err := h.postService.DeleteTranslation(r.Context(), uint(id), language); err != nil {
 		server.WriteServerError(w, "Post translation", err)
 		return
 	}

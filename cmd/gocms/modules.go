@@ -8,7 +8,7 @@ import (
 	"gocms/internal/category"
 	"gocms/internal/domain"
 	"gocms/internal/editor"
-	"gocms/internal/locale"
+	"gocms/internal/language"
 	"gocms/internal/password"
 	"gocms/internal/post"
 	"gocms/internal/user"
@@ -81,12 +81,12 @@ type AdsModule struct {
 	MeilisearchEngine *ads.MeilisearchEngine
 }
 
-type LocaleModule struct {
-	Service   *locale.Service
-	Handler   *locale.Handler
-	CacheRepo locale.Repository
-	DBRepo    locale.Repository
-	DedupRepo locale.Repository
+type LangModule struct {
+	Service   *language.Service
+	Handler   *language.Handler
+	CacheRepo language.Repository
+	DBRepo    language.Repository
+	DedupRepo language.Repository
 }
 
 func NewAuthModule(db *gorm.DB, redis *redis.Client, passwords password.PasswordService) (*AuthModule, error) {
@@ -245,24 +245,24 @@ func NewAdsModule(db *gorm.DB, search meilisearch.ServiceManager, redis *redis.C
 	}
 }
 
-func NewLocaleModule(ctx context.Context, db *gorm.DB, creds domain.AuthService) (*LocaleModule, error) {
+func NewLangModule(ctx context.Context, db *gorm.DB, creds domain.AuthService) (*LangModule, error) {
 	// Enable if redis or flow repo required
 	// keys, err := cache.NewKeyspace(cache.KeyConfig{
 	// 	Prefix: []string{"cms"},
-	// }, "locales")
+	// }, "langs")
 	// if err != nil {
 	// 	return nil, err
 	// }
 
-	gormRepo := locale.NewGORMRepository(db)
+	gormRepo := language.NewGORMRepository(db)
 	// Enable if request deduplication preffered
-	// flowRepo := locale.NewFlowRepository(gormRepo, 20*time.Second, keys)
+	// flowRepo := language.NewFlowRepository(gormRepo, 20*time.Second, keys)
 	// Enable if redis preffered over local caching
-	// redisRepo := locale.NewRedisRepository(flowRepo, redis, 24*time.Hour, keys)
-	localRepo := locale.NewLocalCacheRepository(ctx, gormRepo)
-	service := locale.NewService(localRepo, creds)
-	handler := locale.NewHandler(service)
-	return &LocaleModule{
+	// redisRepo := language.NewRedisRepository(flowRepo, redis, 24*time.Hour, keys)
+	localRepo := language.NewLocalCacheRepository(ctx, gormRepo)
+	service := language.NewService(localRepo, creds)
+	handler := language.NewHandler(service)
+	return &LangModule{
 		Service:   service,
 		Handler:   handler,
 		CacheRepo: localRepo,

@@ -4,7 +4,7 @@ import (
 	"gocms/internal/auth"
 	"gocms/internal/category"
 	"gocms/internal/editor"
-	"gocms/internal/language"
+	"gocms/internal/lang"
 	"gocms/internal/server"
 	"gocms/internal/storage"
 	"gocms/internal/user"
@@ -72,7 +72,7 @@ func (router *Router) AddEditorRoutes(handler *editor.Handler) {
 		streamLimiter.Wrap,
 		router.auth,
 		server.RequireJSON,
-		language.Middleware,
+		lang.Middleware,
 	)
 
 	router.mux.Handle("POST /cms/editors/search", m(handler.Search))
@@ -83,7 +83,7 @@ func (router *Router) AddEditorRoutes(handler *editor.Handler) {
 	router.mux.Handle("DELETE /cms/editors/{username}", m(handler.Delete))
 }
 
-func (router *Router) AddLangRoutes(handler *language.Handler) {
+func (router *Router) AddLangRoutes(handler *lang.Handler) {
 	limiter := server.NewRequestLimiter(RequestLimit)
 	m := server.ChainMiddleware(
 		limiter.Wrap,
@@ -120,7 +120,7 @@ func (router *Router) AddCategoryRoutes(handler *category.Handler) {
 		limiter.Wrap,
 		router.auth,
 		server.RequireJSON,
-		language.Middleware,
+		lang.Middleware,
 	)
 
 	router.mux.Handle("POST /cms/categories/search", m(handler.Search))

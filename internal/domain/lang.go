@@ -54,11 +54,7 @@ func ResolveLang(ctx context.Context, value string) (string, error) {
 		}
 		return code, nil
 	}
-	_, exists := iso6391[normalized]
-	if !exists {
-		return "", fmt.Errorf("%w: invalid language code", ErrInval)
-	}
-	return normalized, nil
+	return NormalizeLangCode(normalized)
 }
 
 func NormalizeLangCode(value string) (string, error) {

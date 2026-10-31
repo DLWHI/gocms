@@ -7,7 +7,7 @@ import (
 	"gocms/internal/category"
 	"gocms/internal/domain"
 	"gocms/internal/editor"
-	"gocms/internal/language"
+	"gocms/internal/lang"
 	"gocms/internal/password"
 	"gocms/internal/user"
 	"time"
@@ -80,11 +80,11 @@ type AdsModule struct {
 }
 
 type LangModule struct {
-	Service   *language.Service
-	Handler   *language.Handler
-	CacheRepo language.Repository
-	DBRepo    language.Repository
-	DedupRepo language.Repository
+	Service   *lang.Service
+	Handler   *lang.Handler
+	CacheRepo lang.Repository
+	DBRepo    lang.Repository
+	DedupRepo lang.Repository
 }
 
 func NewAuthModule(db *gorm.DB, redis *redis.Client, passwords password.PasswordService) (*AuthModule, error) {
@@ -244,10 +244,10 @@ func NewAdsModule(db *gorm.DB, search meilisearch.ServiceManager, redis *redis.C
 }
 
 func NewLangModule(ctx context.Context, db *gorm.DB, _ *redis.Client, creds domain.AuthService) (*LangModule, error) {
-	gormRepo := language.NewGORMRepository(db)
-	localRepo := language.NewLocalCacheRepository(ctx, gormRepo)
-	service := language.NewService(localRepo, creds)
-	handler := language.NewHandler(service)
+	gormRepo := lang.NewGORMRepository(db)
+	localRepo := lang.NewLocalCacheRepository(ctx, gormRepo)
+	service := lang.NewService(localRepo, creds)
+	handler := lang.NewHandler(service)
 	return &LangModule{
 		Service:   service,
 		Handler:   handler,

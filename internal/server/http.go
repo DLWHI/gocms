@@ -50,6 +50,8 @@ func WriteServerError(w http.ResponseWriter, entity string, err error) {
 		http.Error(w, fmt.Sprintf("%v", err), http.StatusBadRequest)
 	} else if errors.Is(err, domain.ErrDuplicate) {
 		http.Error(w, fmt.Sprintf("%v", err), http.StatusConflict)
+	} else if errors.Is(err, domain.ErrRetry) {
+		http.Error(w, "Update data outdated, retry request", http.StatusConflict)
 	} else if errors.Is(err, domain.ErrNotFound) {
 		http.Error(w, fmt.Sprintf("%s not found", entity), http.StatusNotFound)
 	} else {

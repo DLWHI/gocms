@@ -83,7 +83,7 @@ func (app *Container) Init(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	locales, err := NewLocaleModule(ctx, db, auth.Service)
+	locales, err := NewLocaleModule(ctx, db, nil, auth.Service)
 	if err != nil {
 		return err
 	}

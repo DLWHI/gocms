@@ -3,6 +3,7 @@ package domain
 import (
 	"fmt"
 	"strings"
+	"unicode"
 )
 
 const (
@@ -14,6 +15,10 @@ func IsInvalidSlugRune(r rune) bool {
 	isAlpha := 'a' <= r && r <= 'z' || 'A' <= r && r <= 'Z'
 	isDigit := '0' <= r && r <= '9'
 	return !(isAlpha || isDigit || r == '-' || r == '_')
+}
+
+func IsNonGraphic(r rune) bool {
+	return !unicode.IsGraphic(r)
 }
 
 func NormalizeSlug(value string) (string, error) {
@@ -35,6 +40,9 @@ func NormalizeName(value string) (string, error) {
 	normalized := strings.TrimSpace(value)
 	if len(normalized) > MaxNameLength {
 		return "", fmt.Errorf("%w: name is longer than %d chars", ErrInval, MaxNameLength)
+	}
+	if strings.IndexFunc(normalized, IsNonGraphic) >= 0 {
+		return "", fmt.Errorf("%w: name must not contain non printable characters", ErrInval)
 	}
 
 	return normalized, nil

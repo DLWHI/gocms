@@ -16,7 +16,7 @@ import (
 const (
 	ConfigAddress = ""
 	ConfigPort    = "8080"
-	Filter        = "^LOCALES-LIST-009"
+	Filter        = ""
 )
 
 var (

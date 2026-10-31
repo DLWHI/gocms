@@ -124,7 +124,7 @@ func NewUserModule(
 	}
 	gormRepo := user.NewGORMRepository(db)
 	flowRepo := user.NewFlowRepository(gormRepo, 20*time.Second, keys)
-	redisRepo := user.NewRedisRepository(flowRepo, redis, 20*time.Second, keys)
+	redisRepo := user.NewRedisRepository(flowRepo, redis, 5*time.Minute, keys)
 	searchEngine := user.NewMeilisearchEngine(search, UsersSearchIndexName)
 	consumer := user.NewEventConsumer(gormRepo, searchEngine)
 	service := user.NewService(redisRepo, searchEngine, creds, passwords)
@@ -176,7 +176,7 @@ func NewCategoryModule(
 
 	gormRepo := category.NewGORMRepository(db)
 	flowRepo := category.NewFlowRepository(gormRepo, 20*time.Second, keys)
-	redisRepo := category.NewRedisRepository(flowRepo, redis, 20*time.Second, keys)
+	redisRepo := category.NewRedisRepository(flowRepo, redis, 5*time.Minute, keys)
 	searchEngine := category.NewMeilisearchEngine(search, CategoriesSearchIndexName)
 	service := category.NewService(redisRepo, searchEngine, creds)
 	handler := category.NewHandler(service)
@@ -204,7 +204,7 @@ func NewEditorModule(
 
 	gormRepo := editor.NewGORMRepository(db)
 	flowRepo := editor.NewFlowRepository(gormRepo, 20*time.Second, keys)
-	redisRepo := editor.NewRedisRepository(flowRepo, redis, 20*time.Second, keys)
+	redisRepo := editor.NewRedisRepository(flowRepo, redis, 5*time.Minute, keys)
 	searchEngine := editor.NewMeilisearchEngine(search, EditorsSearchIndexName)
 	service := editor.NewService(redisRepo, searchEngine, creds)
 	handler := editor.NewHandler(service)
@@ -240,20 +240,10 @@ func NewAdsModule(db *gorm.DB, search meilisearch.ServiceManager, redis *redis.C
 	}
 }
 
-func NewLocaleModule(ctx context.Context, db *gorm.DB, creds domain.AuthService) (*LocaleModule, error) {
-	// Enable if redis or flow repo required
-	// keys, err := cache.NewKeyspace(cache.KeyConfig{
-	// 	Prefix: []string{"cms"},
-	// }, "locales")
-	// if err != nil {
-	// 	return nil, err
-	// }
-
+func NewLocaleModule(ctx context.Context, db *gorm.DB, _ *redis.Client, creds domain.AuthService) (*LocaleModule, error) {
 	gormRepo := locale.NewGORMRepository(db)
-	// Enable if request deduplication preffered
 	// flowRepo := locale.NewFlowRepository(gormRepo, 20*time.Second, keys)
-	// Enable if redis preffered over local caching
-	// redisRepo := locale.NewRedisRepository(flowRepo, redis, 24*time.Hour, keys)
+	// redisRepo := locale.NewRedisRepository(flowRepo, redis, 5*time.Minute, keys)
 	localRepo := locale.NewLocalCacheRepository(ctx, gormRepo)
 	service := locale.NewService(localRepo, creds)
 	handler := locale.NewHandler(service)

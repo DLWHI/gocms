@@ -57,7 +57,7 @@ func (r *GORMRepository) Create(ctx context.Context, user *domain.User, pwdhash 
 }
 
 func (r *GORMRepository) Update(ctx context.Context, username string, diff *domain.UserDiff) error {
-	return r.mapErr(r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+	return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		update := r.patch(diff)
 		if len(update) > 0 {
 			result := tx.Model(&Record{}).
@@ -74,7 +74,7 @@ func (r *GORMRepository) Update(ctx context.Context, username string, diff *doma
 			}
 		}
 		return nil
-	}))
+	})
 }
 
 func (r *GORMRepository) UpdateLogin(ctx context.Context, username string, timestamp time.Time) error {
@@ -85,6 +85,9 @@ func (r *GORMRepository) UpdateLogin(ctx context.Context, username string, times
 			Where("username = ?", username).
 			Take(&user).Error
 		if err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				return domain.ErrNotFound
+			}
 			return err
 		}
 
@@ -109,17 +112,14 @@ func (r *GORMRepository) UpdateLogin(ctx context.Context, username string, times
 		}
 		return nil
 	})
-	if err != nil {
-		return r.mapErr(err)
-	}
-	return nil
+	return err
 }
 
 func (r *GORMRepository) UpdatePassword(ctx context.Context, username string, hash []byte) error {
 	if len(hash) == 0 {
 		return fmt.Errorf("%w: empty password", domain.ErrInval)
 	}
-	return r.mapErr(r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+	return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		result := tx.Model(&Record{}).
 			Where("username = ?", username).
 			Updates(map[string]interface{}{
@@ -136,7 +136,7 @@ func (r *GORMRepository) UpdatePassword(ctx context.Context, username string, ha
 			return err
 		}
 		return nil
-	}))
+	})
 }
 
 func (r *GORMRepository) Get(ctx context.Context, username string) (*domain.User, error) {
@@ -222,19 +222,6 @@ func (*GORMRepository) writeMessage(tx *gorm.DB, action int, username string) er
 		return err
 	}
 	return nil
-}
-
-func (*GORMRepository) mapErr(err error) error {
-	switch {
-	case err == nil:
-		return nil
-	case errors.Is(err, domain.ErrRetry):
-		return domain.ErrLock
-	case errors.Is(err, gorm.ErrRecordNotFound):
-		return domain.ErrNotFound
-	default:
-		return err
-	}
 }
 
 func (*GORMRepository) patch(diff *domain.UserDiff) map[string]interface{} {

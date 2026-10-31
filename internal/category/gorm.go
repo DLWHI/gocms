@@ -63,7 +63,7 @@ func (r *GORMRepository) Create(ctx context.Context, category *domain.Category) 
 }
 
 func (r *GORMRepository) Update(ctx context.Context, slug string, locale string, diff *domain.CategoryDiff) error {
-	return r.mapErr(flow.DoWithRetry(ctx, r.retries, r.backoff, func() error {
+	return flow.DoWithRetry(ctx, r.retries, r.backoff, func() error {
 		return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 			recordUpdate, translationUpdate := r.patch(diff)
 			if len(recordUpdate)+len(translationUpdate) == 0 {
@@ -126,7 +126,7 @@ func (r *GORMRepository) Update(ctx context.Context, slug string, locale string,
 			}
 			return nil
 		})
-	}))
+	})
 }
 
 func (r *GORMRepository) Get(ctx context.Context, slug string, locale string) (*domain.Category, error) {
@@ -211,19 +211,6 @@ func (r *GORMRepository) Delete(ctx context.Context, slug string) error {
 		return err
 	}
 	return nil
-}
-
-func (*GORMRepository) mapErr(err error) error {
-	switch {
-	case err == nil:
-		return nil
-	case errors.Is(err, domain.ErrRetry):
-		return domain.ErrLock
-	case errors.Is(err, gorm.ErrRecordNotFound):
-		return domain.ErrNotFound
-	default:
-		return err
-	}
 }
 
 func (*GORMRepository) writeMessage(tx *gorm.DB, action int, slug string) error {

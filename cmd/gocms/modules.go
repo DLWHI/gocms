@@ -8,7 +8,7 @@ import (
 	"gocms/internal/category"
 	"gocms/internal/domain"
 	"gocms/internal/editor"
-	"gocms/internal/language"
+	"gocms/internal/lang"
 	"gocms/internal/password"
 	"gocms/internal/post"
 	"gocms/internal/user"
@@ -82,11 +82,11 @@ type AdsModule struct {
 }
 
 type LangModule struct {
-	Service   *language.Service
-	Handler   *language.Handler
-	CacheRepo language.Repository
-	DBRepo    language.Repository
-	DedupRepo language.Repository
+	Service   *lang.Service
+	Handler   *lang.Handler
+	CacheRepo lang.Repository
+	DBRepo    lang.Repository
+	DedupRepo lang.Repository
 }
 
 func NewAuthModule(db *gorm.DB, redis *redis.Client, passwords password.PasswordService) (*AuthModule, error) {
@@ -254,14 +254,14 @@ func NewLangModule(ctx context.Context, db *gorm.DB, creds domain.AuthService) (
 	// 	return nil, err
 	// }
 
-	gormRepo := language.NewGORMRepository(db)
+	gormRepo := lang.NewGORMRepository(db)
 	// Enable if request deduplication preffered
 	// flowRepo := language.NewFlowRepository(gormRepo, 20*time.Second, keys)
 	// Enable if redis preffered over local caching
 	// redisRepo := language.NewRedisRepository(flowRepo, redis, 24*time.Hour, keys)
-	localRepo := language.NewLocalCacheRepository(ctx, gormRepo)
-	service := language.NewService(localRepo, creds)
-	handler := language.NewHandler(service)
+	localRepo := lang.NewLocalCacheRepository(ctx, gormRepo)
+	service := lang.NewService(localRepo, creds)
+	handler := lang.NewHandler(service)
 	return &LangModule{
 		Service:   service,
 		Handler:   handler,

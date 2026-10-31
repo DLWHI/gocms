@@ -1,4 +1,4 @@
-package language
+package lang
 
 import (
 	"context"
@@ -6,8 +6,6 @@ import (
 	"gocms/internal/domain"
 	"gocms/internal/logger"
 )
-
-const MaxCodeLength = 2
 
 type Service struct {
 	repo Repository

@@ -49,7 +49,7 @@ func ResolveLang(ctx context.Context, value string) (string, error) {
 	normalized := strings.TrimSpace(value)
 	if normalized == "" {
 		code, ok := ctx.Value(LangKey).(string)
-		if !ok || code == "" {
+		if !ok {
 			return "", fmt.Errorf("%w: empty or invalid language code", ErrInval)
 		}
 		return code, nil

@@ -6,7 +6,7 @@ import (
 	"gocms/internal/analytics"
 	"gocms/internal/category"
 	"gocms/internal/editor"
-	"gocms/internal/language"
+	"gocms/internal/lang"
 	"gocms/internal/post"
 	"gocms/internal/server"
 	"net/http"
@@ -42,12 +42,12 @@ type Handler struct {
 	posts         *post.Service
 	editors       *editor.Service
 	categories    *category.Service
-	languages     *language.Service
+	languages     *lang.Service
 	ads           *ads.Service
 	views         analytics.PostViewCounterService
 }
 
-func NewHandler(ps *post.Service, es *editor.Service, cs *category.Service, ls *language.Service, as *ads.Service, vc analytics.PostViewCounterService) *Handler {
+func NewHandler(ps *post.Service, es *editor.Service, cs *category.Service, ls *lang.Service, as *ads.Service, vc analytics.PostViewCounterService) *Handler {
 	var hndl Handler
 	hndl.posts = ps
 	hndl.editors = es

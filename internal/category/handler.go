@@ -8,10 +8,10 @@ import (
 )
 
 // ------------------------------------------------------------------
-// POST /categories/search - Get/search categories
 // GET /categories - Get all categories
-// POST /categories - Create category
 // GET /categories/{slug} - Get category
+// POST /categories/search - Get/search categories
+// POST /categories - Create category
 // PATCH /categories/{slug} - Update category
 // DELETE /categories/{slug} - Delete category
 // ------------------------------------------------------------------

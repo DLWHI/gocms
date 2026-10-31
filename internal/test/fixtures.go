@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"gocms/internal/category"
 	"gocms/internal/domain"
-	"gocms/internal/lang"
 	"gocms/internal/user"
 	"time"
 
@@ -75,7 +74,7 @@ func (f *Fixtures) ApplyFixtures(ctx context.Context, e *Environment) error {
 	}
 
 	for _, l := range f.Languages {
-		if err := db.WithContext(ctx).Save(lang.ToRecord(&l)).Error; err != nil {
+		if err := e.LangRepo.Create(ctx, &l); err != nil {
 			return err
 		}
 	}

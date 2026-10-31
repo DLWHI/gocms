@@ -256,9 +256,11 @@ func NewLangModule(ctx context.Context, db *gorm.DB, creds domain.AuthService) (
 
 	gormRepo := lang.NewGORMRepository(db)
 	// Enable if request deduplication preffered
-	// flowRepo := language.NewFlowRepository(gormRepo, 20*time.Second, keys)
+	// flowRepo := lang.NewFlowRepository(gormRepo, 20*time.Second, keys)
 	// Enable if redis preffered over local caching
-	// redisRepo := language.NewRedisRepository(flowRepo, redis, 24*time.Hour, keys)
+	// redisRepo := lang.NewRedisRepository(flowRepo, redis, 0, keys)
+	// Pre-loads values into memory and then makes same changes as db
+	// Note, that locales created on running instance directly in db will be lost in cache until restart
 	localRepo := lang.NewLocalCacheRepository(ctx, gormRepo)
 	service := lang.NewService(localRepo, creds)
 	handler := lang.NewHandler(service)

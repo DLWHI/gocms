@@ -30,6 +30,7 @@ type Environment struct {
 	DB       *gorm.DB
 	Search   *Meilisearch
 	Redis    *redis.Client
+	LangRepo lang.Repository
 	Password password.PasswordService
 	Outbox   outbox.MessageRepository
 	Router   http.Handler
@@ -172,11 +173,17 @@ func LoadDataFromFile(path string, format string) (*Data, error) {
 }
 
 func (e *Environment) Clear(ctx context.Context) error {
-
-	if err := e.DB.Unscoped().Where("1 = 1").Delete(&user.Record{}).Error; err != nil {
+	langs, err := e.LangRepo.GetAll(ctx)
+	if err != nil {
 		return err
 	}
-	if err := e.DB.Unscoped().Where("1 = 1").Delete(&lang.Record{}).Error; err != nil {
+	for _, l := range langs {
+		if err := e.LangRepo.Delete(ctx, l.Code); err != nil {
+			return err
+		}
+	}
+
+	if err := e.DB.Unscoped().Where("1 = 1").Delete(&user.Record{}).Error; err != nil {
 		return err
 	}
 	if err := e.DB.Unscoped().Where("1 = 1").Delete(&category.Record{}).Error; err != nil {

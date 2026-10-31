@@ -73,7 +73,7 @@ func TestUsers(t *testing.T) {
 	ran := 0
 	succeed := 0
 	defer func() {
-		logger.Info("Tests", fmt.Sprintf("Finished running user tests. Ran = %d tests. Passed = %d. Failed = %d", ran, succeed, ran-succeed))
+		logger.Info("Test.Users", fmt.Sprintf("Finished running user tests. Ran = %d tests. Passed = %d. Failed = %d", ran, succeed, ran-succeed))
 	}()
 
 	ctx, cancel := signal.NotifyContext(t.Context(), os.Interrupt, syscall.SIGTERM)
@@ -127,7 +127,7 @@ func TestLanguages(t *testing.T) {
 	ran := 0
 	succeed := 0
 	defer func() {
-		logger.Info("Tests", fmt.Sprintf("Finished running language tests. Ran = %d tests. Passed = %d. Failed = %d", ran, succeed, ran-succeed))
+		logger.Info("Tests.Languages", fmt.Sprintf("Finished running language tests. Ran = %d tests. Passed = %d. Failed = %d", ran, succeed, ran-succeed))
 	}()
 
 	ctx, cancel := signal.NotifyContext(t.Context(), os.Interrupt, syscall.SIGTERM)
@@ -143,7 +143,7 @@ func TestLanguages(t *testing.T) {
 	for _, testcase := range data.Cases {
 		if matched, err := regexp.MatchString(Filter, testcase.ID); err != nil || !matched {
 			if err != nil {
-				logger.Warn("Test.LocalLanguageses", "Failed to apply filter", err)
+				logger.Warn("Test.Languages", "Failed to apply filter", err)
 			}
 			continue
 		}
@@ -181,7 +181,7 @@ func TestCategories(t *testing.T) {
 	ran := 0
 	succeed := 0
 	defer func() {
-		logger.Info("Tests", fmt.Sprintf("Finished running category tests. Ran = %d tests. Passed = %d. Failed = %d", ran, succeed, ran-succeed))
+		logger.Info("Test.Categories", fmt.Sprintf("Finished running category tests. Ran = %d tests. Passed = %d. Failed = %d", ran, succeed, ran-succeed))
 	}()
 
 	ctx, cancel := signal.NotifyContext(t.Context(), os.Interrupt, syscall.SIGTERM)

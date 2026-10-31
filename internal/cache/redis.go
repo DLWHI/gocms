@@ -17,7 +17,11 @@ var (
 	leasePrefix = "lease:"
 	fillScript  = redis.NewScript(`
 		if redis.call("GET", KEYS[1]) == ARGV[1] then
-			return redis.call("SET", KEYS[1], ARGV[2], "PX", ARGV[3])
+			if ARGV[3] == "0" then 
+				return redis.call("SET", KEYS[1], ARGV[2])
+			else
+				return redis.call("SET", KEYS[1], ARGV[2], "PX", ARGV[3])
+			end
 		end
 		return nil
 	`)

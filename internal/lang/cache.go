@@ -9,6 +9,12 @@ import (
 	"gocms/internal/logger"
 )
 
+// Pre-loads values into memory and then makes same changes as db
+// This is faster and more reliable, than having redis to store locales
+// Note that it does not sync with db directly: it makes same changes to local map
+// that were commited to db, so creating in db directly (in another instance for example)
+// will require restart for locale to be available in list. This cache eliminates network round-trip
+// and resolves races and outages by giving up full sync with db.
 type LocalCacheRepository struct {
 	Repository
 	langs []domain.Language

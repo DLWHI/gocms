@@ -1,10 +1,5 @@
 package domain
 
-import (
-	"fmt"
-	"strings"
-)
-
 const (
 	EditorActionCreate = 1 << iota
 	EditorActionUpdate
@@ -12,8 +7,6 @@ const (
 
 	EditorEventName  = "editor"
 	EditorEntityName = "editors"
-
-	MaxEditorNameLength = 254
 )
 
 type Editor struct {
@@ -37,13 +30,4 @@ type EditorDiff struct {
 type EditorEvent struct {
 	Slug   string `json:"slug"`
 	Action int    `json:"action"`
-}
-
-func NormalizeEditorName(value string) (string, error) {
-	normalized := strings.TrimSpace(value)
-	if len(normalized) > CategoryMaxNameLength {
-		return "", fmt.Errorf("%w: category name is longer than %d chars", ErrInval, CategoryMaxNameLength)
-	}
-
-	return normalized, nil
 }

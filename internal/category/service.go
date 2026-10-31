@@ -42,7 +42,7 @@ func (s *Service) Create(ctx context.Context, category *domain.Category) (string
 	}
 	created.Locale = locale
 
-	name, err := domain.NormalizeCategoryName(category.Name)
+	name, err := domain.NormalizeName(category.Name)
 	if err != nil {
 		return "", err
 	}
@@ -80,7 +80,7 @@ func (s *Service) Edit(ctx context.Context, slug string, diff *domain.CategoryDi
 	}
 
 	if diff.Name != nil {
-		normalized, err := domain.NormalizeCategoryName(*diff.Name)
+		normalized, err := domain.NormalizeName(*diff.Name)
 		if err != nil {
 			return "", err
 		}

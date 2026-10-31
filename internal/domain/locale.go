@@ -7,9 +7,11 @@ import (
 )
 
 const (
-	LocaleEntityName = "locale"
+	LocaleEntityName = "locales"
 
 	LocaleKey = "locale"
+
+	LocaleMaxNameLength = 64
 )
 
 type Locale struct {
@@ -26,5 +28,11 @@ func ResolveLocale(ctx context.Context, value string) (string, error) {
 		}
 		return locale, nil
 	}
+	return normalized, nil
+}
+
+func NormalizeCode(value string) (string, error) {
+	normalized := strings.TrimSpace(value)
+
 	return normalized, nil
 }

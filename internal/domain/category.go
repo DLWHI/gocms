@@ -1,10 +1,5 @@
 package domain
 
-import (
-	"fmt"
-	"strings"
-)
-
 const (
 	CategoryActionCreate = 1 << iota
 	CategoryActionUpdate
@@ -12,8 +7,6 @@ const (
 
 	CategoryEventName  = "category"
 	CategoryEntityName = "categories"
-
-	CategoryMaxNameLength = 254
 )
 
 type Category struct {
@@ -36,13 +29,4 @@ type CategoryDiff struct {
 type CategoryEvent struct {
 	Action int    `json:"action"`
 	Slug   string `json:"slug"`
-}
-
-func NormalizeCategoryName(value string) (string, error) {
-	normalized := strings.TrimSpace(value)
-	if len(normalized) > CategoryMaxNameLength {
-		return "", fmt.Errorf("%w: category name is longer than %d chars", ErrInval, CategoryMaxNameLength)
-	}
-
-	return normalized, nil
 }

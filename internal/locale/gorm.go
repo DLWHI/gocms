@@ -2,6 +2,7 @@ package locale
 
 import (
 	"context"
+	"errors"
 	"gocms/internal/domain"
 
 	"gorm.io/gorm"
@@ -21,7 +22,13 @@ func NewGORMRepository(db *gorm.DB) *GORMRepository {
 }
 
 func (r *GORMRepository) Create(ctx context.Context, locale *domain.Locale) error {
-	return r.db.WithContext(ctx).Create(ToRecord(locale)).Error
+	if err := r.db.WithContext(ctx).Create(ToRecord(locale)).Error; err != nil {
+		if errors.Is(err, gorm.ErrDuplicatedKey) {
+			return domain.ErrDuplicate
+		}
+		return err
+	}
+	return nil
 }
 
 func (r *GORMRepository) GetAll(ctx context.Context) ([]domain.Locale, error) {

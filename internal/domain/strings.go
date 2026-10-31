@@ -7,6 +7,7 @@ import (
 
 const (
 	MaxSlugLength = 256
+	MaxNameLength = 254
 )
 
 func IsInvalidSlugRune(r rune) bool {
@@ -28,4 +29,13 @@ func NormalizeSlug(value string) (string, error) {
 	}
 
 	return strings.ToLower(normalized), nil
+}
+
+func NormalizeName(value string) (string, error) {
+	normalized := strings.TrimSpace(value)
+	if len(normalized) > MaxNameLength {
+		return "", fmt.Errorf("%w: name is longer than %d chars", ErrInval, MaxNameLength)
+	}
+
+	return normalized, nil
 }

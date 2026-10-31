@@ -2,10 +2,9 @@ package locale
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"gocms/internal/domain"
 	"gocms/internal/logger"
-	"strings"
 )
 
 const MaxCodeLength = 2
@@ -22,32 +21,29 @@ func NewService(repo Repository, auth domain.AuthService) *Service {
 	}
 }
 
-func IsInvalidCodeRune(r rune) bool {
-	return !('a' <= r && r <= 'z' || 'A' <= r && r <= 'Z')
-}
-
-func NormalizeCode(value string) (string, error) {
-	normalized := strings.TrimSpace(value)
-	if normalized == "" {
-		return "", fmt.Errorf("%w: locale code cannot be empty", domain.ErrInval)
-	}
-	if len(normalized) > MaxCodeLength {
-		return "", fmt.Errorf("%w: locale code is longer than %d chars", domain.ErrInval, MaxCodeLength)
-	}
-	if strings.IndexFunc(normalized, IsInvalidCodeRune) >= 0 {
-		return "", fmt.Errorf("%w: locale code must contain only letters", domain.ErrInval)
-	}
-
-	return strings.ToLower(normalized), nil
-}
-
 func (s *Service) Create(ctx context.Context, locale *domain.Locale) error {
 	if !s.auth.Authorize(ctx, domain.LocaleEntityName, domain.ActionCreateName) {
 		return domain.ErrCred
 	}
 
-	if err := s.repo.Create(ctx, locale); err != nil {
-		logger.Error("Locale.Service", "Failed to create locale", err)
+	created := *locale
+
+	name, err := domain.NormalizeName(locale.Name)
+	if err != nil {
+		return err
+	}
+	created.Name = name
+
+	code, err := domain.NormalizeCode(locale.Code)
+	if err != nil {
+		return err
+	}
+	created.Code = code
+
+	if err := s.repo.Create(ctx, &created); err != nil {
+		if !errors.Is(err, domain.ErrDuplicate) {
+			logger.Error("Locale.Service", "Failed to create locale", err)
+		}
 		return err
 	}
 
@@ -70,7 +66,9 @@ func (s *Service) Delete(ctx context.Context, code string) error {
 	}
 
 	if err := s.repo.Delete(ctx, code); err != nil {
-		logger.Error("Locale.Service", "Failed to delete locale", err)
+		if !errors.Is(err, domain.ErrNotFound) {
+			logger.Error("Locale.Service", "Failed to delete locale", err)
+		}
 		return err
 	}
 

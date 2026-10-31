@@ -41,7 +41,7 @@ func (s *Service) Create(ctx context.Context, editor *domain.Editor) (string, er
 	}
 	created.Locale = locale
 
-	name, err := domain.NormalizeEditorName(editor.Name)
+	name, err := domain.NormalizeName(editor.Name)
 	if err != nil {
 		return "", err
 	}
@@ -79,7 +79,7 @@ func (s *Service) Edit(ctx context.Context, slug string, diff *domain.EditorDiff
 	}
 
 	if diff.Name != nil {
-		normalized, err := domain.NormalizeCategoryName(*diff.Name)
+		normalized, err := domain.NormalizeName(*diff.Name)
 		if err != nil {
 			return "", err
 		}

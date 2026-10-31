@@ -34,7 +34,7 @@ func (s *Service) Create(ctx context.Context, locale *domain.Locale) error {
 	}
 	created.Name = name
 
-	code, err := domain.NormalizeCode(locale.Code)
+	code, err := domain.NormalizeLocaleCode(locale.Code)
 	if err != nil {
 		return err
 	}

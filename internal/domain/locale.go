@@ -67,5 +67,5 @@ func NormalizeLocaleCode(value string) (string, error) {
 	if !exists {
 		return "", fmt.Errorf("%w: invalid locale", ErrInval)
 	}
-	return "", nil
+	return normalized, nil
 }

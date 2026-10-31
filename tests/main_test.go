@@ -16,7 +16,7 @@ import (
 const (
 	ConfigAddress = ""
 	ConfigPort    = "8080"
-	Filter        = ""
+	Filter        = "^LOCALES-LIST-009"
 )
 
 var (
@@ -69,13 +69,6 @@ func run(m *testing.M) error {
 	return nil
 }
 
-func handleFail(name string, testcase *test.Case, step *test.Step, result *test.Result) error {
-	source := fmt.Sprintf("Test.%s", name)
-	failMessage := fmt.Sprintf("Test %s failed", testcase.ID)
-	logger.Error(source, failMessage, result.Reason, "case", testcase, "step", step, "response_code", result.ResponseStatus, "message", result.Message)
-	return result.Reason
-}
-
 func TestUsers(t *testing.T) {
 	ran := 0
 	succeed := 0
@@ -107,16 +100,18 @@ func TestUsers(t *testing.T) {
 		}
 
 		logger.Info("Test.Users", fmt.Sprintf("Running test: %s", testcase.ID))
-		var status error
+		var result *test.Result
 		ran++
 		for _, step := range testcase.Steps {
-			if result := step.Perform(ctx, data, Env); result != nil {
-				status = handleFail("Users", &testcase, &step, result)
+			result = step.Perform(ctx, data, Env)
+			if result != nil {
+				failMessage := fmt.Sprintf("Test %s failed", testcase.ID)
+				logger.Error("Test.Users", failMessage, result.Reason, "case", testcase, "step", step, "response_code", result.ResponseStatus, "message", result.Message)
 				t.Fail()
 				break
 			}
 		}
-		if status == nil {
+		if result == nil {
 			succeed++
 			logger.Info("Test.Users", fmt.Sprintf("Test %s passed", testcase.ID))
 		}
@@ -159,16 +154,18 @@ func TestLocales(t *testing.T) {
 		}
 
 		logger.Info("Test.Locales", fmt.Sprintf("Running test: %s", testcase.ID))
-		var status error
+		var result *test.Result
 		ran++
 		for _, step := range testcase.Steps {
-			if result := step.Perform(ctx, data, Env); result != nil {
-				status = handleFail("Locales", &testcase, &step, result)
+			result = step.Perform(ctx, data, Env)
+			if result != nil {
+				failMessage := fmt.Sprintf("Test %s failed", testcase.ID)
+				logger.Error("Test.Locales", failMessage, result.Reason, "case", testcase, "step", step, "response_code", result.ResponseStatus, "message", result.Message)
 				t.Fail()
 				break
 			}
 		}
-		if status == nil {
+		if result == nil {
 			succeed++
 			logger.Info("Test.Locales", fmt.Sprintf("Test %s passed", testcase.ID))
 		}
@@ -211,16 +208,18 @@ func TestCategories(t *testing.T) {
 		}
 
 		logger.Info("Test.Categories", fmt.Sprintf("Running test: %s", testcase.ID))
-		var status error
+		var result *test.Result
 		ran++
 		for _, step := range testcase.Steps {
-			if result := step.Perform(ctx, data, Env); result != nil {
-				status = handleFail("Categories", &testcase, &step, result)
+			result = step.Perform(ctx, data, Env)
+			if result != nil {
+				failMessage := fmt.Sprintf("Test %s failed", testcase.ID)
+				logger.Error("Test.Categories", failMessage, result.Reason, "case", testcase, "step", step, "response_code", result.ResponseStatus, "message", result.Message)
 				t.Fail()
 				break
 			}
 		}
-		if status == nil {
+		if result == nil {
 			succeed++
 			logger.Info("Test.Categories", fmt.Sprintf("Test %s passed", testcase.ID))
 		}

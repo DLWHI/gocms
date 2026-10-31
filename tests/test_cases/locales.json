@@ -3630,7 +3630,7 @@
             "path": "/cms/locales",
             "body": {
               "name": "",
-              "code": "en"
+              "code": "zz"
             },
             "headers": {
               "Content-Type": "application/json"

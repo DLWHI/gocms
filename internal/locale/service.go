@@ -65,6 +65,11 @@ func (s *Service) Delete(ctx context.Context, code string) error {
 		return domain.ErrCred
 	}
 
+	code, err := domain.NormalizeLocaleCode(code)
+	if err != nil {
+		return err
+	}
+
 	if err := s.repo.Delete(ctx, code); err != nil {
 		if !errors.Is(err, domain.ErrNotFound) {
 			logger.Error("Locale.Service", "Failed to delete locale", err)

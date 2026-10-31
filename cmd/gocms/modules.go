@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"gocms/internal/ads"
 	"gocms/internal/auth"
 	"gocms/internal/cache"
@@ -241,24 +242,27 @@ func NewAdsModule(db *gorm.DB, search meilisearch.ServiceManager, redis *redis.C
 	}
 }
 
-func NewLocaleModule(db *gorm.DB, redis *redis.Client, creds domain.AuthService) (*LocaleModule, error) {
-	keys, err := cache.NewKeyspace(cache.KeyConfig{
-		Prefix: []string{"cms"},
-	}, "locales")
-	if err != nil {
-		return nil, err
-	}
+func NewLocaleModule(ctx context.Context, db *gorm.DB, creds domain.AuthService) (*LocaleModule, error) {
+	// Enable if redis or flow repo required
+	// keys, err := cache.NewKeyspace(cache.KeyConfig{
+	// 	Prefix: []string{"cms"},
+	// }, "locales")
+	// if err != nil {
+	// 	return nil, err
+	// }
 
 	gormRepo := locale.NewGORMRepository(db)
-	flowRepo := locale.NewFlowRepository(gormRepo, 20*time.Second, keys)
-	redisRepo := locale.NewRedisRepository(flowRepo, redis, 24*time.Hour, keys)
-	service := locale.NewService(redisRepo, creds)
+	// Enable if request deduplication preffered
+	// flowRepo := locale.NewFlowRepository(gormRepo, 20*time.Second, keys)
+	// Enable if redis preffered over local caching
+	// redisRepo := locale.NewRedisRepository(flowRepo, redis, 24*time.Hour, keys)
+	localRepo := locale.NewLocalCacheRepository(ctx, gormRepo)
+	service := locale.NewService(localRepo, creds)
 	handler := locale.NewHandler(service)
 	return &LocaleModule{
 		Service:   service,
 		Handler:   handler,
-		CacheRepo: redisRepo,
+		CacheRepo: localRepo,
 		DBRepo:    gormRepo,
-		DedupRepo: flowRepo,
 	}, nil
 }

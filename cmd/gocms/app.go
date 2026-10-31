@@ -94,7 +94,7 @@ func (app *Container) Init(ctx context.Context, cfg Config) error {
 	if err != nil {
 		return err
 	}
-	locales, err := NewLocaleModule(db, redis, auth.Service)
+	locales, err := NewLocaleModule(ctx, db, auth.Service)
 	if err != nil {
 		return err
 	}

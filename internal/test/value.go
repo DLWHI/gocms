@@ -5,108 +5,10 @@ import (
 	"fmt"
 	"math"
 	"reflect"
-	"strconv"
 	"strings"
 )
 
 type JSONValue = any
-
-func (d *Data) Resolve(v JSONValue) (JSONValue, error) {
-	m, ok := v.(map[string]JSONValue)
-	if ok {
-		for name, arg := range m {
-			if strings.HasPrefix(name, "$") {
-				val, err := d.ExpandToken(name, arg)
-				if err != nil {
-					return nil, err
-				}
-				return val, nil
-			}
-			return v, nil
-		}
-	}
-	return v, nil
-}
-
-func (d *Data) ResolveString(v JSONValue) (string, error) {
-	m, ok := v.(map[string]JSONValue)
-	if ok {
-		for name, arg := range m {
-			if strings.HasPrefix(name, "$") {
-				val, err := d.ExpandToken(name, arg)
-				if err != nil {
-					return "", err
-				}
-				return fmt.Sprintf("%v", val), nil
-			}
-		}
-	}
-	return fmt.Sprintf("%v", v), nil
-}
-
-func (d *Data) ResolveMap(values map[string]JSONValue) (map[string]JSONValue, error) {
-	res := make(map[string]JSONValue, len(values))
-	for key, value := range values {
-		resolved, err := d.Resolve(value)
-		if err != nil {
-			return nil, err
-		}
-		res[key] = resolved
-	}
-	return res, nil
-}
-
-func (d *Data) ExpandToken(name string, arg JSONValue) (JSONValue, error) {
-	switch name {
-	case "$const":
-		key, ok := arg.(string)
-		if !ok {
-			return nil, fmt.Errorf("$const expects a string")
-		}
-		val, ok := d.Constants[key]
-		if !ok {
-			return nil, fmt.Errorf("unknown constant %q", key)
-		}
-		return val, nil
-
-	case "$repeat":
-		m, ok := arg.(map[string]any)
-		if !ok {
-			return nil, fmt.Errorf("$repeat expects {s, n}")
-		}
-		s, ok1 := m["s"].(string)
-		n, ok2 := ToLen(m["n"])
-		if !ok1 || !ok2 || n < 0 {
-			return nil, fmt.Errorf("$repeat needs string s and non-negative integer n")
-		}
-		return strings.Repeat(s, int(n)), nil
-	case "$email_of_length":
-		n, ok := ToLen(arg)
-		const domain = "@example.com"
-		if !ok || int(n) <= len(domain) {
-			return nil, fmt.Errorf("$email_of_length needs an integer > %d", len(domain))
-		}
-		return strings.Repeat("a", int(n)-len(domain)) + domain, nil
-	case "$raw_session":
-		actor, ok := arg.(string)
-		if !ok {
-			return nil, fmt.Errorf("$raw_session needs to be a string")
-		}
-		return d.GetSessionOf(actor), nil
-	case "$actor_perms":
-		username, ok := arg.(string)
-		if !ok {
-			return nil, fmt.Errorf("$actor_perms needs to be a string")
-		}
-		actor, ok := d.Fixtures.Actors[username]
-		if !ok {
-			return nil, fmt.Errorf("$actor_perms requests unknown actor")
-		}
-		return json.Number(strconv.FormatUint(uint64(actor.Permissions), 10)), nil
-	default:
-		return nil, fmt.Errorf("value is not a state token")
-	}
-}
 
 func ResolvePath(values map[string]JSONValue, path string) ([]JSONValue, error) {
 	currents := []JSONValue{values}

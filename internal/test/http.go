@@ -27,17 +27,17 @@ type JSONGenerator struct {
 	Base   map[string]JSONValue `json:"base"`
 }
 
-func (e *Environment) PerformRequest(ctx context.Context, actor *Actor, request HttpRequest) (*http.Response, error) {
-	url, err := RequestURL(request.Path, request.PathParams, e.TestData)
+func (r *HttpRequest) Perform(ctx context.Context, e *Environment, actor *Actor) (*http.Response, error) {
+	url, err := RequestURL(r.Path, r.PathParams, e.TestData)
 	if err != nil {
 		return nil, err
 	}
-	body, err := BodyReaderOf(request, e.TestData)
+	body, err := BodyReaderOf(r, e.TestData)
 	if err != nil {
 		return nil, err
 	}
 
-	req := httptest.NewRequestWithContext(ctx, request.Method, url, body)
+	req := httptest.NewRequestWithContext(ctx, r.Method, url, body)
 
 	req.Header.Set("User-Agent", "Test-Client")
 
@@ -45,7 +45,7 @@ func (e *Environment) PerformRequest(ctx context.Context, actor *Actor, request 
 		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", actor.Session))
 	}
 
-	for key, value := range request.Headers {
+	for key, value := range r.Headers {
 		val, err := e.TestData.ResolveString(value)
 		if err != nil {
 			return nil, err
@@ -70,7 +70,7 @@ func RequestURL(pathname string, params map[string]JSONValue, testdata *Data) (s
 	return pathname, nil
 }
 
-func BodyReaderOf(request HttpRequest, testdata *Data) (io.Reader, error) {
+func BodyReaderOf(request *HttpRequest, testdata *Data) (io.Reader, error) {
 	switch {
 	case request.BodyRaw != nil:
 		return strings.NewReader(*request.BodyRaw), nil

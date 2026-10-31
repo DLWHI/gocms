@@ -17,9 +17,7 @@
     "actors": {
       "root": {
         "username": "root",
-        "caps": {
-          "locales": ["create", "delete"]
-        }
+        "permissions": 4294967295
       },
       "creator": {
         "username": "creator",

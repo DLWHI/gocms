@@ -16,6 +16,7 @@ import (
 const (
 	ConfigAddress = ""
 	ConfigPort    = "8080"
+	Filter        = ""
 )
 
 var (
@@ -68,8 +69,14 @@ func run(m *testing.M) error {
 	return nil
 }
 
+func handleFail(name string, testcase *test.Case, step *test.Step, result *test.Result) error {
+	source := fmt.Sprintf("Test.%s", name)
+	failMessage := fmt.Sprintf("Test %s failed", testcase.ID)
+	logger.Error(source, failMessage, result.Reason, "case", testcase, "step", step, "response_code", result.ResponseStatus, "message", result.Message)
+	return result.Reason
+}
+
 func TestUsers(t *testing.T) {
-	filter := ""
 	ran := 0
 	succeed := 0
 	defer func() {
@@ -87,9 +94,9 @@ func TestUsers(t *testing.T) {
 	Env.TestData = data
 
 	for _, testcase := range data.Cases {
-		if matched, err := regexp.MatchString(filter, testcase.ID); err != nil || !matched {
+		if matched, err := regexp.MatchString(Filter, testcase.ID); err != nil || !matched {
 			if err != nil {
-				logger.Warn("Test.User", "Failed to apply filter", err)
+				logger.Warn("Test.Users", "Failed to apply filter", err)
 			}
 			continue
 		}
@@ -99,23 +106,22 @@ func TestUsers(t *testing.T) {
 			t.FailNow()
 		}
 
-		logger.Info("Test.User", fmt.Sprintf("Running test: %s", testcase.ID))
+		logger.Info("Test.Users", fmt.Sprintf("Running test: %s", testcase.ID))
 		var status error
 		ran++
 		for _, step := range testcase.Steps {
-			if res, err := step.Perform(ctx, data, Env); err != nil {
-				status = err
-				logger.Error("Test.User", fmt.Sprintf("Test %s failed", testcase.ID), err, "case", testcase, "step", step, "response", res)
+			if result := step.Perform(ctx, data, Env); result != nil {
+				status = handleFail("Users", &testcase, &step, result)
 				t.Fail()
 				break
 			}
 		}
 		if status == nil {
 			succeed++
-			logger.Info("Test.User", fmt.Sprintf("Test %s passed", testcase.ID))
+			logger.Info("Test.Users", fmt.Sprintf("Test %s passed", testcase.ID))
 		}
 		if err := Env.Clear(ctx); err != nil {
-			logger.Error("Test.User", "Failed to clear environment", err)
+			logger.Error("Test.Users", "Failed to clear environment", err)
 			t.FailNow()
 		}
 	}
@@ -123,7 +129,6 @@ func TestUsers(t *testing.T) {
 }
 
 func TestLocales(t *testing.T) {
-	filter := ""
 	ran := 0
 	succeed := 0
 	defer func() {
@@ -141,7 +146,7 @@ func TestLocales(t *testing.T) {
 	Env.TestData = data
 
 	for _, testcase := range data.Cases {
-		if matched, err := regexp.MatchString(filter, testcase.ID); err != nil || !matched {
+		if matched, err := regexp.MatchString(Filter, testcase.ID); err != nil || !matched {
 			if err != nil {
 				logger.Warn("Test.Locales", "Failed to apply filter", err)
 			}
@@ -157,9 +162,8 @@ func TestLocales(t *testing.T) {
 		var status error
 		ran++
 		for _, step := range testcase.Steps {
-			if res, err := step.Perform(ctx, data, Env); err != nil {
-				status = err
-				logger.Error("Test.Locales", fmt.Sprintf("Test %s failed", testcase.ID), err, "case", testcase, "step", step, "response", res)
+			if result := step.Perform(ctx, data, Env); result != nil {
+				status = handleFail("Locales", &testcase, &step, result)
 				t.Fail()
 				break
 			}
@@ -177,17 +181,16 @@ func TestLocales(t *testing.T) {
 }
 
 func TestCategories(t *testing.T) {
-	filter := ""
 	ran := 0
 	succeed := 0
 	defer func() {
-		logger.Info("Tests", fmt.Sprintf("Finished running locale tests. Ran = %d tests. Passed = %d. Failed = %d", ran, succeed, ran-succeed))
+		logger.Info("Tests", fmt.Sprintf("Finished running category tests. Ran = %d tests. Passed = %d. Failed = %d", ran, succeed, ran-succeed))
 	}()
 
 	ctx, cancel := signal.NotifyContext(t.Context(), os.Interrupt, syscall.SIGTERM)
 	defer cancel()
 	logger.Info("Test.Categories", "Loading test data")
-	data, err := test.LoadDataFromFile("./test_cases/locales.json", "1")
+	data, err := test.LoadDataFromFile("./test_cases/categories.json", "1")
 	if err != nil {
 		logger.Error("Test.Categories", "Failed to load test data", err)
 		t.FailNow()
@@ -195,7 +198,7 @@ func TestCategories(t *testing.T) {
 	Env.TestData = data
 
 	for _, testcase := range data.Cases {
-		if matched, err := regexp.MatchString(filter, testcase.ID); err != nil || !matched {
+		if matched, err := regexp.MatchString(Filter, testcase.ID); err != nil || !matched {
 			if err != nil {
 				logger.Warn("Test.Categories", "Failed to apply filter", err)
 			}
@@ -211,9 +214,8 @@ func TestCategories(t *testing.T) {
 		var status error
 		ran++
 		for _, step := range testcase.Steps {
-			if res, err := step.Perform(ctx, data, Env); err != nil {
-				status = err
-				logger.Error("Test.Locales", fmt.Sprintf("Test %s failed", testcase.ID), err, "case", testcase, "step", step, "response", res)
+			if result := step.Perform(ctx, data, Env); result != nil {
+				status = handleFail("Categories", &testcase, &step, result)
 				t.Fail()
 				break
 			}

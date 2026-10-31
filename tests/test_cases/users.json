@@ -24,9 +24,6 @@
     "actors": {
       "root": {
         "username": "root",
-        "caps": {
-          "users": ["create", "edit", "delete"]
-        },
         "permissions": 4294967295
       },
       "creator": {
@@ -91,7 +88,7 @@
   },
   "cases": [
     {
-      "id": "AUTH-CREATE-001",
+      "id": "USERS-AUTH-CREATE-001",
       "group": "POST /cms/users",
       "title": "401: missing Authorization header",
       "source": "documented",
@@ -119,7 +116,7 @@
       ]
     },
     {
-      "id": "AUTH-CREATE-002",
+      "id": "USERS-AUTH-CREATE-002",
       "group": "POST /cms/users",
       "title": "401: empty bearer token",
       "source": "documented",
@@ -148,7 +145,7 @@
       ]
     },
     {
-      "id": "AUTH-CREATE-003",
+      "id": "USERS-AUTH-CREATE-003",
       "group": "POST /cms/users",
       "title": "401: wrong scheme (Basic)",
       "source": "documented",
@@ -177,7 +174,7 @@
       ]
     },
     {
-      "id": "AUTH-CREATE-004",
+      "id": "USERS-AUTH-CREATE-004",
       "group": "POST /cms/users",
       "title": "401: session id without Bearer prefix",
       "source": "documented",
@@ -208,7 +205,7 @@
       ]
     },
     {
-      "id": "AUTH-CREATE-005",
+      "id": "USERS-AUTH-CREATE-005",
       "group": "POST /cms/users",
       "title": "401: garbage session id",
       "source": "documented",
@@ -237,7 +234,7 @@
       ]
     },
     {
-      "id": "AUTH-CREATE-006",
+      "id": "USERS-AUTH-CREATE-006",
       "group": "POST /cms/users",
       "title": "401: expired session",
       "source": "documented",
@@ -266,7 +263,7 @@
       ]
     },
     {
-      "id": "AUTH-CREATE-007",
+      "id": "USERS-AUTH-CREATE-007",
       "group": "POST /cms/users",
       "title": "401 wins over invalid body",
       "source": "inferred",
@@ -290,7 +287,7 @@
       ]
     },
     {
-      "id": "TRANSPORT-CREATE-001",
+      "id": "USERS-TRANSPORT-CREATE-001",
       "group": "POST /cms/users",
       "title": "415: Content-Type text/plain",
       "source": "stated",
@@ -318,7 +315,7 @@
       ]
     },
     {
-      "id": "TRANSPORT-CREATE-002",
+      "id": "USERS-TRANSPORT-CREATE-002",
       "group": "POST /cms/users",
       "title": "415: Content-Type application/xml",
       "source": "stated",
@@ -346,7 +343,7 @@
       ]
     },
     {
-      "id": "TRANSPORT-CREATE-003",
+      "id": "USERS-TRANSPORT-CREATE-003",
       "group": "POST /cms/users",
       "title": "415: Content-Type multipart/form-data",
       "source": "stated",
@@ -374,7 +371,7 @@
       ]
     },
     {
-      "id": "TRANSPORT-CREATE-004",
+      "id": "USERS-TRANSPORT-CREATE-004",
       "group": "POST /cms/users",
       "title": "415: Content-Type application/x-www-form-urlencoded",
       "source": "stated",
@@ -402,7 +399,7 @@
       ]
     },
     {
-      "id": "TRANSPORT-CREATE-005",
+      "id": "USERS-TRANSPORT-CREATE-005",
       "group": "POST /cms/users",
       "title": "415: Content-Type header missing",
       "source": "stated",
@@ -430,7 +427,7 @@
       ]
     },
     {
-      "id": "TRANSPORT-CREATE-006",
+      "id": "USERS-TRANSPORT-CREATE-006",
       "group": "POST /cms/users",
       "title": "Content-Type with charset parameter accepted",
       "source": "inferred",
@@ -458,7 +455,7 @@
       ]
     },
     {
-      "id": "TRANSPORT-CREATE-007",
+      "id": "USERS-TRANSPORT-CREATE-007",
       "group": "POST /cms/users",
       "title": "Content-Type media type is case-insensitive",
       "source": "inferred",
@@ -486,7 +483,7 @@
       ]
     },
     {
-      "id": "TRANSPORT-CREATE-008",
+      "id": "USERS-TRANSPORT-CREATE-008",
       "group": "POST /cms/users",
       "title": "body of exactly 4096 bytes is accepted",
       "source": "inferred",
@@ -521,7 +518,7 @@
       "note": "Padding is an unknown extra field. Off-by-one risk in the limit reader."
     },
     {
-      "id": "TRANSPORT-CREATE-009",
+      "id": "USERS-TRANSPORT-CREATE-009",
       "group": "POST /cms/users",
       "title": "413: body of 4097 bytes",
       "source": "stated",
@@ -555,7 +552,7 @@
       ]
     },
     {
-      "id": "TRANSPORT-CREATE-010",
+      "id": "USERS-TRANSPORT-CREATE-010",
       "group": "POST /cms/users",
       "title": "400: truncated JSON",
       "source": "documented",
@@ -579,7 +576,7 @@
       ]
     },
     {
-      "id": "TRANSPORT-CREATE-011",
+      "id": "USERS-TRANSPORT-CREATE-011",
       "group": "POST /cms/users",
       "title": "400: empty body",
       "source": "documented",
@@ -603,7 +600,7 @@
       ]
     },
     {
-      "id": "TRANSPORT-CREATE-012",
+      "id": "USERS-TRANSPORT-CREATE-012",
       "group": "POST /cms/users",
       "title": "400: JSON array instead of object",
       "source": "documented",
@@ -627,7 +624,7 @@
       ]
     },
     {
-      "id": "TRANSPORT-CREATE-013",
+      "id": "USERS-TRANSPORT-CREATE-013",
       "group": "POST /cms/users",
       "title": "400: JSON string instead of object",
       "source": "documented",
@@ -651,7 +648,7 @@
       ]
     },
     {
-      "id": "TRANSPORT-CREATE-014",
+      "id": "USERS-TRANSPORT-CREATE-014",
       "group": "POST /cms/users",
       "title": "400: plain text",
       "source": "documented",
@@ -675,7 +672,7 @@
       ]
     },
     {
-      "id": "TRANSPORT-CREATE-015",
+      "id": "USERS-TRANSPORT-CREATE-015",
       "group": "POST /cms/users",
       "title": "400: unterminated string",
       "source": "documented",
@@ -699,7 +696,7 @@
       ]
     },
     {
-      "id": "TRANSPORT-CREATE-016",
+      "id": "USERS-TRANSPORT-CREATE-016",
       "group": "POST /cms/users",
       "title": "400: JSON null body",
       "source": "inferred",
@@ -723,7 +720,7 @@
       ]
     },
     {
-      "id": "CREATE-001",
+      "id": "USERS-CREATE-001",
       "group": "POST /cms/users",
       "title": "creates user as in docs example (permissions 65536)",
       "source": "documented",
@@ -788,7 +785,7 @@
       "note": "Root must hold bit 65536 (explicit root mask)."
     },
     {
-      "id": "CREATE-002",
+      "id": "USERS-CREATE-002",
       "group": "POST /cms/users",
       "title": "created user can log in with the given password",
       "source": "documented",
@@ -823,7 +820,7 @@
       ]
     },
     {
-      "id": "CREATE-003",
+      "id": "USERS-CREATE-003",
       "group": "POST /cms/users",
       "title": "permissions omitted -> default role",
       "source": "stated",
@@ -878,7 +875,7 @@
       ]
     },
     {
-      "id": "CREATE-004",
+      "id": "USERS-CREATE-004",
       "group": "POST /cms/users",
       "title": "permissions 0 -> default role",
       "source": "stated",
@@ -934,7 +931,7 @@
       ]
     },
     {
-      "id": "CREATE-005",
+      "id": "USERS-CREATE-005",
       "group": "POST /cms/users",
       "title": "permissions null -> default role",
       "source": "inferred",
@@ -986,7 +983,7 @@
       ]
     },
     {
-      "id": "CREATE-006",
+      "id": "USERS-CREATE-006",
       "group": "POST /cms/users",
       "title": "email omitted -> empty email",
       "source": "inferred",
@@ -1039,7 +1036,7 @@
       ]
     },
     {
-      "id": "CREATE-007",
+      "id": "USERS-CREATE-007",
       "group": "POST /cms/users",
       "title": "email empty string accepted",
       "source": "inferred",
@@ -1093,7 +1090,7 @@
       ]
     },
     {
-      "id": "CREATE-008",
+      "id": "USERS-CREATE-008",
       "group": "POST /cms/users",
       "title": "email null treated as empty",
       "source": "inferred",
@@ -1117,7 +1114,7 @@
       ]
     },
     {
-      "id": "CREATE-009",
+      "id": "USERS-CREATE-009",
       "group": "POST /cms/users",
       "title": "uppercase username normalised to lowercase",
       "source": "inferred",
@@ -1165,7 +1162,7 @@
       ]
     },
     {
-      "id": "CREATE-010",
+      "id": "USERS-CREATE-010",
       "group": "POST /cms/users",
       "title": "surrounding whitespace in username trimmed",
       "source": "inferred",
@@ -1213,7 +1210,7 @@
       ]
     },
     {
-      "id": "CREATE-011",
+      "id": "USERS-CREATE-011",
       "group": "POST /cms/users",
       "title": "single character username",
       "source": "inferred",
@@ -1240,7 +1237,7 @@
       ]
     },
     {
-      "id": "CREATE-012",
+      "id": "USERS-CREATE-012",
       "group": "POST /cms/users",
       "title": "64 character username (max)",
       "source": "documented",
@@ -1272,7 +1269,7 @@
       ]
     },
     {
-      "id": "CREATE-013",
+      "id": "USERS-CREATE-013",
       "group": "POST /cms/users",
       "title": "username with digits, hyphen, underscore",
       "source": "documented",
@@ -1299,7 +1296,7 @@
       ]
     },
     {
-      "id": "CREATE-014",
+      "id": "USERS-CREATE-014",
       "group": "POST /cms/users",
       "title": "unknown/privileged fields are ignored (mass assignment)",
       "source": "inferred",
@@ -1356,7 +1353,7 @@
       ]
     },
     {
-      "id": "CREATE-015",
+      "id": "USERS-CREATE-015",
       "group": "POST /cms/users",
       "title": "400: invalid username (empty string)",
       "source": "documented",
@@ -1383,7 +1380,7 @@
       ]
     },
     {
-      "id": "CREATE-016",
+      "id": "USERS-CREATE-016",
       "group": "POST /cms/users",
       "title": "400: invalid username (whitespace only)",
       "source": "documented",
@@ -1410,7 +1407,7 @@
       ]
     },
     {
-      "id": "CREATE-017",
+      "id": "USERS-CREATE-017",
       "group": "POST /cms/users",
       "title": "400: invalid username (65 characters)",
       "source": "documented",
@@ -1442,7 +1439,7 @@
       ]
     },
     {
-      "id": "CREATE-018",
+      "id": "USERS-CREATE-018",
       "group": "POST /cms/users",
       "title": "400: invalid username (space inside)",
       "source": "documented",
@@ -1469,7 +1466,7 @@
       ]
     },
     {
-      "id": "CREATE-019",
+      "id": "USERS-CREATE-019",
       "group": "POST /cms/users",
       "title": "400: invalid username (dot)",
       "source": "documented",
@@ -1496,7 +1493,7 @@
       ]
     },
     {
-      "id": "CREATE-020",
+      "id": "USERS-CREATE-020",
       "group": "POST /cms/users",
       "title": "400: invalid username (@)",
       "source": "documented",
@@ -1523,7 +1520,7 @@
       ]
     },
     {
-      "id": "CREATE-021",
+      "id": "USERS-CREATE-021",
       "group": "POST /cms/users",
       "title": "400: invalid username (slash)",
       "source": "documented",
@@ -1550,7 +1547,7 @@
       ]
     },
     {
-      "id": "CREATE-022",
+      "id": "USERS-CREATE-022",
       "group": "POST /cms/users",
       "title": "400: invalid username (exclamation)",
       "source": "documented",
@@ -1577,7 +1574,7 @@
       ]
     },
     {
-      "id": "CREATE-023",
+      "id": "USERS-CREATE-023",
       "group": "POST /cms/users",
       "title": "400: invalid username (non-ASCII letters)",
       "source": "documented",
@@ -1604,7 +1601,7 @@
       ]
     },
     {
-      "id": "CREATE-024",
+      "id": "USERS-CREATE-024",
       "group": "POST /cms/users",
       "title": "400: invalid username (Kelvin sign U+212A)",
       "source": "documented",
@@ -1631,7 +1628,7 @@
       ]
     },
     {
-      "id": "CREATE-025",
+      "id": "USERS-CREATE-025",
       "group": "POST /cms/users",
       "title": "400: invalid username (sql-ish)",
       "source": "documented",
@@ -1658,7 +1655,7 @@
       ]
     },
     {
-      "id": "CREATE-026",
+      "id": "USERS-CREATE-026",
       "group": "POST /cms/users",
       "title": "400: invalid username (null byte)",
       "source": "documented",
@@ -1685,7 +1682,7 @@
       ]
     },
     {
-      "id": "CREATE-027",
+      "id": "USERS-CREATE-027",
       "group": "POST /cms/users",
       "title": "400: invalid username (embedded newline)",
       "source": "documented",
@@ -1712,7 +1709,7 @@
       ]
     },
     {
-      "id": "CREATE-028",
+      "id": "USERS-CREATE-028",
       "group": "POST /cms/users",
       "title": "400: invalid username (emoji)",
       "source": "documented",
@@ -1739,7 +1736,7 @@
       ]
     },
     {
-      "id": "CREATE-029",
+      "id": "USERS-CREATE-029",
       "group": "POST /cms/users",
       "title": "400: invalid username (semicolon)",
       "source": "documented",
@@ -1766,7 +1763,7 @@
       ]
     },
     {
-      "id": "CREATE-030",
+      "id": "USERS-CREATE-030",
       "group": "POST /cms/users",
       "title": "400: username missing",
       "source": "documented",
@@ -1792,7 +1789,7 @@
       ]
     },
     {
-      "id": "CREATE-031",
+      "id": "USERS-CREATE-031",
       "group": "POST /cms/users",
       "title": "400: username type is null",
       "source": "documented",
@@ -1816,7 +1813,7 @@
       ]
     },
     {
-      "id": "CREATE-032",
+      "id": "USERS-CREATE-032",
       "group": "POST /cms/users",
       "title": "400: username type is number",
       "source": "documented",
@@ -1840,7 +1837,7 @@
       ]
     },
     {
-      "id": "CREATE-033",
+      "id": "USERS-CREATE-033",
       "group": "POST /cms/users",
       "title": "400: username type is boolean",
       "source": "documented",
@@ -1864,7 +1861,7 @@
       ]
     },
     {
-      "id": "CREATE-034",
+      "id": "USERS-CREATE-034",
       "group": "POST /cms/users",
       "title": "400: username type is array",
       "source": "documented",
@@ -1888,7 +1885,7 @@
       ]
     },
     {
-      "id": "CREATE-035",
+      "id": "USERS-CREATE-035",
       "group": "POST /cms/users",
       "title": "400: username type is object",
       "source": "documented",
@@ -1912,7 +1909,7 @@
       ]
     },
     {
-      "id": "CREATE-036",
+      "id": "USERS-CREATE-036",
       "group": "POST /cms/users",
       "title": "400: password empty string",
       "source": "documented",
@@ -1939,7 +1936,7 @@
       ]
     },
     {
-      "id": "CREATE-037",
+      "id": "USERS-CREATE-037",
       "group": "POST /cms/users",
       "title": "400: password 7 ASCII characters",
       "source": "stated",
@@ -1966,7 +1963,7 @@
       ]
     },
     {
-      "id": "CREATE-038",
+      "id": "USERS-CREATE-038",
       "group": "POST /cms/users",
       "title": "201: password 8 ASCII characters (minimum)",
       "source": "stated",
@@ -2001,7 +1998,7 @@
       ]
     },
     {
-      "id": "CREATE-039",
+      "id": "USERS-CREATE-039",
       "group": "POST /cms/users",
       "title": "201: password 8 spaces (any symbols allowed)",
       "source": "stated",
@@ -2036,7 +2033,7 @@
       ]
     },
     {
-      "id": "CREATE-040",
+      "id": "USERS-CREATE-040",
       "group": "POST /cms/users",
       "title": "201: password only digits",
       "source": "stated",
@@ -2071,7 +2068,7 @@
       ]
     },
     {
-      "id": "CREATE-041",
+      "id": "USERS-CREATE-041",
       "group": "POST /cms/users",
       "title": "201: password contains tab",
       "source": "stated",
@@ -2106,7 +2103,7 @@
       ]
     },
     {
-      "id": "CREATE-042",
+      "id": "USERS-CREATE-042",
       "group": "POST /cms/users",
       "title": "201: password contains newline",
       "source": "stated",
@@ -2141,7 +2138,7 @@
       ]
     },
     {
-      "id": "CREATE-043",
+      "id": "USERS-CREATE-043",
       "group": "POST /cms/users",
       "title": "201: password contains quote and backslash",
       "source": "stated",
@@ -2176,7 +2173,7 @@
       ]
     },
     {
-      "id": "CREATE-044",
+      "id": "USERS-CREATE-044",
       "group": "POST /cms/users",
       "title": "201: password contains NUL character",
       "source": "stated",
@@ -2211,7 +2208,7 @@
       ]
     },
     {
-      "id": "CREATE-045",
+      "id": "USERS-CREATE-045",
       "group": "POST /cms/users",
       "title": "201: password 8 emoji",
       "source": "stated",
@@ -2246,7 +2243,7 @@
       ]
     },
     {
-      "id": "CREATE-046",
+      "id": "USERS-CREATE-046",
       "group": "POST /cms/users",
       "title": "201: password 8 two-byte characters (é)",
       "source": "stated",
@@ -2281,7 +2278,7 @@
       ]
     },
     {
-      "id": "CREATE-047",
+      "id": "USERS-CREATE-047",
       "group": "POST /cms/users",
       "title": "400: password 7 two-byte characters (14 bytes)",
       "source": "stated",
@@ -2309,7 +2306,7 @@
       "note": "Minimum is stated in characters."
     },
     {
-      "id": "CREATE-048",
+      "id": "USERS-CREATE-048",
       "group": "POST /cms/users",
       "title": "400: password 4 emoji (4 characters, 16 bytes)",
       "source": "stated",
@@ -2337,7 +2334,7 @@
       "note": "Minimum is stated in characters."
     },
     {
-      "id": "CREATE-049",
+      "id": "USERS-CREATE-049",
       "group": "POST /cms/users",
       "title": "201: password 72 bytes (bcrypt limit)",
       "source": "inferred",
@@ -2369,7 +2366,7 @@
       ]
     },
     {
-      "id": "CREATE-050",
+      "id": "USERS-CREATE-050",
       "group": "POST /cms/users",
       "title": "400: password 73 bytes",
       "source": "inferred",
@@ -2401,7 +2398,7 @@
       ]
     },
     {
-      "id": "CREATE-051",
+      "id": "USERS-CREATE-051",
       "group": "POST /cms/users",
       "title": "201: password 36 x é = 72 bytes",
       "source": "inferred",
@@ -2433,7 +2430,7 @@
       ]
     },
     {
-      "id": "CREATE-052",
+      "id": "USERS-CREATE-052",
       "group": "POST /cms/users",
       "title": "400: password 37 x é = 74 bytes",
       "source": "inferred",
@@ -2465,7 +2462,7 @@
       ]
     },
     {
-      "id": "CREATE-053",
+      "id": "USERS-CREATE-053",
       "group": "POST /cms/users",
       "title": "400: password 1000 characters",
       "source": "inferred",
@@ -2497,7 +2494,7 @@
       ]
     },
     {
-      "id": "CREATE-054",
+      "id": "USERS-CREATE-054",
       "group": "POST /cms/users",
       "title": "400: password missing",
       "source": "documented",
@@ -2523,7 +2520,7 @@
       ]
     },
     {
-      "id": "CREATE-055",
+      "id": "USERS-CREATE-055",
       "group": "POST /cms/users",
       "title": "400: password type is null",
       "source": "documented",
@@ -2547,7 +2544,7 @@
       ]
     },
     {
-      "id": "CREATE-056",
+      "id": "USERS-CREATE-056",
       "group": "POST /cms/users",
       "title": "400: password type is number",
       "source": "documented",
@@ -2571,7 +2568,7 @@
       ]
     },
     {
-      "id": "CREATE-057",
+      "id": "USERS-CREATE-057",
       "group": "POST /cms/users",
       "title": "400: password type is boolean",
       "source": "documented",
@@ -2595,7 +2592,7 @@
       ]
     },
     {
-      "id": "CREATE-058",
+      "id": "USERS-CREATE-058",
       "group": "POST /cms/users",
       "title": "400: password type is array",
       "source": "documented",
@@ -2619,7 +2616,7 @@
       ]
     },
     {
-      "id": "CREATE-059",
+      "id": "USERS-CREATE-059",
       "group": "POST /cms/users",
       "title": "400: password type is object",
       "source": "documented",
@@ -2643,7 +2640,7 @@
       ]
     },
     {
-      "id": "CREATE-060",
+      "id": "USERS-CREATE-060",
       "group": "POST /cms/users",
       "title": "password with JSON escapes is stored decoded",
       "source": "inferred",
@@ -2675,7 +2672,7 @@
       ]
     },
     {
-      "id": "CREATE-061",
+      "id": "USERS-CREATE-061",
       "group": "POST /cms/users",
       "title": "400: invalid email (no @)",
       "source": "documented",
@@ -2703,7 +2700,7 @@
       ]
     },
     {
-      "id": "CREATE-062",
+      "id": "USERS-CREATE-062",
       "group": "POST /cms/users",
       "title": "400: invalid email (missing local part)",
       "source": "documented",
@@ -2731,7 +2728,7 @@
       ]
     },
     {
-      "id": "CREATE-063",
+      "id": "USERS-CREATE-063",
       "group": "POST /cms/users",
       "title": "400: invalid email (missing domain)",
       "source": "documented",
@@ -2759,7 +2756,7 @@
       ]
     },
     {
-      "id": "CREATE-064",
+      "id": "USERS-CREATE-064",
       "group": "POST /cms/users",
       "title": "400: invalid email (display name form)",
       "source": "documented",
@@ -2787,7 +2784,7 @@
       ]
     },
     {
-      "id": "CREATE-065",
+      "id": "USERS-CREATE-065",
       "group": "POST /cms/users",
       "title": "400: invalid email (whitespace only)",
       "source": "documented",
@@ -2815,7 +2812,7 @@
       ]
     },
     {
-      "id": "CREATE-066",
+      "id": "USERS-CREATE-066",
       "group": "POST /cms/users",
       "title": "400: invalid email (two addresses)",
       "source": "documented",
@@ -2843,7 +2840,7 @@
       ]
     },
     {
-      "id": "CREATE-067",
+      "id": "USERS-CREATE-067",
       "group": "POST /cms/users",
       "title": "400: invalid email (space inside)",
       "source": "documented",
@@ -2871,7 +2868,7 @@
       ]
     },
     {
-      "id": "CREATE-068",
+      "id": "USERS-CREATE-068",
       "group": "POST /cms/users",
       "title": "400: invalid email (255 characters)",
       "source": "stated",
@@ -2901,7 +2898,7 @@
       ]
     },
     {
-      "id": "CREATE-069",
+      "id": "USERS-CREATE-069",
       "group": "POST /cms/users",
       "title": "email of exactly 254 characters accepted",
       "source": "stated",
@@ -2931,7 +2928,7 @@
       ]
     },
     {
-      "id": "CREATE-070",
+      "id": "USERS-CREATE-070",
       "group": "POST /cms/users",
       "title": "400: email type is number",
       "source": "documented",
@@ -2955,7 +2952,7 @@
       ]
     },
     {
-      "id": "CREATE-071",
+      "id": "USERS-CREATE-071",
       "group": "POST /cms/users",
       "title": "email with plus tag accepted",
       "source": "inferred",
@@ -2983,7 +2980,7 @@
       ]
     },
     {
-      "id": "CREATE-072",
+      "id": "USERS-CREATE-072",
       "group": "POST /cms/users",
       "title": "duplicate username -> 409, original untouched",
       "source": "documented",
@@ -3037,7 +3034,7 @@
       ]
     },
     {
-      "id": "CREATE-073",
+      "id": "USERS-CREATE-073",
       "group": "POST /cms/users",
       "title": "409: duplicate username (different case)",
       "source": "inferred",
@@ -3064,7 +3061,7 @@
       ]
     },
     {
-      "id": "CREATE-074",
+      "id": "USERS-CREATE-074",
       "group": "POST /cms/users",
       "title": "409: duplicate username (suspended user (row still holds the key))",
       "source": "documented",
@@ -3091,7 +3088,7 @@
       ]
     },
     {
-      "id": "CREATE-075",
+      "id": "USERS-CREATE-075",
       "group": "POST /cms/users",
       "title": "409: duplicate username (an actor's name)",
       "source": "documented",
@@ -3118,7 +3115,7 @@
       ]
     },
     {
-      "id": "CREATE-076",
+      "id": "USERS-CREATE-076",
       "group": "POST /cms/users",
       "title": "409: duplicate username (padded with whitespace)",
       "source": "documented",
@@ -3145,7 +3142,7 @@
       ]
     },
     {
-      "id": "CREATE-077",
+      "id": "USERS-CREATE-077",
       "group": "POST /cms/users",
       "title": "same username created twice -> second is 409",
       "source": "documented",
@@ -3190,7 +3187,7 @@
       ]
     },
     {
-      "id": "CREATE-078",
+      "id": "USERS-CREATE-078",
       "group": "POST /cms/users",
       "title": "400: permissions negative",
       "source": "inferred",
@@ -3214,7 +3211,7 @@
       ]
     },
     {
-      "id": "CREATE-079",
+      "id": "USERS-CREATE-079",
       "group": "POST /cms/users",
       "title": "400: permissions above uint32 (4294967296)",
       "source": "inferred",
@@ -3238,7 +3235,7 @@
       ]
     },
     {
-      "id": "CREATE-080",
+      "id": "USERS-CREATE-080",
       "group": "POST /cms/users",
       "title": "400: permissions float",
       "source": "inferred",
@@ -3262,7 +3259,7 @@
       ]
     },
     {
-      "id": "CREATE-081",
+      "id": "USERS-CREATE-081",
       "group": "POST /cms/users",
       "title": "400: permissions string",
       "source": "inferred",
@@ -3286,7 +3283,7 @@
       ]
     },
     {
-      "id": "CREATE-082",
+      "id": "USERS-CREATE-082",
       "group": "POST /cms/users",
       "title": "400: permissions boolean",
       "source": "inferred",
@@ -3310,7 +3307,7 @@
       ]
     },
     {
-      "id": "CREATE-083",
+      "id": "USERS-CREATE-083",
       "group": "POST /cms/users",
       "title": "400: permissions array",
       "source": "inferred",
@@ -3334,7 +3331,7 @@
       ]
     },
     {
-      "id": "CREATE-084",
+      "id": "USERS-CREATE-084",
       "group": "POST /cms/users",
       "title": "400: permissions object",
       "source": "inferred",
@@ -3358,7 +3355,7 @@
       ]
     },
     {
-      "id": "CREATE-085",
+      "id": "USERS-CREATE-085",
       "group": "POST /cms/users",
       "title": "max uint32 permissions by root",
       "source": "inferred",
@@ -3388,7 +3385,7 @@
       ]
     },
     {
-      "id": "CREATE-086",
+      "id": "USERS-CREATE-086",
       "group": "POST /cms/users",
       "title": "actor `root` may create",
       "source": "documented",
@@ -3415,7 +3412,7 @@
       ]
     },
     {
-      "id": "CREATE-087",
+      "id": "USERS-CREATE-087",
       "group": "POST /cms/users",
       "title": "actor `creator` may create",
       "source": "documented",
@@ -3442,7 +3439,7 @@
       ]
     },
     {
-      "id": "CREATE-088",
+      "id": "USERS-CREATE-088",
       "group": "POST /cms/users",
       "title": "actor `editor` lacks users:create -> 401, nothing created",
       "source": "documented",
@@ -3483,7 +3480,7 @@
       ]
     },
     {
-      "id": "CREATE-089",
+      "id": "USERS-CREATE-089",
       "group": "POST /cms/users",
       "title": "actor `deleter` lacks users:create -> 401, nothing created",
       "source": "documented",
@@ -3524,7 +3521,7 @@
       ]
     },
     {
-      "id": "CREATE-090",
+      "id": "USERS-CREATE-090",
       "group": "POST /cms/users",
       "title": "actor `limited` may create",
       "source": "documented",
@@ -3551,7 +3548,7 @@
       ]
     },
     {
-      "id": "CREATE-091",
+      "id": "USERS-CREATE-091",
       "group": "POST /cms/users",
       "title": "actor `reader` lacks users:create -> 401, nothing created",
       "source": "documented",
@@ -3592,7 +3589,7 @@
       ]
     },
     {
-      "id": "CREATE-092",
+      "id": "USERS-CREATE-092",
       "group": "POST /cms/users",
       "title": "insufficient permission wins over invalid body",
       "source": "inferred",
@@ -3619,7 +3616,7 @@
       ]
     },
     {
-      "id": "CREATE-093",
+      "id": "USERS-CREATE-093",
       "group": "POST /cms/users",
       "title": "non-root cannot grant bits outside own mask (65536)",
       "source": "inferred",
@@ -3663,7 +3660,7 @@
       ]
     },
     {
-      "id": "CREATE-094",
+      "id": "USERS-CREATE-094",
       "group": "POST /cms/users",
       "title": "non-root cannot grant all bits",
       "source": "inferred",
@@ -3707,7 +3704,7 @@
       ]
     },
     {
-      "id": "CREATE-095",
+      "id": "USERS-CREATE-095",
       "group": "POST /cms/users",
       "title": "actor may grant its own exact mask",
       "source": "inferred",
@@ -3765,7 +3762,7 @@
       ]
     },
     {
-      "id": "CREATE-096",
+      "id": "USERS-CREATE-096",
       "group": "POST /cms/users",
       "title": "actor may grant a strict subset of its mask",
       "source": "inferred",
@@ -3823,7 +3820,7 @@
       ]
     },
     {
-      "id": "CREATE-097",
+      "id": "USERS-CREATE-097",
       "group": "POST /cms/users",
       "title": "`creator` cannot grant editor's mask (bit not held)",
       "source": "inferred",
@@ -3867,7 +3864,7 @@
       ]
     },
     {
-      "id": "CREATE-098",
+      "id": "USERS-CREATE-098",
       "group": "POST /cms/users",
       "title": "created user appears in GET /cms/users (cache invalidated)",
       "source": "inferred",
@@ -3930,7 +3927,7 @@
       ]
     },
     {
-      "id": "CREATE-099",
+      "id": "USERS-CREATE-099",
       "group": "POST /cms/users",
       "title": "created user becomes searchable (async index)",
       "source": "inferred",
@@ -3982,7 +3979,7 @@
       ]
     },
     {
-      "id": "AUTH-SEARCH-001",
+      "id": "USERS-AUTH-SEARCH-001",
       "group": "POST /cms/users/search",
       "title": "401: missing Authorization header",
       "source": "documented",
@@ -4006,7 +4003,7 @@
       ]
     },
     {
-      "id": "AUTH-SEARCH-002",
+      "id": "USERS-AUTH-SEARCH-002",
       "group": "POST /cms/users/search",
       "title": "401: empty bearer token",
       "source": "documented",
@@ -4031,7 +4028,7 @@
       ]
     },
     {
-      "id": "AUTH-SEARCH-003",
+      "id": "USERS-AUTH-SEARCH-003",
       "group": "POST /cms/users/search",
       "title": "401: wrong scheme (Basic)",
       "source": "documented",
@@ -4056,7 +4053,7 @@
       ]
     },
     {
-      "id": "AUTH-SEARCH-004",
+      "id": "USERS-AUTH-SEARCH-004",
       "group": "POST /cms/users/search",
       "title": "401: session id without Bearer prefix",
       "source": "documented",
@@ -4083,7 +4080,7 @@
       ]
     },
     {
-      "id": "AUTH-SEARCH-005",
+      "id": "USERS-AUTH-SEARCH-005",
       "group": "POST /cms/users/search",
       "title": "401: garbage session id",
       "source": "documented",
@@ -4108,7 +4105,7 @@
       ]
     },
     {
-      "id": "AUTH-SEARCH-006",
+      "id": "USERS-AUTH-SEARCH-006",
       "group": "POST /cms/users/search",
       "title": "401: expired session",
       "source": "documented",
@@ -4133,7 +4130,7 @@
       ]
     },
     {
-      "id": "AUTH-SEARCH-007",
+      "id": "USERS-AUTH-SEARCH-007",
       "group": "POST /cms/users/search",
       "title": "401 wins over invalid body",
       "source": "inferred",
@@ -4157,7 +4154,7 @@
       ]
     },
     {
-      "id": "TRANSPORT-SEARCH-001",
+      "id": "USERS-TRANSPORT-SEARCH-001",
       "group": "POST /cms/users/search",
       "title": "415: Content-Type text/plain",
       "source": "stated",
@@ -4181,7 +4178,7 @@
       ]
     },
     {
-      "id": "TRANSPORT-SEARCH-002",
+      "id": "USERS-TRANSPORT-SEARCH-002",
       "group": "POST /cms/users/search",
       "title": "415: Content-Type application/xml",
       "source": "stated",
@@ -4205,7 +4202,7 @@
       ]
     },
     {
-      "id": "TRANSPORT-SEARCH-003",
+      "id": "USERS-TRANSPORT-SEARCH-003",
       "group": "POST /cms/users/search",
       "title": "415: Content-Type multipart/form-data",
       "source": "stated",
@@ -4229,7 +4226,7 @@
       ]
     },
     {
-      "id": "TRANSPORT-SEARCH-004",
+      "id": "USERS-TRANSPORT-SEARCH-004",
       "group": "POST /cms/users/search",
       "title": "415: Content-Type application/x-www-form-urlencoded",
       "source": "stated",
@@ -4253,7 +4250,7 @@
       ]
     },
     {
-      "id": "TRANSPORT-SEARCH-005",
+      "id": "USERS-TRANSPORT-SEARCH-005",
       "group": "POST /cms/users/search",
       "title": "415: Content-Type header missing",
       "source": "stated",
@@ -4277,7 +4274,7 @@
       ]
     },
     {
-      "id": "TRANSPORT-SEARCH-006",
+      "id": "USERS-TRANSPORT-SEARCH-006",
       "group": "POST /cms/users/search",
       "title": "Content-Type with charset parameter accepted",
       "source": "inferred",
@@ -4301,7 +4298,7 @@
       ]
     },
     {
-      "id": "TRANSPORT-SEARCH-007",
+      "id": "USERS-TRANSPORT-SEARCH-007",
       "group": "POST /cms/users/search",
       "title": "Content-Type media type is case-insensitive",
       "source": "inferred",
@@ -4325,7 +4322,7 @@
       ]
     },
     {
-      "id": "TRANSPORT-SEARCH-008",
+      "id": "USERS-TRANSPORT-SEARCH-008",
       "group": "POST /cms/users/search",
       "title": "body of exactly 4096 bytes is accepted",
       "source": "inferred",
@@ -4353,7 +4350,7 @@
       "note": "Padding is an unknown extra field. Off-by-one risk in the limit reader."
     },
     {
-      "id": "TRANSPORT-SEARCH-009",
+      "id": "USERS-TRANSPORT-SEARCH-009",
       "group": "POST /cms/users/search",
       "title": "413: body of 4097 bytes",
       "source": "stated",
@@ -4380,7 +4377,7 @@
       ]
     },
     {
-      "id": "TRANSPORT-SEARCH-010",
+      "id": "USERS-TRANSPORT-SEARCH-010",
       "group": "POST /cms/users/search",
       "title": "400: truncated JSON",
       "source": "documented",
@@ -4404,7 +4401,7 @@
       ]
     },
     {
-      "id": "TRANSPORT-SEARCH-011",
+      "id": "USERS-TRANSPORT-SEARCH-011",
       "group": "POST /cms/users/search",
       "title": "400: empty body",
       "source": "documented",
@@ -4428,7 +4425,7 @@
       ]
     },
     {
-      "id": "TRANSPORT-SEARCH-012",
+      "id": "USERS-TRANSPORT-SEARCH-012",
       "group": "POST /cms/users/search",
       "title": "400: JSON array instead of object",
       "source": "documented",
@@ -4452,7 +4449,7 @@
       ]
     },
     {
-      "id": "TRANSPORT-SEARCH-013",
+      "id": "USERS-TRANSPORT-SEARCH-013",
       "group": "POST /cms/users/search",
       "title": "400: JSON string instead of object",
       "source": "documented",
@@ -4476,7 +4473,7 @@
       ]
     },
     {
-      "id": "TRANSPORT-SEARCH-014",
+      "id": "USERS-TRANSPORT-SEARCH-014",
       "group": "POST /cms/users/search",
       "title": "400: plain text",
       "source": "documented",
@@ -4500,7 +4497,7 @@
       ]
     },
     {
-      "id": "TRANSPORT-SEARCH-015",
+      "id": "USERS-TRANSPORT-SEARCH-015",
       "group": "POST /cms/users/search",
       "title": "400: unterminated string",
       "source": "documented",
@@ -4524,7 +4521,7 @@
       ]
     },
     {
-      "id": "SEARCH-001",
+      "id": "USERS-SEARCH-001",
       "group": "POST /cms/users/search",
       "title": "empty filters return everyone, documented shape",
       "source": "documented",
@@ -4584,7 +4581,7 @@
       "note": "Includes suspended users unless filtered."
     },
     {
-      "id": "SEARCH-002",
+      "id": "USERS-SEARCH-002",
       "group": "POST /cms/users/search",
       "title": "result items have documented fields and types",
       "source": "documented",
@@ -4633,7 +4630,7 @@
       ]
     },
     {
-      "id": "SEARCH-003",
+      "id": "USERS-SEARCH-003",
       "group": "POST /cms/users/search",
       "title": "any authenticated user (`reader`) may search",
       "source": "documented",
@@ -4666,7 +4663,7 @@
       ]
     },
     {
-      "id": "SEARCH-004",
+      "id": "USERS-SEARCH-004",
       "group": "POST /cms/users/search",
       "title": "any authenticated user (`creator`) may search",
       "source": "documented",
@@ -4699,7 +4696,7 @@
       ]
     },
     {
-      "id": "SEARCH-005",
+      "id": "USERS-SEARCH-005",
       "group": "POST /cms/users/search",
       "title": "any authenticated user (`deleter`) may search",
       "source": "documented",
@@ -4732,7 +4729,7 @@
       ]
     },
     {
-      "id": "SEARCH-006",
+      "id": "USERS-SEARCH-006",
       "group": "POST /cms/users/search",
       "title": "query by username",
       "source": "documented",
@@ -4770,7 +4767,7 @@
       ]
     },
     {
-      "id": "SEARCH-007",
+      "id": "USERS-SEARCH-007",
       "group": "POST /cms/users/search",
       "title": "query by email",
       "source": "documented",
@@ -4808,7 +4805,7 @@
       ]
     },
     {
-      "id": "SEARCH-008",
+      "id": "USERS-SEARCH-008",
       "group": "POST /cms/users/search",
       "title": "query case-insensitive",
       "source": "inferred",
@@ -4841,7 +4838,7 @@
       ]
     },
     {
-      "id": "SEARCH-009",
+      "id": "USERS-SEARCH-009",
       "group": "POST /cms/users/search",
       "title": "query surrounding whitespace trimmed",
       "source": "inferred",
@@ -4874,7 +4871,7 @@
       ]
     },
     {
-      "id": "SEARCH-010",
+      "id": "USERS-SEARCH-010",
       "group": "POST /cms/users/search",
       "title": "query prefix",
       "source": "inferred",
@@ -4912,7 +4909,7 @@
       ]
     },
     {
-      "id": "SEARCH-011",
+      "id": "USERS-SEARCH-011",
       "group": "POST /cms/users/search",
       "title": "query full email",
       "source": "inferred",
@@ -4945,7 +4942,7 @@
       ]
     },
     {
-      "id": "SEARCH-012",
+      "id": "USERS-SEARCH-012",
       "group": "POST /cms/users/search",
       "title": "no match -> empty array, not null",
       "source": "documented",
@@ -4989,7 +4986,7 @@
       ]
     },
     {
-      "id": "SEARCH-013",
+      "id": "USERS-SEARCH-013",
       "group": "POST /cms/users/search",
       "title": "query text with double quote is treated as text",
       "source": "inferred",
@@ -5033,7 +5030,7 @@
       ]
     },
     {
-      "id": "SEARCH-014",
+      "id": "USERS-SEARCH-014",
       "group": "POST /cms/users/search",
       "title": "query text with sql-ish is treated as text",
       "source": "inferred",
@@ -5077,7 +5074,7 @@
       ]
     },
     {
-      "id": "SEARCH-015",
+      "id": "USERS-SEARCH-015",
       "group": "POST /cms/users/search",
       "title": "query text with backslash is treated as text",
       "source": "inferred",
@@ -5121,7 +5118,7 @@
       ]
     },
     {
-      "id": "SEARCH-016",
+      "id": "USERS-SEARCH-016",
       "group": "POST /cms/users/search",
       "title": "query text with wildcards is treated as text",
       "source": "inferred",
@@ -5165,7 +5162,7 @@
       ]
     },
     {
-      "id": "SEARCH-017",
+      "id": "USERS-SEARCH-017",
       "group": "POST /cms/users/search",
       "title": "query text with filter-syntax injection is treated as text",
       "source": "inferred",
@@ -5209,7 +5206,7 @@
       ]
     },
     {
-      "id": "SEARCH-018",
+      "id": "USERS-SEARCH-018",
       "group": "POST /cms/users/search",
       "title": "query text with 1000 characters is treated as text",
       "source": "inferred",
@@ -5258,7 +5255,7 @@
       ]
     },
     {
-      "id": "SEARCH-019",
+      "id": "USERS-SEARCH-019",
       "group": "POST /cms/users/search",
       "title": "query text with emoji is treated as text",
       "source": "inferred",
@@ -5302,7 +5299,7 @@
       ]
     },
     {
-      "id": "SEARCH-020",
+      "id": "USERS-SEARCH-020",
       "group": "POST /cms/users/search",
       "title": "query null treated as empty",
       "source": "inferred",
@@ -5343,7 +5340,7 @@
       ]
     },
     {
-      "id": "SEARCH-021",
+      "id": "USERS-SEARCH-021",
       "group": "POST /cms/users/search",
       "title": "400: query is a number",
       "source": "documented",
@@ -5367,7 +5364,7 @@
       ]
     },
     {
-      "id": "SEARCH-022",
+      "id": "USERS-SEARCH-022",
       "group": "POST /cms/users/search",
       "title": "400: query is an array",
       "source": "documented",
@@ -5391,7 +5388,7 @@
       ]
     },
     {
-      "id": "SEARCH-023",
+      "id": "USERS-SEARCH-023",
       "group": "POST /cms/users/search",
       "title": "count=2 -> exactly 2 results",
       "source": "documented",
@@ -5429,7 +5426,7 @@
       ]
     },
     {
-      "id": "SEARCH-024",
+      "id": "USERS-SEARCH-024",
       "group": "POST /cms/users/search",
       "title": "count=1 -> last_page equals total",
       "source": "documented",
@@ -5467,7 +5464,7 @@
       ]
     },
     {
-      "id": "SEARCH-025",
+      "id": "USERS-SEARCH-025",
       "group": "POST /cms/users/search",
       "title": "count above cap (1000) is capped at 100",
       "source": "documented",
@@ -5500,7 +5497,7 @@
       ]
     },
     {
-      "id": "SEARCH-026",
+      "id": "USERS-SEARCH-026",
       "group": "POST /cms/users/search",
       "title": "count=100 accepted",
       "source": "documented",
@@ -5533,7 +5530,7 @@
       ]
     },
     {
-      "id": "SEARCH-027",
+      "id": "USERS-SEARCH-027",
       "group": "POST /cms/users/search",
       "title": "page past the end -> empty results",
       "source": "inferred",
@@ -5572,7 +5569,7 @@
       ]
     },
     {
-      "id": "SEARCH-028",
+      "id": "USERS-SEARCH-028",
       "group": "POST /cms/users/search",
       "title": "explicit page=1",
       "source": "documented",
@@ -5606,7 +5603,7 @@
       ]
     },
     {
-      "id": "SEARCH-029",
+      "id": "USERS-SEARCH-029",
       "group": "POST /cms/users/search",
       "title": "count=0 is clamped to defaults",
       "source": "inferred",
@@ -5650,7 +5647,7 @@
       "note": "Assumes ClampParams normalises instead of rejecting."
     },
     {
-      "id": "SEARCH-030",
+      "id": "USERS-SEARCH-030",
       "group": "POST /cms/users/search",
       "title": "count=-1 is clamped to defaults",
       "source": "inferred",
@@ -5694,7 +5691,7 @@
       "note": "Assumes ClampParams normalises instead of rejecting."
     },
     {
-      "id": "SEARCH-031",
+      "id": "USERS-SEARCH-031",
       "group": "POST /cms/users/search",
       "title": "page=0 is clamped to defaults",
       "source": "inferred",
@@ -5738,7 +5735,7 @@
       "note": "Assumes ClampParams normalises instead of rejecting."
     },
     {
-      "id": "SEARCH-032",
+      "id": "USERS-SEARCH-032",
       "group": "POST /cms/users/search",
       "title": "page=-1 is clamped to defaults",
       "source": "inferred",
@@ -5782,7 +5779,7 @@
       "note": "Assumes ClampParams normalises instead of rejecting."
     },
     {
-      "id": "SEARCH-033",
+      "id": "USERS-SEARCH-033",
       "group": "POST /cms/users/search",
       "title": "400: count=1.5",
       "source": "documented",
@@ -5806,7 +5803,7 @@
       ]
     },
     {
-      "id": "SEARCH-034",
+      "id": "USERS-SEARCH-034",
       "group": "POST /cms/users/search",
       "title": "400: count=\"10\"",
       "source": "documented",
@@ -5830,7 +5827,7 @@
       ]
     },
     {
-      "id": "SEARCH-035",
+      "id": "USERS-SEARCH-035",
       "group": "POST /cms/users/search",
       "title": "400: page=\"a\"",
       "source": "documented",
@@ -5854,7 +5851,7 @@
       ]
     },
     {
-      "id": "SEARCH-036",
+      "id": "USERS-SEARCH-036",
       "group": "POST /cms/users/search",
       "title": "400: page=1.5",
       "source": "documented",
@@ -5878,7 +5875,7 @@
       ]
     },
     {
-      "id": "SEARCH-037",
+      "id": "USERS-SEARCH-037",
       "group": "POST /cms/users/search",
       "title": "400: count=true",
       "source": "documented",
@@ -5902,7 +5899,7 @@
       ]
     },
     {
-      "id": "SEARCH-038",
+      "id": "USERS-SEARCH-038",
       "group": "POST /cms/users/search",
       "title": "sort_by username:asc",
       "source": "documented",
@@ -5935,7 +5932,7 @@
       ]
     },
     {
-      "id": "SEARCH-039",
+      "id": "USERS-SEARCH-039",
       "group": "POST /cms/users/search",
       "title": "sort_by username:desc",
       "source": "documented",
@@ -5968,7 +5965,7 @@
       ]
     },
     {
-      "id": "SEARCH-040",
+      "id": "USERS-SEARCH-040",
       "group": "POST /cms/users/search",
       "title": "sort_by last_login:asc accepted",
       "source": "documented",
@@ -6012,7 +6009,7 @@
       ]
     },
     {
-      "id": "SEARCH-041",
+      "id": "USERS-SEARCH-041",
       "group": "POST /cms/users/search",
       "title": "sort_by last_login:desc accepted",
       "source": "documented",
@@ -6056,7 +6053,7 @@
       ]
     },
     {
-      "id": "SEARCH-042",
+      "id": "USERS-SEARCH-042",
       "group": "POST /cms/users/search",
       "title": "sort_by suspended_at:asc accepted",
       "source": "documented",
@@ -6100,7 +6097,7 @@
       ]
     },
     {
-      "id": "SEARCH-043",
+      "id": "USERS-SEARCH-043",
       "group": "POST /cms/users/search",
       "title": "sort_by suspended_at:desc accepted",
       "source": "documented",
@@ -6144,7 +6141,7 @@
       ]
     },
     {
-      "id": "SEARCH-044",
+      "id": "USERS-SEARCH-044",
       "group": "POST /cms/users/search",
       "title": "400: sort_by email is not sortable",
       "source": "documented",
@@ -6171,7 +6168,7 @@
       ]
     },
     {
-      "id": "SEARCH-045",
+      "id": "USERS-SEARCH-045",
       "group": "POST /cms/users/search",
       "title": "400: sort_by permissions is not sortable",
       "source": "documented",
@@ -6198,7 +6195,7 @@
       ]
     },
     {
-      "id": "SEARCH-046",
+      "id": "USERS-SEARCH-046",
       "group": "POST /cms/users/search",
       "title": "400: sort_by unknown column",
       "source": "inferred",
@@ -6225,7 +6222,7 @@
       ]
     },
     {
-      "id": "SEARCH-047",
+      "id": "USERS-SEARCH-047",
       "group": "POST /cms/users/search",
       "title": "400: sort_by missing direction",
       "source": "inferred",
@@ -6252,7 +6249,7 @@
       ]
     },
     {
-      "id": "SEARCH-048",
+      "id": "USERS-SEARCH-048",
       "group": "POST /cms/users/search",
       "title": "400: sort_by bad direction",
       "source": "inferred",
@@ -6279,7 +6276,7 @@
       ]
     },
     {
-      "id": "SEARCH-049",
+      "id": "USERS-SEARCH-049",
       "group": "POST /cms/users/search",
       "title": "400: sort_by missing column",
       "source": "inferred",
@@ -6306,7 +6303,7 @@
       ]
     },
     {
-      "id": "SEARCH-050",
+      "id": "USERS-SEARCH-050",
       "group": "POST /cms/users/search",
       "title": "400: sort_by too many parts",
       "source": "inferred",
@@ -6333,7 +6330,7 @@
       ]
     },
     {
-      "id": "SEARCH-051",
+      "id": "USERS-SEARCH-051",
       "group": "POST /cms/users/search",
       "title": "400: sort_by blank",
       "source": "inferred",
@@ -6360,7 +6357,7 @@
       ]
     },
     {
-      "id": "SEARCH-052",
+      "id": "USERS-SEARCH-052",
       "group": "POST /cms/users/search",
       "title": "400: sort_by injection",
       "source": "inferred",
@@ -6387,7 +6384,7 @@
       ]
     },
     {
-      "id": "SEARCH-053",
+      "id": "USERS-SEARCH-053",
       "group": "POST /cms/users/search",
       "title": "400: sort_by is a number",
       "source": "documented",
@@ -6411,7 +6408,7 @@
       ]
     },
     {
-      "id": "SEARCH-054",
+      "id": "USERS-SEARCH-054",
       "group": "POST /cms/users/search",
       "title": "permissions exact match",
       "source": "documented",
@@ -6455,7 +6452,7 @@
       ]
     },
     {
-      "id": "SEARCH-055",
+      "id": "USERS-SEARCH-055",
       "group": "POST /cms/users/search",
       "title": "permissions = 0 matches the zero-permission user",
       "source": "inferred",
@@ -6494,7 +6491,7 @@
       ]
     },
     {
-      "id": "SEARCH-056",
+      "id": "USERS-SEARCH-056",
       "group": "POST /cms/users/search",
       "title": "permissions = max uint32",
       "source": "documented",
@@ -6533,7 +6530,7 @@
       ]
     },
     {
-      "id": "SEARCH-057",
+      "id": "USERS-SEARCH-057",
       "group": "POST /cms/users/search",
       "title": "permissions null -> filter ignored",
       "source": "inferred",
@@ -6569,7 +6566,7 @@
       ]
     },
     {
-      "id": "SEARCH-058",
+      "id": "USERS-SEARCH-058",
       "group": "POST /cms/users/search",
       "title": "400: permissions negative",
       "source": "documented",
@@ -6593,7 +6590,7 @@
       ]
     },
     {
-      "id": "SEARCH-059",
+      "id": "USERS-SEARCH-059",
       "group": "POST /cms/users/search",
       "title": "400: permissions above uint32",
       "source": "documented",
@@ -6617,7 +6614,7 @@
       ]
     },
     {
-      "id": "SEARCH-060",
+      "id": "USERS-SEARCH-060",
       "group": "POST /cms/users/search",
       "title": "400: permissions string",
       "source": "documented",
@@ -6641,7 +6638,7 @@
       ]
     },
     {
-      "id": "SEARCH-061",
+      "id": "USERS-SEARCH-061",
       "group": "POST /cms/users/search",
       "title": "400: permissions float",
       "source": "documented",
@@ -6665,7 +6662,7 @@
       ]
     },
     {
-      "id": "SEARCH-062",
+      "id": "USERS-SEARCH-062",
       "group": "POST /cms/users/search",
       "title": "400: permissions boolean",
       "source": "documented",
@@ -6689,7 +6686,7 @@
       ]
     },
     {
-      "id": "SEARCH-063",
+      "id": "USERS-SEARCH-063",
       "group": "POST /cms/users/search",
       "title": "suspended=true -> only suspended",
       "source": "documented",
@@ -6733,7 +6730,7 @@
       ]
     },
     {
-      "id": "SEARCH-064",
+      "id": "USERS-SEARCH-064",
       "group": "POST /cms/users/search",
       "title": "suspended=false -> only active",
       "source": "documented",
@@ -6777,7 +6774,7 @@
       ]
     },
     {
-      "id": "SEARCH-065",
+      "id": "USERS-SEARCH-065",
       "group": "POST /cms/users/search",
       "title": "suspended null -> filter ignored",
       "source": "inferred",
@@ -6813,7 +6810,7 @@
       ]
     },
     {
-      "id": "SEARCH-066",
+      "id": "USERS-SEARCH-066",
       "group": "POST /cms/users/search",
       "title": "400: suspended is string",
       "source": "documented",
@@ -6837,7 +6834,7 @@
       ]
     },
     {
-      "id": "SEARCH-067",
+      "id": "USERS-SEARCH-067",
       "group": "POST /cms/users/search",
       "title": "400: suspended is number",
       "source": "documented",
@@ -6861,7 +6858,7 @@
       ]
     },
     {
-      "id": "SEARCH-068",
+      "id": "USERS-SEARCH-068",
       "group": "POST /cms/users/search",
       "title": "400: suspended is array",
       "source": "documented",
@@ -6885,7 +6882,7 @@
       ]
     },
     {
-      "id": "SEARCH-069",
+      "id": "USERS-SEARCH-069",
       "group": "POST /cms/users/search",
       "title": "suspended_after before suspension includes bobby",
       "source": "documented",
@@ -6924,7 +6921,7 @@
       ]
     },
     {
-      "id": "SEARCH-070",
+      "id": "USERS-SEARCH-070",
       "group": "POST /cms/users/search",
       "title": "suspended_after after suspension excludes bobby",
       "source": "documented",
@@ -6958,7 +6955,7 @@
       ]
     },
     {
-      "id": "SEARCH-071",
+      "id": "USERS-SEARCH-071",
       "group": "POST /cms/users/search",
       "title": "suspended_before after suspension includes bobby",
       "source": "documented",
@@ -6997,7 +6994,7 @@
       ]
     },
     {
-      "id": "SEARCH-072",
+      "id": "USERS-SEARCH-072",
       "group": "POST /cms/users/search",
       "title": "suspended_before earlier than suspension excludes bobby",
       "source": "documented",
@@ -7036,7 +7033,7 @@
       ]
     },
     {
-      "id": "SEARCH-073",
+      "id": "USERS-SEARCH-073",
       "group": "POST /cms/users/search",
       "title": "suspended_after is inclusive at exact timestamp",
       "source": "inferred",
@@ -7070,7 +7067,7 @@
       ]
     },
     {
-      "id": "SEARCH-074",
+      "id": "USERS-SEARCH-074",
       "group": "POST /cms/users/search",
       "title": "suspended_before is inclusive at exact timestamp",
       "source": "inferred",
@@ -7104,7 +7101,7 @@
       ]
     },
     {
-      "id": "SEARCH-075",
+      "id": "USERS-SEARCH-075",
       "group": "POST /cms/users/search",
       "title": "last_login_after (dave, never carol)",
       "source": "documented",
@@ -7148,7 +7145,7 @@
       ]
     },
     {
-      "id": "SEARCH-076",
+      "id": "USERS-SEARCH-076",
       "group": "POST /cms/users/search",
       "title": "last_login_before excludes never-logged-in users",
       "source": "documented",
@@ -7192,7 +7189,7 @@
       ]
     },
     {
-      "id": "SEARCH-077",
+      "id": "USERS-SEARCH-077",
       "group": "POST /cms/users/search",
       "title": "last_login_before is inclusive at exact timestamp",
       "source": "inferred",
@@ -7226,7 +7223,7 @@
       ]
     },
     {
-      "id": "SEARCH-078",
+      "id": "USERS-SEARCH-078",
       "group": "POST /cms/users/search",
       "title": "last_login_after = 0 excludes never-logged-in users",
       "source": "inferred",
@@ -7265,7 +7262,7 @@
       ]
     },
     {
-      "id": "SEARCH-079",
+      "id": "USERS-SEARCH-079",
       "group": "POST /cms/users/search",
       "title": "negative timestamp accepted",
       "source": "inferred",
@@ -7304,7 +7301,7 @@
       ]
     },
     {
-      "id": "SEARCH-080",
+      "id": "USERS-SEARCH-080",
       "group": "POST /cms/users/search",
       "title": "max int64 timestamp accepted -> no matches",
       "source": "inferred",
@@ -7338,7 +7335,7 @@
       ]
     },
     {
-      "id": "SEARCH-081",
+      "id": "USERS-SEARCH-081",
       "group": "POST /cms/users/search",
       "title": "after > before -> empty",
       "source": "inferred",
@@ -7373,7 +7370,7 @@
       ]
     },
     {
-      "id": "SEARCH-082",
+      "id": "USERS-SEARCH-082",
       "group": "POST /cms/users/search",
       "title": "combined: permissions=3 AND suspended=false",
       "source": "documented",
@@ -7413,7 +7410,7 @@
       ]
     },
     {
-      "id": "SEARCH-083",
+      "id": "USERS-SEARCH-083",
       "group": "POST /cms/users/search",
       "title": "combined: query + suspended=true -> no match",
       "source": "documented",
@@ -7448,7 +7445,7 @@
       ]
     },
     {
-      "id": "SEARCH-084",
+      "id": "USERS-SEARCH-084",
       "group": "POST /cms/users/search",
       "title": "combined: suspended=true AND suspended_after",
       "source": "documented",
@@ -7483,7 +7480,7 @@
       ]
     },
     {
-      "id": "SEARCH-085",
+      "id": "USERS-SEARCH-085",
       "group": "POST /cms/users/search",
       "title": "400: suspended_after free text string",
       "source": "inferred",
@@ -7507,7 +7504,7 @@
       ]
     },
     {
-      "id": "SEARCH-086",
+      "id": "USERS-SEARCH-086",
       "group": "POST /cms/users/search",
       "title": "400: suspended_after empty string",
       "source": "inferred",
@@ -7531,7 +7528,7 @@
       ]
     },
     {
-      "id": "SEARCH-087",
+      "id": "USERS-SEARCH-087",
       "group": "POST /cms/users/search",
       "title": "400: suspended_after RFC 3339 string",
       "source": "inferred",
@@ -7555,7 +7552,7 @@
       ]
     },
     {
-      "id": "SEARCH-088",
+      "id": "USERS-SEARCH-088",
       "group": "POST /cms/users/search",
       "title": "400: suspended_after numeric string",
       "source": "inferred",
@@ -7579,7 +7576,7 @@
       ]
     },
     {
-      "id": "SEARCH-089",
+      "id": "USERS-SEARCH-089",
       "group": "POST /cms/users/search",
       "title": "400: suspended_after float",
       "source": "documented",
@@ -7603,7 +7600,7 @@
       ]
     },
     {
-      "id": "SEARCH-090",
+      "id": "USERS-SEARCH-090",
       "group": "POST /cms/users/search",
       "title": "400: suspended_after boolean",
       "source": "inferred",
@@ -7627,7 +7624,7 @@
       ]
     },
     {
-      "id": "SEARCH-091",
+      "id": "USERS-SEARCH-091",
       "group": "POST /cms/users/search",
       "title": "400: suspended_after array",
       "source": "inferred",
@@ -7651,7 +7648,7 @@
       ]
     },
     {
-      "id": "SEARCH-092",
+      "id": "USERS-SEARCH-092",
       "group": "POST /cms/users/search",
       "title": "400: suspended_after int64 overflow",
       "source": "inferred",
@@ -7675,7 +7672,7 @@
       ]
     },
     {
-      "id": "SEARCH-093",
+      "id": "USERS-SEARCH-093",
       "group": "POST /cms/users/search",
       "title": "suspended_after null -> filter ignored",
       "source": "inferred",
@@ -7706,7 +7703,7 @@
       ]
     },
     {
-      "id": "SEARCH-094",
+      "id": "USERS-SEARCH-094",
       "group": "POST /cms/users/search",
       "title": "400: suspended_before free text string",
       "source": "inferred",
@@ -7730,7 +7727,7 @@
       ]
     },
     {
-      "id": "SEARCH-095",
+      "id": "USERS-SEARCH-095",
       "group": "POST /cms/users/search",
       "title": "400: suspended_before empty string",
       "source": "inferred",
@@ -7754,7 +7751,7 @@
       ]
     },
     {
-      "id": "SEARCH-096",
+      "id": "USERS-SEARCH-096",
       "group": "POST /cms/users/search",
       "title": "400: suspended_before RFC 3339 string",
       "source": "inferred",
@@ -7778,7 +7775,7 @@
       ]
     },
     {
-      "id": "SEARCH-097",
+      "id": "USERS-SEARCH-097",
       "group": "POST /cms/users/search",
       "title": "400: suspended_before numeric string",
       "source": "inferred",
@@ -7802,7 +7799,7 @@
       ]
     },
     {
-      "id": "SEARCH-098",
+      "id": "USERS-SEARCH-098",
       "group": "POST /cms/users/search",
       "title": "400: suspended_before float",
       "source": "documented",
@@ -7826,7 +7823,7 @@
       ]
     },
     {
-      "id": "SEARCH-099",
+      "id": "USERS-SEARCH-099",
       "group": "POST /cms/users/search",
       "title": "400: suspended_before boolean",
       "source": "inferred",
@@ -7850,7 +7847,7 @@
       ]
     },
     {
-      "id": "SEARCH-100",
+      "id": "USERS-SEARCH-100",
       "group": "POST /cms/users/search",
       "title": "400: suspended_before array",
       "source": "inferred",
@@ -7874,7 +7871,7 @@
       ]
     },
     {
-      "id": "SEARCH-101",
+      "id": "USERS-SEARCH-101",
       "group": "POST /cms/users/search",
       "title": "400: suspended_before int64 overflow",
       "source": "inferred",
@@ -7898,7 +7895,7 @@
       ]
     },
     {
-      "id": "SEARCH-102",
+      "id": "USERS-SEARCH-102",
       "group": "POST /cms/users/search",
       "title": "suspended_before null -> filter ignored",
       "source": "inferred",
@@ -7929,7 +7926,7 @@
       ]
     },
     {
-      "id": "SEARCH-103",
+      "id": "USERS-SEARCH-103",
       "group": "POST /cms/users/search",
       "title": "400: last_login_after free text string",
       "source": "inferred",
@@ -7953,7 +7950,7 @@
       ]
     },
     {
-      "id": "SEARCH-104",
+      "id": "USERS-SEARCH-104",
       "group": "POST /cms/users/search",
       "title": "400: last_login_after empty string",
       "source": "inferred",
@@ -7977,7 +7974,7 @@
       ]
     },
     {
-      "id": "SEARCH-105",
+      "id": "USERS-SEARCH-105",
       "group": "POST /cms/users/search",
       "title": "400: last_login_after RFC 3339 string",
       "source": "inferred",
@@ -8001,7 +7998,7 @@
       ]
     },
     {
-      "id": "SEARCH-106",
+      "id": "USERS-SEARCH-106",
       "group": "POST /cms/users/search",
       "title": "400: last_login_after numeric string",
       "source": "inferred",
@@ -8025,7 +8022,7 @@
       ]
     },
     {
-      "id": "SEARCH-107",
+      "id": "USERS-SEARCH-107",
       "group": "POST /cms/users/search",
       "title": "400: last_login_after float",
       "source": "documented",
@@ -8049,7 +8046,7 @@
       ]
     },
     {
-      "id": "SEARCH-108",
+      "id": "USERS-SEARCH-108",
       "group": "POST /cms/users/search",
       "title": "400: last_login_after boolean",
       "source": "inferred",
@@ -8073,7 +8070,7 @@
       ]
     },
     {
-      "id": "SEARCH-109",
+      "id": "USERS-SEARCH-109",
       "group": "POST /cms/users/search",
       "title": "400: last_login_after array",
       "source": "inferred",
@@ -8097,7 +8094,7 @@
       ]
     },
     {
-      "id": "SEARCH-110",
+      "id": "USERS-SEARCH-110",
       "group": "POST /cms/users/search",
       "title": "400: last_login_after int64 overflow",
       "source": "inferred",
@@ -8121,7 +8118,7 @@
       ]
     },
     {
-      "id": "SEARCH-111",
+      "id": "USERS-SEARCH-111",
       "group": "POST /cms/users/search",
       "title": "last_login_after null -> filter ignored",
       "source": "inferred",
@@ -8152,7 +8149,7 @@
       ]
     },
     {
-      "id": "SEARCH-112",
+      "id": "USERS-SEARCH-112",
       "group": "POST /cms/users/search",
       "title": "400: last_login_before free text string",
       "source": "inferred",
@@ -8176,7 +8173,7 @@
       ]
     },
     {
-      "id": "SEARCH-113",
+      "id": "USERS-SEARCH-113",
       "group": "POST /cms/users/search",
       "title": "400: last_login_before empty string",
       "source": "inferred",
@@ -8200,7 +8197,7 @@
       ]
     },
     {
-      "id": "SEARCH-114",
+      "id": "USERS-SEARCH-114",
       "group": "POST /cms/users/search",
       "title": "400: last_login_before RFC 3339 string",
       "source": "inferred",
@@ -8224,7 +8221,7 @@
       ]
     },
     {
-      "id": "SEARCH-115",
+      "id": "USERS-SEARCH-115",
       "group": "POST /cms/users/search",
       "title": "400: last_login_before numeric string",
       "source": "inferred",
@@ -8248,7 +8245,7 @@
       ]
     },
     {
-      "id": "SEARCH-116",
+      "id": "USERS-SEARCH-116",
       "group": "POST /cms/users/search",
       "title": "400: last_login_before float",
       "source": "documented",
@@ -8272,7 +8269,7 @@
       ]
     },
     {
-      "id": "SEARCH-117",
+      "id": "USERS-SEARCH-117",
       "group": "POST /cms/users/search",
       "title": "400: last_login_before boolean",
       "source": "inferred",
@@ -8296,7 +8293,7 @@
       ]
     },
     {
-      "id": "SEARCH-118",
+      "id": "USERS-SEARCH-118",
       "group": "POST /cms/users/search",
       "title": "400: last_login_before array",
       "source": "inferred",
@@ -8320,7 +8317,7 @@
       ]
     },
     {
-      "id": "SEARCH-119",
+      "id": "USERS-SEARCH-119",
       "group": "POST /cms/users/search",
       "title": "400: last_login_before int64 overflow",
       "source": "inferred",
@@ -8344,7 +8341,7 @@
       ]
     },
     {
-      "id": "SEARCH-120",
+      "id": "USERS-SEARCH-120",
       "group": "POST /cms/users/search",
       "title": "last_login_before null -> filter ignored",
       "source": "inferred",
@@ -8375,7 +8372,7 @@
       ]
     },
     {
-      "id": "SEARCH-121",
+      "id": "USERS-SEARCH-121",
       "group": "POST /cms/users/search",
       "title": "unknown fields are ignored",
       "source": "documented",
@@ -8412,7 +8409,7 @@
       ]
     },
     {
-      "id": "SEARCH-122",
+      "id": "USERS-SEARCH-122",
       "group": "POST /cms/users/search",
       "title": "index reflects email change (async)",
       "source": "inferred",
@@ -8466,7 +8463,7 @@
       ]
     },
     {
-      "id": "SEARCH-123",
+      "id": "USERS-SEARCH-123",
       "group": "POST /cms/users/search",
       "title": "index reflects suspension (async)",
       "source": "inferred",
@@ -8541,7 +8538,7 @@
       ]
     },
     {
-      "id": "SEARCH-124",
+      "id": "USERS-SEARCH-124",
       "group": "POST /cms/users/search",
       "title": "index reflects permission change (async)",
       "source": "inferred",
@@ -8595,7 +8592,7 @@
       ]
     },
     {
-      "id": "AUTH-LIST-001",
+      "id": "USERS-AUTH-LIST-001",
       "group": "GET /cms/users",
       "title": "401: missing Authorization header",
       "source": "documented",
@@ -8616,7 +8613,7 @@
       ]
     },
     {
-      "id": "AUTH-LIST-002",
+      "id": "USERS-AUTH-LIST-002",
       "group": "GET /cms/users",
       "title": "401: empty bearer token",
       "source": "documented",
@@ -8639,7 +8636,7 @@
       ]
     },
     {
-      "id": "AUTH-LIST-003",
+      "id": "USERS-AUTH-LIST-003",
       "group": "GET /cms/users",
       "title": "401: wrong scheme (Basic)",
       "source": "documented",
@@ -8662,7 +8659,7 @@
       ]
     },
     {
-      "id": "AUTH-LIST-004",
+      "id": "USERS-AUTH-LIST-004",
       "group": "GET /cms/users",
       "title": "401: session id without Bearer prefix",
       "source": "documented",
@@ -8687,7 +8684,7 @@
       ]
     },
     {
-      "id": "AUTH-LIST-005",
+      "id": "USERS-AUTH-LIST-005",
       "group": "GET /cms/users",
       "title": "401: garbage session id",
       "source": "documented",
@@ -8710,7 +8707,7 @@
       ]
     },
     {
-      "id": "AUTH-LIST-006",
+      "id": "USERS-AUTH-LIST-006",
       "group": "GET /cms/users",
       "title": "401: expired session",
       "source": "documented",
@@ -8733,7 +8730,7 @@
       ]
     },
     {
-      "id": "TRANSPORT-LIST-001",
+      "id": "USERS-TRANSPORT-LIST-001",
       "group": "GET /cms/users",
       "title": "200: Content-Type text/plain",
       "source": "inferred",
@@ -8764,7 +8761,7 @@
       "note": "Content-Type is ignored for requests without body."
     },
     {
-      "id": "TRANSPORT-LIST-002",
+      "id": "USERS-TRANSPORT-LIST-002",
       "group": "GET /cms/users",
       "title": "413: body of 4097 bytes",
       "source": "inferred",
@@ -8791,7 +8788,7 @@
       ]
     },
     {
-      "id": "LIST-001",
+      "id": "USERS-LIST-001",
       "group": "GET /cms/users",
       "title": "returns array of non-suspended users with documented fields",
       "source": "documented",
@@ -8856,7 +8853,7 @@
       ]
     },
     {
-      "id": "LIST-002",
+      "id": "USERS-LIST-002",
       "group": "GET /cms/users",
       "title": "suspended users are excluded",
       "source": "documented",
@@ -8883,7 +8880,7 @@
       ]
     },
     {
-      "id": "LIST-003",
+      "id": "USERS-LIST-003",
       "group": "GET /cms/users",
       "title": "suspended_at is null for every listed user",
       "source": "inferred",
@@ -8909,7 +8906,7 @@
       ]
     },
     {
-      "id": "LIST-004",
+      "id": "USERS-LIST-004",
       "group": "GET /cms/users",
       "title": "any authenticated user (`reader`) may list",
       "source": "documented",
@@ -8936,7 +8933,7 @@
       ]
     },
     {
-      "id": "LIST-005",
+      "id": "USERS-LIST-005",
       "group": "GET /cms/users",
       "title": "any authenticated user (`creator`) may list",
       "source": "documented",
@@ -8963,7 +8960,7 @@
       ]
     },
     {
-      "id": "LIST-006",
+      "id": "USERS-LIST-006",
       "group": "GET /cms/users",
       "title": "any authenticated user (`editor`) may list",
       "source": "documented",
@@ -8990,7 +8987,7 @@
       ]
     },
     {
-      "id": "LIST-007",
+      "id": "USERS-LIST-007",
       "group": "GET /cms/users",
       "title": "any authenticated user (`deleter`) may list",
       "source": "documented",
@@ -9017,7 +9014,7 @@
       ]
     },
     {
-      "id": "LIST-008",
+      "id": "USERS-LIST-008",
       "group": "GET /cms/users",
       "title": "request body is ignored",
       "source": "inferred",
@@ -9048,7 +9045,7 @@
       ]
     },
     {
-      "id": "LIST-009",
+      "id": "USERS-LIST-009",
       "group": "GET /cms/users",
       "title": "cache invalidated after create",
       "source": "inferred",
@@ -9111,7 +9108,7 @@
       ]
     },
     {
-      "id": "LIST-010",
+      "id": "USERS-LIST-010",
       "group": "GET /cms/users",
       "title": "cache invalidated after suspend",
       "source": "inferred",
@@ -9170,7 +9167,7 @@
       ]
     },
     {
-      "id": "LIST-011",
+      "id": "USERS-LIST-011",
       "group": "GET /cms/users",
       "title": "cache invalidated after email change",
       "source": "inferred",
@@ -9251,7 +9248,7 @@
       ]
     },
     {
-      "id": "LIST-012",
+      "id": "USERS-LIST-012",
       "group": "GET /cms/users",
       "title": "cache invalidated after permissions change",
       "source": "inferred",
@@ -9324,7 +9321,7 @@
       ]
     },
     {
-      "id": "AUTH-GET-001",
+      "id": "USERS-AUTH-GET-001",
       "group": "GET /cms/users/{username}",
       "title": "401: missing Authorization header",
       "source": "documented",
@@ -9348,7 +9345,7 @@
       ]
     },
     {
-      "id": "AUTH-GET-002",
+      "id": "USERS-AUTH-GET-002",
       "group": "GET /cms/users/{username}",
       "title": "401: empty bearer token",
       "source": "documented",
@@ -9374,7 +9371,7 @@
       ]
     },
     {
-      "id": "AUTH-GET-003",
+      "id": "USERS-AUTH-GET-003",
       "group": "GET /cms/users/{username}",
       "title": "401: wrong scheme (Basic)",
       "source": "documented",
@@ -9400,7 +9397,7 @@
       ]
     },
     {
-      "id": "AUTH-GET-004",
+      "id": "USERS-AUTH-GET-004",
       "group": "GET /cms/users/{username}",
       "title": "401: session id without Bearer prefix",
       "source": "documented",
@@ -9428,7 +9425,7 @@
       ]
     },
     {
-      "id": "AUTH-GET-005",
+      "id": "USERS-AUTH-GET-005",
       "group": "GET /cms/users/{username}",
       "title": "401: garbage session id",
       "source": "documented",
@@ -9454,7 +9451,7 @@
       ]
     },
     {
-      "id": "AUTH-GET-006",
+      "id": "USERS-AUTH-GET-006",
       "group": "GET /cms/users/{username}",
       "title": "401: expired session",
       "source": "documented",
@@ -9480,7 +9477,7 @@
       ]
     },
     {
-      "id": "TRANSPORT-GET-001",
+      "id": "USERS-TRANSPORT-GET-001",
       "group": "GET /cms/users/{username}",
       "title": "200: Content-Type text/plain",
       "source": "inferred",
@@ -9514,7 +9511,7 @@
       "note": "Content-Type is ignored for requests without body."
     },
     {
-      "id": "TRANSPORT-GET-002",
+      "id": "USERS-TRANSPORT-GET-002",
       "group": "GET /cms/users/{username}",
       "title": "413: body of 4097 bytes",
       "source": "inferred",
@@ -9544,7 +9541,7 @@
       ]
     },
     {
-      "id": "GET-001",
+      "id": "USERS-GET-001",
       "group": "GET /cms/users/{username}",
       "title": "active user returns documented fields",
       "source": "documented",
@@ -9592,7 +9589,7 @@
       ]
     },
     {
-      "id": "GET-002",
+      "id": "USERS-GET-002",
       "group": "GET /cms/users/{username}",
       "title": "last_login is a unix integer",
       "source": "documented",
@@ -9622,7 +9619,7 @@
       ]
     },
     {
-      "id": "GET-003",
+      "id": "USERS-GET-003",
       "group": "GET /cms/users/{username}",
       "title": "user never logged in has null last_login",
       "source": "inferred",
@@ -9651,7 +9648,7 @@
       ]
     },
     {
-      "id": "GET-004",
+      "id": "USERS-GET-004",
       "group": "GET /cms/users/{username}",
       "title": "suspended user is retrievable with suspended_at set",
       "source": "inferred",
@@ -9691,7 +9688,7 @@
       "note": "Docs list only 404 for 'not found'; code returns suspended users."
     },
     {
-      "id": "GET-005",
+      "id": "USERS-GET-005",
       "group": "GET /cms/users/{username}",
       "title": "any authenticated user (`reader`) may read",
       "source": "documented",
@@ -9721,7 +9718,7 @@
       ]
     },
     {
-      "id": "GET-006",
+      "id": "USERS-GET-006",
       "group": "GET /cms/users/{username}",
       "title": "any authenticated user (`creator`) may read",
       "source": "documented",
@@ -9751,7 +9748,7 @@
       ]
     },
     {
-      "id": "GET-007",
+      "id": "USERS-GET-007",
       "group": "GET /cms/users/{username}",
       "title": "any authenticated user (`editor`) may read",
       "source": "documented",
@@ -9781,7 +9778,7 @@
       ]
     },
     {
-      "id": "GET-008",
+      "id": "USERS-GET-008",
       "group": "GET /cms/users/{username}",
       "title": "any authenticated user (`deleter`) may read",
       "source": "documented",
@@ -9811,7 +9808,7 @@
       ]
     },
     {
-      "id": "GET-009",
+      "id": "USERS-GET-009",
       "group": "GET /cms/users/{username}",
       "title": "reader can read own record",
       "source": "documented",
@@ -9841,7 +9838,7 @@
       ]
     },
     {
-      "id": "GET-010",
+      "id": "USERS-GET-010",
       "group": "GET /cms/users/{username}",
       "title": "uppercase username in path normalised",
       "source": "inferred",
@@ -9871,7 +9868,7 @@
       ]
     },
     {
-      "id": "GET-011",
+      "id": "USERS-GET-011",
       "group": "GET /cms/users/{username}",
       "title": "padded username is trimmed",
       "source": "inferred",
@@ -9901,7 +9898,7 @@
       ]
     },
     {
-      "id": "GET-012",
+      "id": "USERS-GET-012",
       "group": "GET /cms/users/{username}",
       "title": "valid but unknown username -> 404",
       "source": "documented",
@@ -9924,7 +9921,7 @@
       ]
     },
     {
-      "id": "GET-013",
+      "id": "USERS-GET-013",
       "group": "GET /cms/users/{username}",
       "title": "64 char unknown username -> 404",
       "source": "documented",
@@ -9952,7 +9949,7 @@
       ]
     },
     {
-      "id": "GET-014",
+      "id": "USERS-GET-014",
       "group": "GET /cms/users/{username}",
       "title": "400: invalid username in path (space inside)",
       "source": "documented",
@@ -9975,7 +9972,7 @@
       ]
     },
     {
-      "id": "GET-015",
+      "id": "USERS-GET-015",
       "group": "GET /cms/users/{username}",
       "title": "400: invalid username in path (65 chars)",
       "source": "documented",
@@ -10003,7 +10000,7 @@
       ]
     },
     {
-      "id": "GET-016",
+      "id": "USERS-GET-016",
       "group": "GET /cms/users/{username}",
       "title": "400: invalid username in path (exclamation)",
       "source": "documented",
@@ -10026,7 +10023,7 @@
       ]
     },
     {
-      "id": "GET-017",
+      "id": "USERS-GET-017",
       "group": "GET /cms/users/{username}",
       "title": "400: invalid username in path (dot)",
       "source": "documented",
@@ -10049,7 +10046,7 @@
       ]
     },
     {
-      "id": "GET-018",
+      "id": "USERS-GET-018",
       "group": "GET /cms/users/{username}",
       "title": "400: invalid username in path (non-ASCII)",
       "source": "documented",
@@ -10072,7 +10069,7 @@
       ]
     },
     {
-      "id": "GET-019",
+      "id": "USERS-GET-019",
       "group": "GET /cms/users/{username}",
       "title": "400: invalid username in path (sql-ish quote)",
       "source": "documented",
@@ -10095,7 +10092,7 @@
       ]
     },
     {
-      "id": "GET-020",
+      "id": "USERS-GET-020",
       "group": "GET /cms/users/{username}",
       "title": "400: invalid username in path (whitespace only)",
       "source": "documented",
@@ -10118,7 +10115,7 @@
       ]
     },
     {
-      "id": "GET-021",
+      "id": "USERS-GET-021",
       "group": "GET /cms/users/{username}",
       "title": "400: invalid username in path (Kelvin sign U+212A)",
       "source": "documented",
@@ -10141,7 +10138,7 @@
       ]
     },
     {
-      "id": "GET-022",
+      "id": "USERS-GET-022",
       "group": "GET /cms/users/{username}",
       "title": "400: invalid username in path (null byte)",
       "source": "documented",
@@ -10164,7 +10161,7 @@
       ]
     },
     {
-      "id": "GET-023",
+      "id": "USERS-GET-023",
       "group": "GET /cms/users/{username}",
       "title": "400: invalid username in path (emoji)",
       "source": "documented",
@@ -10187,7 +10184,7 @@
       ]
     },
     {
-      "id": "GET-024",
+      "id": "USERS-GET-024",
       "group": "GET /cms/users/{username}",
       "title": "400: invalid username in path (semicolon)",
       "source": "documented",
@@ -10210,7 +10207,7 @@
       ]
     },
     {
-      "id": "GET-025",
+      "id": "USERS-GET-025",
       "group": "GET /cms/users/{username}",
       "title": "400: invalid username in path (encoded slash)",
       "source": "inferred",
@@ -10233,7 +10230,7 @@
       ]
     },
     {
-      "id": "AUTH-EMAIL-001",
+      "id": "USERS-AUTH-EMAIL-001",
       "group": "PATCH /cms/users/{username}/email",
       "title": "401: missing Authorization header",
       "source": "documented",
@@ -10262,7 +10259,7 @@
       ]
     },
     {
-      "id": "AUTH-EMAIL-002",
+      "id": "USERS-AUTH-EMAIL-002",
       "group": "PATCH /cms/users/{username}/email",
       "title": "401: empty bearer token",
       "source": "documented",
@@ -10292,7 +10289,7 @@
       ]
     },
     {
-      "id": "AUTH-EMAIL-003",
+      "id": "USERS-AUTH-EMAIL-003",
       "group": "PATCH /cms/users/{username}/email",
       "title": "401: wrong scheme (Basic)",
       "source": "documented",
@@ -10322,7 +10319,7 @@
       ]
     },
     {
-      "id": "AUTH-EMAIL-004",
+      "id": "USERS-AUTH-EMAIL-004",
       "group": "PATCH /cms/users/{username}/email",
       "title": "401: session id without Bearer prefix",
       "source": "documented",
@@ -10354,7 +10351,7 @@
       ]
     },
     {
-      "id": "AUTH-EMAIL-005",
+      "id": "USERS-AUTH-EMAIL-005",
       "group": "PATCH /cms/users/{username}/email",
       "title": "401: garbage session id",
       "source": "documented",
@@ -10384,7 +10381,7 @@
       ]
     },
     {
-      "id": "AUTH-EMAIL-006",
+      "id": "USERS-AUTH-EMAIL-006",
       "group": "PATCH /cms/users/{username}/email",
       "title": "401: expired session",
       "source": "documented",
@@ -10414,7 +10411,7 @@
       ]
     },
     {
-      "id": "AUTH-EMAIL-007",
+      "id": "USERS-AUTH-EMAIL-007",
       "group": "PATCH /cms/users/{username}/email",
       "title": "401 wins over invalid body",
       "source": "inferred",
@@ -10441,7 +10438,7 @@
       ]
     },
     {
-      "id": "TRANSPORT-EMAIL-001",
+      "id": "USERS-TRANSPORT-EMAIL-001",
       "group": "PATCH /cms/users/{username}/email",
       "title": "415: Content-Type text/plain",
       "source": "stated",
@@ -10470,7 +10467,7 @@
       ]
     },
     {
-      "id": "TRANSPORT-EMAIL-002",
+      "id": "USERS-TRANSPORT-EMAIL-002",
       "group": "PATCH /cms/users/{username}/email",
       "title": "415: Content-Type application/xml",
       "source": "stated",
@@ -10499,7 +10496,7 @@
       ]
     },
     {
-      "id": "TRANSPORT-EMAIL-003",
+      "id": "USERS-TRANSPORT-EMAIL-003",
       "group": "PATCH /cms/users/{username}/email",
       "title": "415: Content-Type multipart/form-data",
       "source": "stated",
@@ -10528,7 +10525,7 @@
       ]
     },
     {
-      "id": "TRANSPORT-EMAIL-004",
+      "id": "USERS-TRANSPORT-EMAIL-004",
       "group": "PATCH /cms/users/{username}/email",
       "title": "415: Content-Type application/x-www-form-urlencoded",
       "source": "stated",
@@ -10557,7 +10554,7 @@
       ]
     },
     {
-      "id": "TRANSPORT-EMAIL-005",
+      "id": "USERS-TRANSPORT-EMAIL-005",
       "group": "PATCH /cms/users/{username}/email",
       "title": "415: Content-Type header missing",
       "source": "stated",
@@ -10586,7 +10583,7 @@
       ]
     },
     {
-      "id": "TRANSPORT-EMAIL-006",
+      "id": "USERS-TRANSPORT-EMAIL-006",
       "group": "PATCH /cms/users/{username}/email",
       "title": "Content-Type with charset parameter accepted",
       "source": "inferred",
@@ -10615,7 +10612,7 @@
       ]
     },
     {
-      "id": "TRANSPORT-EMAIL-007",
+      "id": "USERS-TRANSPORT-EMAIL-007",
       "group": "PATCH /cms/users/{username}/email",
       "title": "Content-Type media type is case-insensitive",
       "source": "inferred",
@@ -10644,7 +10641,7 @@
       ]
     },
     {
-      "id": "TRANSPORT-EMAIL-008",
+      "id": "USERS-TRANSPORT-EMAIL-008",
       "group": "PATCH /cms/users/{username}/email",
       "title": "body of exactly 4096 bytes is accepted",
       "source": "inferred",
@@ -10677,7 +10674,7 @@
       "note": "Padding is an unknown extra field. Off-by-one risk in the limit reader."
     },
     {
-      "id": "TRANSPORT-EMAIL-009",
+      "id": "USERS-TRANSPORT-EMAIL-009",
       "group": "PATCH /cms/users/{username}/email",
       "title": "413: body of 4097 bytes",
       "source": "stated",
@@ -10709,7 +10706,7 @@
       ]
     },
     {
-      "id": "TRANSPORT-EMAIL-010",
+      "id": "USERS-TRANSPORT-EMAIL-010",
       "group": "PATCH /cms/users/{username}/email",
       "title": "400: truncated JSON",
       "source": "documented",
@@ -10736,7 +10733,7 @@
       ]
     },
     {
-      "id": "TRANSPORT-EMAIL-011",
+      "id": "USERS-TRANSPORT-EMAIL-011",
       "group": "PATCH /cms/users/{username}/email",
       "title": "400: empty body",
       "source": "documented",
@@ -10763,7 +10760,7 @@
       ]
     },
     {
-      "id": "TRANSPORT-EMAIL-012",
+      "id": "USERS-TRANSPORT-EMAIL-012",
       "group": "PATCH /cms/users/{username}/email",
       "title": "400: JSON array instead of object",
       "source": "documented",
@@ -10790,7 +10787,7 @@
       ]
     },
     {
-      "id": "TRANSPORT-EMAIL-013",
+      "id": "USERS-TRANSPORT-EMAIL-013",
       "group": "PATCH /cms/users/{username}/email",
       "title": "400: JSON string instead of object",
       "source": "documented",
@@ -10817,7 +10814,7 @@
       ]
     },
     {
-      "id": "TRANSPORT-EMAIL-014",
+      "id": "USERS-TRANSPORT-EMAIL-014",
       "group": "PATCH /cms/users/{username}/email",
       "title": "400: plain text",
       "source": "documented",
@@ -10844,7 +10841,7 @@
       ]
     },
     {
-      "id": "TRANSPORT-EMAIL-015",
+      "id": "USERS-TRANSPORT-EMAIL-015",
       "group": "PATCH /cms/users/{username}/email",
       "title": "400: unterminated string",
       "source": "documented",
@@ -10871,7 +10868,7 @@
       ]
     },
     {
-      "id": "TRANSPORT-EMAIL-016",
+      "id": "USERS-TRANSPORT-EMAIL-016",
       "group": "PATCH /cms/users/{username}/email",
       "title": "400: JSON null body",
       "source": "inferred",
@@ -10898,7 +10895,7 @@
       ]
     },
     {
-      "id": "EMAIL-001",
+      "id": "USERS-EMAIL-001",
       "group": "PATCH /cms/users/{username}/email",
       "title": "admin changes another user's email",
       "source": "documented",
@@ -10953,7 +10950,7 @@
       ]
     },
     {
-      "id": "EMAIL-002",
+      "id": "USERS-EMAIL-002",
       "group": "PATCH /cms/users/{username}/email",
       "title": "email cleared with empty string",
       "source": "inferred",
@@ -11008,7 +11005,7 @@
       ]
     },
     {
-      "id": "EMAIL-003",
+      "id": "USERS-EMAIL-003",
       "group": "PATCH /cms/users/{username}/email",
       "title": "same email again succeeds",
       "source": "inferred",
@@ -11063,7 +11060,7 @@
       ]
     },
     {
-      "id": "EMAIL-004",
+      "id": "USERS-EMAIL-004",
       "group": "PATCH /cms/users/{username}/email",
       "title": "email change leaves permissions untouched",
       "source": "inferred",
@@ -11123,7 +11120,7 @@
       ]
     },
     {
-      "id": "EMAIL-005",
+      "id": "USERS-EMAIL-005",
       "group": "PATCH /cms/users/{username}/email",
       "title": "unknown fields ignored (permissions/password/username not applied)",
       "source": "inferred",
@@ -11220,7 +11217,7 @@
       ]
     },
     {
-      "id": "EMAIL-006",
+      "id": "USERS-EMAIL-006",
       "group": "PATCH /cms/users/{username}/email",
       "title": "email change visible via cached GET",
       "source": "inferred",
@@ -11301,7 +11298,7 @@
       ]
     },
     {
-      "id": "EMAIL-007",
+      "id": "USERS-EMAIL-007",
       "group": "PATCH /cms/users/{username}/email",
       "title": "400: invalid email (no @), email unchanged",
       "source": "documented",
@@ -11356,7 +11353,7 @@
       ]
     },
     {
-      "id": "EMAIL-008",
+      "id": "USERS-EMAIL-008",
       "group": "PATCH /cms/users/{username}/email",
       "title": "400: invalid email (missing local), email unchanged",
       "source": "documented",
@@ -11411,7 +11408,7 @@
       ]
     },
     {
-      "id": "EMAIL-009",
+      "id": "USERS-EMAIL-009",
       "group": "PATCH /cms/users/{username}/email",
       "title": "400: invalid email (missing domain), email unchanged",
       "source": "documented",
@@ -11466,7 +11463,7 @@
       ]
     },
     {
-      "id": "EMAIL-010",
+      "id": "USERS-EMAIL-010",
       "group": "PATCH /cms/users/{username}/email",
       "title": "400: invalid email (display name form), email unchanged",
       "source": "documented",
@@ -11521,7 +11518,7 @@
       ]
     },
     {
-      "id": "EMAIL-011",
+      "id": "USERS-EMAIL-011",
       "group": "PATCH /cms/users/{username}/email",
       "title": "400: invalid email (whitespace only), email unchanged",
       "source": "documented",
@@ -11576,7 +11573,7 @@
       ]
     },
     {
-      "id": "EMAIL-012",
+      "id": "USERS-EMAIL-012",
       "group": "PATCH /cms/users/{username}/email",
       "title": "400: invalid email (two addresses), email unchanged",
       "source": "documented",
@@ -11631,7 +11628,7 @@
       ]
     },
     {
-      "id": "EMAIL-013",
+      "id": "USERS-EMAIL-013",
       "group": "PATCH /cms/users/{username}/email",
       "title": "400: invalid email (255 characters), email unchanged",
       "source": "stated",
@@ -11688,7 +11685,7 @@
       ]
     },
     {
-      "id": "EMAIL-014",
+      "id": "USERS-EMAIL-014",
       "group": "PATCH /cms/users/{username}/email",
       "title": "email of exactly 254 characters accepted",
       "source": "stated",
@@ -11719,7 +11716,7 @@
       ]
     },
     {
-      "id": "EMAIL-015",
+      "id": "USERS-EMAIL-015",
       "group": "PATCH /cms/users/{username}/email",
       "title": "400: email key missing ({})",
       "source": "documented",
@@ -11746,7 +11743,7 @@
       ]
     },
     {
-      "id": "EMAIL-016",
+      "id": "USERS-EMAIL-016",
       "group": "PATCH /cms/users/{username}/email",
       "title": "400: email null",
       "source": "documented",
@@ -11773,7 +11770,7 @@
       ]
     },
     {
-      "id": "EMAIL-017",
+      "id": "USERS-EMAIL-017",
       "group": "PATCH /cms/users/{username}/email",
       "title": "400: email type is number",
       "source": "documented",
@@ -11800,7 +11797,7 @@
       ]
     },
     {
-      "id": "EMAIL-018",
+      "id": "USERS-EMAIL-018",
       "group": "PATCH /cms/users/{username}/email",
       "title": "400: email type is boolean",
       "source": "documented",
@@ -11827,7 +11824,7 @@
       ]
     },
     {
-      "id": "EMAIL-019",
+      "id": "USERS-EMAIL-019",
       "group": "PATCH /cms/users/{username}/email",
       "title": "400: email type is array",
       "source": "documented",
@@ -11854,7 +11851,7 @@
       ]
     },
     {
-      "id": "EMAIL-020",
+      "id": "USERS-EMAIL-020",
       "group": "PATCH /cms/users/{username}/email",
       "title": "400: email type is object",
       "source": "documented",
@@ -11881,7 +11878,7 @@
       ]
     },
     {
-      "id": "EMAIL-021",
+      "id": "USERS-EMAIL-021",
       "group": "PATCH /cms/users/{username}/email",
       "title": "400: invalid username in path (space inside)",
       "source": "documented",
@@ -11910,7 +11907,7 @@
       ]
     },
     {
-      "id": "EMAIL-022",
+      "id": "USERS-EMAIL-022",
       "group": "PATCH /cms/users/{username}/email",
       "title": "400: invalid username in path (65 chars)",
       "source": "documented",
@@ -11944,7 +11941,7 @@
       ]
     },
     {
-      "id": "EMAIL-023",
+      "id": "USERS-EMAIL-023",
       "group": "PATCH /cms/users/{username}/email",
       "title": "400: invalid username in path (exclamation)",
       "source": "documented",
@@ -11973,7 +11970,7 @@
       ]
     },
     {
-      "id": "EMAIL-024",
+      "id": "USERS-EMAIL-024",
       "group": "PATCH /cms/users/{username}/email",
       "title": "400: invalid username in path (dot)",
       "source": "documented",
@@ -12002,7 +11999,7 @@
       ]
     },
     {
-      "id": "EMAIL-025",
+      "id": "USERS-EMAIL-025",
       "group": "PATCH /cms/users/{username}/email",
       "title": "400: invalid username in path (non-ASCII)",
       "source": "documented",
@@ -12031,7 +12028,7 @@
       ]
     },
     {
-      "id": "EMAIL-026",
+      "id": "USERS-EMAIL-026",
       "group": "PATCH /cms/users/{username}/email",
       "title": "400: invalid username in path (sql-ish quote)",
       "source": "documented",
@@ -12060,7 +12057,7 @@
       ]
     },
     {
-      "id": "EMAIL-027",
+      "id": "USERS-EMAIL-027",
       "group": "PATCH /cms/users/{username}/email",
       "title": "400: invalid username in path (whitespace only)",
       "source": "documented",
@@ -12089,7 +12086,7 @@
       ]
     },
     {
-      "id": "EMAIL-028",
+      "id": "USERS-EMAIL-028",
       "group": "PATCH /cms/users/{username}/email",
       "title": "400: invalid username in path (Kelvin sign U+212A)",
       "source": "documented",
@@ -12118,7 +12115,7 @@
       ]
     },
     {
-      "id": "EMAIL-029",
+      "id": "USERS-EMAIL-029",
       "group": "PATCH /cms/users/{username}/email",
       "title": "400: invalid username in path (null byte)",
       "source": "documented",
@@ -12147,7 +12144,7 @@
       ]
     },
     {
-      "id": "EMAIL-030",
+      "id": "USERS-EMAIL-030",
       "group": "PATCH /cms/users/{username}/email",
       "title": "400: invalid username in path (emoji)",
       "source": "documented",
@@ -12176,7 +12173,7 @@
       ]
     },
     {
-      "id": "EMAIL-031",
+      "id": "USERS-EMAIL-031",
       "group": "PATCH /cms/users/{username}/email",
       "title": "400: invalid username in path (semicolon)",
       "source": "documented",
@@ -12205,7 +12202,7 @@
       ]
     },
     {
-      "id": "EMAIL-032",
+      "id": "USERS-EMAIL-032",
       "group": "PATCH /cms/users/{username}/email",
       "title": "400: invalid username in path (encoded slash)",
       "source": "documented",
@@ -12234,7 +12231,7 @@
       ]
     },
     {
-      "id": "EMAIL-033",
+      "id": "USERS-EMAIL-033",
       "group": "PATCH /cms/users/{username}/email",
       "title": "invalid username + unauthorised actor -> 400 (username validated first)",
       "source": "inferred",
@@ -12263,7 +12260,7 @@
       ]
     },
     {
-      "id": "EMAIL-034",
+      "id": "USERS-EMAIL-034",
       "group": "PATCH /cms/users/{username}/email",
       "title": "unknown user -> 404",
       "source": "documented",
@@ -12292,7 +12289,7 @@
       ]
     },
     {
-      "id": "EMAIL-035",
+      "id": "USERS-EMAIL-035",
       "group": "PATCH /cms/users/{username}/email",
       "title": "64 char unknown user -> 404",
       "source": "documented",
@@ -12326,7 +12323,7 @@
       ]
     },
     {
-      "id": "EMAIL-036",
+      "id": "USERS-EMAIL-036",
       "group": "PATCH /cms/users/{username}/email",
       "title": "suspended user -> 404",
       "source": "inferred",
@@ -12355,7 +12352,7 @@
       ]
     },
     {
-      "id": "EMAIL-037",
+      "id": "USERS-EMAIL-037",
       "group": "PATCH /cms/users/{username}/email",
       "title": "unauthorised actor + unknown user -> 401 (authz before existence)",
       "source": "inferred",
@@ -12384,7 +12381,7 @@
       ]
     },
     {
-      "id": "EMAIL-038",
+      "id": "USERS-EMAIL-038",
       "group": "PATCH /cms/users/{username}/email",
       "title": "uppercase target normalised",
       "source": "inferred",
@@ -12413,7 +12410,7 @@
       ]
     },
     {
-      "id": "EMAIL-039",
+      "id": "USERS-EMAIL-039",
       "group": "PATCH /cms/users/{username}/email",
       "title": "actor `root` (users:edit) may change another user's email",
       "source": "documented",
@@ -12468,7 +12465,7 @@
       ]
     },
     {
-      "id": "EMAIL-040",
+      "id": "USERS-EMAIL-040",
       "group": "PATCH /cms/users/{username}/email",
       "title": "actor `creator` lacks users:edit -> 401, email unchanged",
       "source": "documented",
@@ -12523,7 +12520,7 @@
       ]
     },
     {
-      "id": "EMAIL-041",
+      "id": "USERS-EMAIL-041",
       "group": "PATCH /cms/users/{username}/email",
       "title": "actor `editor` (users:edit) may change another user's email",
       "source": "documented",
@@ -12578,7 +12575,7 @@
       ]
     },
     {
-      "id": "EMAIL-042",
+      "id": "USERS-EMAIL-042",
       "group": "PATCH /cms/users/{username}/email",
       "title": "actor `deleter` lacks users:edit -> 401, email unchanged",
       "source": "documented",
@@ -12633,7 +12630,7 @@
       ]
     },
     {
-      "id": "EMAIL-043",
+      "id": "USERS-EMAIL-043",
       "group": "PATCH /cms/users/{username}/email",
       "title": "actor `limited` (users:edit) may change another user's email",
       "source": "documented",
@@ -12688,7 +12685,7 @@
       ]
     },
     {
-      "id": "EMAIL-044",
+      "id": "USERS-EMAIL-044",
       "group": "PATCH /cms/users/{username}/email",
       "title": "actor `reader` lacks users:edit -> 401, email unchanged",
       "source": "documented",
@@ -12743,7 +12740,7 @@
       ]
     },
     {
-      "id": "EMAIL-045",
+      "id": "USERS-EMAIL-045",
       "group": "PATCH /cms/users/{username}/email",
       "title": "actor `reader` may change own email without users:edit",
       "source": "inferred",
@@ -12798,7 +12795,7 @@
       ]
     },
     {
-      "id": "EMAIL-046",
+      "id": "USERS-EMAIL-046",
       "group": "PATCH /cms/users/{username}/email",
       "title": "actor `creator` may change own email without users:edit",
       "source": "inferred",
@@ -12853,7 +12850,7 @@
       ]
     },
     {
-      "id": "EMAIL-047",
+      "id": "USERS-EMAIL-047",
       "group": "PATCH /cms/users/{username}/email",
       "title": "actor `deleter` may change own email without users:edit",
       "source": "inferred",
@@ -12908,7 +12905,7 @@
       ]
     },
     {
-      "id": "EMAIL-048",
+      "id": "USERS-EMAIL-048",
       "group": "PATCH /cms/users/{username}/email",
       "title": "actor cannot change another user's email by case-variant trick",
       "source": "inferred",
@@ -12937,7 +12934,7 @@
       ]
     },
     {
-      "id": "AUTH-PASSWORD-001",
+      "id": "USERS-AUTH-PASSWORD-001",
       "group": "PATCH /cms/users/{username}/password",
       "title": "401: missing Authorization header",
       "source": "documented",
@@ -12966,7 +12963,7 @@
       ]
     },
     {
-      "id": "AUTH-PASSWORD-002",
+      "id": "USERS-AUTH-PASSWORD-002",
       "group": "PATCH /cms/users/{username}/password",
       "title": "401: empty bearer token",
       "source": "documented",
@@ -12996,7 +12993,7 @@
       ]
     },
     {
-      "id": "AUTH-PASSWORD-003",
+      "id": "USERS-AUTH-PASSWORD-003",
       "group": "PATCH /cms/users/{username}/password",
       "title": "401: wrong scheme (Basic)",
       "source": "documented",
@@ -13026,7 +13023,7 @@
       ]
     },
     {
-      "id": "AUTH-PASSWORD-004",
+      "id": "USERS-AUTH-PASSWORD-004",
       "group": "PATCH /cms/users/{username}/password",
       "title": "401: session id without Bearer prefix",
       "source": "documented",
@@ -13058,7 +13055,7 @@
       ]
     },
     {
-      "id": "AUTH-PASSWORD-005",
+      "id": "USERS-AUTH-PASSWORD-005",
       "group": "PATCH /cms/users/{username}/password",
       "title": "401: garbage session id",
       "source": "documented",
@@ -13088,7 +13085,7 @@
       ]
     },
     {
-      "id": "AUTH-PASSWORD-006",
+      "id": "USERS-AUTH-PASSWORD-006",
       "group": "PATCH /cms/users/{username}/password",
       "title": "401: expired session",
       "source": "documented",
@@ -13118,7 +13115,7 @@
       ]
     },
     {
-      "id": "AUTH-PASSWORD-007",
+      "id": "USERS-AUTH-PASSWORD-007",
       "group": "PATCH /cms/users/{username}/password",
       "title": "401 wins over invalid body",
       "source": "inferred",
@@ -13145,7 +13142,7 @@
       ]
     },
     {
-      "id": "TRANSPORT-PASSWORD-001",
+      "id": "USERS-TRANSPORT-PASSWORD-001",
       "group": "PATCH /cms/users/{username}/password",
       "title": "415: Content-Type text/plain",
       "source": "stated",
@@ -13174,7 +13171,7 @@
       ]
     },
     {
-      "id": "TRANSPORT-PASSWORD-002",
+      "id": "USERS-TRANSPORT-PASSWORD-002",
       "group": "PATCH /cms/users/{username}/password",
       "title": "415: Content-Type application/xml",
       "source": "stated",
@@ -13203,7 +13200,7 @@
       ]
     },
     {
-      "id": "TRANSPORT-PASSWORD-003",
+      "id": "USERS-TRANSPORT-PASSWORD-003",
       "group": "PATCH /cms/users/{username}/password",
       "title": "415: Content-Type multipart/form-data",
       "source": "stated",
@@ -13232,7 +13229,7 @@
       ]
     },
     {
-      "id": "TRANSPORT-PASSWORD-004",
+      "id": "USERS-TRANSPORT-PASSWORD-004",
       "group": "PATCH /cms/users/{username}/password",
       "title": "415: Content-Type application/x-www-form-urlencoded",
       "source": "stated",
@@ -13261,7 +13258,7 @@
       ]
     },
     {
-      "id": "TRANSPORT-PASSWORD-005",
+      "id": "USERS-TRANSPORT-PASSWORD-005",
       "group": "PATCH /cms/users/{username}/password",
       "title": "415: Content-Type header missing",
       "source": "stated",
@@ -13290,7 +13287,7 @@
       ]
     },
     {
-      "id": "TRANSPORT-PASSWORD-006",
+      "id": "USERS-TRANSPORT-PASSWORD-006",
       "group": "PATCH /cms/users/{username}/password",
       "title": "Content-Type with charset parameter accepted",
       "source": "inferred",
@@ -13319,7 +13316,7 @@
       ]
     },
     {
-      "id": "TRANSPORT-PASSWORD-007",
+      "id": "USERS-TRANSPORT-PASSWORD-007",
       "group": "PATCH /cms/users/{username}/password",
       "title": "Content-Type media type is case-insensitive",
       "source": "inferred",
@@ -13348,7 +13345,7 @@
       ]
     },
     {
-      "id": "TRANSPORT-PASSWORD-008",
+      "id": "USERS-TRANSPORT-PASSWORD-008",
       "group": "PATCH /cms/users/{username}/password",
       "title": "body of exactly 4096 bytes is accepted",
       "source": "inferred",
@@ -13381,7 +13378,7 @@
       "note": "Padding is an unknown extra field. Off-by-one risk in the limit reader."
     },
     {
-      "id": "TRANSPORT-PASSWORD-009",
+      "id": "USERS-TRANSPORT-PASSWORD-009",
       "group": "PATCH /cms/users/{username}/password",
       "title": "413: body of 4097 bytes",
       "source": "stated",
@@ -13413,7 +13410,7 @@
       ]
     },
     {
-      "id": "TRANSPORT-PASSWORD-010",
+      "id": "USERS-TRANSPORT-PASSWORD-010",
       "group": "PATCH /cms/users/{username}/password",
       "title": "400: truncated JSON",
       "source": "documented",
@@ -13440,7 +13437,7 @@
       ]
     },
     {
-      "id": "TRANSPORT-PASSWORD-011",
+      "id": "USERS-TRANSPORT-PASSWORD-011",
       "group": "PATCH /cms/users/{username}/password",
       "title": "400: empty body",
       "source": "documented",
@@ -13467,7 +13464,7 @@
       ]
     },
     {
-      "id": "TRANSPORT-PASSWORD-012",
+      "id": "USERS-TRANSPORT-PASSWORD-012",
       "group": "PATCH /cms/users/{username}/password",
       "title": "400: JSON array instead of object",
       "source": "documented",
@@ -13494,7 +13491,7 @@
       ]
     },
     {
-      "id": "TRANSPORT-PASSWORD-013",
+      "id": "USERS-TRANSPORT-PASSWORD-013",
       "group": "PATCH /cms/users/{username}/password",
       "title": "400: JSON string instead of object",
       "source": "documented",
@@ -13521,7 +13518,7 @@
       ]
     },
     {
-      "id": "TRANSPORT-PASSWORD-014",
+      "id": "USERS-TRANSPORT-PASSWORD-014",
       "group": "PATCH /cms/users/{username}/password",
       "title": "400: plain text",
       "source": "documented",
@@ -13548,7 +13545,7 @@
       ]
     },
     {
-      "id": "TRANSPORT-PASSWORD-015",
+      "id": "USERS-TRANSPORT-PASSWORD-015",
       "group": "PATCH /cms/users/{username}/password",
       "title": "400: unterminated string",
       "source": "documented",
@@ -13575,7 +13572,7 @@
       ]
     },
     {
-      "id": "TRANSPORT-PASSWORD-016",
+      "id": "USERS-TRANSPORT-PASSWORD-016",
       "group": "PATCH /cms/users/{username}/password",
       "title": "400: JSON null body",
       "source": "inferred",
@@ -13602,7 +13599,7 @@
       ]
     },
     {
-      "id": "PASSWORD-001",
+      "id": "USERS-PASSWORD-001",
       "group": "PATCH /cms/users/{username}/password",
       "title": "admin resets password: new works, old does not",
       "source": "documented",
@@ -13645,7 +13642,7 @@
       ]
     },
     {
-      "id": "PASSWORD-002",
+      "id": "USERS-PASSWORD-002",
       "group": "PATCH /cms/users/{username}/password",
       "title": "target's active sessions are revoked after reset",
       "source": "documented",
@@ -13703,7 +13700,7 @@
       ]
     },
     {
-      "id": "PASSWORD-003",
+      "id": "USERS-PASSWORD-003",
       "group": "PATCH /cms/users/{username}/password",
       "title": "reset leaves profile fields untouched",
       "source": "inferred",
@@ -13767,7 +13764,7 @@
       ]
     },
     {
-      "id": "PASSWORD-004",
+      "id": "USERS-PASSWORD-004",
       "group": "PATCH /cms/users/{username}/password",
       "title": "wrong key `passwd` -> 400, password unchanged",
       "source": "inferred",
@@ -13804,7 +13801,7 @@
       ]
     },
     {
-      "id": "PASSWORD-005",
+      "id": "USERS-PASSWORD-005",
       "group": "PATCH /cms/users/{username}/password",
       "title": "unknown fields ignored",
       "source": "inferred",
@@ -13866,7 +13863,7 @@
       ]
     },
     {
-      "id": "PASSWORD-006",
+      "id": "USERS-PASSWORD-006",
       "group": "PATCH /cms/users/{username}/password",
       "title": "400: password empty string",
       "source": "documented",
@@ -13903,7 +13900,7 @@
       ]
     },
     {
-      "id": "PASSWORD-007",
+      "id": "USERS-PASSWORD-007",
       "group": "PATCH /cms/users/{username}/password",
       "title": "400: password 7 ASCII characters",
       "source": "stated",
@@ -13940,7 +13937,7 @@
       ]
     },
     {
-      "id": "PASSWORD-008",
+      "id": "USERS-PASSWORD-008",
       "group": "PATCH /cms/users/{username}/password",
       "title": "204: password 8 ASCII characters (minimum)",
       "source": "stated",
@@ -13977,7 +13974,7 @@
       ]
     },
     {
-      "id": "PASSWORD-009",
+      "id": "USERS-PASSWORD-009",
       "group": "PATCH /cms/users/{username}/password",
       "title": "204: password 8 spaces",
       "source": "stated",
@@ -14014,7 +14011,7 @@
       ]
     },
     {
-      "id": "PASSWORD-010",
+      "id": "USERS-PASSWORD-010",
       "group": "PATCH /cms/users/{username}/password",
       "title": "204: password contains tab and newline",
       "source": "stated",
@@ -14051,7 +14048,7 @@
       ]
     },
     {
-      "id": "PASSWORD-011",
+      "id": "USERS-PASSWORD-011",
       "group": "PATCH /cms/users/{username}/password",
       "title": "204: password 8 emoji",
       "source": "stated",
@@ -14088,7 +14085,7 @@
       ]
     },
     {
-      "id": "PASSWORD-012",
+      "id": "USERS-PASSWORD-012",
       "group": "PATCH /cms/users/{username}/password",
       "title": "204: password 8 two-byte characters",
       "source": "stated",
@@ -14125,7 +14122,7 @@
       ]
     },
     {
-      "id": "PASSWORD-013",
+      "id": "USERS-PASSWORD-013",
       "group": "PATCH /cms/users/{username}/password",
       "title": "400: password 7 two-byte characters (14 bytes)",
       "source": "stated",
@@ -14162,7 +14159,7 @@
       ]
     },
     {
-      "id": "PASSWORD-014",
+      "id": "USERS-PASSWORD-014",
       "group": "PATCH /cms/users/{username}/password",
       "title": "400: password 4 emoji (16 bytes)",
       "source": "stated",
@@ -14199,7 +14196,7 @@
       ]
     },
     {
-      "id": "PASSWORD-015",
+      "id": "USERS-PASSWORD-015",
       "group": "PATCH /cms/users/{username}/password",
       "title": "204: password 72 bytes",
       "source": "inferred",
@@ -14233,7 +14230,7 @@
       ]
     },
     {
-      "id": "PASSWORD-016",
+      "id": "USERS-PASSWORD-016",
       "group": "PATCH /cms/users/{username}/password",
       "title": "400: password 73 bytes",
       "source": "inferred",
@@ -14275,7 +14272,7 @@
       ]
     },
     {
-      "id": "PASSWORD-017",
+      "id": "USERS-PASSWORD-017",
       "group": "PATCH /cms/users/{username}/password",
       "title": "400: password 37 x é = 74 bytes",
       "source": "inferred",
@@ -14317,7 +14314,7 @@
       ]
     },
     {
-      "id": "PASSWORD-018",
+      "id": "USERS-PASSWORD-018",
       "group": "PATCH /cms/users/{username}/password",
       "title": "400: password missing ({})",
       "source": "documented",
@@ -14344,7 +14341,7 @@
       ]
     },
     {
-      "id": "PASSWORD-019",
+      "id": "USERS-PASSWORD-019",
       "group": "PATCH /cms/users/{username}/password",
       "title": "400: password type is null",
       "source": "documented",
@@ -14371,7 +14368,7 @@
       ]
     },
     {
-      "id": "PASSWORD-020",
+      "id": "USERS-PASSWORD-020",
       "group": "PATCH /cms/users/{username}/password",
       "title": "400: password type is number",
       "source": "documented",
@@ -14398,7 +14395,7 @@
       ]
     },
     {
-      "id": "PASSWORD-021",
+      "id": "USERS-PASSWORD-021",
       "group": "PATCH /cms/users/{username}/password",
       "title": "400: password type is boolean",
       "source": "documented",
@@ -14425,7 +14422,7 @@
       ]
     },
     {
-      "id": "PASSWORD-022",
+      "id": "USERS-PASSWORD-022",
       "group": "PATCH /cms/users/{username}/password",
       "title": "400: password type is array",
       "source": "documented",
@@ -14452,7 +14449,7 @@
       ]
     },
     {
-      "id": "PASSWORD-023",
+      "id": "USERS-PASSWORD-023",
       "group": "PATCH /cms/users/{username}/password",
       "title": "400: password type is object",
       "source": "documented",
@@ -14479,7 +14476,7 @@
       ]
     },
     {
-      "id": "PASSWORD-024",
+      "id": "USERS-PASSWORD-024",
       "group": "PATCH /cms/users/{username}/password",
       "title": "password with JSON escapes stored decoded",
       "source": "inferred",
@@ -14514,7 +14511,7 @@
       ]
     },
     {
-      "id": "PASSWORD-025",
+      "id": "USERS-PASSWORD-025",
       "group": "PATCH /cms/users/{username}/password",
       "title": "400: invalid username in path (space inside)",
       "source": "documented",
@@ -14543,7 +14540,7 @@
       ]
     },
     {
-      "id": "PASSWORD-026",
+      "id": "USERS-PASSWORD-026",
       "group": "PATCH /cms/users/{username}/password",
       "title": "400: invalid username in path (65 chars)",
       "source": "documented",
@@ -14577,7 +14574,7 @@
       ]
     },
     {
-      "id": "PASSWORD-027",
+      "id": "USERS-PASSWORD-027",
       "group": "PATCH /cms/users/{username}/password",
       "title": "400: invalid username in path (exclamation)",
       "source": "documented",
@@ -14606,7 +14603,7 @@
       ]
     },
     {
-      "id": "PASSWORD-028",
+      "id": "USERS-PASSWORD-028",
       "group": "PATCH /cms/users/{username}/password",
       "title": "400: invalid username in path (dot)",
       "source": "documented",
@@ -14635,7 +14632,7 @@
       ]
     },
     {
-      "id": "PASSWORD-029",
+      "id": "USERS-PASSWORD-029",
       "group": "PATCH /cms/users/{username}/password",
       "title": "400: invalid username in path (non-ASCII)",
       "source": "documented",
@@ -14664,7 +14661,7 @@
       ]
     },
     {
-      "id": "PASSWORD-030",
+      "id": "USERS-PASSWORD-030",
       "group": "PATCH /cms/users/{username}/password",
       "title": "400: invalid username in path (sql-ish quote)",
       "source": "documented",
@@ -14693,7 +14690,7 @@
       ]
     },
     {
-      "id": "PASSWORD-031",
+      "id": "USERS-PASSWORD-031",
       "group": "PATCH /cms/users/{username}/password",
       "title": "400: invalid username in path (whitespace only)",
       "source": "documented",
@@ -14722,7 +14719,7 @@
       ]
     },
     {
-      "id": "PASSWORD-032",
+      "id": "USERS-PASSWORD-032",
       "group": "PATCH /cms/users/{username}/password",
       "title": "400: invalid username in path (Kelvin sign U+212A)",
       "source": "documented",
@@ -14751,7 +14748,7 @@
       ]
     },
     {
-      "id": "PASSWORD-033",
+      "id": "USERS-PASSWORD-033",
       "group": "PATCH /cms/users/{username}/password",
       "title": "400: invalid username in path (null byte)",
       "source": "documented",
@@ -14780,7 +14777,7 @@
       ]
     },
     {
-      "id": "PASSWORD-034",
+      "id": "USERS-PASSWORD-034",
       "group": "PATCH /cms/users/{username}/password",
       "title": "400: invalid username in path (emoji)",
       "source": "documented",
@@ -14809,7 +14806,7 @@
       ]
     },
     {
-      "id": "PASSWORD-035",
+      "id": "USERS-PASSWORD-035",
       "group": "PATCH /cms/users/{username}/password",
       "title": "400: invalid username in path (semicolon)",
       "source": "documented",
@@ -14838,7 +14835,7 @@
       ]
     },
     {
-      "id": "PASSWORD-036",
+      "id": "USERS-PASSWORD-036",
       "group": "PATCH /cms/users/{username}/password",
       "title": "400: invalid username in path (encoded slash)",
       "source": "documented",
@@ -14867,7 +14864,7 @@
       ]
     },
     {
-      "id": "PASSWORD-037",
+      "id": "USERS-PASSWORD-037",
       "group": "PATCH /cms/users/{username}/password",
       "title": "unknown user -> 404",
       "source": "documented",
@@ -14896,7 +14893,7 @@
       ]
     },
     {
-      "id": "PASSWORD-038",
+      "id": "USERS-PASSWORD-038",
       "group": "PATCH /cms/users/{username}/password",
       "title": "suspended user -> 404",
       "source": "inferred",
@@ -14925,7 +14922,7 @@
       ]
     },
     {
-      "id": "PASSWORD-039",
+      "id": "USERS-PASSWORD-039",
       "group": "PATCH /cms/users/{username}/password",
       "title": "unauthorised actor + unknown user -> 401",
       "source": "inferred",
@@ -14954,7 +14951,7 @@
       ]
     },
     {
-      "id": "PASSWORD-040",
+      "id": "USERS-PASSWORD-040",
       "group": "PATCH /cms/users/{username}/password",
       "title": "uppercase target normalised",
       "source": "inferred",
@@ -14983,7 +14980,7 @@
       ]
     },
     {
-      "id": "PASSWORD-041",
+      "id": "USERS-PASSWORD-041",
       "group": "PATCH /cms/users/{username}/password",
       "title": "actor `root` may reset another user's password",
       "source": "documented",
@@ -15020,7 +15017,7 @@
       ]
     },
     {
-      "id": "PASSWORD-042",
+      "id": "USERS-PASSWORD-042",
       "group": "PATCH /cms/users/{username}/password",
       "title": "actor `creator` lacks users:edit -> 401, password unchanged",
       "source": "documented",
@@ -15057,7 +15054,7 @@
       ]
     },
     {
-      "id": "PASSWORD-043",
+      "id": "USERS-PASSWORD-043",
       "group": "PATCH /cms/users/{username}/password",
       "title": "actor `editor` may reset another user's password",
       "source": "documented",
@@ -15094,7 +15091,7 @@
       ]
     },
     {
-      "id": "PASSWORD-044",
+      "id": "USERS-PASSWORD-044",
       "group": "PATCH /cms/users/{username}/password",
       "title": "actor `deleter` lacks users:edit -> 401, password unchanged",
       "source": "documented",
@@ -15131,7 +15128,7 @@
       ]
     },
     {
-      "id": "PASSWORD-045",
+      "id": "USERS-PASSWORD-045",
       "group": "PATCH /cms/users/{username}/password",
       "title": "actor `limited` may reset another user's password",
       "source": "documented",
@@ -15168,7 +15165,7 @@
       ]
     },
     {
-      "id": "PASSWORD-046",
+      "id": "USERS-PASSWORD-046",
       "group": "PATCH /cms/users/{username}/password",
       "title": "actor `reader` lacks users:edit -> 401, password unchanged",
       "source": "documented",
@@ -15205,7 +15202,7 @@
       ]
     },
     {
-      "id": "PASSWORD-047",
+      "id": "USERS-PASSWORD-047",
       "group": "PATCH /cms/users/{username}/password",
       "title": "401: actor may reset not own password",
       "source": "inferred",
@@ -15234,7 +15231,7 @@
       ]
     },
     {
-      "id": "PASSWORD-048",
+      "id": "USERS-PASSWORD-048",
       "group": "PATCH /cms/users/{username}/password",
       "title": "`reader` cannot reset another user's password",
       "source": "documented",
@@ -15263,7 +15260,7 @@
       ]
     },
     {
-      "id": "AUTH-PERMS-001",
+      "id": "USERS-AUTH-PERMS-001",
       "group": "PATCH /cms/users/{username}/permissions",
       "title": "401: missing Authorization header",
       "source": "documented",
@@ -15292,7 +15289,7 @@
       ]
     },
     {
-      "id": "AUTH-PERMS-002",
+      "id": "USERS-AUTH-PERMS-002",
       "group": "PATCH /cms/users/{username}/permissions",
       "title": "401: empty bearer token",
       "source": "documented",
@@ -15322,7 +15319,7 @@
       ]
     },
     {
-      "id": "AUTH-PERMS-003",
+      "id": "USERS-AUTH-PERMS-003",
       "group": "PATCH /cms/users/{username}/permissions",
       "title": "401: wrong scheme (Basic)",
       "source": "documented",
@@ -15352,7 +15349,7 @@
       ]
     },
     {
-      "id": "AUTH-PERMS-004",
+      "id": "USERS-AUTH-PERMS-004",
       "group": "PATCH /cms/users/{username}/permissions",
       "title": "401: session id without Bearer prefix",
       "source": "documented",
@@ -15384,7 +15381,7 @@
       ]
     },
     {
-      "id": "AUTH-PERMS-005",
+      "id": "USERS-AUTH-PERMS-005",
       "group": "PATCH /cms/users/{username}/permissions",
       "title": "401: garbage session id",
       "source": "documented",
@@ -15414,7 +15411,7 @@
       ]
     },
     {
-      "id": "AUTH-PERMS-006",
+      "id": "USERS-AUTH-PERMS-006",
       "group": "PATCH /cms/users/{username}/permissions",
       "title": "401: expired session",
       "source": "documented",
@@ -15443,7 +15440,7 @@
       ]
     },
     {
-      "id": "AUTH-PERMS-007",
+      "id": "USERS-AUTH-PERMS-007",
       "group": "PATCH /cms/users/{username}/permissions",
       "title": "401 wins over invalid body",
       "source": "inferred",
@@ -15470,7 +15467,7 @@
       ]
     },
     {
-      "id": "TRANSPORT-PERMS-001",
+      "id": "USERS-TRANSPORT-PERMS-001",
       "group": "PATCH /cms/users/{username}/permissions",
       "title": "415: Content-Type text/plain",
       "source": "stated",
@@ -15499,7 +15496,7 @@
       ]
     },
     {
-      "id": "TRANSPORT-PERMS-002",
+      "id": "USERS-TRANSPORT-PERMS-002",
       "group": "PATCH /cms/users/{username}/permissions",
       "title": "415: Content-Type application/xml",
       "source": "stated",
@@ -15528,7 +15525,7 @@
       ]
     },
     {
-      "id": "TRANSPORT-PERMS-003",
+      "id": "USERS-TRANSPORT-PERMS-003",
       "group": "PATCH /cms/users/{username}/permissions",
       "title": "415: Content-Type multipart/form-data",
       "source": "stated",
@@ -15557,7 +15554,7 @@
       ]
     },
     {
-      "id": "TRANSPORT-PERMS-004",
+      "id": "USERS-TRANSPORT-PERMS-004",
       "group": "PATCH /cms/users/{username}/permissions",
       "title": "415: Content-Type application/x-www-form-urlencoded",
       "source": "stated",
@@ -15586,7 +15583,7 @@
       ]
     },
     {
-      "id": "TRANSPORT-PERMS-005",
+      "id": "USERS-TRANSPORT-PERMS-005",
       "group": "PATCH /cms/users/{username}/permissions",
       "title": "415: Content-Type header missing",
       "source": "stated",
@@ -15615,7 +15612,7 @@
       ]
     },
     {
-      "id": "TRANSPORT-PERMS-006",
+      "id": "USERS-TRANSPORT-PERMS-006",
       "group": "PATCH /cms/users/{username}/permissions",
       "title": "Content-Type with charset parameter accepted",
       "source": "inferred",
@@ -15644,7 +15641,7 @@
       ]
     },
     {
-      "id": "TRANSPORT-PERMS-007",
+      "id": "USERS-TRANSPORT-PERMS-007",
       "group": "PATCH /cms/users/{username}/permissions",
       "title": "Content-Type media type is case-insensitive",
       "source": "inferred",
@@ -15673,7 +15670,7 @@
       ]
     },
     {
-      "id": "TRANSPORT-PERMS-008",
+      "id": "USERS-TRANSPORT-PERMS-008",
       "group": "PATCH /cms/users/{username}/permissions",
       "title": "body of exactly 4096 bytes is accepted",
       "source": "inferred",
@@ -15706,7 +15703,7 @@
       "note": "Padding is an unknown extra field. Off-by-one risk in the limit reader."
     },
     {
-      "id": "TRANSPORT-PERMS-009",
+      "id": "USERS-TRANSPORT-PERMS-009",
       "group": "PATCH /cms/users/{username}/permissions",
       "title": "413: body of 4097 bytes",
       "source": "stated",
@@ -15738,7 +15735,7 @@
       ]
     },
     {
-      "id": "TRANSPORT-PERMS-010",
+      "id": "USERS-TRANSPORT-PERMS-010",
       "group": "PATCH /cms/users/{username}/permissions",
       "title": "400: truncated JSON",
       "source": "documented",
@@ -15765,7 +15762,7 @@
       ]
     },
     {
-      "id": "TRANSPORT-PERMS-011",
+      "id": "USERS-TRANSPORT-PERMS-011",
       "group": "PATCH /cms/users/{username}/permissions",
       "title": "400: empty body",
       "source": "documented",
@@ -15792,7 +15789,7 @@
       ]
     },
     {
-      "id": "TRANSPORT-PERMS-012",
+      "id": "USERS-TRANSPORT-PERMS-012",
       "group": "PATCH /cms/users/{username}/permissions",
       "title": "400: JSON array instead of object",
       "source": "documented",
@@ -15819,7 +15816,7 @@
       ]
     },
     {
-      "id": "TRANSPORT-PERMS-013",
+      "id": "USERS-TRANSPORT-PERMS-013",
       "group": "PATCH /cms/users/{username}/permissions",
       "title": "400: JSON string instead of object",
       "source": "documented",
@@ -15846,7 +15843,7 @@
       ]
     },
     {
-      "id": "TRANSPORT-PERMS-014",
+      "id": "USERS-TRANSPORT-PERMS-014",
       "group": "PATCH /cms/users/{username}/permissions",
       "title": "400: plain text",
       "source": "documented",
@@ -15873,7 +15870,7 @@
       ]
     },
     {
-      "id": "TRANSPORT-PERMS-015",
+      "id": "USERS-TRANSPORT-PERMS-015",
       "group": "PATCH /cms/users/{username}/permissions",
       "title": "400: unterminated string",
       "source": "documented",
@@ -15900,7 +15897,7 @@
       ]
     },
     {
-      "id": "TRANSPORT-PERMS-016",
+      "id": "USERS-TRANSPORT-PERMS-016",
       "group": "PATCH /cms/users/{username}/permissions",
       "title": "400: JSON null body",
       "source": "inferred",
@@ -15927,7 +15924,7 @@
       ]
     },
     {
-      "id": "PERMS-001",
+      "id": "USERS-PERMS-001",
       "group": "PATCH /cms/users/{username}/permissions",
       "title": "admin sets permissions to 65536 (docs example)",
       "source": "documented",
@@ -15982,7 +15979,7 @@
       ]
     },
     {
-      "id": "PERMS-002",
+      "id": "USERS-PERMS-002",
       "group": "PATCH /cms/users/{username}/permissions",
       "title": "permissions = 0 is a legal state",
       "source": "stated",
@@ -16037,7 +16034,7 @@
       ]
     },
     {
-      "id": "PERMS-003",
+      "id": "USERS-PERMS-003",
       "group": "PATCH /cms/users/{username}/permissions",
       "title": "max uint32 by root",
       "source": "inferred",
@@ -16096,7 +16093,7 @@
       ]
     },
     {
-      "id": "PERMS-004",
+      "id": "USERS-PERMS-004",
       "group": "PATCH /cms/users/{username}/permissions",
       "title": "permissions change leaves email untouched",
       "source": "inferred",
@@ -16156,7 +16153,7 @@
       ]
     },
     {
-      "id": "PERMS-005",
+      "id": "USERS-PERMS-005",
       "group": "PATCH /cms/users/{username}/permissions",
       "title": "unknown fields ignored (email not changed)",
       "source": "inferred",
@@ -16217,7 +16214,7 @@
       ]
     },
     {
-      "id": "PERMS-006",
+      "id": "USERS-PERMS-006",
       "group": "PATCH /cms/users/{username}/permissions",
       "title": "permission change visible via cached GET",
       "source": "inferred",
@@ -16298,7 +16295,7 @@
       ]
     },
     {
-      "id": "PERMS-007",
+      "id": "USERS-PERMS-007",
       "group": "PATCH /cms/users/{username}/permissions",
       "title": "400: permissions missing ({})",
       "source": "documented",
@@ -16325,7 +16322,7 @@
       ]
     },
     {
-      "id": "PERMS-008",
+      "id": "USERS-PERMS-008",
       "group": "PATCH /cms/users/{username}/permissions",
       "title": "400: permissions null",
       "source": "documented",
@@ -16352,7 +16349,7 @@
       ]
     },
     {
-      "id": "PERMS-009",
+      "id": "USERS-PERMS-009",
       "group": "PATCH /cms/users/{username}/permissions",
       "title": "400: permissions negative",
       "source": "inferred",
@@ -16379,7 +16376,7 @@
       ]
     },
     {
-      "id": "PERMS-010",
+      "id": "USERS-PERMS-010",
       "group": "PATCH /cms/users/{username}/permissions",
       "title": "400: permissions above uint32 (4294967296)",
       "source": "inferred",
@@ -16406,7 +16403,7 @@
       ]
     },
     {
-      "id": "PERMS-011",
+      "id": "USERS-PERMS-011",
       "group": "PATCH /cms/users/{username}/permissions",
       "title": "400: permissions float",
       "source": "inferred",
@@ -16433,7 +16430,7 @@
       ]
     },
     {
-      "id": "PERMS-012",
+      "id": "USERS-PERMS-012",
       "group": "PATCH /cms/users/{username}/permissions",
       "title": "400: permissions string",
       "source": "inferred",
@@ -16460,7 +16457,7 @@
       ]
     },
     {
-      "id": "PERMS-013",
+      "id": "USERS-PERMS-013",
       "group": "PATCH /cms/users/{username}/permissions",
       "title": "400: permissions boolean",
       "source": "inferred",
@@ -16487,7 +16484,7 @@
       ]
     },
     {
-      "id": "PERMS-014",
+      "id": "USERS-PERMS-014",
       "group": "PATCH /cms/users/{username}/permissions",
       "title": "400: permissions array",
       "source": "inferred",
@@ -16514,7 +16511,7 @@
       ]
     },
     {
-      "id": "PERMS-015",
+      "id": "USERS-PERMS-015",
       "group": "PATCH /cms/users/{username}/permissions",
       "title": "400: permissions object",
       "source": "inferred",
@@ -16541,7 +16538,7 @@
       ]
     },
     {
-      "id": "PERMS-016",
+      "id": "USERS-PERMS-016",
       "group": "PATCH /cms/users/{username}/permissions",
       "title": "400: invalid username in path (space inside)",
       "source": "documented",
@@ -16570,7 +16567,7 @@
       ]
     },
     {
-      "id": "PERMS-017",
+      "id": "USERS-PERMS-017",
       "group": "PATCH /cms/users/{username}/permissions",
       "title": "400: invalid username in path (65 chars)",
       "source": "documented",
@@ -16604,7 +16601,7 @@
       ]
     },
     {
-      "id": "PERMS-018",
+      "id": "USERS-PERMS-018",
       "group": "PATCH /cms/users/{username}/permissions",
       "title": "400: invalid username in path (exclamation)",
       "source": "documented",
@@ -16633,7 +16630,7 @@
       ]
     },
     {
-      "id": "PERMS-019",
+      "id": "USERS-PERMS-019",
       "group": "PATCH /cms/users/{username}/permissions",
       "title": "400: invalid username in path (dot)",
       "source": "documented",
@@ -16662,7 +16659,7 @@
       ]
     },
     {
-      "id": "PERMS-020",
+      "id": "USERS-PERMS-020",
       "group": "PATCH /cms/users/{username}/permissions",
       "title": "400: invalid username in path (non-ASCII)",
       "source": "documented",
@@ -16691,7 +16688,7 @@
       ]
     },
     {
-      "id": "PERMS-021",
+      "id": "USERS-PERMS-021",
       "group": "PATCH /cms/users/{username}/permissions",
       "title": "400: invalid username in path (sql-ish quote)",
       "source": "documented",
@@ -16720,7 +16717,7 @@
       ]
     },
     {
-      "id": "PERMS-022",
+      "id": "USERS-PERMS-022",
       "group": "PATCH /cms/users/{username}/permissions",
       "title": "400: invalid username in path (whitespace only)",
       "source": "documented",
@@ -16749,7 +16746,7 @@
       ]
     },
     {
-      "id": "PERMS-023",
+      "id": "USERS-PERMS-023",
       "group": "PATCH /cms/users/{username}/permissions",
       "title": "400: invalid username in path (Kelvin sign U+212A)",
       "source": "documented",
@@ -16778,7 +16775,7 @@
       ]
     },
     {
-      "id": "PERMS-024",
+      "id": "USERS-PERMS-024",
       "group": "PATCH /cms/users/{username}/permissions",
       "title": "400: invalid username in path (null byte)",
       "source": "documented",
@@ -16807,7 +16804,7 @@
       ]
     },
     {
-      "id": "PERMS-025",
+      "id": "USERS-PERMS-025",
       "group": "PATCH /cms/users/{username}/permissions",
       "title": "400: invalid username in path (emoji)",
       "source": "documented",
@@ -16836,7 +16833,7 @@
       ]
     },
     {
-      "id": "PERMS-026",
+      "id": "USERS-PERMS-026",
       "group": "PATCH /cms/users/{username}/permissions",
       "title": "400: invalid username in path (semicolon)",
       "source": "documented",
@@ -16865,7 +16862,7 @@
       ]
     },
     {
-      "id": "PERMS-027",
+      "id": "USERS-PERMS-027",
       "group": "PATCH /cms/users/{username}/permissions",
       "title": "400: invalid username in path (encoded slash)",
       "source": "documented",
@@ -16894,7 +16891,7 @@
       ]
     },
     {
-      "id": "PERMS-028",
+      "id": "USERS-PERMS-028",
       "group": "PATCH /cms/users/{username}/permissions",
       "title": "unknown user -> 404",
       "source": "documented",
@@ -16923,7 +16920,7 @@
       ]
     },
     {
-      "id": "PERMS-029",
+      "id": "USERS-PERMS-029",
       "group": "PATCH /cms/users/{username}/permissions",
       "title": "suspended user -> 404",
       "source": "inferred",
@@ -16952,7 +16949,7 @@
       ]
     },
     {
-      "id": "PERMS-030",
+      "id": "USERS-PERMS-030",
       "group": "PATCH /cms/users/{username}/permissions",
       "title": "unauthorised actor + unknown user -> 401",
       "source": "inferred",
@@ -16981,7 +16978,7 @@
       ]
     },
     {
-      "id": "PERMS-031",
+      "id": "USERS-PERMS-031",
       "group": "PATCH /cms/users/{username}/permissions",
       "title": "uppercase target normalised",
       "source": "inferred",
@@ -17010,7 +17007,7 @@
       ]
     },
     {
-      "id": "PERMS-032",
+      "id": "USERS-PERMS-032",
       "group": "PATCH /cms/users/{username}/permissions",
       "title": "actor `root` may grant its own exact mask to another user",
       "source": "inferred",
@@ -17069,7 +17066,7 @@
       ]
     },
     {
-      "id": "PERMS-033",
+      "id": "USERS-PERMS-033",
       "group": "PATCH /cms/users/{username}/permissions",
       "title": "actor `creator` lacks users:edit -> 401, unchanged",
       "source": "documented",
@@ -17124,7 +17121,7 @@
       ]
     },
     {
-      "id": "PERMS-034",
+      "id": "USERS-PERMS-034",
       "group": "PATCH /cms/users/{username}/permissions",
       "title": "actor `editor` may grant its own exact mask to another user",
       "source": "inferred",
@@ -17183,7 +17180,7 @@
       ]
     },
     {
-      "id": "PERMS-035",
+      "id": "USERS-PERMS-035",
       "group": "PATCH /cms/users/{username}/permissions",
       "title": "actor `deleter` lacks users:edit -> 401, unchanged",
       "source": "documented",
@@ -17238,7 +17235,7 @@
       ]
     },
     {
-      "id": "PERMS-036",
+      "id": "USERS-PERMS-036",
       "group": "PATCH /cms/users/{username}/permissions",
       "title": "actor `limited` may grant its own exact mask to another user",
       "source": "inferred",
@@ -17297,7 +17294,7 @@
       ]
     },
     {
-      "id": "PERMS-037",
+      "id": "USERS-PERMS-037",
       "group": "PATCH /cms/users/{username}/permissions",
       "title": "actor `reader` lacks users:edit -> 401, unchanged",
       "source": "documented",
@@ -17352,7 +17349,7 @@
       ]
     },
     {
-      "id": "PERMS-038",
+      "id": "USERS-PERMS-038",
       "group": "PATCH /cms/users/{username}/permissions",
       "title": "actor `editor` may set 0 (subset of anything)",
       "source": "inferred",
@@ -17407,7 +17404,7 @@
       ]
     },
     {
-      "id": "PERMS-039",
+      "id": "USERS-PERMS-039",
       "group": "PATCH /cms/users/{username}/permissions",
       "title": "actor `editor` cannot grant bit 65536 it does not hold",
       "source": "inferred",
@@ -17464,7 +17461,7 @@
       ]
     },
     {
-      "id": "PERMS-040",
+      "id": "USERS-PERMS-040",
       "group": "PATCH /cms/users/{username}/permissions",
       "title": "actor `editor` cannot grant all bits",
       "source": "inferred",
@@ -17521,7 +17518,7 @@
       ]
     },
     {
-      "id": "PERMS-041",
+      "id": "USERS-PERMS-041",
       "group": "PATCH /cms/users/{username}/permissions",
       "title": "actor `limited` may set 0 (subset of anything)",
       "source": "inferred",
@@ -17576,7 +17573,7 @@
       ]
     },
     {
-      "id": "PERMS-042",
+      "id": "USERS-PERMS-042",
       "group": "PATCH /cms/users/{username}/permissions",
       "title": "actor `limited` cannot grant bit 65536 it does not hold",
       "source": "inferred",
@@ -17633,7 +17630,7 @@
       ]
     },
     {
-      "id": "PERMS-043",
+      "id": "USERS-PERMS-043",
       "group": "PATCH /cms/users/{username}/permissions",
       "title": "actor `limited` cannot grant all bits",
       "source": "inferred",
@@ -17690,7 +17687,7 @@
       ]
     },
     {
-      "id": "PERMS-044",
+      "id": "USERS-PERMS-044",
       "group": "PATCH /cms/users/{username}/permissions",
       "title": "limited (create+edit) may grant creator's mask (strict subset)",
       "source": "inferred",
@@ -17749,7 +17746,7 @@
       ]
     },
     {
-      "id": "PERMS-045",
+      "id": "USERS-PERMS-045",
       "group": "PATCH /cms/users/{username}/permissions",
       "title": "editor cannot grant creator's mask (bit not held)",
       "source": "inferred",
@@ -17806,7 +17803,7 @@
       ]
     },
     {
-      "id": "PERMS-046",
+      "id": "USERS-PERMS-046",
       "group": "PATCH /cms/users/{username}/permissions",
       "title": "actor `root` cannot change own permissions",
       "source": "inferred",
@@ -17864,7 +17861,7 @@
       "note": "Self-change is blocked. Seeded row permissions equal the session mask."
     },
     {
-      "id": "PERMS-047",
+      "id": "USERS-PERMS-047",
       "group": "PATCH /cms/users/{username}/permissions",
       "title": "actor `editor` cannot change own permissions",
       "source": "inferred",
@@ -17922,7 +17919,7 @@
       "note": "Self-change is blocked. Seeded row permissions equal the session mask."
     },
     {
-      "id": "PERMS-048",
+      "id": "USERS-PERMS-048",
       "group": "PATCH /cms/users/{username}/permissions",
       "title": "actor `limited` cannot change own permissions",
       "source": "inferred",
@@ -17980,7 +17977,7 @@
       "note": "Self-change is blocked. Seeded row permissions equal the session mask."
     },
     {
-      "id": "PERMS-049",
+      "id": "USERS-PERMS-049",
       "group": "PATCH /cms/users/{username}/permissions",
       "title": "self-change blocked even with uppercase own name",
       "source": "inferred",
@@ -18009,7 +18006,7 @@
       ]
     },
     {
-      "id": "PERMS-050",
+      "id": "USERS-PERMS-050",
       "group": "PATCH /cms/users/{username}/permissions",
       "title": "grant edit: reader's existing session can edit after the grant (was 401 before)",
       "source": "stated",
@@ -18102,7 +18099,7 @@
       "note": "No re-login between steps: the same session id must carry the new permission mask."
     },
     {
-      "id": "PERMS-051",
+      "id": "USERS-PERMS-051",
       "group": "PATCH /cms/users/{username}/permissions",
       "title": "grant delete: reader's existing session can suspend after the grant",
       "source": "stated",
@@ -18201,7 +18198,7 @@
       ]
     },
     {
-      "id": "PERMS-052",
+      "id": "USERS-PERMS-052",
       "group": "PATCH /cms/users/{username}/permissions",
       "title": "grant create: reader's existing session can create after the grant",
       "source": "stated",
@@ -18268,7 +18265,7 @@
       ]
     },
     {
-      "id": "PERMS-053",
+      "id": "USERS-PERMS-053",
       "group": "PATCH /cms/users/{username}/permissions",
       "title": "grant create+edit: gains both, still cannot suspend",
       "source": "stated",
@@ -18371,7 +18368,7 @@
       ]
     },
     {
-      "id": "PERMS-054",
+      "id": "USERS-PERMS-054",
       "group": "PATCH /cms/users/{username}/permissions",
       "title": "grant all bits: the subset check uses the updated mask (65536 now grantable)",
       "source": "stated",
@@ -18465,7 +18462,7 @@
       ]
     },
     {
-      "id": "PERMS-055",
+      "id": "USERS-PERMS-055",
       "group": "PATCH /cms/users/{username}/permissions",
       "title": "grant by a non-root actor (editor grants own mask) also updates the target's session",
       "source": "stated",
@@ -18536,7 +18533,7 @@
       ]
     },
     {
-      "id": "PERMS-056",
+      "id": "USERS-PERMS-056",
       "group": "PATCH /cms/users/{username}/permissions",
       "title": "grant by limited: reader receives creator mask and can create",
       "source": "stated",
@@ -18605,7 +18602,7 @@
       ]
     },
     {
-      "id": "PERMS-057",
+      "id": "USERS-PERMS-057",
       "group": "PATCH /cms/users/{username}/permissions",
       "title": "demote editor to 0: existing session loses edit (was 204 before)",
       "source": "stated",
@@ -18695,7 +18692,7 @@
       ]
     },
     {
-      "id": "PERMS-058",
+      "id": "USERS-PERMS-058",
       "group": "PATCH /cms/users/{username}/permissions",
       "title": "demote deleter to 0: existing session can no longer suspend",
       "source": "stated",
@@ -18758,7 +18755,7 @@
       ]
     },
     {
-      "id": "PERMS-059",
+      "id": "USERS-PERMS-059",
       "group": "PATCH /cms/users/{username}/permissions",
       "title": "demote creator to 0: existing session can no longer create",
       "source": "stated",
@@ -18819,7 +18816,7 @@
       ]
     },
     {
-      "id": "PERMS-060",
+      "id": "USERS-PERMS-060",
       "group": "PATCH /cms/users/{username}/permissions",
       "title": "partial demotion: limited keeps create, loses edit",
       "source": "stated",
@@ -18929,7 +18926,7 @@
       ]
     },
     {
-      "id": "PERMS-061",
+      "id": "USERS-PERMS-061",
       "group": "PATCH /cms/users/{username}/permissions",
       "title": "partial demotion: subset check uses the reduced mask",
       "source": "stated",
@@ -19016,7 +19013,7 @@
       ]
     },
     {
-      "id": "PERMS-062",
+      "id": "USERS-PERMS-062",
       "group": "PATCH /cms/users/{username}/permissions",
       "title": "demoted session is not revoked: still authenticated, record shows new mask",
       "source": "stated",
@@ -19067,7 +19064,7 @@
       "note": "Only password reset and suspension revoke sessions."
     },
     {
-      "id": "PERMS-063",
+      "id": "USERS-PERMS-063",
       "group": "PATCH /cms/users/{username}/permissions",
       "title": "demoted editor may still edit own email (self-service) but not others'",
       "source": "stated",
@@ -19157,7 +19154,7 @@
       ]
     },
     {
-      "id": "PERMS-064",
+      "id": "USERS-PERMS-064",
       "group": "PATCH /cms/users/{username}/permissions",
       "title": "demoted editor loses password reset",
       "source": "stated",
@@ -19234,7 +19231,7 @@
       ]
     },
     {
-      "id": "PERMS-065",
+      "id": "USERS-PERMS-065",
       "group": "PATCH /cms/users/{username}/permissions",
       "title": "demoted editor loses permission changes",
       "source": "stated",
@@ -19328,7 +19325,7 @@
       ]
     },
     {
-      "id": "PERMS-066",
+      "id": "USERS-PERMS-066",
       "group": "PATCH /cms/users/{username}/permissions",
       "title": "latest change wins: edit mask replaced by delete mask",
       "source": "stated",
@@ -19435,7 +19432,7 @@
       ]
     },
     {
-      "id": "PERMS-067",
+      "id": "USERS-PERMS-067",
       "group": "PATCH /cms/users/{username}/permissions",
       "title": "grant then revoke within one case",
       "source": "stated",
@@ -19547,7 +19544,7 @@
       ]
     },
     {
-      "id": "PERMS-068",
+      "id": "USERS-PERMS-068",
       "group": "PATCH /cms/users/{username}/permissions",
       "title": "setting the same permissions again leaves the session working",
       "source": "stated",
@@ -19598,7 +19595,7 @@
       ]
     },
     {
-      "id": "PERMS-069",
+      "id": "USERS-PERMS-069",
       "group": "PATCH /cms/users/{username}/permissions",
       "title": "session mask and profile record agree after a grant",
       "source": "stated",
@@ -19675,7 +19672,7 @@
       ]
     },
     {
-      "id": "PERMS-070",
+      "id": "USERS-PERMS-070",
       "group": "PATCH /cms/users/{username}/permissions",
       "title": "unauthorised grant attempt (creator, 401) leaves target session unchanged",
       "source": "stated",
@@ -19747,7 +19744,7 @@
       ]
     },
     {
-      "id": "PERMS-071",
+      "id": "USERS-PERMS-071",
       "group": "PATCH /cms/users/{username}/permissions",
       "title": "over-grant attempt (editor tries bit 65536, 401) leaves target session unchanged",
       "source": "stated",
@@ -19817,7 +19814,7 @@
       ]
     },
     {
-      "id": "PERMS-072",
+      "id": "USERS-PERMS-072",
       "group": "PATCH /cms/users/{username}/permissions",
       "title": "invalid permissions (400) leave the existing session intact",
       "source": "stated",
@@ -19866,7 +19863,7 @@
       ]
     },
     {
-      "id": "PERMS-073",
+      "id": "USERS-PERMS-073",
       "group": "PATCH /cms/users/{username}/permissions",
       "title": "blocked self-change (401) leaves root's session intact",
       "source": "stated",
@@ -19913,7 +19910,7 @@
       ]
     },
     {
-      "id": "PERMS-074",
+      "id": "USERS-PERMS-074",
       "group": "PATCH /cms/users/{username}/permissions",
       "title": "granting one user does not change other users' sessions",
       "source": "stated",
@@ -20001,7 +19998,7 @@
       ]
     },
     {
-      "id": "PERMS-075",
+      "id": "USERS-PERMS-075",
       "group": "PATCH /cms/users/{username}/permissions",
       "title": "demoting one user does not change other users' sessions",
       "source": "stated",
@@ -20068,7 +20065,7 @@
       ]
     },
     {
-      "id": "PERMS-076",
+      "id": "USERS-PERMS-076",
       "group": "PATCH /cms/users/{username}/permissions",
       "title": "email change by admin keeps reader's session valid and unchanged",
       "source": "stated",
@@ -20143,7 +20140,7 @@
       ]
     },
     {
-      "id": "PERMS-077",
+      "id": "USERS-PERMS-077",
       "group": "PATCH /cms/users/{username}/permissions",
       "title": "email change keeps editor's permissions in the session",
       "source": "stated",
@@ -20213,7 +20210,7 @@
       ]
     },
     {
-      "id": "PERMS-078",
+      "id": "USERS-PERMS-078",
       "group": "PATCH /cms/users/{username}/permissions",
       "title": "own email change keeps the session's permissions",
       "source": "stated",
@@ -20262,7 +20259,7 @@
       ]
     },
     {
-      "id": "AUTH-DELETE-001",
+      "id": "USERS-AUTH-DELETE-001",
       "group": "DELETE /cms/users/{username}",
       "title": "401: missing Authorization header",
       "source": "documented",
@@ -20286,7 +20283,7 @@
       ]
     },
     {
-      "id": "AUTH-DELETE-002",
+      "id": "USERS-AUTH-DELETE-002",
       "group": "DELETE /cms/users/{username}",
       "title": "401: empty bearer token",
       "source": "documented",
@@ -20312,7 +20309,7 @@
       ]
     },
     {
-      "id": "AUTH-DELETE-003",
+      "id": "USERS-AUTH-DELETE-003",
       "group": "DELETE /cms/users/{username}",
       "title": "401: wrong scheme (Basic)",
       "source": "documented",
@@ -20338,7 +20335,7 @@
       ]
     },
     {
-      "id": "AUTH-DELETE-004",
+      "id": "USERS-AUTH-DELETE-004",
       "group": "DELETE /cms/users/{username}",
       "title": "401: session id without Bearer prefix",
       "source": "documented",
@@ -20366,7 +20363,7 @@
       ]
     },
     {
-      "id": "AUTH-DELETE-005",
+      "id": "USERS-AUTH-DELETE-005",
       "group": "DELETE /cms/users/{username}",
       "title": "401: garbage session id",
       "source": "documented",
@@ -20392,7 +20389,7 @@
       ]
     },
     {
-      "id": "AUTH-DELETE-006",
+      "id": "USERS-AUTH-DELETE-006",
       "group": "DELETE /cms/users/{username}",
       "title": "401: expired session",
       "source": "documented",
@@ -20416,7 +20413,7 @@
       ]
     },
     {
-      "id": "TRANSPORT-DELETE-001",
+      "id": "USERS-TRANSPORT-DELETE-001",
       "group": "DELETE /cms/users/{username}",
       "title": "204: Content-Type text/plain",
       "source": "inferred",
@@ -20443,7 +20440,7 @@
       "note": "Content-Type is ignored for requests without body."
     },
     {
-      "id": "TRANSPORT-DELETE-002",
+      "id": "USERS-TRANSPORT-DELETE-002",
       "group": "DELETE /cms/users/{username}",
       "title": "413: body of 4097 bytes",
       "source": "inferred",
@@ -20473,7 +20470,7 @@
       ]
     },
     {
-      "id": "DELETE-001",
+      "id": "USERS-DELETE-001",
       "group": "DELETE /cms/users/{username}",
       "title": "admin suspends user; GET shows suspended_at",
       "source": "documented",
@@ -20532,7 +20529,7 @@
       "note": "Soft delete: data remains readable."
     },
     {
-      "id": "DELETE-002",
+      "id": "USERS-DELETE-002",
       "group": "DELETE /cms/users/{username}",
       "title": "suspended user's sessions are revoked",
       "source": "documented",
@@ -20584,7 +20581,7 @@
       ]
     },
     {
-      "id": "DELETE-003",
+      "id": "USERS-DELETE-003",
       "group": "DELETE /cms/users/{username}",
       "title": "suspended user cannot log in",
       "source": "inferred",
@@ -20615,7 +20612,7 @@
       ]
     },
     {
-      "id": "DELETE-004",
+      "id": "USERS-DELETE-004",
       "group": "DELETE /cms/users/{username}",
       "title": "suspended user disappears from list",
       "source": "inferred",
@@ -20656,7 +20653,7 @@
       ]
     },
     {
-      "id": "DELETE-005",
+      "id": "USERS-DELETE-005",
       "group": "DELETE /cms/users/{username}",
       "title": "suspending twice -> second is 404",
       "source": "inferred",
@@ -20693,7 +20690,7 @@
       ]
     },
     {
-      "id": "DELETE-006",
+      "id": "USERS-DELETE-006",
       "group": "DELETE /cms/users/{username}",
       "title": "suspending already-suspended seeded user -> 404",
       "source": "inferred",
@@ -20716,7 +20713,7 @@
       ]
     },
     {
-      "id": "DELETE-007",
+      "id": "USERS-DELETE-007",
       "group": "DELETE /cms/users/{username}",
       "title": "suspend does not free the username",
       "source": "inferred",
@@ -20757,7 +20754,7 @@
       ]
     },
     {
-      "id": "DELETE-008",
+      "id": "USERS-DELETE-008",
       "group": "DELETE /cms/users/{username}",
       "title": "request body is ignored",
       "source": "inferred",
@@ -20784,7 +20781,7 @@
       ]
     },
     {
-      "id": "DELETE-009",
+      "id": "USERS-DELETE-009",
       "group": "DELETE /cms/users/{username}",
       "title": "unknown user -> 404",
       "source": "documented",
@@ -20807,7 +20804,7 @@
       ]
     },
     {
-      "id": "DELETE-010",
+      "id": "USERS-DELETE-010",
       "group": "DELETE /cms/users/{username}",
       "title": "64 char unknown user -> 404",
       "source": "documented",
@@ -20835,7 +20832,7 @@
       ]
     },
     {
-      "id": "DELETE-011",
+      "id": "USERS-DELETE-011",
       "group": "DELETE /cms/users/{username}",
       "title": "unauthorised actor + unknown user -> 401",
       "source": "inferred",
@@ -20858,7 +20855,7 @@
       ]
     },
     {
-      "id": "DELETE-012",
+      "id": "USERS-DELETE-012",
       "group": "DELETE /cms/users/{username}",
       "title": "uppercase target normalised",
       "source": "inferred",
@@ -20881,7 +20878,7 @@
       ]
     },
     {
-      "id": "DELETE-013",
+      "id": "USERS-DELETE-013",
       "group": "DELETE /cms/users/{username}",
       "title": "400: invalid username in path (space inside)",
       "source": "documented",
@@ -20904,7 +20901,7 @@
       ]
     },
     {
-      "id": "DELETE-014",
+      "id": "USERS-DELETE-014",
       "group": "DELETE /cms/users/{username}",
       "title": "400: invalid username in path (65 chars)",
       "source": "documented",
@@ -20932,7 +20929,7 @@
       ]
     },
     {
-      "id": "DELETE-015",
+      "id": "USERS-DELETE-015",
       "group": "DELETE /cms/users/{username}",
       "title": "400: invalid username in path (exclamation)",
       "source": "documented",
@@ -20955,7 +20952,7 @@
       ]
     },
     {
-      "id": "DELETE-016",
+      "id": "USERS-DELETE-016",
       "group": "DELETE /cms/users/{username}",
       "title": "400: invalid username in path (dot)",
       "source": "documented",
@@ -20978,7 +20975,7 @@
       ]
     },
     {
-      "id": "DELETE-017",
+      "id": "USERS-DELETE-017",
       "group": "DELETE /cms/users/{username}",
       "title": "400: invalid username in path (non-ASCII)",
       "source": "documented",
@@ -21001,7 +20998,7 @@
       ]
     },
     {
-      "id": "DELETE-018",
+      "id": "USERS-DELETE-018",
       "group": "DELETE /cms/users/{username}",
       "title": "400: invalid username in path (sql-ish quote)",
       "source": "documented",
@@ -21024,7 +21021,7 @@
       ]
     },
     {
-      "id": "DELETE-019",
+      "id": "USERS-DELETE-019",
       "group": "DELETE /cms/users/{username}",
       "title": "400: invalid username in path (whitespace only)",
       "source": "documented",
@@ -21047,7 +21044,7 @@
       ]
     },
     {
-      "id": "DELETE-020",
+      "id": "USERS-DELETE-020",
       "group": "DELETE /cms/users/{username}",
       "title": "400: invalid username in path (Kelvin sign U+212A)",
       "source": "documented",
@@ -21070,7 +21067,7 @@
       ]
     },
     {
-      "id": "DELETE-021",
+      "id": "USERS-DELETE-021",
       "group": "DELETE /cms/users/{username}",
       "title": "400: invalid username in path (null byte)",
       "source": "documented",
@@ -21093,7 +21090,7 @@
       ]
     },
     {
-      "id": "DELETE-022",
+      "id": "USERS-DELETE-022",
       "group": "DELETE /cms/users/{username}",
       "title": "400: invalid username in path (emoji)",
       "source": "documented",
@@ -21116,7 +21113,7 @@
       ]
     },
     {
-      "id": "DELETE-023",
+      "id": "USERS-DELETE-023",
       "group": "DELETE /cms/users/{username}",
       "title": "400: invalid username in path (semicolon)",
       "source": "documented",
@@ -21139,7 +21136,7 @@
       ]
     },
     {
-      "id": "DELETE-024",
+      "id": "USERS-DELETE-024",
       "group": "DELETE /cms/users/{username}",
       "title": "400: invalid username in path (encoded slash)",
       "source": "documented",
@@ -21162,7 +21159,7 @@
       ]
     },
     {
-      "id": "DELETE-025",
+      "id": "USERS-DELETE-025",
       "group": "DELETE /cms/users/{username}",
       "title": "actor `root` (users:delete) may suspend another user",
       "source": "documented",
@@ -21210,7 +21207,7 @@
       ]
     },
     {
-      "id": "DELETE-026",
+      "id": "USERS-DELETE-026",
       "group": "DELETE /cms/users/{username}",
       "title": "actor `creator` lacks users:delete -> 401, user still active",
       "source": "documented",
@@ -21258,7 +21255,7 @@
       ]
     },
     {
-      "id": "DELETE-027",
+      "id": "USERS-DELETE-027",
       "group": "DELETE /cms/users/{username}",
       "title": "actor `editor` lacks users:delete -> 401, user still active",
       "source": "documented",
@@ -21306,7 +21303,7 @@
       ]
     },
     {
-      "id": "DELETE-028",
+      "id": "USERS-DELETE-028",
       "group": "DELETE /cms/users/{username}",
       "title": "actor `deleter` (users:delete) may suspend another user",
       "source": "documented",
@@ -21354,7 +21351,7 @@
       ]
     },
     {
-      "id": "DELETE-029",
+      "id": "USERS-DELETE-029",
       "group": "DELETE /cms/users/{username}",
       "title": "actor `limited` lacks users:delete -> 401, user still active",
       "source": "documented",
@@ -21402,7 +21399,7 @@
       ]
     },
     {
-      "id": "DELETE-030",
+      "id": "USERS-DELETE-030",
       "group": "DELETE /cms/users/{username}",
       "title": "actor `reader` lacks users:delete -> 401, user still active",
       "source": "documented",
@@ -21450,7 +21447,7 @@
       ]
     },
     {
-      "id": "DELETE-031",
+      "id": "USERS-DELETE-031",
       "group": "DELETE /cms/users/{username}",
       "title": "actor may suspend themselves; own session is then revoked",
       "source": "stated",
@@ -21485,7 +21482,7 @@
       "note": "Self-suspension is allowed by design."
     },
     {
-      "id": "GENERIC-001",
+      "id": "USERS-GENERIC-001",
       "group": "cross-cutting",
       "title": "routing: PUT /cms/users",
       "source": "inferred",
@@ -21506,7 +21503,7 @@
       "note": "Assumes Go 1.22+ ServeMux semantics."
     },
     {
-      "id": "GENERIC-002",
+      "id": "USERS-GENERIC-002",
       "group": "cross-cutting",
       "title": "routing: DELETE /cms/users",
       "source": "inferred",
@@ -21527,7 +21524,7 @@
       "note": "Assumes Go 1.22+ ServeMux semantics."
     },
     {
-      "id": "GENERIC-003",
+      "id": "USERS-GENERIC-003",
       "group": "cross-cutting",
       "title": "routing: POST /cms/users/{u}",
       "source": "inferred",
@@ -21555,7 +21552,7 @@
       "note": "Assumes Go 1.22+ ServeMux semantics."
     },
     {
-      "id": "GENERIC-004",
+      "id": "USERS-GENERIC-004",
       "group": "cross-cutting",
       "title": "routing: GET /cms/users/{u}/email",
       "source": "inferred",
@@ -21579,7 +21576,7 @@
       "note": "Assumes Go 1.22+ ServeMux semantics."
     },
     {
-      "id": "GENERIC-005",
+      "id": "USERS-GENERIC-005",
       "group": "cross-cutting",
       "title": "routing: PUT /cms/users/{u}/password",
       "source": "inferred",
@@ -21607,7 +21604,7 @@
       "note": "Assumes Go 1.22+ ServeMux semantics."
     },
     {
-      "id": "GENERIC-006",
+      "id": "USERS-GENERIC-006",
       "group": "cross-cutting",
       "title": "routing: DELETE /cms/users/{u}/permissions",
       "source": "inferred",
@@ -21631,7 +21628,7 @@
       "note": "Assumes Go 1.22+ ServeMux semantics."
     },
     {
-      "id": "GENERIC-007",
+      "id": "USERS-GENERIC-007",
       "group": "cross-cutting",
       "title": "routing: PATCH /cms/users/search",
       "source": "inferred",
@@ -21656,7 +21653,7 @@
       "note": "Assumes Go 1.22+ ServeMux semantics."
     },
     {
-      "id": "GENERIC-008",
+      "id": "USERS-GENERIC-008",
       "group": "cross-cutting",
       "title": "routing: GET /cms/users/search is the user named `search`",
       "source": "inferred",
@@ -21676,7 +21673,7 @@
       ]
     },
     {
-      "id": "GENERIC-009",
+      "id": "USERS-GENERIC-009",
       "group": "cross-cutting",
       "title": "routing: trailing slash /cms/users/",
       "source": "inferred",
@@ -21696,7 +21693,7 @@
       ]
     },
     {
-      "id": "GENERIC-010",
+      "id": "USERS-GENERIC-010",
       "group": "cross-cutting",
       "title": "routing: unknown sub-route /cms/users/alice/unknown",
       "source": "inferred",

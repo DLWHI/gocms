@@ -17,10 +17,7 @@
     "actors": {
       "root": {
         "username": "root",
-        "caps": {
-          "categories": ["create", "edit", "delete"],
-          "locales": ["create", "delete"]
-        }
+        "permissions": 4294967295
       },
       "creator": {
         "username": "creator",

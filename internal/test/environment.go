@@ -4,32 +4,20 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"gocms/internal/category"
 	"gocms/internal/domain"
+	"gocms/internal/locale"
 	"gocms/internal/outbox"
 	"gocms/internal/password"
 	"gocms/internal/user"
 	"net/http"
 	"os"
+	"strconv"
+	"strings"
 
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 )
-
-type Case struct {
-	ID     string   `json:"id"`
-	Group  string   `json:"group"`
-	Title  string   `json:"title"`
-	Source string   `json:"source"`
-	Tags   []string `json:"tags"`
-	Steps  []Step   `json:"steps"`
-}
-
-type Step struct {
-	Actor      string         `json:"actor"`
-	Request    HttpRequest    `json:"request"`
-	Expect     ExpectedResult `json:"expect"`
-	Eventually uint           `json:"eventually_ms"`
-}
 
 type Data struct {
 	Meta      map[string]JSONValue `json:"meta"`
@@ -46,6 +34,114 @@ type Environment struct {
 	Outbox   outbox.MessageRepository
 	Router   http.Handler
 	TestData *Data
+}
+
+func (d *Data) GetConstant(constant string) (string, error) {
+	if value, ok := d.Constants[constant]; ok {
+		return fmt.Sprintf("%v", value), nil
+	}
+	return "", fmt.Errorf("Missing constant %s", constant)
+}
+
+func (d *Data) GetSessionOf(actor string) string {
+	return d.Fixtures.Actors[actor].Session
+}
+
+func (d *Data) Resolve(v JSONValue) (JSONValue, error) {
+	m, ok := v.(map[string]JSONValue)
+	if ok {
+		for name, arg := range m {
+			if strings.HasPrefix(name, "$") {
+				val, err := d.ExpandToken(name, arg)
+				if err != nil {
+					return nil, err
+				}
+				return val, nil
+			}
+			return v, nil
+		}
+	}
+	return v, nil
+}
+
+func (d *Data) ResolveString(v JSONValue) (string, error) {
+	m, ok := v.(map[string]JSONValue)
+	if ok {
+		for name, arg := range m {
+			if strings.HasPrefix(name, "$") {
+				val, err := d.ExpandToken(name, arg)
+				if err != nil {
+					return "", err
+				}
+				return fmt.Sprintf("%v", val), nil
+			}
+		}
+	}
+	return fmt.Sprintf("%v", v), nil
+}
+
+func (d *Data) ResolveMap(values map[string]JSONValue) (map[string]JSONValue, error) {
+	res := make(map[string]JSONValue, len(values))
+	for key, value := range values {
+		resolved, err := d.Resolve(value)
+		if err != nil {
+			return nil, err
+		}
+		res[key] = resolved
+	}
+	return res, nil
+}
+
+func (d *Data) ExpandToken(name string, arg JSONValue) (JSONValue, error) {
+	switch name {
+	case "$const":
+		key, ok := arg.(string)
+		if !ok {
+			return nil, fmt.Errorf("$const expects a string")
+		}
+		val, ok := d.Constants[key]
+		if !ok {
+			return nil, fmt.Errorf("unknown constant %q", key)
+		}
+		return val, nil
+
+	case "$repeat":
+		m, ok := arg.(map[string]any)
+		if !ok {
+			return nil, fmt.Errorf("$repeat expects {s, n}")
+		}
+		s, ok1 := m["s"].(string)
+		n, ok2 := ToLen(m["n"])
+		if !ok1 || !ok2 || n < 0 {
+			return nil, fmt.Errorf("$repeat needs string s and non-negative integer n")
+		}
+		return strings.Repeat(s, int(n)), nil
+	case "$email_of_length":
+		n, ok := ToLen(arg)
+		const domain = "@example.com"
+		if !ok || int(n) <= len(domain) {
+			return nil, fmt.Errorf("$email_of_length needs an integer > %d", len(domain))
+		}
+		return strings.Repeat("a", int(n)-len(domain)) + domain, nil
+	case "$raw_session":
+		actor, ok := arg.(string)
+		if !ok {
+			return nil, fmt.Errorf("$raw_session needs to be a string")
+		}
+		return d.GetSessionOf(actor), nil
+	case "$actor_perms":
+		username, ok := arg.(string)
+		if !ok {
+			return nil, fmt.Errorf("$actor_perms needs to be a string")
+		}
+		actor, ok := d.Fixtures.Actors[username]
+		if !ok {
+			return nil, fmt.Errorf("$actor_perms requests unknown actor")
+		}
+		return json.Number(strconv.FormatUint(uint64(actor.Permissions), 10)), nil
+	default:
+		return nil, fmt.Errorf("value is not a state token")
+	}
 }
 
 func LoadDataFromFile(path string, format string) (*Data, error) {
@@ -80,6 +176,12 @@ func (e *Environment) Clear(ctx context.Context) error {
 	if err := e.DB.Unscoped().Where("1 = 1").Delete(&user.Record{}).Error; err != nil {
 		return err
 	}
+	if err := e.DB.Unscoped().Where("1 = 1").Delete(&locale.Record{}).Error; err != nil {
+		return err
+	}
+	if err := e.DB.Unscoped().Where("1 = 1").Delete(&category.Record{}).Error; err != nil {
+		return err
+	}
 	if err := e.DB.Unscoped().Where("1 = 1").Delete(&outbox.Message{}).Error; err != nil {
 		return err
 	}
@@ -97,43 +199,4 @@ func (e *Environment) Clear(ctx context.Context) error {
 	}
 
 	return nil
-}
-
-func (d *Data) GetConstant(constant string) (string, error) {
-	if value, ok := d.Constants[constant]; ok {
-		return fmt.Sprintf("%v", value), nil
-	}
-	return "", fmt.Errorf("Missing constant %s", constant)
-}
-
-func (d *Data) GetSessionOf(actor string) string {
-	return d.Fixtures.Actors[actor].Session
-}
-
-func (s *Step) Perform(ctx context.Context, d *Data, e *Environment) (*http.Response, error) {
-	actor, ok := d.Fixtures.Actors[s.Actor]
-	if !ok && s.Actor != "anonymous" {
-		return nil, fmt.Errorf("Requested step for unknown actor")
-	}
-
-	res, err := e.PerformRequest(ctx, actor, s.Request)
-	if err != nil {
-		return res, err
-	}
-	defer res.Body.Close()
-
-	if err := e.Outbox.Dispatch(ctx, 5); err != nil {
-		return res, err
-	}
-
-	if err := s.Expect.Check(d, res); err != nil {
-		return res, err
-	}
-
-	for _, external := range s.Expect.ExternalChecks {
-		if err := external.Assert(ctx, e); err != nil {
-			return res, err
-		}
-	}
-	return nil, nil
 }

@@ -95,7 +95,7 @@ func NewAuthModule(db *gorm.DB, redis *redis.Client, passwords password.Password
 	}
 
 	userRepo := user.NewGORMRepository(db)
-	sessionRepo := auth.NewRedisSessionRepository(redis, keys, 24*time.Hour)
+	sessionRepo := auth.NewRedisSessionRepository(redis, keys, 20*time.Second)
 	consumer := auth.NewEventConsumer(sessionRepo, userRepo)
 	service := auth.NewService(sessionRepo, userRepo, passwords)
 	handler := auth.NewHandler(service)
@@ -123,7 +123,7 @@ func NewUserModule(
 	}
 	gormRepo := user.NewGORMRepository(db)
 	flowRepo := user.NewFlowRepository(gormRepo, 20*time.Second, keys)
-	redisRepo := user.NewRedisRepository(flowRepo, redis, 30*time.Minute, keys)
+	redisRepo := user.NewRedisRepository(flowRepo, redis, 20*time.Second, keys)
 	searchEngine := user.NewMeilisearchEngine(search, UsersSearchIndexName)
 	consumer := user.NewEventConsumer(gormRepo, searchEngine)
 	service := user.NewService(redisRepo, searchEngine, creds, passwords)
@@ -175,7 +175,7 @@ func NewCategoryModule(
 
 	gormRepo := category.NewGORMRepository(db)
 	flowRepo := category.NewFlowRepository(gormRepo, 20*time.Second, keys)
-	redisRepo := category.NewRedisRepository(flowRepo, redis, 120*time.Minute, keys)
+	redisRepo := category.NewRedisRepository(flowRepo, redis, 20*time.Second, keys)
 	searchEngine := category.NewMeilisearchEngine(search, CategoriesSearchIndexName)
 	service := category.NewService(redisRepo, searchEngine, creds)
 	handler := category.NewHandler(service)
@@ -203,7 +203,7 @@ func NewEditorModule(
 
 	gormRepo := editor.NewGORMRepository(db)
 	flowRepo := editor.NewFlowRepository(gormRepo, 20*time.Second, keys)
-	redisRepo := editor.NewRedisRepository(flowRepo, redis, 120*time.Minute, keys)
+	redisRepo := editor.NewRedisRepository(flowRepo, redis, 20*time.Second, keys)
 	searchEngine := editor.NewMeilisearchEngine(search, EditorsSearchIndexName)
 	service := editor.NewService(redisRepo, searchEngine, creds)
 	handler := editor.NewHandler(service)
@@ -249,7 +249,7 @@ func NewLocaleModule(db *gorm.DB, redis *redis.Client, creds domain.AuthService)
 
 	gormRepo := locale.NewGORMRepository(db)
 	flowRepo := locale.NewFlowRepository(gormRepo, 20*time.Second, keys)
-	redisRepo := locale.NewRedisRepository(flowRepo, redis, 24*time.Hour, keys)
+	redisRepo := locale.NewRedisRepository(flowRepo, redis, 20*time.Second, keys)
 	service := locale.NewService(redisRepo, creds)
 	handler := locale.NewHandler(service)
 	return &LocaleModule{

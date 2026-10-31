@@ -54,6 +54,9 @@ func (r *GORMRepository) Create(ctx context.Context, category *domain.Category) 
 		return nil
 	})
 	if err != nil {
+		if errors.Is(err, gorm.ErrDuplicatedKey) {
+			return domain.ErrDuplicate
+		}
 		return err
 	}
 	return nil

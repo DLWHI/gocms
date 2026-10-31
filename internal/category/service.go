@@ -49,7 +49,9 @@ func (s *Service) Create(ctx context.Context, category *domain.Category) (string
 	created.Name = name
 
 	if err := s.repo.Create(ctx, &created); err != nil {
-		logger.Error("Category.Service", "Failed to create category", err)
+		if !errors.Is(err, domain.ErrDuplicate) {
+			logger.Error("Category.Service", "Failed to create category", err)
+		}
 		return "", err
 	}
 

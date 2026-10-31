@@ -180,9 +180,11 @@ func NewCategoryModule(
 	flowRepo := category.NewFlowRepository(gormRepo, 20*time.Second, keys)
 	redisRepo := category.NewRedisRepository(flowRepo, redis, 120*time.Minute, keys)
 	searchEngine := category.NewMeilisearchEngine(search, CategoriesSearchIndexName)
+	consumer := category.NewEventConsumer(gormRepo, searchEngine)
 	service := category.NewService(redisRepo, searchEngine, creds)
 	handler := category.NewHandler(service)
 	return &CategoryModule{
+		Consumer:          consumer,
 		Service:           service,
 		Handler:           handler,
 		CacheRepo:         redisRepo,
@@ -208,10 +210,11 @@ func NewEditorModule(
 	flowRepo := editor.NewFlowRepository(gormRepo, 20*time.Second, keys)
 	redisRepo := editor.NewRedisRepository(flowRepo, redis, 120*time.Minute, keys)
 	searchEngine := editor.NewMeilisearchEngine(search, EditorsSearchIndexName)
+	consumer := editor.NewEventConsumer(gormRepo, searchEngine)
 	service := editor.NewService(redisRepo, searchEngine, creds)
 	handler := editor.NewHandler(service)
 	return &EditorModule{
-		Consumer:          &editor.EventConsumer{},
+		Consumer:          consumer,
 		Service:           service,
 		Handler:           handler,
 		CacheRepoRepo:     redisRepo,

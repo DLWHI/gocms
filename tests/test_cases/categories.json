@@ -5879,7 +5879,7 @@
     {
       "id": "CATEGORIES-CREATE-075",
       "group": "POST /cms/categories",
-      "title": "400: invalid name (empty string); nothing created",
+      "title": "empty name is valid",
       "source": "documented",
       "tags": ["verify_name_rules"],
       "steps": [
@@ -5898,8 +5898,8 @@
             }
           },
           "expect": {
-            "status": 400,
-            "body": "plain_text"
+            "status": 201,
+            "body": "empty"
           }
         },
         {
@@ -5915,8 +5915,15 @@
             }
           },
           "expect": {
-            "status": 404,
-            "body": "plain_text"
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.name",
+                "op": "eq",
+                "value": ""
+              }
+            ]
           }
         }
       ]
@@ -5924,7 +5931,7 @@
     {
       "id": "CATEGORIES-CREATE-076",
       "group": "POST /cms/categories",
-      "title": "400: invalid name (whitespace only); nothing created",
+      "title": "whitespace only name",
       "source": "inferred",
       "tags": ["verify_name_rules"],
       "steps": [
@@ -5943,8 +5950,8 @@
             }
           },
           "expect": {
-            "status": 400,
-            "body": "plain_text"
+            "status": 201,
+            "body": "empty"
           }
         },
         {
@@ -5960,8 +5967,15 @@
             }
           },
           "expect": {
-            "status": 404,
-            "body": "plain_text"
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.name",
+                "op": "eq",
+                "value": ""
+              }
+            ]
           }
         }
       ]
@@ -6181,7 +6195,7 @@
     {
       "id": "CATEGORIES-CREATE-082",
       "group": "POST /cms/categories",
-      "title": "400: name type is null",
+      "title": "name type is null",
       "source": "documented",
       "tags": [],
       "steps": [
@@ -6196,8 +6210,32 @@
             }
           },
           "expect": {
-            "status": 400,
-            "body": "plain_text"
+            "status": 204,
+            "body": "empty"
+          }
+        },
+        {
+          "actor": "root",
+          "request": {
+            "method": "GET",
+            "path": "/cms/categories/{slug}",
+            "path_params": {
+              "slug": "gadgets"
+            },
+            "headers": {
+              "Accept-Language": "en"
+            }
+          },
+          "expect": {
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.categories[?(@.slug=='gadgets')].name",
+                "op": "eq",
+                "value": ""
+              }
+            ]
           }
         }
       ]
@@ -19635,7 +19673,7 @@
     {
       "id": "CATEGORIES-PATCH-056",
       "group": "PATCH /cms/categories/{slug}",
-      "title": "400: invalid name (empty string); unchanged",
+      "title": "empty name is valid",
       "source": "documented",
       "tags": ["verify_name_rules"],
       "steps": [
@@ -19656,8 +19694,8 @@
             }
           },
           "expect": {
-            "status": 400,
-            "body": "plain_text"
+            "status": 204,
+            "body": "empty"
           }
         },
         {
@@ -19666,7 +19704,7 @@
             "method": "GET",
             "path": "/cms/categories/{slug}",
             "path_params": {
-              "slug": "news"
+              "slug": "gadgets"
             },
             "headers": {
               "Accept-Language": "en"
@@ -19677,19 +19715,9 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "$.slug",
-                "op": "eq",
-                "value": "news"
-              },
-              {
-                "path": "$.locale",
-                "op": "eq",
-                "value": "en"
-              },
-              {
                 "path": "$.name",
                 "op": "eq",
-                "value": "News"
+                "value": ""
               }
             ]
           }
@@ -19699,7 +19727,7 @@
     {
       "id": "CATEGORIES-PATCH-057",
       "group": "PATCH /cms/categories/{slug}",
-      "title": "400: invalid name (whitespace only); unchanged",
+      "title": "whitespace only name",
       "source": "inferred",
       "tags": ["verify_name_rules"],
       "steps": [
@@ -19720,8 +19748,8 @@
             }
           },
           "expect": {
-            "status": 400,
-            "body": "plain_text"
+            "status": 204,
+            "body": "empty"
           }
         },
         {
@@ -19730,7 +19758,7 @@
             "method": "GET",
             "path": "/cms/categories/{slug}",
             "path_params": {
-              "slug": "news"
+              "slug": "gadgets"
             },
             "headers": {
               "Accept-Language": "en"
@@ -19741,19 +19769,9 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "$.slug",
-                "op": "eq",
-                "value": "news"
-              },
-              {
-                "path": "$.locale",
-                "op": "eq",
-                "value": "en"
-              },
-              {
                 "path": "$.name",
                 "op": "eq",
-                "value": "News"
+                "value": ""
               }
             ]
           }

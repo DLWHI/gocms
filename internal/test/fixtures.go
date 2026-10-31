@@ -2,6 +2,7 @@ package test
 
 import (
 	"context"
+	"fmt"
 	"gocms/internal/category"
 	"gocms/internal/domain"
 	"gocms/internal/locale"
@@ -84,6 +85,7 @@ func (f *Fixtures) ApplyFixtures(ctx context.Context, e *Environment) error {
 		if err := db.WithContext(ctx).Save(record).Error; err != nil {
 			return err
 		}
+		c.ID = fmt.Sprintf("%s-%s", c.Slug, c.Locale)
 		task, err := ms.CategoriesIndex.AddDocumentsWithContext(ctx, &c, nil)
 		if err != nil {
 			return err

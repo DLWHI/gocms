@@ -48,7 +48,9 @@ func (s *Service) Create(ctx context.Context, editor *domain.Editor) (string, er
 	created.Name = name
 
 	if err := s.repo.Create(ctx, &created); err != nil {
-		logger.Error("Editor.Service", "Failed to create editor profile", err)
+		if !errors.Is(err, domain.ErrDuplicate) {
+			logger.Error("Editor.Service", "Failed to create editor profile", err)
+		}
 		return "", err
 	}
 
@@ -106,6 +108,11 @@ func (s *Service) Get(ctx context.Context, slug string) (*domain.Editor, error) 
 		return nil, fmt.Errorf("%w: empty locale", domain.ErrInval)
 	}
 
+	slug, err := domain.NormalizeSlug(slug)
+	if err != nil {
+		return nil, err
+	}
+
 	editor, err := s.repo.GetAny(ctx, slug, locale)
 	if err != nil {
 		if !errors.Is(err, domain.ErrNotFound) {
@@ -150,12 +157,17 @@ func (s *Service) Search(ctx context.Context, filters *SearchParams) (*SearchRes
 	return editors, nil
 }
 
-func (s *Service) Delete(ctx context.Context, username string) error {
+func (s *Service) Delete(ctx context.Context, slug string) error {
 	if !s.auth.Authorize(ctx, domain.EditorEntityName, domain.ActionDeleteName) {
 		return domain.ErrPerm
 	}
 
-	if err := s.repo.Delete(ctx, username); err != nil {
+	slug, err := domain.NormalizeSlug(slug)
+	if err != nil {
+		return err
+	}
+
+	if err := s.repo.Delete(ctx, slug); err != nil {
 		if !errors.Is(err, domain.ErrNotFound) {
 			logger.Error("Editor.Service", "Failed to delete editor profile", err)
 		}

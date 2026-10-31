@@ -4,7 +4,9 @@ import (
 	"context"
 	"errors"
 	"gocms/internal/domain"
+	"gocms/internal/flow"
 	"gocms/internal/outbox"
+	"time"
 
 	"gorm.io/gorm"
 )
@@ -29,11 +31,17 @@ type RecordPatch = map[string]interface{}
 type TranslationPatch = map[string]interface{}
 
 type GORMRepository struct {
-	db *gorm.DB
+	db      *gorm.DB
+	retries uint
+	backoff time.Duration
 }
 
 func NewGORMRepository(db *gorm.DB) *GORMRepository {
-	return &GORMRepository{db: db}
+	return &GORMRepository{
+		db:      db,
+		retries: uint(5),
+		backoff: 100 * time.Millisecond,
+	}
 }
 
 func (r *GORMRepository) Create(ctx context.Context, editor *domain.Editor) error {
@@ -47,14 +55,17 @@ func (r *GORMRepository) Create(ctx context.Context, editor *domain.Editor) erro
 		return nil
 	})
 	if err != nil {
+		if errors.Is(err, gorm.ErrDuplicatedKey) {
+			return domain.ErrDuplicate
+		}
 		return err
 	}
 	return nil
 }
 
 func (r *GORMRepository) Update(ctx context.Context, slug string, locale string, diff *domain.EditorDiff) error {
-	for i := 0; i < 5; i++ {
-		err := r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+	return r.mapErr(flow.DoWithRetry(ctx, r.retries, r.backoff, func() error {
+		return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 			recordUpdate, translationUpdate := r.patch(diff)
 			if len(recordUpdate)+len(translationUpdate) == 0 {
 				return nil
@@ -116,13 +127,7 @@ func (r *GORMRepository) Update(ctx context.Context, slug string, locale string,
 			}
 			return nil
 		})
-		if err == nil {
-			return nil
-		} else if !errors.Is(err, domain.ErrLock) {
-			return err
-		}
-	}
-	return domain.ErrLock
+	}))
 }
 
 func (r *GORMRepository) GetAny(ctx context.Context, slug string, locale string) (*domain.Editor, error) {
@@ -203,6 +208,19 @@ func (r *GORMRepository) Delete(ctx context.Context, slug string) error {
 		return err
 	}
 	return nil
+}
+
+func (*GORMRepository) mapErr(err error) error {
+	switch {
+	case err == nil:
+		return nil
+	case errors.Is(err, domain.ErrRetry):
+		return domain.ErrLock
+	case errors.Is(err, gorm.ErrRecordNotFound):
+		return domain.ErrNotFound
+	default:
+		return err
+	}
 }
 
 func (*GORMRepository) writeMessage(tx *gorm.DB, action int, slug string) error {

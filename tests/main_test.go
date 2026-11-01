@@ -55,7 +55,6 @@ func run(m *testing.M) error {
 			EditorsSearchIndexName,
 			AdsSearchIndexName,
 		),
-		LangRepo: App.Langs.CacheRepo,
 		Password: App.PasswordService,
 		Router:   App.Router,
 		Redis:    App.Redis,

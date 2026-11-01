@@ -89,7 +89,7 @@ type LangModule struct {
 
 func NewAuthModule(db *gorm.DB, redis *redis.Client, passwords password.PasswordService) (*AuthModule, error) {
 	keys, err := cache.NewKeyspace(cache.KeyConfig{
-		Prefix: []string{"cms"},
+		Prefix: []string{"cms", "test"},
 	}, "sessions")
 	if err != nil {
 		return nil, err
@@ -117,7 +117,7 @@ func NewUserModule(
 	passwords password.PasswordService,
 ) (*UserModule, error) {
 	keys, err := cache.NewKeyspace(cache.KeyConfig{
-		Prefix: []string{"cms"},
+		Prefix: []string{"cms", "test"},
 	}, "users")
 	if err != nil {
 		return nil, err
@@ -168,7 +168,7 @@ func NewCategoryModule(
 	creds domain.AuthService,
 ) (*CategoryModule, error) {
 	keys, err := cache.NewKeyspace(cache.KeyConfig{
-		Prefix: []string{"cms"},
+		Prefix: []string{"cms", "test"},
 	}, "categories")
 	if err != nil {
 		return nil, err
@@ -198,7 +198,7 @@ func NewEditorModule(
 	creds domain.AuthService,
 ) (*EditorModule, error) {
 	keys, err := cache.NewKeyspace(cache.KeyConfig{
-		Prefix: []string{"cms"},
+		Prefix: []string{"cms", "test"},
 	}, "categories")
 	if err != nil {
 		return nil, err
@@ -243,15 +243,22 @@ func NewAdsModule(db *gorm.DB, search meilisearch.ServiceManager, redis *redis.C
 	}
 }
 
-func NewLangModule(ctx context.Context, db *gorm.DB, _ *redis.Client, creds domain.AuthService) (*LangModule, error) {
+func NewLangModule(_ context.Context, db *gorm.DB, redis *redis.Client, creds domain.AuthService) (*LangModule, error) {
+	keys, err := cache.NewKeyspace(cache.KeyConfig{
+		Prefix: []string{"cms", "test"},
+	}, "langs")
+	if err != nil {
+		return nil, err
+	}
+
 	gormRepo := lang.NewGORMRepository(db)
-	localRepo := lang.NewLocalCacheRepository(ctx, gormRepo)
-	service := lang.NewService(localRepo, creds)
+	redisRepo := lang.NewRedisRepository(gormRepo, redis, 5*time.Minute, keys)
+	service := lang.NewService(redisRepo, creds)
 	handler := lang.NewHandler(service)
 	return &LangModule{
 		Service:   service,
 		Handler:   handler,
-		CacheRepo: localRepo,
+		CacheRepo: redisRepo,
 		DBRepo:    gormRepo,
 	}, nil
 }

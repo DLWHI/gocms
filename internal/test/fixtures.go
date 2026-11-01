@@ -4,6 +4,7 @@ import (
 	"context"
 	"gocms/internal/category"
 	"gocms/internal/domain"
+	"gocms/internal/editor"
 	"gocms/internal/lang"
 	"gocms/internal/user"
 	"time"
@@ -17,6 +18,7 @@ type Fixtures struct {
 	Users           []domain.User     `json:"users"`
 	Languages       []domain.Language `json:"languages"`
 	Categories      []domain.Category `json:"categories"`
+	Editors         []domain.Editor   `json:"editors"`
 }
 
 func (f *Fixtures) ApplyFixtures(ctx context.Context, e *Environment) error {
@@ -86,6 +88,21 @@ func (f *Fixtures) ApplyFixtures(ctx context.Context, e *Environment) error {
 		}
 
 		task, err := ms.CategoriesIndex.AddDocumentsWithContext(ctx, category.ToSearchDocument(&c), nil)
+		if err != nil {
+			return err
+		}
+		if err := ms.WaitForTask(ctx, task); err != nil {
+			return err
+		}
+	}
+
+	for _, e := range f.Editors {
+		record := editor.ToRecord(&e)
+		if err := db.WithContext(ctx).Save(record).Error; err != nil {
+			return err
+		}
+
+		task, err := ms.EditorsIndex.AddDocumentsWithContext(ctx, editor.ToSearchDocument(&e), nil)
 		if err != nil {
 			return err
 		}

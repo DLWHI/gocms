@@ -201,7 +201,7 @@ func NewEditorModule(
 ) (*EditorModule, error) {
 	keys, err := cache.NewKeyspace(cache.KeyConfig{
 		Prefix: []string{"cms"},
-	}, "categories")
+	}, "editors")
 	if err != nil {
 		return nil, err
 	}
@@ -245,7 +245,7 @@ func NewAdsModule(db *gorm.DB, search meilisearch.ServiceManager, redis *redis.C
 	}
 }
 
-func NewLangModule(ctx context.Context, db *gorm.DB, creds domain.AuthService) (*LangModule, error) {
+func NewLangModule(ctx context.Context, db *gorm.DB, _ *redis.Client, creds domain.AuthService) (*LangModule, error) {
 	// Enable if redis or flow repo required
 	// keys, err := cache.NewKeyspace(cache.KeyConfig{
 	// 	Prefix: []string{"cms"},

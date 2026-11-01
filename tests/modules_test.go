@@ -199,7 +199,7 @@ func NewEditorModule(
 ) (*EditorModule, error) {
 	keys, err := cache.NewKeyspace(cache.KeyConfig{
 		Prefix: []string{"cms", "test"},
-	}, "categories")
+	}, "editors")
 	if err != nil {
 		return nil, err
 	}

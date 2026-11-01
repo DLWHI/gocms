@@ -94,7 +94,7 @@ func (app *Container) Init(ctx context.Context, cfg Config) error {
 	if err != nil {
 		return err
 	}
-	langs, err := NewLangModule(ctx, db, auth.Service)
+	langs, err := NewLangModule(ctx, db, redis, auth.Service)
 	if err != nil {
 		return err
 	}

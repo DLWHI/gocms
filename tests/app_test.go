@@ -62,10 +62,6 @@ func (app *Container) Init(ctx context.Context) error {
 		return fmt.Errorf("Failed to connect to meilisearch: %w", err)
 	}
 
-	if err := Migrate(ctx, app); err != nil {
-		return fmt.Errorf("Failed to migrate schema: %w", err)
-	}
-
 	passwords := password.NewBCryptService(12, 8)
 
 	auth, err := NewAuthModule(db, redis, passwords)
@@ -138,6 +134,9 @@ func (app *Container) Init(ctx context.Context) error {
 	// app.ViewsCounter = views
 	app.OutboxRunner = relay
 
+	if err := Migrate(ctx, app); err != nil {
+		return fmt.Errorf("Failed to migrate schema: %w", err)
+	}
 	app.WireEvents(dispatcher)
 
 	return nil

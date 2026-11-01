@@ -4,6 +4,7 @@ import (
 	"context"
 	"gocms/internal/domain"
 	"net/http"
+	"strings"
 
 	"golang.org/x/text/language"
 )
@@ -11,17 +12,20 @@ import (
 func Middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
-		var header string
 		switch r.Method {
 		case http.MethodPost, http.MethodPut, http.MethodPatch:
-			header = r.Header.Get("Content-Language")
+			header := r.Header.Get("Content-Language")
+			tags := strings.Split(header, ",")
+			if len(tags) == 1 {
+				base, err := domain.NormalizeLangCode(tags[0])
+				if err != nil {
+					ctx = context.WithValue(ctx, domain.LangKey, base)
+				}
+			}
 		case http.MethodGet:
-			header = r.Header.Get("Accept-Language")
-		}
-
-		if header != "" {
+			header := r.Header.Get("Accept-Language")
 			tags, _, err := language.ParseAcceptLanguage(header)
-			if err == nil {
+			if err == nil && len(tags) > 0 {
 				base, conf := tags[0].Base()
 				if conf != language.No {
 					ctx = context.WithValue(ctx, domain.LangKey, base.String())

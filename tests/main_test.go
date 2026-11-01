@@ -16,7 +16,7 @@ import (
 const (
 	ConfigAddress = ""
 	ConfigPort    = "8080"
-	Filter        = "^CATEGORIES-AUTH-CREATE-(005|006)"
+	Filter        = ""
 )
 
 var (

@@ -12,6 +12,8 @@ const (
 	LangKey = "language"
 
 	LangMaxNameLength = 64
+
+	LangISO639_1Length = 2
 )
 
 var iso6391 = map[string]struct{}{
@@ -62,6 +64,9 @@ func ResolveLang(ctx context.Context, value string) (string, error) {
 
 func NormalizeLangCode(value string) (string, error) {
 	normalized := strings.TrimSpace(value)
+	if len(normalized) != LangISO639_1Length {
+		return "", fmt.Errorf("%w: language code more than 2 chars", ErrInval)
+	}
 	_, exists := iso6391[normalized]
 	if !exists {
 		return "", fmt.Errorf("%w: invalid language code", ErrInval)

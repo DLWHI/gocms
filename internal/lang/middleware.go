@@ -18,8 +18,8 @@ func Middleware(next http.Handler) http.Handler {
 			tags := strings.Split(header, ",")
 			if len(tags) == 1 {
 				base, err := domain.NormalizeLangCode(tags[0])
-				if err != nil {
-					ctx = context.WithValue(ctx, domain.LangKey, base)
+				if err == nil {
+					ctx = context.WithValue(ctx, domain.LangKey, strings.ToLower(base))
 				}
 			}
 		case http.MethodGet:

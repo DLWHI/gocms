@@ -183,6 +183,9 @@ func (e *Environment) Clear(ctx context.Context) error {
 		}
 	}
 
+	if err := e.DB.Unscoped().Where("1 = 1").Delete(&lang.Record{}).Error; err != nil {
+		return err
+	}
 	if err := e.DB.Unscoped().Where("1 = 1").Delete(&user.Record{}).Error; err != nil {
 		return err
 	}

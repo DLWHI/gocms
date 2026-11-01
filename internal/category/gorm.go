@@ -95,8 +95,9 @@ func (r *GORMRepository) Update(ctx context.Context, slug string, lang string, d
 				if version.Translation == 0 {
 					translationUpdate["category_slug"] = slug
 					translationUpdate["lang"] = lang
+					translationUpdate["version"] = 1
 					result := tx.Model(&RecordTranslation{}).
-						Create(recordUpdate)
+						Create(translationUpdate)
 					if result.Error != nil {
 						if errors.Is(err, gorm.ErrDuplicatedKey) {
 							return domain.ErrRetry
@@ -105,8 +106,8 @@ func (r *GORMRepository) Update(ctx context.Context, slug string, lang string, d
 					}
 				} else {
 					result := tx.Model(&RecordTranslation{}).
-						Where("category_slug = ? AND lang = ? AND version = ?", slug, lang, version).
-						Updates(recordUpdate)
+						Where("category_slug = ? AND lang = ? AND version = ?", slug, lang, version.Translation).
+						Updates(translationUpdate)
 					if result.Error != nil {
 						return result.Error
 					}

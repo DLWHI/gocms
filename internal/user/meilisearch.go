@@ -12,7 +12,7 @@ import (
 	"github.com/meilisearch/meilisearch-go"
 )
 
-type SearchDocument = domain.User
+type SearchDocument domain.User
 
 type MeilisearchEngine struct {
 	search search.MeilisearchClient
@@ -166,10 +166,10 @@ func (ms *MeilisearchEngine) ConfigureMeilisearchIndex(ctx context.Context) erro
 	return ms.search.ConfigureIndex(ctx)
 }
 
-func ToDomain(d *SearchDocument) *domain.User {
-	return d
+func (d *SearchDocument) ToDomain() *domain.User {
+	return (*domain.User)(d)
 }
 
 func ToSearchDocument(d *domain.User) *SearchDocument {
-	return d
+	return (*SearchDocument)(d)
 }

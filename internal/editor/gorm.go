@@ -5,6 +5,7 @@ import (
 	"errors"
 	"gocms/internal/domain"
 	"gocms/internal/flow"
+	"gocms/internal/lang"
 	"gocms/internal/outbox"
 	"time"
 
@@ -19,12 +20,13 @@ type Record struct {
 }
 
 type RecordTranslation struct {
-	Lang       string `gorm:"size:2;primaryKey;foreignKey:languages(code);constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
-	Name       string ``
-	Bio        string ``
-	EditorSlug string `gorm:"size:128;primaryKey"`
-	Editor     Record `gorm:"foreignKey:EditorSlug;references:Slug;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
-	Version    uint   `gorm:"default:1"`
+	Name       string       ``
+	Bio        string       ``
+	EditorSlug string       `gorm:"size:128;primaryKey"`
+	Editor     Record       `gorm:"foreignKey:EditorSlug;references:Slug;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	Lang       string       `gorm:"size:2;primaryKey;foreignKey:languages(code);constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	Language   *lang.Record `gorm:"foreignKey:Lang;references:Code;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	Version    uint         `gorm:"default:1"`
 }
 
 type RecordPatch = map[string]interface{}

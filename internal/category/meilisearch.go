@@ -27,7 +27,7 @@ func NewMeilisearchEngine(client meilisearch.ServiceManager, index string) *Meil
 			Settings: meilisearch.Settings{
 				SearchableAttributes: []string{"name", "slug"},
 				FilterableAttributes: []string{"hidden", "navbar", "lang", "slug"},
-				SortableAttributes:   []string{"name"},
+				SortableAttributes:   []string{"name", "slug"},
 			},
 		},
 	}

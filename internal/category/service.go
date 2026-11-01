@@ -175,7 +175,9 @@ func (s *Service) Search(ctx context.Context, filters *SearchParams) (*SearchRes
 
 	categories, err := s.se.Search(ctx, filters)
 	if err != nil {
-		logger.Error("Category.Service", "Failed to search categories", err)
+		if !errors.Is(err, domain.ErrInval) {
+			logger.Error("Category.Service", "Failed to search categories", err)
+		}
 		return nil, err
 	}
 	return categories, nil

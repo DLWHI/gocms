@@ -22,7 +22,7 @@ func IsNonGraphic(r rune) bool {
 }
 
 func NormalizeSlug(value string) (string, error) {
-	normalized := strings.Trim(value, "-")
+	normalized := strings.TrimFunc(value, func(r rune) bool { return unicode.IsSpace(r) || r == '-' })
 	if normalized == "" {
 		return "", fmt.Errorf("%w: slug cannot be empty", ErrInval)
 	}

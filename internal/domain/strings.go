@@ -18,7 +18,7 @@ func IsInvalidSlugRune(r rune) bool {
 }
 
 func IsNonGraphic(r rune) bool {
-	return !unicode.IsGraphic(r)
+	return !unicode.IsPrint(r)
 }
 
 func NormalizeSlug(value string) (string, error) {

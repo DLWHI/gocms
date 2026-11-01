@@ -7229,7 +7229,7 @@
     {
       "id": "CATEGORIES-CREATE-100",
       "group": "POST /cms/categories",
-      "title": "name with non-breaking space inside, accepted",
+      "title": "400: name with non-breaking space inside; nothing created",
       "source": "inferred",
       "tags": ["verify_name_rules", "verify_printable"],
       "steps": [
@@ -7248,8 +7248,8 @@
             }
           },
           "expect": {
-            "status": 201,
-            "body": "empty"
+            "status": 400,
+            "body": "plain_text"
           }
         },
         {
@@ -7265,15 +7265,8 @@
             }
           },
           "expect": {
-            "status": 200,
-            "body": "json",
-            "json_assertions": [
-              {
-                "path": "$.name",
-                "op": "eq",
-                "value": "Gad get"
-              }
-            ]
+            "status": 404,
+            "body": "plain_text"
           }
         }
       ],

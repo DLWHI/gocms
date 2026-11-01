@@ -4912,7 +4912,8 @@
             "method": "POST",
             "path": "/cms/categories/search",
             "body": {
-              "lang": "en"
+              "lang": "en",
+              "count": 20
             },
             "headers": {
               "Content-Type": "application/json"
@@ -5070,7 +5071,7 @@
     {
       "id": "CATEGORIES-CREATE-049",
       "group": "POST /cms/categories",
-      "title": "400: invalid slug (leading hyphen)",
+      "title": "leading hyphen trimmed",
       "source": "inferred",
       "tags": ["verify_slug_rules"],
       "steps": [
@@ -5092,13 +5093,37 @@
             "status": 400,
             "body": "plain_text"
           }
+        },
+        {
+          "actor": "root",
+          "request": {
+            "method": "GET",
+            "path": "/cms/categories/{slug}",
+            "path_params": {
+              "slug": "a"
+            },
+            "headers": {
+              "Accept-Language": "en"
+            }
+          },
+          "expect": {
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.slug",
+                "op": "eq",
+                "value": "a"
+              }
+            ]
+          }
         }
       ]
     },
     {
       "id": "CATEGORIES-CREATE-050",
       "group": "POST /cms/categories",
-      "title": "400: invalid slug (trailing hyphen)",
+      "title": "trailing hyphen trimmed",
       "source": "inferred",
       "tags": ["verify_slug_rules"],
       "steps": [
@@ -5117,8 +5142,32 @@
             }
           },
           "expect": {
-            "status": 400,
+            "status": 201,
             "body": "plain_text"
+          }
+        },
+        {
+          "actor": "root",
+          "request": {
+            "method": "GET",
+            "path": "/cms/categories/{slug}",
+            "path_params": {
+              "slug": "a"
+            },
+            "headers": {
+              "Accept-Language": "en"
+            }
+          },
+          "expect": {
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.slug",
+                "op": "eq",
+                "value": "a"
+              }
+            ]
           }
         }
       ]
@@ -5154,7 +5203,7 @@
     {
       "id": "CATEGORIES-CREATE-052",
       "group": "POST /cms/categories",
-      "title": "400: invalid slug (underscore)",
+      "title": "underscore allowed in slug",
       "source": "inferred",
       "tags": ["verify_slug_rules"],
       "steps": [
@@ -5173,8 +5222,32 @@
             }
           },
           "expect": {
-            "status": 400,
-            "body": "plain_text"
+            "status": 201,
+            "body": "empty"
+          }
+        },
+        {
+          "actor": "root",
+          "request": {
+            "method": "GET",
+            "path": "/cms/categories/{slug}",
+            "path_params": {
+              "slug": "a_b"
+            },
+            "headers": {
+              "Accept-Language": "en"
+            }
+          },
+          "expect": {
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.slug",
+                "op": "eq",
+                "value": "a_b"
+              }
+            ]
           }
         }
       ]

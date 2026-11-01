@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	MaxSlugLength = 256
+	MaxSlugLength = 128
 	MaxNameLength = 254
 )
 
@@ -22,7 +22,7 @@ func IsNonGraphic(r rune) bool {
 }
 
 func NormalizeSlug(value string) (string, error) {
-	normalized := strings.TrimSpace(value)
+	normalized := strings.Trim(value, "-")
 	if normalized == "" {
 		return "", fmt.Errorf("%w: slug cannot be empty", ErrInval)
 	}
@@ -32,7 +32,6 @@ func NormalizeSlug(value string) (string, error) {
 	if strings.IndexFunc(normalized, IsInvalidSlugRune) >= 0 {
 		return "", fmt.Errorf("%w: slug must contain only letters, numbers, dashes or underscores", ErrInval)
 	}
-
 	return strings.ToLower(normalized), nil
 }
 

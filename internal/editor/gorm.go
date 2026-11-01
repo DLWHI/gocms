@@ -12,17 +12,17 @@ import (
 )
 
 type Record struct {
-	Slug      string         `gorm:"primaryKey;size:254;"`
+	Slug      string         `gorm:"primaryKey;size:128;"`
 	Owner     string         ``
 	DeletedAt gorm.DeletedAt ``
 	Version   uint           `gorm:"default:1"`
 }
 
 type RecordTranslation struct {
-	Lang       string `gorm:"size:8;primaryKey;foreignKey:languages(code);constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	Lang       string `gorm:"size:2;primaryKey;foreignKey:languages(code);constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 	Name       string ``
 	Bio        string ``
-	EditorSlug string `gorm:"size:255;primaryKey"`
+	EditorSlug string `gorm:"size:128;primaryKey"`
 	Editor     Record `gorm:"foreignKey:EditorSlug;references:Slug;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 	Version    uint   `gorm:"default:1"`
 }

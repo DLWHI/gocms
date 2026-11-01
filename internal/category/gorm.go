@@ -14,7 +14,7 @@ import (
 )
 
 type Record struct {
-	Slug    string `gorm:"size:255;primaryKey"`
+	Slug    string `gorm:"size:128;primaryKey"`
 	Hidden  bool   ``
 	Navbar  bool   ``
 	Version uint   `gorm:"default:1"`
@@ -22,9 +22,9 @@ type Record struct {
 
 type RecordTranslation struct {
 	Name         string       ``
-	CategorySlug string       `gorm:"size:255;primaryKey"`
+	CategorySlug string       `gorm:"size:128;primaryKey"`
 	Category     Record       `gorm:"foreignKey:CategorySlug;references:Slug;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
-	Lang         string       `gorm:"size:8;primaryKey"`
+	Lang         string       `gorm:"size:2;primaryKey"`
 	Language     *lang.Record `gorm:"foreignKey:Lang;references:Code;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 	Version      uint         `gorm:"default:1"`
 }

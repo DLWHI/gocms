@@ -10,7 +10,7 @@ import (
 
 type Record struct {
 	Name string ``
-	Code string `gorm:"primaryKey;size:8;"`
+	Code string `gorm:"primaryKey;size:2;"`
 }
 
 type GORMRepository struct {

@@ -17,7 +17,7 @@ func Middleware(next http.Handler) http.Handler {
 			header := r.Header.Get("Content-Language")
 			tags := strings.Split(header, ",")
 			if len(tags) == 1 {
-				base, err := domain.NormalizeLangCode(tags[0])
+				base, err := domain.ToISO639_1Code(tags[0])
 				if err == nil {
 					ctx = context.WithValue(ctx, domain.LangKey, strings.ToLower(base))
 				}

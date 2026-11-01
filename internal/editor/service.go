@@ -48,7 +48,7 @@ func (s *Service) Create(ctx context.Context, editor *domain.Editor) (string, er
 	created.Name = name
 
 	if err := s.repo.Create(ctx, &created); err != nil {
-		if !errors.Is(err, domain.ErrDuplicate) {
+		if !errors.Is(err, domain.ErrDuplicate) && !errors.Is(err, domain.ErrInval) {
 			logger.Error("Editor.Service", "Failed to create editor profile", err)
 		}
 		return "", err
@@ -89,7 +89,7 @@ func (s *Service) Edit(ctx context.Context, slug string, diff *domain.EditorDiff
 	}
 
 	if err := s.repo.Update(ctx, slug, lang, diff); err != nil {
-		if !errors.Is(err, domain.ErrNotFound) {
+		if !errors.Is(err, domain.ErrNotFound) && !errors.Is(err, domain.ErrInval) {
 			logger.Error("Editor.Service", "Failed to update editor profile", err)
 		}
 		return "", err
@@ -148,9 +148,18 @@ func (s *Service) Search(ctx context.Context, filters *SearchParams) (*SearchRes
 	}
 	filters.Lang = lang
 
+	filters.Select = []string{
+		"name",
+		"slug",
+		"lang",
+		"deleted_at",
+	}
+
 	editors, err := s.se.Search(ctx, filters)
 	if err != nil {
-		logger.Error("Editor.Service", "Failed to search editor profiles", err)
+		if !errors.Is(err, domain.ErrInval) {
+			logger.Error("Editor.Service", "Failed to search editor profiles", err)
+		}
 		return nil, err
 	}
 

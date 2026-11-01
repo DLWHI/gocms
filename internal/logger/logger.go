@@ -13,7 +13,7 @@ func Warn(source string, message string, reason error, attrs ...any) {
 		args = append(args, "reason", reason)
 	}
 	args = append(args, attrs...)
-	slog.Default().Warn(message, attrs...)
+	slog.Default().Warn(message, args...)
 }
 
 func Info(source string, message string, attrs ...any) {

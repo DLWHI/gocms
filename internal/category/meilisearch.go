@@ -67,7 +67,7 @@ func (ms *MeilisearchEngine) Index(ctx context.Context, slug string, group ...do
 
 	for i := range group {
 		if group[i].Slug != slug {
-			return fmt.Errorf("%v: group item not from provided category slug", domain.ErrInval)
+			return fmt.Errorf("%w: group item not from provided category slug", domain.ErrInval)
 		}
 		group[i].ID = fmt.Sprintf("%s-%s", slug, group[i].Lang)
 	}
@@ -89,7 +89,7 @@ func (ms *MeilisearchEngine) Get(ctx context.Context, slug string, lang string) 
 	if err != nil {
 		var meiliErr *meilisearch.Error
 		if errors.As(err, &meiliErr) {
-			if meiliErr.StatusCode == http.StatusNotFound {
+			if meiliErr.StatusCode == http.StatusNotFound && meiliErr.MeilisearchApiError.Code == "document_not_found" {
 				return nil, domain.ErrNotFound
 			}
 		}
@@ -127,12 +127,18 @@ func (ms *MeilisearchEngine) Search(ctx context.Context, params *SearchParams) (
 
 	res, err := index.SearchWithContext(ctx, params.Query, req)
 	if err != nil {
-		if errors.Is(err, meilisearch.ErrInvalidRequestMethod) {
-			return nil, domain.ErrInval
+		var meiliErr *meilisearch.Error
+		if errors.As(err, &meiliErr) {
+			if meiliErr.StatusCode == http.StatusBadRequest &&
+				(meiliErr.MeilisearchApiError.Code == "invalid_search_filter" ||
+					meiliErr.MeilisearchApiError.Code == "invalid_search_sort") {
+				return nil, domain.ErrInval
+			}
 		}
 		return nil, err
 	}
 
+	results.Results = make([]domain.Category, 0, len(res.Hits))
 	if err := res.Hits.DecodeInto(&results.Results); err != nil {
 		return nil, err
 	}

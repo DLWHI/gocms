@@ -10,7 +10,7 @@ import (
 
 func Middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		var lang string
+		ctx := r.Context()
 		var header string
 		switch r.Method {
 		case http.MethodPost, http.MethodPut, http.MethodPatch:
@@ -24,12 +24,11 @@ func Middleware(next http.Handler) http.Handler {
 			if err == nil {
 				base, conf := tags[0].Base()
 				if conf != language.No {
-					lang = base.String()
+					ctx = context.WithValue(ctx, domain.LangKey, base.String())
 				}
 			}
 		}
 
-		ctx := context.WithValue(r.Context(), domain.LangKey, lang)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }

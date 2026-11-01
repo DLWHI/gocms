@@ -50,8 +50,11 @@ func ResolveLang(ctx context.Context, value string) (string, error) {
 	if normalized == "" {
 		code, ok := ctx.Value(LangKey).(string)
 		if !ok {
-			return "", fmt.Errorf("%w: empty or invalid language code", ErrInval)
+			return "", fmt.Errorf("%w: invalid language code", ErrInval)
+		} else if code == "" {
+			return "", fmt.Errorf("%w: missing language code", ErrInval)
 		}
+
 		return code, nil
 	}
 	return NormalizeLangCode(normalized)

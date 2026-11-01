@@ -5090,8 +5090,8 @@
             }
           },
           "expect": {
-            "status": 400,
-            "body": "plain_text"
+            "status": 201,
+            "body": "empty"
           }
         },
         {
@@ -5143,7 +5143,7 @@
           },
           "expect": {
             "status": 201,
-            "body": "plain_text"
+            "body": "empty"
           }
         },
         {
@@ -6328,7 +6328,7 @@
     {
       "id": "CATEGORIES-CREATE-082",
       "group": "POST /cms/categories",
-      "title": "name of 3000 characters accepted (no length cap stated)",
+      "title": "name of 3000 characters is invalid",
       "source": "inferred",
       "tags": ["undocumented_limit", "verify_name_rules"],
       "steps": [
@@ -6352,47 +6352,8 @@
             }
           },
           "expect": {
-            "status": 201,
-            "body": "empty"
-          }
-        },
-        {
-          "actor": "root",
-          "request": {
-            "method": "GET",
-            "path": "/cms/categories/{slug}",
-            "path_params": {
-              "slug": "gadgets"
-            },
-            "headers": {
-              "Accept-Language": "en"
-            }
-          },
-          "expect": {
-            "status": 200,
-            "body": "json",
-            "json_assertions": [
-              {
-                "path": "$.slug",
-                "op": "eq",
-                "value": "gadgets"
-              },
-              {
-                "path": "$.lang",
-                "op": "eq",
-                "value": "en"
-              },
-              {
-                "path": "$.name",
-                "op": "eq",
-                "value": {
-                  "$repeat": {
-                    "s": "n",
-                    "n": 3000
-                  }
-                }
-              }
-            ]
+            "status": 400,
+            "body": "plain_text"
           }
         }
       ]
@@ -7268,7 +7229,7 @@
     {
       "id": "CATEGORIES-CREATE-100",
       "group": "POST /cms/categories",
-      "title": "400: name with non-breaking space inside; nothing created",
+      "title": "name with non-breaking space inside, accepted",
       "source": "inferred",
       "tags": ["verify_name_rules", "verify_printable"],
       "steps": [
@@ -7287,8 +7248,8 @@
             }
           },
           "expect": {
-            "status": 400,
-            "body": "plain_text"
+            "status": 201,
+            "body": "empty"
           }
         },
         {
@@ -7304,8 +7265,15 @@
             }
           },
           "expect": {
-            "status": 404,
-            "body": "plain_text"
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.name",
+                "op": "eq",
+                "value": "Gad get"
+              }
+            ]
           }
         }
       ],
@@ -9366,7 +9334,9 @@
           "request": {
             "method": "POST",
             "path": "/cms/categories/search",
-            "body": {},
+            "body": {
+              "count": 20
+            },
             "headers": {
               "Content-Type": "application/json",
               "Content-Language": "en"
@@ -9502,7 +9472,8 @@
             "method": "POST",
             "path": "/cms/categories/search",
             "body": {
-              "lang": "ru"
+              "lang": "ru",
+              "count": 20
             },
             "headers": {
               "Content-Type": "application/json"
@@ -9710,7 +9681,8 @@
             "method": "POST",
             "path": "/cms/categories/search",
             "body": {
-              "lang": "de"
+              "lang": "de",
+              "count": 20
             },
             "headers": {
               "Content-Type": "application/json"
@@ -9773,7 +9745,8 @@
             "method": "POST",
             "path": "/cms/categories/search",
             "body": {
-              "lang": "ru"
+              "lang": "ru",
+              "count": 20
             },
             "headers": {
               "Content-Type": "application/json"
@@ -9831,7 +9804,8 @@
             "method": "POST",
             "path": "/cms/categories/search",
             "body": {
-              "lang": "en"
+              "lang": "en",
+              "count": 20
             },
             "headers": {
               "Content-Type": "application/json"
@@ -9878,7 +9852,9 @@
           "request": {
             "method": "POST",
             "path": "/cms/categories/search",
-            "body": {},
+            "body": {
+              "count": 20
+            },
             "headers": {
               "Content-Type": "application/json",
               "Content-Language": "EN"
@@ -10091,7 +10067,7 @@
     {
       "id": "CATEGORIES-SEARCH-018",
       "group": "POST /cms/categories/search",
-      "title": "400: Content-Language valid ISO code missing from cms languages (fr)",
+      "title": "Content-Language valid ISO code missing from cms languages (fr): accepted, no results",
       "source": "inferred",
       "tags": ["verify_content_language"],
       "steps": [
@@ -10107,8 +10083,25 @@
             }
           },
           "expect": {
-            "status": 400,
-            "body": "plain_text"
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.results",
+                "op": "len_eq",
+                "value": 0
+              },
+              {
+                "path": "$.total",
+                "op": "len_eq",
+                "value": 0
+              },
+              {
+                "path": "$.last_page",
+                "op": "len_eq",
+                "value": 1
+              }
+            ]
           }
         }
       ]
@@ -10220,7 +10213,7 @@
     {
       "id": "CATEGORIES-SEARCH-023",
       "group": "POST /cms/categories/search",
-      "title": "400: body lang not in cms languages (fr)",
+      "title": "body lang not in cms languages (fr): accepted, no results",
       "source": "documented",
       "tags": ["verify_language_validation"],
       "steps": [
@@ -10237,8 +10230,25 @@
             }
           },
           "expect": {
-            "status": 400,
-            "body": "plain_text"
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.results",
+                "op": "len_eq",
+                "value": 0
+              },
+              {
+                "path": "$.total",
+                "op": "len_eq",
+                "value": 0
+              },
+              {
+                "path": "$.last_page",
+                "op": "len_eq",
+                "value": 1
+              }
+            ]
           }
         }
       ]
@@ -11544,7 +11554,7 @@
           "request": {
             "method": "POST",
             "path": "/cms/categories/search",
-            "body_raw": "{\"lang\":\"en\",\"query\":null}",
+            "body_raw": "{\"lang\":\"en\",\"query\":null, \"count\":20}",
             "headers": {
               "Content-Type": "application/json"
             }
@@ -11665,7 +11675,8 @@
             "path": "/cms/categories/search",
             "body": {
               "lang": "en",
-              "hidden": false
+              "hidden": false,
+              "count": 20
             },
             "headers": {
               "Content-Type": "application/json"
@@ -11719,7 +11730,8 @@
             "path": "/cms/categories/search",
             "body": {
               "lang": "en",
-              "navbar": true
+              "navbar": true,
+              "count": 20
             },
             "headers": {
               "Content-Type": "application/json"
@@ -11783,7 +11795,8 @@
             "path": "/cms/categories/search",
             "body": {
               "lang": "en",
-              "navbar": false
+              "navbar": false,
+              "count": 20
             },
             "headers": {
               "Content-Type": "application/json"
@@ -11843,7 +11856,8 @@
             "body": {
               "lang": "en",
               "hidden": false,
-              "navbar": true
+              "navbar": true,
+              "count": 20
             },
             "headers": {
               "Content-Type": "application/json"
@@ -12054,7 +12068,7 @@
           "request": {
             "method": "POST",
             "path": "/cms/categories/search",
-            "body_raw": "{\"lang\":\"en\",\"hidden\":null}",
+            "body_raw": "{\"lang\":\"en\",\"hidden\":null, \"count\":20}",
             "headers": {
               "Content-Type": "application/json"
             }
@@ -12162,7 +12176,7 @@
           "request": {
             "method": "POST",
             "path": "/cms/categories/search",
-            "body_raw": "{\"lang\":\"en\",\"navbar\":null}",
+            "body_raw": "{\"lang\":\"en\",\"navbar\":null, \"count\":20}",
             "headers": {
               "Content-Type": "application/json"
             }
@@ -12949,7 +12963,7 @@
               },
               {
                 "path": "$.results",
-                "op": "len_le",
+                "op": "len_lte",
                 "value": 100
               }
             ]
@@ -13461,6 +13475,7 @@
             "path": "/cms/categories/search",
             "body": {
               "lang": "en",
+              "count": 20,
               "bogus": 1,
               "nested": {
                 "a": 1

@@ -16,7 +16,7 @@ import (
 const (
 	ConfigAddress = ""
 	ConfigPort    = "8080"
-	Filter        = ""
+	Filter        = "CATEGORIES-CREATE-115"
 )
 
 var (

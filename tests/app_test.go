@@ -82,7 +82,7 @@ func (app *Container) Init(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	langs, err := NewLangModule(ctx, db, nil, auth.Service)
+	langs, err := NewLangModule(ctx, db, redis, auth.Service)
 	if err != nil {
 		return err
 	}

@@ -49,7 +49,7 @@ func (s *Service) Create(ctx context.Context, category *domain.Category) (string
 	created.Name = name
 
 	if err := s.repo.Create(ctx, &created); err != nil {
-		if !errors.Is(err, domain.ErrDuplicate) {
+		if !errors.Is(err, domain.ErrDuplicate) && !errors.Is(err, domain.ErrInval) {
 			logger.Error("Category.Service", "Failed to create category", err)
 		}
 		return "", err
@@ -90,7 +90,7 @@ func (s *Service) Edit(ctx context.Context, slug string, diff *domain.CategoryDi
 	}
 
 	if err := s.repo.Update(ctx, slug, lang, diff); err != nil {
-		if !errors.Is(err, domain.ErrNotFound) {
+		if !errors.Is(err, domain.ErrNotFound) && !errors.Is(err, domain.ErrInval) {
 			logger.Error("Category.Service", "Failed to update category", err)
 		}
 		return "", err

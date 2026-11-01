@@ -3,8 +3,10 @@ package category
 import (
 	"context"
 	"errors"
+	"fmt"
 	"gocms/internal/domain"
 	"gocms/internal/flow"
+	"gocms/internal/lang"
 	"gocms/internal/outbox"
 	"time"
 
@@ -19,11 +21,12 @@ type Record struct {
 }
 
 type RecordTranslation struct {
-	Lang         string `gorm:"size:8;primaryKey;foreignKey:languages(code);constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
-	Name         string ``
-	CategorySlug string `gorm:"size:255;primaryKey"`
-	Category     Record `gorm:"foreignKey:CategorySlug;references:Slug;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
-	Version      uint   `gorm:"default:1"`
+	Name         string       ``
+	CategorySlug string       `gorm:"size:255;primaryKey"`
+	Category     Record       `gorm:"foreignKey:CategorySlug;references:Slug;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	Lang         string       `gorm:"size:8;primaryKey"`
+	Language     *lang.Record `gorm:"foreignKey:Lang;references:Code;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	Version      uint         `gorm:"default:1"`
 }
 
 type RecordPatch = map[string]interface{}
@@ -53,17 +56,11 @@ func (r *GORMRepository) Create(ctx context.Context, category *domain.Category) 
 		}
 		return nil
 	})
-	if err != nil {
-		if errors.Is(err, gorm.ErrDuplicatedKey) {
-			return domain.ErrDuplicate
-		}
-		return err
-	}
-	return nil
+	return r.mapErr(err)
 }
 
 func (r *GORMRepository) Update(ctx context.Context, slug string, lang string, diff *domain.CategoryDiff) error {
-	return flow.DoWithRetry(ctx, r.retries, r.backoff, func() error {
+	return r.mapErr(flow.DoWithRetry(ctx, r.retries, r.backoff, func() error {
 		return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 			recordUpdate, translationUpdate := r.patch(diff)
 			if len(recordUpdate)+len(translationUpdate) == 0 {
@@ -79,9 +76,6 @@ func (r *GORMRepository) Update(ctx context.Context, slug string, lang string, d
 				Where("c.slug = ?", slug).
 				Take(&version).Error
 			if err != nil {
-				if errors.Is(err, gorm.ErrRecordNotFound) {
-					return domain.ErrNotFound
-				}
 				return err
 			}
 
@@ -126,7 +120,7 @@ func (r *GORMRepository) Update(ctx context.Context, slug string, lang string, d
 			}
 			return nil
 		})
-	})
+	}))
 }
 
 func (r *GORMRepository) Get(ctx context.Context, slug string, lang string) (*domain.Category, error) {
@@ -207,10 +201,22 @@ func (r *GORMRepository) Delete(ctx context.Context, slug string) error {
 		}
 		return nil
 	})
-	if err != nil {
+	return r.mapErr(err)
+}
+
+func (*GORMRepository) mapErr(err error) error {
+	switch {
+	case err == nil:
+		return nil
+	case errors.Is(err, gorm.ErrDuplicatedKey):
+		return domain.ErrDuplicate
+	case errors.Is(err, gorm.ErrForeignKeyViolated), errors.Is(err, gorm.ErrCheckConstraintViolated), errors.Is(err, gorm.ErrInvalidValue):
+		return fmt.Errorf("%w: %v", domain.ErrInval, err)
+	case errors.Is(err, gorm.ErrRecordNotFound):
+		return domain.ErrNotFound
+	default:
 		return err
 	}
-	return nil
 }
 
 func (*GORMRepository) writeMessage(tx *gorm.DB, action int, slug string) error {

@@ -16,10 +16,14 @@ type Actor struct {
 	Username    string              `json:"username"`
 	Caps        map[string][]string `json:"caps"`
 	Permissions uint32              `json:"permissions"`
-	Session     string              `json:"-"`
+	Permanent   bool                `json:"permanent"`
+	Session     string              `json:"session"`
 }
 
 func (a *Actor) PerformLogin(ctx context.Context, e *Environment, passwd Password) error {
+	if a.Permanent {
+		return nil
+	}
 	var payload struct {
 		Username string   `json:"username"`
 		Passwd   Password `json:"passwd"`

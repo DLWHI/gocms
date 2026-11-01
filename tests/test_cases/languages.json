@@ -17,21 +17,43 @@
     "actors": {
       "root": {
         "username": "root",
-        "permissions": 4294967295
+        "permissions": 4294967295,
+        "permanent": false
+      },
+      "anonymous": {
+        "username": "anonymous",
+        "permissions": 4294967295,
+        "permanent": true,
+        "session": ""
+      },
+      "garbage_session": {
+        "username": "garbage_session",
+        "permissions": 4294967295,
+        "permanent": true,
+        "session": "Bearer garbage_session.<Garbage>.L1o-Uh-MnWLqx1ZlmvUPuMN-BZau8UL5JewxvPhkJlI"
+      },
+      "expired_session": {
+        "username": "expired_session",
+        "permissions": 4294967295,
+        "permanent": true,
+        "session": "Bearer root.xMRdA5ytuzvO5XD6KWUyJIPIe8ny_ibdaVgao90Jj6E._ohUkk88xQ7YVrMQMb-MEJPp1D6Yek_fGuOwyu9Of6g"
       },
       "creator": {
         "username": "creator",
+        "permanent": false,
         "caps": {
           "languages": ["create"]
         }
       },
       "deleter": {
         "username": "deleter",
+        "permanent": false,
         "caps": {
           "languages": ["delete"]
         }
       },
       "reader": {
+        "permanent": false,
         "username": "reader",
         "caps": {}
       }
@@ -151,13 +173,10 @@
       "tags": [],
       "steps": [
         {
-          "actor": "anonymous",
+          "actor": "garbage_session",
           "request": {
             "method": "GET",
-            "path": "/cms/languages",
-            "headers": {
-              "Authorization": "<Garbage>"
-            }
+            "path": "/cms/languages"
           },
           "expect": {
             "status": 401,
@@ -174,13 +193,10 @@
       "tags": [],
       "steps": [
         {
-          "actor": "anonymous",
+          "actor": "expired_session",
           "request": {
             "method": "GET",
-            "path": "/cms/languages",
-            "headers": {
-              "Authorization": "Bearer anonymous.dXNlcjpwYXNz.u9t8y4h3gubq3ifewh"
-            }
+            "path": "/cms/languages"
           },
           "expect": {
             "status": 401,
@@ -310,7 +326,7 @@
       "tags": [],
       "steps": [
         {
-          "actor": "anonymous",
+          "actor": "garbage_session",
           "request": {
             "method": "POST",
             "path": "/cms/languages",
@@ -319,7 +335,6 @@
               "code": "fr"
             },
             "headers": {
-              "Authorization": "<Garbage>",
               "Content-Type": "application/json"
             }
           },
@@ -338,7 +353,7 @@
       "tags": [],
       "steps": [
         {
-          "actor": "anonymous",
+          "actor": "expired_session",
           "request": {
             "method": "POST",
             "path": "/cms/languages",
@@ -347,7 +362,6 @@
               "code": "fr"
             },
             "headers": {
-              "Authorization": "Bearer anonymous.dXNlcjpwYXNz.u9t8y4h3gubq3ifewh",
               "Content-Type": "application/json"
             }
           },
@@ -548,15 +562,12 @@
       "tags": [],
       "steps": [
         {
-          "actor": "anonymous",
+          "actor": "garbage_session",
           "request": {
             "method": "DELETE",
             "path": "/cms/languages/{code}",
             "path_params": {
               "code": "de"
-            },
-            "headers": {
-              "Authorization": "<Garbage>"
             }
           },
           "expect": {
@@ -574,15 +585,12 @@
       "tags": [],
       "steps": [
         {
-          "actor": "anonymous",
+          "actor": "expired_session",
           "request": {
             "method": "DELETE",
             "path": "/cms/languages/{code}",
             "path_params": {
               "code": "de"
-            },
-            "headers": {
-              "Authorization": "Bearer anonymous.dXNlcjpwYXNz.u9t8y4h3gubq3ifewh"
             }
           },
           "expect": {

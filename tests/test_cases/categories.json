@@ -20,28 +20,51 @@
     "actors": {
       "root": {
         "username": "root",
-        "permissions": 4294967295
+        "permissions": 4294967295,
+        "permanent": false
+      },
+      "anonymous": {
+        "username": "anonymous",
+        "permissions": 4294967295,
+        "permanent": true,
+        "session": ""
+      },
+      "garbage_session": {
+        "username": "garbage_session",
+        "permissions": 4294967295,
+        "permanent": true,
+        "session": "Bearer garbage_session.<Garbage>.L1o-Uh-MnWLqx1ZlmvUPuMN-BZau8UL5JewxvPhkJlI"
+      },
+      "expired_session": {
+        "username": "expired_session",
+        "permissions": 4294967295,
+        "permanent": true,
+        "session": "Bearer root.xMRdA5ytuzvO5XD6KWUyJIPIe8ny_ibdaVgao90Jj6E._ohUkk88xQ7YVrMQMb-MEJPp1D6Yek_fGuOwyu9Of6g"
       },
       "creator": {
         "username": "creator",
+        "permanent": false,
         "caps": {
           "categories": ["create"]
         }
       },
       "editor": {
         "username": "editor",
+        "permanent": false,
         "caps": {
           "categories": ["edit"]
         }
       },
       "deleter": {
         "username": "deleter",
+        "permanent": false,
         "caps": {
           "categories": ["delete"]
         }
       },
       "reader": {
         "username": "reader",
+        "permanent": false,
         "caps": {}
       }
     },

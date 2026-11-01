@@ -57,10 +57,13 @@ func (app *Container) Init(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("Failed to connect to redis: %w", err)
 	}
-
 	search, err := MeilisearchClient(app)
 	if err != nil {
 		return fmt.Errorf("Failed to connect to meilisearch: %w", err)
+	}
+
+	if err := Migrate(ctx, app); err != nil {
+		return fmt.Errorf("Failed to migrate schema: %w", err)
 	}
 
 	passwords := password.NewBCryptService(12, 8)
@@ -136,9 +139,6 @@ func (app *Container) Init(ctx context.Context) error {
 	app.OutboxRunner = relay
 
 	app.WireEvents(dispatcher)
-	if err := Migrate(ctx, app); err != nil {
-		return fmt.Errorf("Failed to migrate schema: %w", err)
-	}
 
 	return nil
 }

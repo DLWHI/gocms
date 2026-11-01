@@ -24,34 +24,58 @@
     "actors": {
       "root": {
         "username": "root",
-        "permissions": 4294967295
+        "permissions": 4294967295,
+        "permanent": false
+      },
+      "anonymous": {
+        "username": "anonymous",
+        "permissions": 4294967295,
+        "permanent": true,
+        "session": ""
+      },
+      "garbage_session": {
+        "username": "garbage_session",
+        "permissions": 4294967295,
+        "permanent": true,
+        "session": "Bearer garbage_session.<Garbage>.L1o-Uh-MnWLqx1ZlmvUPuMN-BZau8UL5JewxvPhkJlI"
+      },
+      "expired_session": {
+        "username": "expired_session",
+        "permissions": 4294967295,
+        "permanent": true,
+        "session": "Bearer root.xMRdA5ytuzvO5XD6KWUyJIPIe8ny_ibdaVgao90Jj6E._ohUkk88xQ7YVrMQMb-MEJPp1D6Yek_fGuOwyu9Of6g"
       },
       "creator": {
         "username": "creator",
+        "permanent": false,
         "caps": {
           "users": ["create"]
         }
       },
       "editor": {
         "username": "editor",
+        "permanent": false,
         "caps": {
           "users": ["edit"]
         }
       },
       "deleter": {
         "username": "deleter",
+        "permanent": false,
         "caps": {
           "users": ["delete"]
         }
       },
       "limited": {
         "username": "limited",
+        "permanent": false,
         "caps": {
           "users": ["create", "edit"]
         }
       },
       "reader": {
         "username": "reader",
+        "permanent": false,
         "caps": {}
       }
     },
@@ -212,7 +236,7 @@
       "tags": [],
       "steps": [
         {
-          "actor": "anonymous",
+          "actor": "garbage_session",
           "request": {
             "method": "POST",
             "path": "/cms/users",
@@ -222,8 +246,7 @@
               "email": "newuser@example.com"
             },
             "headers": {
-              "Content-Type": "application/json",
-              "Authorization": "<Garbage>"
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -241,7 +264,7 @@
       "tags": ["not_working"],
       "steps": [
         {
-          "actor": "anonymous",
+          "actor": "expired_session",
           "request": {
             "method": "POST",
             "path": "/cms/users",
@@ -251,7 +274,6 @@
               "email": "newuser@example.com"
             },
             "headers": {
-              "Authorization": "Bearer anonymous.dXNlcjpwYXNz.u9t8y4h3gubq3ifewh",
               "Content-Type": "application/json"
             }
           },
@@ -4087,14 +4109,13 @@
       "tags": [],
       "steps": [
         {
-          "actor": "anonymous",
+          "actor": "garbage_session",
           "request": {
             "method": "POST",
             "path": "/cms/users/search",
             "body": {},
             "headers": {
-              "Content-Type": "application/json",
-              "Authorization": "<Garbage>"
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -4112,13 +4133,12 @@
       "tags": ["not_working"],
       "steps": [
         {
-          "actor": "anonymous",
+          "actor": "expired_session",
           "request": {
             "method": "POST",
             "path": "/cms/users/search",
             "body": {},
             "headers": {
-              "Authorization": "Bearer anonymous.dXNlcjpwYXNz.u9t8y4h3gubq3ifewh",
               "Content-Type": "application/json"
             }
           },
@@ -8691,13 +8711,10 @@
       "tags": [],
       "steps": [
         {
-          "actor": "anonymous",
+          "actor": "garbage_session",
           "request": {
             "method": "GET",
-            "path": "/cms/users",
-            "headers": {
-              "Authorization": "<Garbage>"
-            }
+            "path": "/cms/users"
           },
           "expect": {
             "status": 401,
@@ -8714,13 +8731,10 @@
       "tags": ["not_working"],
       "steps": [
         {
-          "actor": "anonymous",
+          "actor": "expired_session",
           "request": {
             "method": "GET",
-            "path": "/cms/users",
-            "headers": {
-              "Authorization": "Bearer anonymous.dXNlcjpwYXNz.u9t8y4h3gubq3ifewh"
-            }
+            "path": "/cms/users"
           },
           "expect": {
             "status": 401,
@@ -9432,15 +9446,12 @@
       "tags": [],
       "steps": [
         {
-          "actor": "anonymous",
+          "actor": "garbage_session",
           "request": {
             "method": "GET",
             "path": "/cms/users/{username}",
             "path_params": {
               "username": "alice"
-            },
-            "headers": {
-              "Authorization": "<Garbage>"
             }
           },
           "expect": {
@@ -9458,15 +9469,12 @@
       "tags": ["not_working"],
       "steps": [
         {
-          "actor": "anonymous",
+          "actor": "expired_session",
           "request": {
             "method": "GET",
             "path": "/cms/users/{username}",
             "path_params": {
               "username": "alice"
-            },
-            "headers": {
-              "Authorization": "Bearer anonymous.dXNlcjpwYXNz.u9t8y4h3gubq3ifewh"
             }
           },
           "expect": {
@@ -10358,7 +10366,7 @@
       "tags": [],
       "steps": [
         {
-          "actor": "anonymous",
+          "actor": "garbage_session",
           "request": {
             "method": "PATCH",
             "path": "/cms/users/{username}/email",
@@ -10369,8 +10377,7 @@
               "email": "new@example.com"
             },
             "headers": {
-              "Content-Type": "application/json",
-              "Authorization": "<Garbage>"
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -10388,7 +10395,7 @@
       "tags": ["not_working"],
       "steps": [
         {
-          "actor": "anonymous",
+          "actor": "expired_session",
           "request": {
             "method": "PATCH",
             "path": "/cms/users/{username}/email",
@@ -10399,7 +10406,6 @@
               "email": "new@example.com"
             },
             "headers": {
-              "Authorization": "Bearer anonymous.dXNlcjpwYXNz.u9t8y4h3gubq3ifewh",
               "Content-Type": "application/json"
             }
           },
@@ -13062,7 +13068,7 @@
       "tags": [],
       "steps": [
         {
-          "actor": "anonymous",
+          "actor": "garbage_session",
           "request": {
             "method": "PATCH",
             "path": "/cms/users/{username}/password",
@@ -13073,8 +13079,7 @@
               "password": "Another-Passw0rd-2"
             },
             "headers": {
-              "Content-Type": "application/json",
-              "Authorization": "<Garbage>"
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -13092,7 +13097,7 @@
       "tags": ["not_working"],
       "steps": [
         {
-          "actor": "anonymous",
+          "actor": "expired_session",
           "request": {
             "method": "PATCH",
             "path": "/cms/users/{username}/password",
@@ -13103,7 +13108,6 @@
               "password": "Another-Passw0rd-2"
             },
             "headers": {
-              "Authorization": "Bearer anonymous.dXNlcjpwYXNz.u9t8y4h3gubq3ifewh",
               "Content-Type": "application/json"
             }
           },
@@ -15388,7 +15392,7 @@
       "tags": [],
       "steps": [
         {
-          "actor": "anonymous",
+          "actor": "garbage_session",
           "request": {
             "method": "PATCH",
             "path": "/cms/users/{username}/permissions",
@@ -15399,8 +15403,7 @@
               "permissions": 1
             },
             "headers": {
-              "Content-Type": "application/json",
-              "Authorization": "<Garbage>"
+              "Content-Type": "application/json"
             }
           },
           "expect": {
@@ -15418,7 +15421,7 @@
       "tags": ["not_working"],
       "steps": [
         {
-          "actor": "anonymous",
+          "actor": "expired_session",
           "request": {
             "method": "PATCH",
             "path": "/cms/users/{username}/permissions",
@@ -20370,15 +20373,12 @@
       "tags": [],
       "steps": [
         {
-          "actor": "anonymous",
+          "actor": "garbage_session",
           "request": {
             "method": "DELETE",
             "path": "/cms/users/{username}",
             "path_params": {
               "username": "alice"
-            },
-            "headers": {
-              "Authorization": "<Garbage>"
             }
           },
           "expect": {
@@ -20396,7 +20396,7 @@
       "tags": ["not_working"],
       "steps": [
         {
-          "actor": "anonymous",
+          "actor": "expired_session",
           "request": {
             "method": "DELETE",
             "path": "/cms/users/{username}",

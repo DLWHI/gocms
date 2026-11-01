@@ -31,7 +31,7 @@ type Step struct {
 
 func (s *Step) Perform(ctx context.Context, d *Data, e *Environment) *Result {
 	actor, ok := d.Fixtures.Actors[s.Actor]
-	if !ok && s.Actor != "anonymous" {
+	if !ok {
 		return s.fail(nil, fmt.Errorf("Requested step for unknown actor"))
 	}
 

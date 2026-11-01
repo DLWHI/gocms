@@ -3,6 +3,7 @@ package editor
 import (
 	"context"
 	"errors"
+	"fmt"
 	"gocms/internal/domain"
 	"gocms/internal/flow"
 	"gocms/internal/lang"
@@ -56,17 +57,11 @@ func (r *GORMRepository) Create(ctx context.Context, editor *domain.Editor) erro
 		}
 		return nil
 	})
-	if err != nil {
-		if errors.Is(err, gorm.ErrDuplicatedKey) {
-			return domain.ErrDuplicate
-		}
-		return err
-	}
-	return nil
+	return r.mapErr(err)
 }
 
 func (r *GORMRepository) Update(ctx context.Context, slug string, lang string, diff *domain.EditorDiff) error {
-	return flow.DoWithRetry(ctx, r.retries, r.backoff, func() error {
+	return r.mapErr(flow.DoWithRetry(ctx, r.retries, r.backoff, func() error {
 		return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 			recordUpdate, translationUpdate := r.patch(diff)
 			if len(recordUpdate)+len(translationUpdate) == 0 {
@@ -104,8 +99,9 @@ func (r *GORMRepository) Update(ctx context.Context, slug string, lang string, d
 				if version.Translation == 0 {
 					translationUpdate["editor_slug"] = slug
 					translationUpdate["lang"] = lang
+					translationUpdate["version"] = 1
 					result := tx.Model(&RecordTranslation{}).
-						Create(recordUpdate)
+						Create(translationUpdate)
 					if result.Error != nil {
 						if errors.Is(err, gorm.ErrDuplicatedKey) {
 							return domain.ErrRetry
@@ -115,7 +111,7 @@ func (r *GORMRepository) Update(ctx context.Context, slug string, lang string, d
 				} else {
 					result := tx.Model(&RecordTranslation{}).
 						Where("editor_slug = ? AND lang = ? AND version = ?", slug, lang, version).
-						Updates(recordUpdate)
+						Updates(translationUpdate)
 					if result.Error != nil {
 						return result.Error
 					}
@@ -129,7 +125,7 @@ func (r *GORMRepository) Update(ctx context.Context, slug string, lang string, d
 			}
 			return nil
 		})
-	})
+	}))
 }
 
 func (r *GORMRepository) GetAny(ctx context.Context, slug string, lang string) (*domain.Editor, error) {
@@ -206,10 +202,22 @@ func (r *GORMRepository) Delete(ctx context.Context, slug string) error {
 		}
 		return nil
 	})
-	if err != nil {
+	return r.mapErr(err)
+}
+
+func (*GORMRepository) mapErr(err error) error {
+	switch {
+	case err == nil:
+		return nil
+	case errors.Is(err, gorm.ErrDuplicatedKey):
+		return domain.ErrDuplicate
+	case errors.Is(err, gorm.ErrForeignKeyViolated), errors.Is(err, gorm.ErrCheckConstraintViolated), errors.Is(err, gorm.ErrInvalidValue):
+		return fmt.Errorf("%w: %v", domain.ErrInval, err)
+	case errors.Is(err, gorm.ErrRecordNotFound):
+		return domain.ErrNotFound
+	default:
 		return err
 	}
-	return nil
 }
 
 func (*GORMRepository) writeMessage(tx *gorm.DB, action int, slug string) error {

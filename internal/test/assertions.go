@@ -103,6 +103,10 @@ func (a *Assertion) Assert(d *Data, body map[string]JSONValue) error {
 		return IsSorted(values, false)
 	case "sorted_desc":
 		return IsSorted(values, true)
+	case "present":
+		return a.opPresent(values)
+	case "absent":
+		return a.opAbsent(values)
 	default:
 		return fmt.Errorf("unknown operation: %s", "op")
 	}
@@ -296,6 +300,20 @@ func (a *Assertion) opUnixTimestamp(values []JSONValue) error {
 				return fmt.Errorf("Assertion failed: expected all integer or null in %v", values)
 			}
 		}
+	}
+	return nil
+}
+
+func (a *Assertion) opAbsent(values []JSONValue) error {
+	if values != nil {
+		return fmt.Errorf("Assertion failed: expected field %s to be excluded from %v", values, a.Path)
+	}
+	return nil
+}
+
+func (a *Assertion) opPresent(values []JSONValue) error {
+	if values == nil {
+		return fmt.Errorf("Assertion failed: expected field %s to be in %v", values, a.Path)
 	}
 	return nil
 }

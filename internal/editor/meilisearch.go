@@ -12,6 +12,11 @@ import (
 	"github.com/meilisearch/meilisearch-go"
 )
 
+type SearchDocument struct {
+	domain.Editor
+	ID string `json:"id"`
+}
+
 type MeilisearchEngine struct {
 	search search.MeilisearchClient
 }
@@ -75,11 +80,12 @@ func (*MeilisearchEngine) buildSort(params *SearchParams) []string {
 func (ms *MeilisearchEngine) Index(ctx context.Context, slug string, group ...domain.Editor) error {
 	index := ms.search.Client.Index(ms.search.Config.Uid)
 
-	for i := range group {
-		if group[i].Slug != slug {
-			return fmt.Errorf("%v: group item not from provided category slug", domain.ErrInval)
+	docs := make([]SearchDocument, 0, len(group))
+	for _, editor := range group {
+		if editor.Slug != slug {
+			return fmt.Errorf("%w: group item not from provided editor slug", domain.ErrInval)
 		}
-		group[i].ID = fmt.Sprintf("%s-%s", slug, group[i].Lang)
+		docs = append(docs, *ToSearchDocument(&editor))
 	}
 
 	task, err := index.AddDocumentsWithContext(ctx, group, nil)
@@ -94,8 +100,8 @@ func (ms *MeilisearchEngine) Index(ctx context.Context, slug string, group ...do
 
 func (ms *MeilisearchEngine) Get(ctx context.Context, username string, lang string) (*domain.Editor, error) {
 	var editor domain.Editor
-	editor.ID = fmt.Sprintf("%s-%s", editor.Slug, editor.Lang)
-	err := ms.search.Client.Index(ms.search.Config.Uid).GetDocumentWithContext(ctx, editor.ID, nil, &editor)
+	id := fmt.Sprintf("%s-%s", editor.Slug, editor.Lang)
+	err := ms.search.Client.Index(ms.search.Config.Uid).GetDocumentWithContext(ctx, id, nil, &editor)
 	if err != nil {
 		var meiliErr *meilisearch.Error
 		if errors.As(err, &meiliErr) {
@@ -162,4 +168,22 @@ func (ms *MeilisearchEngine) WipeMeilisearchIndex(ctx context.Context) error {
 
 func (ms *MeilisearchEngine) ConfigureMeilisearchIndex(ctx context.Context) error {
 	return ms.search.ConfigureIndex(ctx)
+}
+
+func (d *SearchDocument) ToDomain() *domain.Editor {
+	return &domain.Editor{
+		Slug:      d.Slug,
+		Lang:      d.Lang,
+		Name:      d.Name,
+		Bio:       d.Bio,
+		DeletedAt: d.DeletedAt,
+		Owner:     d.Owner,
+	}
+}
+
+func ToSearchDocument(d *domain.Editor) *SearchDocument {
+	return &SearchDocument{
+		ID:     fmt.Sprintf("%s-%s", d.Slug, d.Lang),
+		Editor: *d,
+	}
 }

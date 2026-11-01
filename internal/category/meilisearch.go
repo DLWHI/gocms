@@ -91,8 +91,8 @@ func (ms *MeilisearchEngine) Index(ctx context.Context, slug string, group ...do
 
 func (ms *MeilisearchEngine) Get(ctx context.Context, slug string, lang string) (*domain.Category, error) {
 	var category domain.Category
-	docID := fmt.Sprintf("%s-%s", slug, lang)
-	err := ms.search.Client.Index(ms.search.Config.Uid).GetDocumentWithContext(ctx, docID, nil, &category)
+	id := fmt.Sprintf("%s-%s", slug, lang)
+	err := ms.search.Client.Index(ms.search.Config.Uid).GetDocumentWithContext(ctx, id, nil, &category)
 	if err != nil {
 		var meiliErr *meilisearch.Error
 		if errors.As(err, &meiliErr) {
@@ -167,7 +167,7 @@ func (ms *MeilisearchEngine) ConfigureMeilisearchIndex(ctx context.Context) erro
 	return ms.search.ConfigureIndex(ctx)
 }
 
-func ToDomain(d *SearchDocument) *domain.Category {
+func (d *SearchDocument) ToDomain() *domain.Category {
 	return &domain.Category{
 		Slug:   d.Slug,
 		Hidden: d.Hidden,

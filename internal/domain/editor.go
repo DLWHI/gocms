@@ -10,7 +10,6 @@ const (
 )
 
 type Editor struct {
-	ID        string `json:"id,omitempty"`
 	Slug      string `json:"slug"`
 	Bio       string `json:"bio,omitempty"`
 	Name      string `json:"name"`

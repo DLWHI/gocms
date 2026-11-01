@@ -12,6 +12,11 @@ import (
 	"github.com/meilisearch/meilisearch-go"
 )
 
+type SearchDocument struct {
+	domain.Category
+	ID string `json:"id"`
+}
+
 type MeilisearchEngine struct {
 	search search.MeilisearchClient
 }
@@ -53,10 +58,11 @@ func (*MeilisearchEngine) buildFilter(params *SearchParams) string {
 func (*MeilisearchEngine) buildSort(params *SearchParams) []string {
 	var sortParams []string
 
-	if !strings.HasPrefix(params.SortBy, "name") {
-		sortParams = append(sortParams, "name:asc")
-	} else {
+	if params.SortBy != "" {
 		sortParams = append(sortParams, params.SortBy)
+	}
+	if !strings.HasPrefix(params.SortBy, "slug:") {
+		sortParams = append(sortParams, "slug:asc")
 	}
 
 	return sortParams
@@ -65,14 +71,15 @@ func (*MeilisearchEngine) buildSort(params *SearchParams) []string {
 func (ms *MeilisearchEngine) Index(ctx context.Context, slug string, group ...domain.Category) error {
 	index := ms.search.Client.Index(ms.search.Config.Uid)
 
-	for i := range group {
-		if group[i].Slug != slug {
+	docs := make([]SearchDocument, 0, len(group))
+	for _, category := range group {
+		if category.Slug != slug {
 			return fmt.Errorf("%w: group item not from provided category slug", domain.ErrInval)
 		}
-		group[i].ID = fmt.Sprintf("%s-%s", slug, group[i].Lang)
+		docs = append(docs, *ToSearchDocument(&category))
 	}
 
-	task, err := index.AddDocumentsWithContext(ctx, group, nil)
+	task, err := index.AddDocumentsWithContext(ctx, docs, nil)
 	if err != nil {
 		return err
 	}
@@ -158,4 +165,21 @@ func (ms *MeilisearchEngine) WipeMeilisearchIndex(ctx context.Context) error {
 
 func (ms *MeilisearchEngine) ConfigureMeilisearchIndex(ctx context.Context) error {
 	return ms.search.ConfigureIndex(ctx)
+}
+
+func ToDomain(d *SearchDocument) *domain.Category {
+	return &domain.Category{
+		Slug:   d.Slug,
+		Hidden: d.Hidden,
+		Navbar: d.Navbar,
+		Lang:   d.Lang,
+		Name:   d.Name,
+	}
+}
+
+func ToSearchDocument(d *domain.Category) *SearchDocument {
+	return &SearchDocument{
+		ID:       fmt.Sprintf("%s-%s", d.Slug, d.Lang),
+		Category: *d,
+	}
 }

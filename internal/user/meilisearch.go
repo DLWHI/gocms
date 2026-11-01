@@ -12,6 +12,8 @@ import (
 	"github.com/meilisearch/meilisearch-go"
 )
 
+type SearchDocument = domain.User
+
 type MeilisearchEngine struct {
 	search search.MeilisearchClient
 }
@@ -162,4 +164,12 @@ func (ms *MeilisearchEngine) WipeMeilisearchIndex(ctx context.Context) error {
 
 func (ms *MeilisearchEngine) ConfigureMeilisearchIndex(ctx context.Context) error {
 	return ms.search.ConfigureIndex(ctx)
+}
+
+func ToDomain(d *SearchDocument) *domain.User {
+	return d
+}
+
+func ToSearchDocument(d *domain.User) *SearchDocument {
+	return d
 }

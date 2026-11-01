@@ -108,7 +108,7 @@ func (a *Assertion) Assert(d *Data, body map[string]JSONValue) error {
 	case "absent":
 		return a.opAbsent(values)
 	default:
-		return fmt.Errorf("unknown operation: %s", "op")
+		return fmt.Errorf("unknown operation: %s", a.Op)
 	}
 }
 

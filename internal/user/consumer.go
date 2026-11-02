@@ -3,7 +3,6 @@ package user
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"gocms/internal/domain"
 	"gocms/internal/logger"
@@ -33,9 +32,6 @@ func (s *EventConsumer) SyncSearch(ctx context.Context, data []byte) error {
 	case domain.UserActionCreate, domain.UserActionLogin, domain.UserActionSuspend, domain.UserActionUpdate:
 		user, err := s.db.Get(ctx, payload.Username)
 		if err != nil {
-			if errors.Is(err, domain.ErrNotFound) {
-				return nil
-			}
 			logger.Error("User.Service", "Failed to retreive user from db", err, "payload", payload)
 			return err
 		}

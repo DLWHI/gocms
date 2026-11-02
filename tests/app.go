@@ -194,7 +194,7 @@ func Migrate(ctx context.Context, app *Container) error {
 		return err
 	}
 
-	if err := ConfigureIndexes(ctx, app.Meilisearch); err != nil {
+	if err := CreateIndexes(ctx, app.Meilisearch); err != nil {
 		return err
 	}
 	return nil
@@ -226,7 +226,7 @@ func SoftMigrate(db *gorm.DB) error {
 	return nil
 }
 
-func ConfigureIndexes(ctx context.Context, client meilisearch.ServiceManager) error {
+func CreateIndexes(ctx context.Context, client meilisearch.ServiceManager) error {
 	indexes := []search.ConfigurableIndex{
 		user.NewMeilisearchEngine(client, UsersSearchIndexName),
 		category.NewMeilisearchEngine(client, CategoriesSearchIndexName),
@@ -236,7 +236,7 @@ func ConfigureIndexes(ctx context.Context, client meilisearch.ServiceManager) er
 	}
 
 	for _, index := range indexes {
-		if err := index.Configure(ctx); err != nil {
+		if err := index.Create(ctx); err != nil {
 			return err
 		}
 	}

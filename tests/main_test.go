@@ -19,7 +19,7 @@ const (
 	// Filter        = "CATEGORIES-(SEARCH-113)"
 	// Filter        = "CATEGORIES-(GENERIC-007|011)"
 	// Filter        = "CATEGORIES-(PATCH-029|030)"
-	Filter = "CATEGORIES-GET-(031|032|034)"
+	Filter = "CATEGORIES-PATCH-(029|030)"
 )
 
 var (

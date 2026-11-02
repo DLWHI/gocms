@@ -27,6 +27,9 @@ func Middleware(next http.Handler) http.Handler {
 			tags, _, err := language.ParseAcceptLanguage(header)
 			if err == nil && len(tags) > 0 {
 				base, conf := tags[0].Base()
+				if base.String() == "*" {
+					http.Error(w, "Fallback language is not accepted", http.StatusNotAcceptable)
+				}
 				if conf != language.No {
 					ctx = context.WithValue(ctx, domain.LangKey, base.String())
 				}

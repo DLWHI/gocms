@@ -196,6 +196,13 @@ func (e *Environment) Clear(ctx context.Context) error {
 	if err := e.Search.WaitForTask(ctx, task); err != nil {
 		return err
 	}
+	task, err = e.Search.CategoriesIndex.DeleteAllDocumentsWithContext(ctx, nil)
+	if err != nil {
+		return err
+	}
+	if err := e.Search.WaitForTask(ctx, task); err != nil {
+		return err
+	}
 
 	return nil
 }

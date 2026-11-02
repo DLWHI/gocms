@@ -63,9 +63,6 @@ func (r *GORMRepository) Update(ctx context.Context, slug string, lang string, d
 	return r.mapErr(flow.DoWithRetry(ctx, r.retries, r.backoff, func() error {
 		return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 			recordUpdate, translationUpdate := r.patch(diff)
-			if len(recordUpdate)+len(translationUpdate) == 0 {
-				return nil
-			}
 			var version struct {
 				Record      uint
 				Translation uint
@@ -89,33 +86,39 @@ func (r *GORMRepository) Update(ctx context.Context, slug string, lang string, d
 				if result.RowsAffected == 0 {
 					return domain.ErrRetry
 				}
-			}
 
-			if len(translationUpdate) > 0 {
-				if version.Translation == 0 {
-					translationUpdate["category_slug"] = slug
-					translationUpdate["lang"] = lang
-					translationUpdate["version"] = 1
-					result := tx.Model(&RecordTranslation{}).
-						Create(translationUpdate)
-					if result.Error != nil {
-						if errors.Is(err, gorm.ErrDuplicatedKey) {
-							return domain.ErrRetry
-						}
-						return result.Error
+				if diff.Slug != nil {
+					if err := r.writeMessage(tx, domain.CategoryActionDelete, slug); err != nil {
+						return err
 					}
-				} else {
-					result := tx.Model(&RecordTranslation{}).
-						Where("category_slug = ? AND lang = ? AND version = ?", slug, lang, version.Translation).
-						Updates(translationUpdate)
-					if result.Error != nil {
-						return result.Error
-					}
-					if result.RowsAffected == 0 {
-						return domain.ErrRetry
-					}
+					slug = *diff.Slug
 				}
 			}
+
+			if version.Translation == 0 {
+				translationUpdate["category_slug"] = slug
+				translationUpdate["lang"] = lang
+				translationUpdate["version"] = 1
+				result := tx.Model(&RecordTranslation{}).
+					Create(translationUpdate)
+				if result.Error != nil {
+					if errors.Is(err, gorm.ErrDuplicatedKey) {
+						return domain.ErrRetry
+					}
+					return result.Error
+				}
+			} else if len(translationUpdate) > 0 {
+				result := tx.Model(&RecordTranslation{}).
+					Where("category_slug = ? AND lang = ? AND version = ?", slug, lang, version.Translation).
+					Updates(translationUpdate)
+				if result.Error != nil {
+					return result.Error
+				}
+				if result.RowsAffected == 0 {
+					return domain.ErrRetry
+				}
+			}
+
 			if err := r.writeMessage(tx, domain.CategoryActionUpdate, slug); err != nil {
 				return err
 			}
@@ -209,9 +212,9 @@ func (*GORMRepository) mapErr(err error) error {
 	switch {
 	case err == nil:
 		return nil
-	case errors.Is(err, gorm.ErrDuplicatedKey):
+	case errors.Is(err, gorm.ErrForeignKeyViolated), errors.Is(err, gorm.ErrCheckConstraintViolated), errors.Is(err, gorm.ErrDuplicatedKey):
 		return domain.ErrDuplicate
-	case errors.Is(err, gorm.ErrForeignKeyViolated), errors.Is(err, gorm.ErrCheckConstraintViolated), errors.Is(err, gorm.ErrInvalidValue):
+	case errors.Is(err, gorm.ErrInvalidValue):
 		return fmt.Errorf("%w: %v", domain.ErrInval, err)
 	case errors.Is(err, gorm.ErrRecordNotFound):
 		return domain.ErrNotFound

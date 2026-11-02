@@ -90,7 +90,7 @@ func (s *Service) Edit(ctx context.Context, slug string, diff *domain.CategoryDi
 	}
 
 	if err := s.repo.Update(ctx, slug, lang, diff); err != nil {
-		if !errors.Is(err, domain.ErrNotFound) && !errors.Is(err, domain.ErrInval) {
+		if !errors.Is(err, domain.ErrNotFound) && !errors.Is(err, domain.ErrInval) && !errors.Is(err, domain.ErrDuplicate) {
 			logger.Error("Category.Service", "Failed to update category", err)
 		}
 		return "", err

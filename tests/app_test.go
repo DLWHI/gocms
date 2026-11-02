@@ -173,9 +173,9 @@ func (app *Container) TearDown() {
 	if err := app.Categories.MeilisearchEngine.WipeMeilisearchIndex(ctx); err != nil {
 		logger.Error("Wipe", "Failed to delete category search index", err)
 	}
-	// if err := app.Editors.MeilisearchEngine.WipeMeilisearchIndex(ctx); err != nil {
-	// 	logger.Error("Wipe", "Failed to delete editor search index", err)
-	// }
+	if err := app.Editors.MeilisearchEngine.WipeMeilisearchIndex(ctx); err != nil {
+		logger.Error("Wipe", "Failed to delete editor search index", err)
+	}
 	// if err := app.Ads.MeilisearchEngine.WipeMeilisearchIndex(ctx); err != nil {
 	// 	logger.Error("Wipe", "Failed to delete ads search index", err)
 	// }
@@ -209,10 +209,10 @@ func Migrate(ctx context.Context, app *Container) error {
 	if err := app.Categories.MeilisearchEngine.ConfigureMeilisearchIndex(ctx); err != nil {
 		return err
 	}
-	// if err := app.Editors.MeilisearchEngine.ConfigureMeilisearchIndex(ctx); err != nil {
-	// 	logger.Error("Wipe", "Failed to configure editor search index", err)
-	// 	return err
-	// }
+	if err := app.Editors.MeilisearchEngine.ConfigureMeilisearchIndex(ctx); err != nil {
+		logger.Error("Wipe", "Failed to configure editor search index", err)
+		return err
+	}
 	// if err := app.Ads.MeilisearchEngine.ConfigureMeilisearchIndex(ctx); err != nil {
 	// 	logger.Error("Wipe", "Failed to configure ads search index", err)
 	// 	return err

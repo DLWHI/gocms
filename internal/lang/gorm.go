@@ -2,7 +2,7 @@ package lang
 
 import (
 	"context"
-	"errors"
+	"gocms/internal/database"
 	"gocms/internal/domain"
 
 	"gorm.io/gorm"
@@ -22,13 +22,8 @@ func NewGORMRepository(db *gorm.DB) *GORMRepository {
 }
 
 func (r *GORMRepository) Create(ctx context.Context, lang *domain.Language) error {
-	if err := r.db.WithContext(ctx).Create(ToRecord(lang)).Error; err != nil {
-		if errors.Is(err, gorm.ErrDuplicatedKey) {
-			return domain.ErrDuplicate
-		}
-		return err
-	}
-	return nil
+	err := r.db.WithContext(ctx).Create(ToRecord(lang)).Error
+	return database.MapError(err)
 }
 
 func (r *GORMRepository) GetAll(ctx context.Context) ([]domain.Language, error) {
@@ -54,7 +49,7 @@ func (r *GORMRepository) Delete(ctx context.Context, code string) error {
 		Where("code = ?", code).
 		Delete(&Record{})
 	if result.Error != nil {
-		return result.Error
+		return database.MapError(result.Error)
 	}
 	if result.RowsAffected == 0 {
 		return domain.ErrNotFound

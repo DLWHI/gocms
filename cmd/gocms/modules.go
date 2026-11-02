@@ -42,7 +42,7 @@ type UserModule struct {
 	CacheRepo         user.Repository
 	DedupRepo         user.Repository
 	DBRepo            user.Repository
-	MeilisearchEngine *user.MeilisearchEngine
+	MeilisearchEngine user.SearchEngine
 }
 
 type PostModule struct {
@@ -50,7 +50,7 @@ type PostModule struct {
 	Handler           *post.Handler
 	RedisRepo         *post.RedisRepository
 	GORMRepo          *post.GORMRepository
-	MeilisearchEngine *post.MeilisearchEngine
+	MeilisearchEngine post.SearchEngine
 }
 
 type EditorModule struct {
@@ -60,7 +60,7 @@ type EditorModule struct {
 	CacheRepoRepo     editor.Repository
 	DBRepo            editor.Repository
 	DedupRepo         editor.Repository
-	MeilisearchEngine *editor.MeilisearchEngine
+	MeilisearchEngine editor.SearchEngine
 }
 
 type CategoryModule struct {
@@ -70,7 +70,7 @@ type CategoryModule struct {
 	DedupRepo         category.Repository
 	CacheRepo         category.Repository
 	DBRepo            category.Repository
-	MeilisearchEngine *category.MeilisearchEngine
+	MeilisearchEngine category.SearchEngine
 }
 
 type AdsModule struct {
@@ -78,7 +78,7 @@ type AdsModule struct {
 	Handler           *ads.Handler
 	RedisRepo         *ads.RedisRepository
 	GORMRepo          *ads.GORMRepository
-	MeilisearchEngine *ads.MeilisearchEngine
+	MeilisearchEngine ads.SearchEngine
 }
 
 type LangModule struct {

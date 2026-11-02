@@ -9,7 +9,14 @@ import (
 	"github.com/meilisearch/meilisearch-go"
 )
 
-type MeilisearchClient struct {
+type ConfigurableIndex interface {
+	Create(ctx context.Context) error
+	Configure(ctx context.Context) error
+	Wipe(ctx context.Context) error
+	Destroy(ctx context.Context) error
+}
+
+type MeilisearchIndex struct {
 	Client   meilisearch.ServiceManager
 	Config   meilisearch.IndexConfig
 	Settings meilisearch.Settings
@@ -31,7 +38,7 @@ func NewMeilisearchConnection(host string, port string, apiKey string) meilisear
 	return client
 }
 
-func (d *MeilisearchClient) CreateIndex(ctx context.Context) error {
+func (d *MeilisearchIndex) Create(ctx context.Context) error {
 	task, err := d.Client.CreateIndexWithContext(ctx, &d.Config)
 	if err != nil {
 		return err
@@ -40,25 +47,14 @@ func (d *MeilisearchClient) CreateIndex(ctx context.Context) error {
 		return err
 	}
 
-	err = d.ConfigureIndex(ctx)
+	err = d.Configure(ctx)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (d *MeilisearchClient) WipeIndex(ctx context.Context) error {
-	task, err := d.Client.Index(d.Config.Uid).DeleteAllDocumentsWithContext(ctx, nil)
-	if err != nil {
-		return err
-	}
-	if err := d.WaitForTask(ctx, task); err != nil {
-		return err
-	}
-	return nil
-}
-
-func (d *MeilisearchClient) ConfigureIndex(ctx context.Context) error {
+func (d *MeilisearchIndex) Configure(ctx context.Context) error {
 	task, err := d.Client.Index(d.Config.Uid).UpdateSettingsWithContext(ctx, &d.Settings)
 	if err != nil {
 		return err
@@ -69,13 +65,35 @@ func (d *MeilisearchClient) ConfigureIndex(ctx context.Context) error {
 	return nil
 }
 
-func (d *MeilisearchClient) WaitForTask(ctx context.Context, info *meilisearch.TaskInfo) error {
+func (d *MeilisearchIndex) Wipe(ctx context.Context) error {
+	task, err := d.Client.Index(d.Config.Uid).DeleteAllDocumentsWithContext(ctx, nil)
+	if err != nil {
+		return err
+	}
+	if err := d.WaitForTask(ctx, task); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (d *MeilisearchIndex) Destroy(ctx context.Context) error {
+	task, err := d.Client.DeleteIndexWithContext(ctx, d.Config.Uid)
+	if err != nil {
+		return err
+	}
+	if err := d.WaitForTask(ctx, task); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (d *MeilisearchIndex) WaitForTask(ctx context.Context, info *meilisearch.TaskInfo) error {
 	task, err := d.Client.TaskManager().WaitForTaskWithContext(ctx, info.TaskUID, 100*time.Millisecond)
 	if err != nil {
 		return err
 	}
-	if task.Status == meilisearch.TaskStatusFailed && task.Error.Code != "index_not_found" {
-		return fmt.Errorf("Error indexing: %s - %s", task.Error.Code, task.Error.Message)
+	if task.Status == meilisearch.TaskStatusFailed {
+		return fmt.Errorf("Error performing %s task: %s - %s", task.Type, task.Error.Code, task.Error.Message)
 	}
 	return nil
 }

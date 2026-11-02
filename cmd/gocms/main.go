@@ -22,7 +22,7 @@ const (
 func config() Config {
 	init := pflag.BoolP("init", "i", false, "Migrate database and create index")
 	user := pflag.BoolP("create-user", "", false, "Create user")
-	wipe := pflag.BoolP("wipe", "W", false, "Wipe and re-create database and search index")
+	hard := pflag.BoolP("hard-reset", "", false, "Wipe and re-create database and search index")
 	port := pflag.StringP("port", "p", "8080", "CMS bound port")
 	addr := pflag.StringP("address", "a", "", "CMS bound address")
 	storage := pflag.StringP("storage", "s", "", "CMS media storage path")
@@ -30,12 +30,12 @@ func config() Config {
 	pflag.Parse()
 
 	return Config{
-		Init:    *init,
-		Address: *addr,
-		Wipe:    *wipe,
-		Port:    *port,
-		User:    *user,
-		Storage: *storage,
+		Init:      *init,
+		Address:   *addr,
+		HardReset: *hard,
+		Port:      *port,
+		User:      *user,
+		Storage:   *storage,
 	}
 }
 
@@ -60,8 +60,8 @@ func run(cfg Config) int {
 		if err := Migrate(ctx, app); err != nil {
 			return CodeErrorOperation
 		}
-	} else if cfg.Wipe {
-		if err := Wipe(ctx, app); err != nil {
+	} else if cfg.HardReset {
+		if err := HardReset(ctx, app); err != nil {
 			return CodeErrorOperation
 		}
 	} else if cfg.User {

@@ -2,8 +2,10 @@ package database
 
 import (
 	"fmt"
+	"gocms/internal/domain"
 	"time"
 
+	driver "github.com/go-sql-driver/mysql"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -45,4 +47,15 @@ func NewMySQLConnection(cfg *DBConfig, level logger.LogLevel) (*gorm.DB, error) 
 	sqlDB.SetConnMaxLifetime(time.Hour)
 
 	return db, nil
+}
+
+func MapSQLError(err *driver.MySQLError) error {
+	switch err.Number {
+	case 1761, 1062:
+		// 1761: Foreign key constraint update leading to primary key duplicate
+		// 1062: Direct duplicate entry for primary/unique key
+		return domain.ErrDuplicate
+	default:
+		return err
+	}
 }

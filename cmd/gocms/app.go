@@ -20,12 +20,12 @@ import (
 )
 
 type Config struct {
-	Init    bool
-	User    bool
-	Wipe    bool
-	Port    string
-	Address string
-	Storage string
+	Init      bool
+	User      bool
+	HardReset bool
+	Port      string
+	Address   string
+	Storage   string
 }
 
 type Container struct {

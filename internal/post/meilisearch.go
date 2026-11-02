@@ -13,12 +13,12 @@ import (
 )
 
 type MeilisearchEngine struct {
-	search search.MeilisearchClient
+	search search.MeilisearchIndex
 }
 
 func NewMeilisearchEngine(client meilisearch.ServiceManager, index string) *MeilisearchEngine {
 	return &MeilisearchEngine{
-		search: search.MeilisearchClient{
+		search: search.MeilisearchIndex{
 			Client: client,
 			Config: meilisearch.IndexConfig{
 				Uid:        index,
@@ -222,14 +222,18 @@ func (r *MeilisearchEngine) Search(ctx context.Context, params *SearchParams) (*
 	return &results, nil
 }
 
-func (r *MeilisearchEngine) CreateMeilisearchIndex(ctx context.Context) error {
-	return r.search.CreateIndex(ctx)
+func (r *MeilisearchEngine) Create(ctx context.Context) error {
+	return r.search.Create(ctx)
 }
 
-func (r *MeilisearchEngine) WipeMeilisearchIndex(ctx context.Context) error {
-	return r.search.WipeIndex(ctx)
+func (r *MeilisearchEngine) Wipe(ctx context.Context) error {
+	return r.search.Wipe(ctx)
 }
 
-func (r *MeilisearchEngine) ConfigureMeilisearchIndex(ctx context.Context) error {
-	return r.search.ConfigureIndex(ctx)
+func (r *MeilisearchEngine) Configure(ctx context.Context) error {
+	return r.search.Configure(ctx)
+}
+
+func (ms *MeilisearchEngine) Destroy(ctx context.Context) error {
+	return ms.search.Destroy(ctx)
 }

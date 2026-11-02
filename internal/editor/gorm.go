@@ -3,7 +3,7 @@ package editor
 import (
 	"context"
 	"errors"
-	"fmt"
+	"gocms/internal/database"
 	"gocms/internal/domain"
 	"gocms/internal/flow"
 	"gocms/internal/lang"
@@ -57,11 +57,11 @@ func (r *GORMRepository) Create(ctx context.Context, editor *domain.Editor) erro
 		}
 		return nil
 	})
-	return r.mapErr(err)
+	return database.MapError(err)
 }
 
 func (r *GORMRepository) Update(ctx context.Context, slug string, lang string, diff *domain.EditorDiff) error {
-	return r.mapErr(flow.DoWithRetry(ctx, r.retries, r.backoff, func() error {
+	return database.MapError(flow.DoWithRetry(ctx, r.retries, r.backoff, func() error {
 		return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 			recordUpdate, translationUpdate := r.patch(diff)
 			if len(recordUpdate)+len(translationUpdate) == 0 {
@@ -207,22 +207,7 @@ func (r *GORMRepository) Delete(ctx context.Context, slug string) error {
 		}
 		return nil
 	})
-	return r.mapErr(err)
-}
-
-func (*GORMRepository) mapErr(err error) error {
-	switch {
-	case err == nil:
-		return nil
-	case errors.Is(err, gorm.ErrDuplicatedKey):
-		return domain.ErrDuplicate
-	case errors.Is(err, gorm.ErrForeignKeyViolated), errors.Is(err, gorm.ErrCheckConstraintViolated), errors.Is(err, gorm.ErrInvalidValue):
-		return fmt.Errorf("%w: %v", domain.ErrInval, err)
-	case errors.Is(err, gorm.ErrRecordNotFound):
-		return domain.ErrNotFound
-	default:
-		return err
-	}
+	return database.MapError(err)
 }
 
 func (*GORMRepository) writeMessage(tx *gorm.DB, action int, slug string) error {

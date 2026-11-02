@@ -7,7 +7,7 @@ import (
 )
 
 type Meilisearch struct {
-	search.MeilisearchClient
+	search.MeilisearchIndex
 
 	UsersIndex      meilisearch.IndexManager
 	PostsIndex      meilisearch.IndexManager
@@ -25,7 +25,7 @@ func NewMeilisearch(
 	adsIndex string,
 ) *Meilisearch {
 	return &Meilisearch{
-		MeilisearchClient: search.MeilisearchClient{
+		MeilisearchIndex: search.MeilisearchIndex{
 			Client: client,
 		},
 		UsersIndex:      client.Index(usersIndex),

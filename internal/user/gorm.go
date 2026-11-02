@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"gocms/internal/database"
 	"gocms/internal/domain"
 	"gocms/internal/outbox"
 	"time"
@@ -47,17 +48,11 @@ func (r *GORMRepository) Create(ctx context.Context, user *domain.User, pwdhash 
 		}
 		return nil
 	})
-	if err != nil {
-		if errors.Is(err, gorm.ErrDuplicatedKey) {
-			return domain.ErrDuplicate
-		}
-		return err
-	}
-	return nil
+	return database.MapError(err)
 }
 
 func (r *GORMRepository) Update(ctx context.Context, username string, diff *domain.UserDiff) error {
-	return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+	return database.MapError(r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		update := r.patch(diff)
 		if len(update) > 0 {
 			result := tx.Model(&Record{}).
@@ -74,12 +69,12 @@ func (r *GORMRepository) Update(ctx context.Context, username string, diff *doma
 			}
 		}
 		return nil
-	})
+	}))
 }
 
 func (r *GORMRepository) UpdateLogin(ctx context.Context, username string, timestamp time.Time) error {
 	var user Record
-	err := r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+	return database.MapError(r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		err := tx.Model(&Record{}).
 			Omit("Password").
 			Where("username = ?", username).
@@ -111,15 +106,14 @@ func (r *GORMRepository) UpdateLogin(ctx context.Context, username string, times
 			return err
 		}
 		return nil
-	})
-	return err
+	}))
 }
 
 func (r *GORMRepository) UpdatePassword(ctx context.Context, username string, hash []byte) error {
 	if len(hash) == 0 {
 		return fmt.Errorf("%w: empty password", domain.ErrInval)
 	}
-	return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+	return database.MapError(r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		result := tx.Model(&Record{}).
 			Where("username = ?", username).
 			Updates(map[string]interface{}{
@@ -136,7 +130,7 @@ func (r *GORMRepository) UpdatePassword(ctx context.Context, username string, ha
 			return err
 		}
 		return nil
-	})
+	}))
 }
 
 func (r *GORMRepository) Get(ctx context.Context, username string) (*domain.User, error) {
@@ -207,10 +201,7 @@ func (r *GORMRepository) Suspend(ctx context.Context, username string) error {
 		}
 		return nil
 	})
-	if err != nil {
-		return err
-	}
-	return nil
+	return database.MapError(err)
 }
 
 func (*GORMRepository) writeMessage(tx *gorm.DB, action int, username string) error {

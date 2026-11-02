@@ -3,12 +3,18 @@ package tests
 import (
 	"context"
 	"fmt"
-	"gocms/internal/database"
+	"gocms/internal/ads"
+	"gocms/internal/category"
 	"gocms/internal/domain"
+	"gocms/internal/editor"
 	"gocms/internal/flow"
+	"gocms/internal/lang"
 	"gocms/internal/logger"
 	"gocms/internal/outbox"
 	"gocms/internal/password"
+	"gocms/internal/post"
+	"gocms/internal/search"
+	"gocms/internal/user"
 	"log/slog"
 	"sync"
 	"time"
@@ -160,25 +166,13 @@ func (app *Container) TearDown() {
 		sub.Unsubscribe()
 	}
 
-	if err := database.DropAll(app.DB); err != nil {
+	if err := DropAll(app.DB); err != nil {
 		logger.Error("Wipe", "Failed to drop table records", err)
 	}
 
-	// if err := app.Posts.MeilisearchEngine.WipeMeilisearchIndex(ctx); err != nil {
-	// 	logger.Error("Wipe", "Failed to delete post search index", err)
-	// }
-	if err := app.Users.MeilisearchEngine.WipeMeilisearchIndex(ctx); err != nil {
-		logger.Error("Wipe", "Failed to delete user search index", err)
+	if err := DestroyIndexes(ctx, app.Meilisearch); err != nil {
+		logger.Error("Wipe", "Failed to drop table records", err)
 	}
-	if err := app.Categories.MeilisearchEngine.WipeMeilisearchIndex(ctx); err != nil {
-		logger.Error("Wipe", "Failed to delete category search index", err)
-	}
-	if err := app.Editors.MeilisearchEngine.WipeMeilisearchIndex(ctx); err != nil {
-		logger.Error("Wipe", "Failed to delete editor search index", err)
-	}
-	// if err := app.Ads.MeilisearchEngine.WipeMeilisearchIndex(ctx); err != nil {
-	// 	logger.Error("Wipe", "Failed to delete ads search index", err)
-	// }
 
 	sqlDB, err := app.DB.DB()
 	if err != nil {
@@ -196,27 +190,96 @@ func (app *Container) TearDown() {
 }
 
 func Migrate(ctx context.Context, app *Container) error {
-	if err := database.SoftMigrate(app.DB); err != nil {
+	if err := SoftMigrate(app.DB); err != nil {
 		return err
 	}
-	// if err := app.Posts.MeilisearchEngine.ConfigureMeilisearchIndex(ctx); err != nil {
-	// 	logger.Error("Wipe", "Failed to configure post search index", err)
-	// 	return err
-	// }
-	if err := app.Users.MeilisearchEngine.ConfigureMeilisearchIndex(ctx); err != nil {
+
+	if err := ConfigureIndexes(ctx, app.Meilisearch); err != nil {
 		return err
 	}
-	if err := app.Categories.MeilisearchEngine.ConfigureMeilisearchIndex(ctx); err != nil {
+	return nil
+}
+
+func SoftMigrate(db *gorm.DB) error {
+
+	err := db.AutoMigrate(
+		&ads.Model{},
+		&user.Record{},
+		&editor.Record{},
+		&editor.RecordTranslation{},
+		&post.Meta{},
+		&post.Translation{},
+		&category.Record{},
+		&category.RecordTranslation{},
+		&lang.Record{},
+		&outbox.Message{},
+	)
+
+	if err != nil {
 		return err
 	}
-	if err := app.Editors.MeilisearchEngine.ConfigureMeilisearchIndex(ctx); err != nil {
-		logger.Error("Wipe", "Failed to configure editor search index", err)
+
+	if err := db.Exec("CREATE INDEX IF NOT EXISTS idx_post_categories_category_slug ON post_categories (category_slug, post_id);").Error; err != nil {
 		return err
 	}
-	// if err := app.Ads.MeilisearchEngine.ConfigureMeilisearchIndex(ctx); err != nil {
-	// 	logger.Error("Wipe", "Failed to configure ads search index", err)
-	// 	return err
-	// }
-	logger.Info("Migrate", "Migration successful")
+
+	return nil
+}
+
+func ConfigureIndexes(ctx context.Context, client meilisearch.ServiceManager) error {
+	indexes := []search.ConfigurableIndex{
+		user.NewMeilisearchEngine(client, UsersSearchIndexName),
+		category.NewMeilisearchEngine(client, CategoriesSearchIndexName),
+		editor.NewMeilisearchEngine(client, EditorsSearchIndexName),
+		post.NewMeilisearchEngine(client, PostsSearchIndexName),
+		ads.NewMeilisearchEngine(client, AdsSearchIndexName),
+	}
+
+	for _, index := range indexes {
+		if err := index.Configure(ctx); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func DropAll(db *gorm.DB) error {
+	err := db.Migrator().DropTable("post_categories")
+	if err != nil {
+		return err
+	}
+	if err := db.Migrator().DropTable(
+		&ads.Model{},
+		&user.Record{},
+		&editor.Record{},
+		&editor.RecordTranslation{},
+		&post.Meta{},
+		&post.Translation{},
+		&category.Record{},
+		&category.RecordTranslation{},
+		&lang.Record{},
+		&outbox.Message{},
+	); err != nil {
+		return err
+	}
+	return nil
+}
+
+func DestroyIndexes(ctx context.Context, client meilisearch.ServiceManager) error {
+	indexes := []search.ConfigurableIndex{
+		user.NewMeilisearchEngine(client, UsersSearchIndexName),
+		category.NewMeilisearchEngine(client, CategoriesSearchIndexName),
+		editor.NewMeilisearchEngine(client, EditorsSearchIndexName),
+		post.NewMeilisearchEngine(client, PostsSearchIndexName),
+		ads.NewMeilisearchEngine(client, AdsSearchIndexName),
+	}
+
+	for _, index := range indexes {
+		if err := index.Destroy(ctx); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }

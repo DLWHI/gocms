@@ -18,12 +18,12 @@ type SearchDocument struct {
 }
 
 type MeilisearchEngine struct {
-	search search.MeilisearchClient
+	search search.MeilisearchIndex
 }
 
 func NewMeilisearchEngine(client meilisearch.ServiceManager, index string) *MeilisearchEngine {
 	return &MeilisearchEngine{
-		search: search.MeilisearchClient{
+		search: search.MeilisearchIndex{
 			Client: client,
 			Config: meilisearch.IndexConfig{
 				Uid:        index,
@@ -159,16 +159,20 @@ func (ms *MeilisearchEngine) Search(ctx context.Context, params *SearchParams) (
 	return &results, nil
 }
 
-func (ms *MeilisearchEngine) CreateMeilisearchIndex(ctx context.Context) error {
-	return ms.search.CreateIndex(ctx)
+func (ms *MeilisearchEngine) Create(ctx context.Context) error {
+	return ms.search.Create(ctx)
 }
 
-func (ms *MeilisearchEngine) WipeMeilisearchIndex(ctx context.Context) error {
-	return ms.search.WipeIndex(ctx)
+func (ms *MeilisearchEngine) Wipe(ctx context.Context) error {
+	return ms.search.Wipe(ctx)
 }
 
-func (ms *MeilisearchEngine) ConfigureMeilisearchIndex(ctx context.Context) error {
-	return ms.search.ConfigureIndex(ctx)
+func (ms *MeilisearchEngine) Configure(ctx context.Context) error {
+	return ms.search.Configure(ctx)
+}
+
+func (ms *MeilisearchEngine) Destroy(ctx context.Context) error {
+	return ms.search.Destroy(ctx)
 }
 
 func (d *SearchDocument) ToDomain() *domain.Editor {

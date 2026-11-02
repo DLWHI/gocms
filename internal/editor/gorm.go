@@ -93,31 +93,36 @@ func (r *GORMRepository) Update(ctx context.Context, slug string, lang string, d
 				if result.RowsAffected == 0 {
 					return domain.ErrRetry
 				}
+
+				if diff.Slug != nil {
+					if err := r.writeMessage(tx, domain.EditorActionDelete, slug); err != nil {
+						return err
+					}
+					slug = *diff.Slug
+				}
 			}
 
-			if len(translationUpdate) > 0 {
-				if version.Translation == 0 {
-					translationUpdate["editor_slug"] = slug
-					translationUpdate["lang"] = lang
-					translationUpdate["version"] = 1
-					result := tx.Model(&RecordTranslation{}).
-						Create(translationUpdate)
-					if result.Error != nil {
-						if errors.Is(err, gorm.ErrDuplicatedKey) {
-							return domain.ErrRetry
-						}
-						return result.Error
-					}
-				} else {
-					result := tx.Model(&RecordTranslation{}).
-						Where("editor_slug = ? AND lang = ? AND version = ?", slug, lang, version).
-						Updates(translationUpdate)
-					if result.Error != nil {
-						return result.Error
-					}
-					if result.RowsAffected == 0 {
+			if version.Translation == 0 {
+				translationUpdate["editor_slug"] = slug
+				translationUpdate["lang"] = lang
+				translationUpdate["version"] = 1
+				result := tx.Model(&RecordTranslation{}).
+					Create(translationUpdate)
+				if result.Error != nil {
+					if errors.Is(err, gorm.ErrDuplicatedKey) {
 						return domain.ErrRetry
 					}
+					return result.Error
+				}
+			} else if len(translationUpdate) > 0 {
+				result := tx.Model(&RecordTranslation{}).
+					Where("editor_slug = ? AND lang = ? AND version = ?", slug, lang, version).
+					Updates(translationUpdate)
+				if result.Error != nil {
+					return result.Error
+				}
+				if result.RowsAffected == 0 {
+					return domain.ErrRetry
 				}
 			}
 			if err := r.writeMessage(tx, domain.EditorActionUpdate, slug); err != nil {

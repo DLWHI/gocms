@@ -61,8 +61,8 @@ func (*MeilisearchEngine) buildSort(params *SearchParams) []string {
 	if params.SortBy != "" {
 		sortParams = append(sortParams, params.SortBy)
 	}
-	if !strings.HasPrefix(params.SortBy, "slug:") {
-		sortParams = append(sortParams, "slug:asc")
+	if !strings.HasPrefix(params.SortBy, "name:") {
+		sortParams = append(sortParams, "name:asc")
 	}
 
 	return sortParams

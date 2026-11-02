@@ -30,8 +30,7 @@ func NewMySQLConnection(cfg *DBConfig, level logger.LogLevel) (*gorm.DB, error) 
 	)
 
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
-		Logger:         logger.Default.LogMode(level),
-		TranslateError: true,
+		Logger: logger.Default.LogMode(level),
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to open database connection: %w", err)
@@ -55,6 +54,10 @@ func MapSQLError(err *driver.MySQLError) error {
 		// 1761: Foreign key constraint update leading to primary key duplicate
 		// 1062: Direct duplicate entry for primary/unique key
 		return domain.ErrDuplicate
+	case 1452, 1451:
+		// 1761: Cannot delete or update a parent row
+		// 1062: Cannot add or update a child row
+		return domain.ErrInval
 	default:
 		return err
 	}

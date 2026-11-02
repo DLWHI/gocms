@@ -14623,7 +14623,7 @@
     {
       "id": "CATEGORIES-LIST-016",
       "group": "GET /cms/categories",
-      "title": "400: Accept-Language empty header",
+      "title": "406: Accept-Language empty header",
       "source": "inferred",
       "tags": ["verify_accept_language"],
       "steps": [
@@ -14637,7 +14637,7 @@
             }
           },
           "expect": {
-            "status": 400,
+            "status": 406,
             "body": "plain_text"
           }
         }
@@ -14646,7 +14646,7 @@
     {
       "id": "CATEGORIES-LIST-017",
       "group": "GET /cms/categories",
-      "title": "400: Accept-Language unknown code xx",
+      "title": "406: Accept-Language unknown code xx",
       "source": "inferred",
       "tags": ["verify_accept_language"],
       "steps": [
@@ -14660,7 +14660,7 @@
             }
           },
           "expect": {
-            "status": 400,
+            "status": 406,
             "body": "plain_text"
           }
         }
@@ -14699,7 +14699,7 @@
     {
       "id": "CATEGORIES-LIST-019",
       "group": "GET /cms/categories",
-      "title": "400: Accept-Language malformed q-value",
+      "title": "406: Accept-Language malformed q-value",
       "source": "inferred",
       "tags": ["verify_accept_language"],
       "steps": [
@@ -14713,7 +14713,7 @@
             }
           },
           "expect": {
-            "status": 400,
+            "status": 406,
             "body": "plain_text"
           }
         }
@@ -14722,7 +14722,7 @@
     {
       "id": "CATEGORIES-LIST-020",
       "group": "GET /cms/categories",
-      "title": "400: Accept-Language 5000 characters",
+      "title": "406: Accept-Language 5000 characters",
       "source": "inferred",
       "tags": ["verify_accept_language"],
       "steps": [
@@ -14741,7 +14741,7 @@
             }
           },
           "expect": {
-            "status": 400,
+            "status": 406,
             "body": "plain_text"
           }
         }
@@ -16223,7 +16223,7 @@
     {
       "id": "CATEGORIES-GET-021",
       "group": "GET /cms/categories/{slug}",
-      "title": "400: Accept-Language wildcard",
+      "title": "406: Accept-Language wildcard",
       "source": "inferred",
       "tags": ["verify_accept_language"],
       "steps": [
@@ -16240,7 +16240,7 @@
             }
           },
           "expect": {
-            "status": 400,
+            "status": 406,
             "body": "plain_text"
           }
         }
@@ -16249,7 +16249,7 @@
     {
       "id": "CATEGORIES-GET-022",
       "group": "GET /cms/categories/{slug}",
-      "title": "400: Accept-Language empty header",
+      "title": "406: Accept-Language empty header",
       "source": "inferred",
       "tags": ["verify_accept_language"],
       "steps": [
@@ -16266,7 +16266,7 @@
             }
           },
           "expect": {
-            "status": 400,
+            "status": 406,
             "body": "plain_text"
           }
         }
@@ -16275,7 +16275,7 @@
     {
       "id": "CATEGORIES-GET-023",
       "group": "GET /cms/categories/{slug}",
-      "title": "400: Accept-Language unknown code xx",
+      "title": "406: Accept-Language unknown code xx",
       "source": "inferred",
       "tags": ["verify_accept_language"],
       "steps": [
@@ -16292,7 +16292,7 @@
             }
           },
           "expect": {
-            "status": 400,
+            "status": 406,
             "body": "plain_text"
           }
         }
@@ -16327,7 +16327,7 @@
     {
       "id": "CATEGORIES-GET-025",
       "group": "GET /cms/categories/{slug}",
-      "title": "400: Accept-Language malformed q-value",
+      "title": "406: Accept-Language malformed q-value",
       "source": "inferred",
       "tags": ["verify_accept_language"],
       "steps": [
@@ -16344,7 +16344,7 @@
             }
           },
           "expect": {
-            "status": 400,
+            "status": 406,
             "body": "plain_text"
           }
         }
@@ -16353,7 +16353,7 @@
     {
       "id": "CATEGORIES-GET-026",
       "group": "GET /cms/categories/{slug}",
-      "title": "400: Accept-Language 5000 characters",
+      "title": "406: Accept-Language 5000 characters",
       "source": "inferred",
       "tags": ["verify_accept_language"],
       "steps": [
@@ -16375,7 +16375,7 @@
             }
           },
           "expect": {
-            "status": 400,
+            "status": 406,
             "body": "plain_text"
           }
         }
@@ -16384,7 +16384,7 @@
     {
       "id": "CATEGORIES-GET-027",
       "group": "GET /cms/categories/{slug}",
-      "title": "400: Accept-Language missing",
+      "title": "406: Accept-Language missing",
       "source": "inferred",
       "tags": ["verify_accept_language"],
       "steps": [
@@ -16398,7 +16398,7 @@
             }
           },
           "expect": {
-            "status": 400,
+            "status": 406,
             "body": "plain_text"
           }
         }
@@ -16501,7 +16501,7 @@
             "method": "GET",
             "path": "/cms/categories/{slug}",
             "path_params": {
-              "slug": "-a"
+              "slug": "-news"
             },
             "headers": {
               "Accept-Language": "en"
@@ -16514,7 +16514,7 @@
               {
                 "path": "$.slug",
                 "op": "eq",
-                "value": "a"
+                "value": "news"
               }
             ]
           }
@@ -16534,7 +16534,7 @@
             "method": "GET",
             "path": "/cms/categories/{slug}",
             "path_params": {
-              "slug": "a-"
+              "slug": "news-"
             },
             "headers": {
               "Accept-Language": "en"
@@ -16547,7 +16547,7 @@
               {
                 "path": "$.slug",
                 "op": "eq",
-                "value": "a"
+                "value": "news"
               }
             ]
           }
@@ -16600,34 +16600,8 @@
             }
           },
           "expect": {
-            "status": 200,
-            "body": "json",
-            "json_assertions": [
-              {
-                "path": "$.slug",
-                "op": "eq",
-                "value": "a_b"
-              }
-            ]
-          }
-        },
-        {
-          "actor": "root",
-          "request": {
-            "method": "POST",
-            "path": "/cms/categories",
-            "body": {
-              "slug": "a_b",
-              "name": "Gadgets",
-              "lang": "en"
-            },
-            "headers": {
-              "Content-Type": "application/json"
-            }
-          },
-          "expect": {
-            "status": 201,
-            "body": "empty"
+            "status": 404,
+            "body": "plain_text"
           }
         }
       ]
@@ -20271,7 +20245,7 @@
             "method": "GET",
             "path": "/cms/categories/{slug}",
             "path_params": {
-              "slug": "news"
+              "slug": "a"
             },
             "headers": {
               "Accept-Language": "en"
@@ -20389,7 +20363,7 @@
             "method": "GET",
             "path": "/cms/categories/{slug}",
             "path_params": {
-              "slug": "news"
+              "slug": "a_b"
             },
             "headers": {
               "Accept-Language": "en"

@@ -25,17 +25,19 @@ func Middleware(next http.Handler) http.Handler {
 		case http.MethodGet:
 			header := r.Header.Get("Accept-Language")
 			tags, _, err := language.ParseAcceptLanguage(header)
-			if err == nil && len(tags) > 0 {
-				base, conf := tags[0].Base()
-				if base.String() == "*" {
-					http.Error(w, "Fallback language is not accepted", http.StatusNotAcceptable)
-				}
-				if conf != language.No {
-					ctx = context.WithValue(ctx, domain.LangKey, base.String())
-				}
+			if err != nil || len(tags) == 0 {
+				http.Error(w, "No language provided", http.StatusNotAcceptable)
+				return
+			}
+			base, conf := tags[0].Base()
+			if base.String() == "mul" {
+				http.Error(w, "Fallback language is not accepted", http.StatusNotAcceptable)
+				return
+			}
+			if conf != language.No {
+				ctx = context.WithValue(ctx, domain.LangKey, base.String())
 			}
 		}
-
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }

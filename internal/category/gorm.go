@@ -212,9 +212,9 @@ func (*GORMRepository) mapErr(err error) error {
 	switch {
 	case err == nil:
 		return nil
-	case errors.Is(err, gorm.ErrForeignKeyViolated), errors.Is(err, gorm.ErrCheckConstraintViolated), errors.Is(err, gorm.ErrDuplicatedKey):
+	case errors.Is(err, gorm.ErrDuplicatedKey):
 		return domain.ErrDuplicate
-	case errors.Is(err, gorm.ErrInvalidValue):
+	case errors.Is(err, gorm.ErrForeignKeyViolated), errors.Is(err, gorm.ErrCheckConstraintViolated), errors.Is(err, gorm.ErrInvalidValue):
 		return fmt.Errorf("%w: %v", domain.ErrInval, err)
 	case errors.Is(err, gorm.ErrRecordNotFound):
 		return domain.ErrNotFound

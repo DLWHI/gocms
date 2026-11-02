@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"gocms/internal/category"
 	"gocms/internal/domain"
+	"gocms/internal/editor"
 	"gocms/internal/lang"
 	"gocms/internal/outbox"
 	"gocms/internal/password"
@@ -181,6 +182,9 @@ func (e *Environment) Clear(ctx context.Context) error {
 	if err := e.DB.Unscoped().Where("1 = 1").Delete(&category.Record{}).Error; err != nil {
 		return err
 	}
+	if err := e.DB.Unscoped().Where("1 = 1").Delete(&editor.Record{}).Error; err != nil {
+		return err
+	}
 	if err := e.DB.Unscoped().Where("1 = 1").Delete(&outbox.Message{}).Error; err != nil {
 		return err
 	}
@@ -197,6 +201,13 @@ func (e *Environment) Clear(ctx context.Context) error {
 		return err
 	}
 	task, err = e.Search.CategoriesIndex.DeleteAllDocumentsWithContext(ctx, nil)
+	if err != nil {
+		return err
+	}
+	if err := e.Search.WaitForTask(ctx, task); err != nil {
+		return err
+	}
+	task, err = e.Search.EditorsIndex.DeleteAllDocumentsWithContext(ctx, nil)
 	if err != nil {
 		return err
 	}

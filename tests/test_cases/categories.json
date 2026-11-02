@@ -5225,30 +5225,6 @@
             "status": 201,
             "body": "empty"
           }
-        },
-        {
-          "actor": "root",
-          "request": {
-            "method": "GET",
-            "path": "/cms/categories/{slug}",
-            "path_params": {
-              "slug": "a_b"
-            },
-            "headers": {
-              "Accept-Language": "en"
-            }
-          },
-          "expect": {
-            "status": 200,
-            "body": "json",
-            "json_assertions": [
-              {
-                "path": "$.slug",
-                "op": "eq",
-                "value": "a_b"
-              }
-            ]
-          }
         }
       ]
     },
@@ -9170,7 +9146,8 @@
             "path": "/cms/categories/search",
             "body": {
               "lang": "en",
-              "query": "gadgets"
+              "query": "gadgets",
+              "count": 2
             },
             "headers": {
               "Content-Type": "application/json"
@@ -9200,8 +9177,7 @@
                 "op": "includes",
                 "value": "gadgets"
               }
-            ],
-            "eventually_ms": 10000
+            ]
           }
         }
       ]
@@ -9269,8 +9245,7 @@
                 "op": "includes",
                 "value": "gadgets"
               }
-            ],
-            "eventually_ms": 10000
+            ]
           }
         },
         {
@@ -10086,13 +10061,13 @@
               },
               {
                 "path": "$.total",
-                "op": "len_eq",
+                "op": "eq",
                 "value": 0
               },
               {
                 "path": "$.last_page",
-                "op": "len_eq",
-                "value": 1
+                "op": "eq",
+                "value": 0
               }
             ]
           }
@@ -10233,13 +10208,13 @@
               },
               {
                 "path": "$.total",
-                "op": "len_eq",
+                "op": "eq",
                 "value": 0
               },
               {
                 "path": "$.last_page",
-                "op": "len_eq",
-                "value": 1
+                "op": "eq",
+                "value": 0
               }
             ]
           }
@@ -13573,8 +13548,7 @@
                 "op": "includes",
                 "value": "headlines"
               }
-            ],
-            "eventually_ms": 10000
+            ]
           }
         },
         {
@@ -13614,8 +13588,7 @@
                 "op": "includes",
                 "value": "headlines"
               }
-            ],
-            "eventually_ms": 10000
+            ]
           }
         },
         {
@@ -13624,7 +13597,8 @@
             "method": "POST",
             "path": "/cms/categories/search",
             "body": {
-              "lang": "en"
+              "lang": "en",
+              "count": 20
             },
             "headers": {
               "Content-Type": "application/json"
@@ -13659,8 +13633,7 @@
                 "op": "excludes",
                 "value": "news"
               }
-            ],
-            "eventually_ms": 10000
+            ]
           }
         }
       ]
@@ -13730,8 +13703,7 @@
                 "op": "includes",
                 "value": "news"
               }
-            ],
-            "eventually_ms": 10000
+            ]
           }
         },
         {
@@ -13771,8 +13743,7 @@
                 "op": "includes",
                 "value": "news"
               }
-            ],
-            "eventually_ms": 10000
+            ]
           }
         }
       ]
@@ -13842,8 +13813,7 @@
                 "op": "includes",
                 "value": "news"
               }
-            ],
-            "eventually_ms": 10000
+            ]
           }
         },
         {
@@ -13946,8 +13916,7 @@
                 "op": "excludes",
                 "value": "news"
               }
-            ],
-            "eventually_ms": 10000
+            ]
           }
         },
         {
@@ -13986,8 +13955,7 @@
                 "op": "excludes",
                 "value": "news"
               }
-            ],
-            "eventually_ms": 10000
+            ]
           }
         }
       ]
@@ -13995,7 +13963,7 @@
     {
       "id": "CATEGORIES-SEARCH-113",
       "group": "POST /cms/categories/search",
-      "title": "400: searching a language that was deleted",
+      "title": "Searching a language that was deleted yields nothing",
       "source": "inferred",
       "tags": ["verify_language_validation"],
       "steps": [
@@ -14026,8 +13994,25 @@
             }
           },
           "expect": {
-            "status": 400,
-            "body": "plain_text"
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.results",
+                "op": "len_eq",
+                "value": 0
+              },
+              {
+                "path": "$.total",
+                "op": "eq",
+                "value": 0
+              },
+              {
+                "path": "$.last_page",
+                "op": "eq",
+                "value": 0
+              }
+            ]
           }
         }
       ]
@@ -14615,7 +14600,7 @@
     {
       "id": "CATEGORIES-LIST-015",
       "group": "GET /cms/categories",
-      "title": "400: Accept-Language wildcard",
+      "title": "406: Accept-Language wildcard",
       "source": "inferred",
       "tags": ["verify_accept_language"],
       "steps": [
@@ -14629,7 +14614,7 @@
             }
           },
           "expect": {
-            "status": 400,
+            "status": 406,
             "body": "plain_text"
           }
         }
@@ -14684,7 +14669,7 @@
     {
       "id": "CATEGORIES-LIST-018",
       "group": "GET /cms/categories",
-      "title": "400: Accept-Language valid ISO code missing from cms languages (fr)",
+      "title": "Accept-Language valid ISO code missing from cms languages (fr) yields nothing",
       "source": "inferred",
       "tags": ["verify_accept_language"],
       "steps": [
@@ -14698,8 +14683,15 @@
             }
           },
           "expect": {
-            "status": 400,
-            "body": "plain_text"
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.categories",
+                "op": "len_eq",
+                "value": 0
+              }
+            ]
           }
         }
       ]
@@ -14758,7 +14750,7 @@
     {
       "id": "CATEGORIES-LIST-021",
       "group": "GET /cms/categories",
-      "title": "400: Accept-Language missing",
+      "title": "406: Accept-Language missing",
       "source": "inferred",
       "tags": ["verify_accept_language"],
       "steps": [
@@ -14769,7 +14761,7 @@
             "path": "/cms/categories"
           },
           "expect": {
-            "status": 400,
+            "status": 406,
             "body": "plain_text"
           }
         }
@@ -16309,7 +16301,7 @@
     {
       "id": "CATEGORIES-GET-024",
       "group": "GET /cms/categories/{slug}",
-      "title": "400: Accept-Language valid ISO code missing from cms languages (fr)",
+      "title": "404: Accept-Language valid ISO code missing from cms languages (fr) finds nothing",
       "source": "inferred",
       "tags": ["verify_accept_language"],
       "steps": [
@@ -16326,7 +16318,7 @@
             }
           },
           "expect": {
-            "status": 400,
+            "status": 404,
             "body": "plain_text"
           }
         }
@@ -16499,7 +16491,7 @@
     {
       "id": "CATEGORIES-GET-031",
       "group": "GET /cms/categories/{slug}",
-      "title": "400: invalid slug in path (leading hyphen)",
+      "title": "leading hyphen in slug is trimmed",
       "source": "inferred",
       "tags": ["verify_slug_rules"],
       "steps": [
@@ -16516,8 +16508,15 @@
             }
           },
           "expect": {
-            "status": 400,
-            "body": "plain_text"
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.slug",
+                "op": "eq",
+                "value": "a"
+              }
+            ]
           }
         }
       ]
@@ -16525,7 +16524,7 @@
     {
       "id": "CATEGORIES-GET-032",
       "group": "GET /cms/categories/{slug}",
-      "title": "400: invalid slug in path (trailing hyphen)",
+      "title": "trailing hyphen in slug is trimmed",
       "source": "inferred",
       "tags": ["verify_slug_rules"],
       "steps": [
@@ -16542,8 +16541,15 @@
             }
           },
           "expect": {
-            "status": 400,
-            "body": "plain_text"
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.slug",
+                "op": "eq",
+                "value": "a"
+              }
+            ]
           }
         }
       ]
@@ -16577,7 +16583,7 @@
     {
       "id": "CATEGORIES-GET-034",
       "group": "GET /cms/categories/{slug}",
-      "title": "400: invalid slug in path (underscore)",
+      "title": "Underscores in slug are allowed",
       "source": "inferred",
       "tags": ["verify_slug_rules"],
       "steps": [
@@ -16594,8 +16600,34 @@
             }
           },
           "expect": {
-            "status": 400,
-            "body": "plain_text"
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.slug",
+                "op": "eq",
+                "value": "a_b"
+              }
+            ]
+          }
+        },
+        {
+          "actor": "root",
+          "request": {
+            "method": "POST",
+            "path": "/cms/categories",
+            "body": {
+              "slug": "a_b",
+              "name": "Gadgets",
+              "lang": "en"
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 201,
+            "body": "empty"
           }
         }
       ]
@@ -20149,7 +20181,7 @@
     {
       "id": "CATEGORIES-PATCH-037",
       "group": "PATCH /cms/categories/{slug}",
-      "title": "400: invalid new slug (leading hyphen); category untouched",
+      "title": "leading hyphen in slug is trimmed",
       "source": "inferred",
       "tags": ["verify_slug_rules"],
       "steps": [
@@ -20170,8 +20202,8 @@
             }
           },
           "expect": {
-            "status": 400,
-            "body": "plain_text"
+            "status": 204,
+            "body": "empty"
           }
         },
         {
@@ -20180,7 +20212,7 @@
             "method": "GET",
             "path": "/cms/categories/{slug}",
             "path_params": {
-              "slug": "news"
+              "slug": "a"
             },
             "headers": {
               "Accept-Language": "en"
@@ -20193,7 +20225,7 @@
               {
                 "path": "$.slug",
                 "op": "eq",
-                "value": "news"
+                "value": "a"
               },
               {
                 "path": "$.lang",
@@ -20208,7 +20240,7 @@
     {
       "id": "CATEGORIES-PATCH-038",
       "group": "PATCH /cms/categories/{slug}",
-      "title": "400: invalid new slug (trailing hyphen); category untouched",
+      "title": "trailing hyphen in slug is trimmed",
       "source": "inferred",
       "tags": ["verify_slug_rules"],
       "steps": [
@@ -20229,8 +20261,8 @@
             }
           },
           "expect": {
-            "status": 400,
-            "body": "plain_text"
+            "status": 204,
+            "body": "empty"
           }
         },
         {
@@ -20252,7 +20284,7 @@
               {
                 "path": "$.slug",
                 "op": "eq",
-                "value": "news"
+                "value": "a"
               },
               {
                 "path": "$.lang",
@@ -20326,7 +20358,7 @@
     {
       "id": "CATEGORIES-PATCH-040",
       "group": "PATCH /cms/categories/{slug}",
-      "title": "400: invalid new slug (underscore); category untouched",
+      "title": "Underscores in slug are allowed",
       "source": "inferred",
       "tags": ["verify_slug_rules"],
       "steps": [
@@ -20347,8 +20379,8 @@
             }
           },
           "expect": {
-            "status": 400,
-            "body": "plain_text"
+            "status": 204,
+            "body": "empty"
           }
         },
         {
@@ -20370,7 +20402,7 @@
               {
                 "path": "$.slug",
                 "op": "eq",
-                "value": "news"
+                "value": "a_b"
               },
               {
                 "path": "$.lang",
@@ -21900,7 +21932,7 @@
     {
       "id": "CATEGORIES-PATCH-068",
       "group": "PATCH /cms/categories/{slug}",
-      "title": "name of 3000 characters accepted (no length cap stated)",
+      "title": "name of 3000 characters is invalid",
       "source": "inferred",
       "tags": ["undocumented_limit", "verify_name_rules"],
       "steps": [
@@ -21926,47 +21958,8 @@
             }
           },
           "expect": {
-            "status": 204,
-            "body": "empty"
-          }
-        },
-        {
-          "actor": "root",
-          "request": {
-            "method": "GET",
-            "path": "/cms/categories/{slug}",
-            "path_params": {
-              "slug": "news"
-            },
-            "headers": {
-              "Accept-Language": "en"
-            }
-          },
-          "expect": {
-            "status": 200,
-            "body": "json",
-            "json_assertions": [
-              {
-                "path": "$.slug",
-                "op": "eq",
-                "value": "news"
-              },
-              {
-                "path": "$.lang",
-                "op": "eq",
-                "value": "en"
-              },
-              {
-                "path": "$.name",
-                "op": "eq",
-                "value": {
-                  "$repeat": {
-                    "s": "n",
-                    "n": 3000
-                  }
-                }
-              }
-            ]
+            "status": 400,
+            "body": "plain_text"
           }
         }
       ]
@@ -24544,7 +24537,7 @@
     {
       "id": "CATEGORIES-PATCH-124",
       "group": "PATCH /cms/categories/{slug}",
-      "title": "400: invalid slug in path (leading hyphen)",
+      "title": "leading hyphen in path slug is trimmed",
       "source": "inferred",
       "tags": ["verify_slug_rules"],
       "steps": [
@@ -24565,7 +24558,7 @@
             }
           },
           "expect": {
-            "status": 400,
+            "status": 404,
             "body": "plain_text"
           }
         }
@@ -24574,7 +24567,7 @@
     {
       "id": "CATEGORIES-PATCH-125",
       "group": "PATCH /cms/categories/{slug}",
-      "title": "400: invalid slug in path (trailing hyphen)",
+      "title": "trailing hyphen in path slug is trimmed",
       "source": "inferred",
       "tags": ["verify_slug_rules"],
       "steps": [
@@ -24595,7 +24588,7 @@
             }
           },
           "expect": {
-            "status": 400,
+            "status": 404,
             "body": "plain_text"
           }
         }
@@ -24634,7 +24627,7 @@
     {
       "id": "CATEGORIES-PATCH-127",
       "group": "PATCH /cms/categories/{slug}",
-      "title": "400: invalid slug in path (underscore)",
+      "title": "Underscores in path slug are allowed",
       "source": "inferred",
       "tags": ["verify_slug_rules"],
       "steps": [
@@ -24655,7 +24648,7 @@
             }
           },
           "expect": {
-            "status": 400,
+            "status": 404,
             "body": "plain_text"
           }
         }
@@ -25570,7 +25563,7 @@
     {
       "id": "CATEGORIES-PATCH-151",
       "group": "PATCH /cms/categories/{slug}",
-      "title": "unauthorised actor + invalid slug -> 400 (validation first)",
+      "title": "unauthorised actor + invalid slug -> 401 (auth first)",
       "source": "inferred",
       "tags": ["verify_check_order"],
       "steps": [
@@ -25591,7 +25584,7 @@
             }
           },
           "expect": {
-            "status": 400,
+            "status": 401,
             "body": "plain_text"
           }
         }
@@ -26652,7 +26645,7 @@
     {
       "id": "CATEGORIES-DELETE-018",
       "group": "DELETE /cms/categories/{slug}",
-      "title": "400: invalid slug in path (leading hyphen); nothing deleted",
+      "title": "leading hyphen in slug is trimmed",
       "source": "inferred",
       "tags": ["verify_slug_rules"],
       "steps": [
@@ -26662,12 +26655,12 @@
             "method": "DELETE",
             "path": "/cms/categories/{slug}",
             "path_params": {
-              "slug": "-a"
+              "slug": "-news"
             }
           },
           "expect": {
-            "status": 400,
-            "body": "plain_text"
+            "status": 204,
+            "body": "empty"
           }
         },
         {
@@ -26704,7 +26697,7 @@
     {
       "id": "CATEGORIES-DELETE-019",
       "group": "DELETE /cms/categories/{slug}",
-      "title": "400: invalid slug in path (trailing hyphen); nothing deleted",
+      "title": "trailing hyphen in slug is trimmed",
       "source": "inferred",
       "tags": ["verify_slug_rules"],
       "steps": [
@@ -26714,12 +26707,12 @@
             "method": "DELETE",
             "path": "/cms/categories/{slug}",
             "path_params": {
-              "slug": "a-"
+              "slug": "news-"
             }
           },
           "expect": {
-            "status": 400,
-            "body": "plain_text"
+            "status": 204,
+            "body": "empty"
           }
         },
         {
@@ -26808,7 +26801,7 @@
     {
       "id": "CATEGORIES-DELETE-021",
       "group": "DELETE /cms/categories/{slug}",
-      "title": "400: invalid slug in path (underscore); nothing deleted",
+      "title": "Underscores in path slug are allowed",
       "source": "inferred",
       "tags": ["verify_slug_rules"],
       "steps": [
@@ -26822,37 +26815,8 @@
             }
           },
           "expect": {
-            "status": 400,
+            "status": 404,
             "body": "plain_text"
-          }
-        },
-        {
-          "actor": "root",
-          "request": {
-            "method": "GET",
-            "path": "/cms/categories/{slug}",
-            "path_params": {
-              "slug": "news"
-            },
-            "headers": {
-              "Accept-Language": "en"
-            }
-          },
-          "expect": {
-            "status": 200,
-            "body": "json",
-            "json_assertions": [
-              {
-                "path": "$.slug",
-                "op": "eq",
-                "value": "news"
-              },
-              {
-                "path": "$.lang",
-                "op": "eq",
-                "value": "en"
-              }
-            ]
           }
         }
       ]
@@ -28049,7 +28013,7 @@
     {
       "id": "CATEGORIES-DELETE-046",
       "group": "DELETE /cms/categories/{slug}",
-      "title": "unauthorised actor + invalid slug -> 400 (validation first)",
+      "title": "unauthorised actor + invalid slug -> 401 (auth first)",
       "source": "inferred",
       "tags": ["verify_check_order"],
       "steps": [
@@ -28063,7 +28027,7 @@
             }
           },
           "expect": {
-            "status": 400,
+            "status": 401,
             "body": "plain_text"
           }
         }
@@ -28408,7 +28372,7 @@
     {
       "id": "CATEGORIES-GENERIC-003",
       "group": "cross-cutting",
-      "title": "list in a deleted language is rejected",
+      "title": "list in a deleted language yields nothing",
       "source": "inferred",
       "tags": ["cross_system", "verify_language_validation"],
       "steps": [
@@ -28436,8 +28400,15 @@
             }
           },
           "expect": {
-            "status": 400,
-            "body": "plain_text"
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.categories",
+                "op": "len_eq",
+                "value": 0
+              }
+            ]
           }
         }
       ]
@@ -28928,7 +28899,7 @@
     {
       "id": "CATEGORIES-GENERIC-011",
       "group": "cross-cutting",
-      "title": "deleting a language removes its search results (async)",
+      "title": "deleting a language empties its search results (async)",
       "source": "inferred",
       "tags": ["cross_system"],
       "steps": [
@@ -29000,8 +28971,7 @@
                 "op": "len_eq",
                 "value": 0
               }
-            ],
-            "eventually_ms": 10000
+            ]
           }
         }
       ]

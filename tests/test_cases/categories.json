@@ -16425,7 +16425,7 @@
             }
           },
           "expect": {
-            "status": 400,
+            "status": 406,
             "body": "plain_text"
           }
         }

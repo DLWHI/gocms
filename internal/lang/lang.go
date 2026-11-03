@@ -47,7 +47,7 @@ type Repository interface {
 type Service interface {
 	GetSupported() []Language
 	IsSupported(code string) bool
-	DefaultLang(code string) Language
+	DefaultLang() Language
 	SetDefaultLang(code string) error
 	ResolveLang(ctx context.Context, code string) (string, error)
 	Add(ctx context.Context, lang *Language) error

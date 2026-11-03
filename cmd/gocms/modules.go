@@ -82,11 +82,10 @@ type AdsModule struct {
 }
 
 type LangModule struct {
-	Service   *lang.Service
-	Handler   *lang.Handler
-	CacheRepo lang.Repository
-	DBRepo    lang.Repository
-	DedupRepo lang.Repository
+	Consumer *lang.LocalService
+	Service  lang.Service
+	Handler  *lang.Handler
+	DBRepo   lang.Repository
 }
 
 func NewAuthModule(db *gorm.DB, redis *redis.Client, passwords password.PasswordService) (*AuthModule, error) {
@@ -167,6 +166,7 @@ func NewCategoryModule(
 	db *gorm.DB,
 	search meilisearch.ServiceManager,
 	redis *redis.Client,
+	langs lang.Service,
 	creds domain.AuthService,
 ) (*CategoryModule, error) {
 	keys, err := cache.NewKeyspace(cache.KeyConfig{
@@ -181,7 +181,7 @@ func NewCategoryModule(
 	redisRepo := category.NewRedisRepository(flowRepo, redis, 120*time.Minute, keys)
 	searchEngine := category.NewMeilisearchEngine(search, CategoriesSearchIndexName)
 	consumer := category.NewEventConsumer(gormRepo, searchEngine)
-	service := category.NewService(redisRepo, searchEngine, creds)
+	service := category.NewService(redisRepo, searchEngine, langs, creds)
 	handler := category.NewHandler(service)
 	return &CategoryModule{
 		Consumer:          consumer,
@@ -197,6 +197,7 @@ func NewEditorModule(
 	db *gorm.DB,
 	search meilisearch.ServiceManager,
 	redis *redis.Client,
+	langs lang.Service,
 	creds domain.AuthService,
 ) (*EditorModule, error) {
 	keys, err := cache.NewKeyspace(cache.KeyConfig{
@@ -211,7 +212,7 @@ func NewEditorModule(
 	redisRepo := editor.NewRedisRepository(flowRepo, redis, 120*time.Minute, keys)
 	searchEngine := editor.NewMeilisearchEngine(search, EditorsSearchIndexName)
 	consumer := editor.NewEventConsumer(gormRepo, searchEngine)
-	service := editor.NewService(redisRepo, searchEngine, creds)
+	service := editor.NewService(redisRepo, searchEngine, langs, creds)
 	handler := editor.NewHandler(service)
 	return &EditorModule{
 		Consumer:          consumer,
@@ -245,29 +246,17 @@ func NewAdsModule(db *gorm.DB, search meilisearch.ServiceManager, redis *redis.C
 	}
 }
 
-func NewLangModule(ctx context.Context, db *gorm.DB, _ *redis.Client, creds domain.AuthService) (*LangModule, error) {
-	// Enable if redis or flow repo required
-	// keys, err := cache.NewKeyspace(cache.KeyConfig{
-	// 	Prefix: []string{"cms"},
-	// }, "langs")
-	// if err != nil {
-	// 	return nil, err
-	// }
-
+func NewLangModule(ctx context.Context, db *gorm.DB, creds domain.AuthService) (*LangModule, error) {
 	gormRepo := lang.NewGORMRepository(db)
-	// Enable if request deduplication preffered
-	// flowRepo := lang.NewFlowRepository(gormRepo, 20*time.Second, keys)
-	// Enable if redis preffered over local caching
-	// redisRepo := lang.NewRedisRepository(flowRepo, redis, 0, keys)
-	// Pre-loads values into memory and then makes same changes as db
-	// Note, that locales created on running instance directly in db will be lost in cache until restart
-	localRepo := lang.NewLocalCacheRepository(ctx, gormRepo)
-	service := lang.NewService(localRepo, creds)
+	service, err := lang.NewLocalService(ctx, "ru", gormRepo, creds)
+	if err != nil {
+		return nil, err
+	}
 	handler := lang.NewHandler(service)
 	return &LangModule{
-		Service:   service,
-		Handler:   handler,
-		CacheRepo: localRepo,
-		DBRepo:    gormRepo,
+		Consumer: service,
+		Service:  service,
+		Handler:  handler,
+		DBRepo:   gormRepo,
 	}, nil
 }

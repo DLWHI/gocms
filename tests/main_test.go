@@ -16,10 +16,8 @@ import (
 const (
 	ConfigAddress = ""
 	ConfigPort    = "8080"
-	// Filter        = "CATEGORIES-(SEARCH-113)"
 	// Filter        = "CATEGORIES-(GENERIC-007|011)"
-	// Filter        = "CATEGORIES-(PATCH-029|030)"
-	Filter = "CATEGORIES-PATCH-(029|030)"
+	Filter = "CATEGORIES-(SEARCH-113)"
 )
 
 var (

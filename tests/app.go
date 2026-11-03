@@ -74,7 +74,11 @@ func (app *Container) Init(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	categories, err := NewCategoryModule(db, search, redis, auth.Service)
+	langs, err := NewLangModule(ctx, db, auth.Service)
+	if err != nil {
+		return err
+	}
+	categories, err := NewCategoryModule(db, search, redis, langs.Service, auth.Service)
 	if err != nil {
 		return err
 	}
@@ -84,11 +88,7 @@ func (app *Container) Init(ctx context.Context) error {
 	}
 	posts := NewPostModule(db, search, redis)
 	ads := NewAdsModule(db, search, redis)
-	editors, err := NewEditorModule(db, search, redis, auth.Service)
-	if err != nil {
-		return err
-	}
-	langs, err := NewLangModule(ctx, db, redis, auth.Service)
+	editors, err := NewEditorModule(db, search, redis, langs.Service, auth.Service)
 	if err != nil {
 		return err
 	}
@@ -156,6 +156,7 @@ func (app *Container) WireEvents(dispatcher outbox.Publisher) {
 	app.Subscriptions = append(app.Subscriptions, dispatcher.Subscribe(domain.CategoryEventName, app.Categories.Consumer.SyncSearch))
 	app.Subscriptions = append(app.Subscriptions, dispatcher.Subscribe(domain.EditorEventName, app.Editors.Consumer.SyncSearch))
 	// app.Subscriptions = append(app.Subscriptions, dispatcher.Subscribe("ads", app.Ads.Service.SyncSearch))
+	app.Subscriptions = append(app.Subscriptions, dispatcher.Subscribe(domain.LangUpdateEvent, app.Langs.Consumer.Reload))
 }
 
 func (app *Container) TearDown() {
@@ -211,7 +212,7 @@ func SoftMigrate(db *gorm.DB) error {
 		&post.Translation{},
 		&category.Record{},
 		&category.RecordTranslation{},
-		&lang.Record{},
+		&lang.Language{},
 		&outbox.Message{},
 	)
 
@@ -258,7 +259,7 @@ func DropAll(db *gorm.DB) error {
 		&post.Translation{},
 		&category.Record{},
 		&category.RecordTranslation{},
-		&lang.Record{},
+		&lang.Language{},
 		&outbox.Message{},
 	); err != nil {
 		return err

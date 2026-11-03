@@ -57,7 +57,7 @@ func SoftMigrate(db *gorm.DB) error {
 		&post.Translation{},
 		&category.Record{},
 		&category.RecordTranslation{},
-		&lang.Record{},
+		&lang.Language{},
 		&outbox.Message{},
 	)
 
@@ -106,7 +106,7 @@ func DropAll(db *gorm.DB) error {
 		&post.Translation{},
 		&category.Record{},
 		&category.RecordTranslation{},
-		&lang.Record{},
+		&lang.Language{},
 		&outbox.Message{},
 	); err != nil {
 		return err

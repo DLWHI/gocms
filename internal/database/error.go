@@ -17,7 +17,7 @@ func MapError(err error) error {
 	case errors.As(err, &mysqlErr):
 		return MapSQLError(mysqlErr)
 	default:
-		return MapGORMError(mysqlErr)
+		return MapGORMError(err)
 	}
 }
 

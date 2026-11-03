@@ -55,7 +55,7 @@ func (*MeilisearchEngine) buildFilter(params *SearchParams) string {
 	if params.DeletedAfter != nil {
 		clauses = append(clauses, fmt.Sprintf("deleted_at >= %d", *params.DeletedAfter))
 	}
-	if params.DeletedAfter != nil {
+	if params.DeletedBefore != nil {
 		clauses = append(clauses, fmt.Sprintf("deleted_at <= %d", *params.DeletedBefore))
 	}
 
@@ -89,7 +89,7 @@ func (ms *MeilisearchEngine) Index(ctx context.Context, slug string, group ...do
 		docs = append(docs, *ToSearchDocument(&editor))
 	}
 
-	task, err := index.AddDocumentsWithContext(ctx, group, nil)
+	task, err := index.AddDocumentsWithContext(ctx, docs, nil)
 	if err != nil {
 		return err
 	}

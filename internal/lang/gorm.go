@@ -50,7 +50,7 @@ func (r *GORMRepository) Delete(ctx context.Context, code string) error {
 		result := tx.Where("code = ?", code).
 			Delete(&Language{})
 		if result.Error != nil {
-			return database.MapError(result.Error)
+			return result.Error
 		}
 		if result.RowsAffected == 0 {
 			return domain.ErrNotFound

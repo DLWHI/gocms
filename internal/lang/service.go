@@ -153,10 +153,10 @@ func (s *LocalService) Reload(ctx context.Context, _ []byte) error {
 	if value, ok := langmap[sn.fallback.Code]; ok {
 		sn.fallback = value
 	} else if len(langs) > 0 {
-		logger.Warn("Language.Service", "Fallback not supported, using first language", nil, "value", langs[0])
+		logger.Warn("Language.Service", "Fallback language is missing, using first language", nil, "value", langs[0])
 		sn.fallback = langs[0]
 	} else {
-		logger.Warn("Language.Service", "Deleted last language, fallback will be applied on next add", nil)
+		logger.Warn("Language.Service", "Fallback language is missing, it will be applied on next add", nil)
 		sn.fallback = Language{}
 	}
 

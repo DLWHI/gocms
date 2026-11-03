@@ -35,7 +35,7 @@ func (s *EventConsumer) SyncSearch(ctx context.Context, data []byte) error {
 		}
 
 		if err := s.se.Index(ctx, payload.Slug, translations...); err != nil {
-			logger.Error("Editor.Service", "Failed to editors", err, "payload", payload)
+			logger.Error("Editor.Service", "Failed to index editors", err, "payload", payload)
 			return err
 		}
 		return nil

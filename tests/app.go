@@ -68,6 +68,10 @@ func (app *Container) Init(ctx context.Context) error {
 		return fmt.Errorf("Failed to connect to meilisearch: %w", err)
 	}
 
+	if err := SoftMigrate(db); err != nil {
+		return err
+	}
+
 	passwords := password.NewBCryptService(12, 8)
 
 	auth, err := NewAuthModule(db, redis, passwords)
@@ -140,8 +144,8 @@ func (app *Container) Init(ctx context.Context) error {
 	// app.ViewsCounter = views
 	app.OutboxRunner = relay
 
-	if err := Migrate(ctx, app); err != nil {
-		return fmt.Errorf("Failed to migrate schema: %w", err)
+	if err := CreateIndexes(ctx, app.Meilisearch); err != nil {
+		return err
 	}
 	app.WireEvents(dispatcher)
 
@@ -188,17 +192,6 @@ func (app *Container) TearDown() {
 	if err != nil {
 		logger.Error("Init", "Failed to close Redis connection", err)
 	}
-}
-
-func Migrate(ctx context.Context, app *Container) error {
-	if err := SoftMigrate(app.DB); err != nil {
-		return err
-	}
-
-	if err := CreateIndexes(ctx, app.Meilisearch); err != nil {
-		return err
-	}
-	return nil
 }
 
 func SoftMigrate(db *gorm.DB) error {

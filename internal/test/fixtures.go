@@ -76,9 +76,13 @@ func (f *Fixtures) ApplyFixtures(ctx context.Context, e *Environment) error {
 	}
 
 	for _, l := range f.Languages {
-		if err := e.Lang.Add(ctx, &l); err != nil {
+		if err := e.DB.WithContext(ctx).Save(&l).Error; err != nil {
 			return err
 		}
+	}
+
+	if err := e.Lang.Reload(ctx, nil); err != nil {
+		return err
 	}
 
 	for _, c := range f.Categories {

@@ -17,7 +17,7 @@ const (
 	ConfigAddress = ""
 	ConfigPort    = "8080"
 	// Filter        = "CATEGORIES-(GENERIC-007|011)"
-	Filter = "CATEGORIES-(SEARCH-113)"
+	Filter = ""
 )
 
 var (
@@ -56,6 +56,7 @@ func run(m *testing.M) error {
 			EditorsSearchIndexName,
 			AdsSearchIndexName,
 		),
+		Lang:     App.Langs.Consumer,
 		Password: App.PasswordService,
 		Router:   App.Router,
 		Redis:    App.Redis,

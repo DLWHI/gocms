@@ -42,12 +42,12 @@ type Handler struct {
 	posts         *post.Service
 	editors       *editor.Service
 	categories    *category.Service
-	languages     *lang.Service
+	languages     *lang.LocalService
 	ads           *ads.Service
 	views         analytics.PostViewCounterService
 }
 
-func NewHandler(ps *post.Service, es *editor.Service, cs *category.Service, ls *lang.Service, as *ads.Service, vc analytics.PostViewCounterService) *Handler {
+func NewHandler(ps *post.Service, es *editor.Service, cs *category.Service, ls *lang.LocalService, as *ads.Service, vc analytics.PostViewCounterService) *Handler {
 	var hndl Handler
 	hndl.posts = ps
 	hndl.editors = es
@@ -150,11 +150,7 @@ func (h *Handler) categoriesAll(w http.ResponseWriter, r *http.Request) {
 
 // GET /languages - Get all languages
 func (h *Handler) languagesAll(w http.ResponseWriter, r *http.Request) {
-	languages, err := h.languages.GetAll(r.Context())
-	if err != nil {
-		server.WriteServerError(w, "Categories", err)
-		return
-	}
+	languages := h.languages.GetSupported()
 
 	w.Header().Set("Content-Type", "application/json")
 	_ = json.NewEncoder(w).Encode(&languages)

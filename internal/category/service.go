@@ -5,21 +5,24 @@ import (
 	"errors"
 	"fmt"
 	"gocms/internal/domain"
+	"gocms/internal/lang"
 	"gocms/internal/logger"
 	"gocms/internal/search"
 )
 
 type Service struct {
-	repo Repository
-	se   SearchEngine
-	auth domain.AuthService
+	repo  Repository
+	se    SearchEngine
+	langs lang.Service
+	auth  domain.AuthService
 }
 
-func NewService(repo Repository, se SearchEngine, auth domain.AuthService) *Service {
+func NewService(repo Repository, se SearchEngine, langs lang.Service, auth domain.AuthService) *Service {
 	return &Service{
-		repo: repo,
-		se:   se,
-		auth: auth,
+		repo:  repo,
+		se:    se,
+		langs: langs,
+		auth:  auth,
 	}
 }
 
@@ -36,7 +39,7 @@ func (s *Service) Create(ctx context.Context, category *domain.Category) (string
 	}
 	created.Slug = slug
 
-	lang, err := domain.ResolveLang(ctx, category.Lang)
+	lang, err := s.langs.ResolveLang(ctx, category.Lang)
 	if err != nil {
 		return "", err
 	}
@@ -68,7 +71,7 @@ func (s *Service) Edit(ctx context.Context, slug string, diff *domain.CategoryDi
 		return "", err
 	}
 
-	lang, err := domain.ResolveLang(ctx, diff.Lang)
+	lang, err := s.langs.ResolveLang(ctx, diff.Lang)
 	if err != nil {
 		return "", err
 	}
@@ -104,7 +107,7 @@ func (s *Service) Edit(ctx context.Context, slug string, diff *domain.CategoryDi
 }
 
 func (s *Service) Get(ctx context.Context, slug string) (*domain.Category, error) {
-	lang, ok := ctx.Value(domain.LangKey).(string)
+	lang, ok := ctx.Value(domain.LangContextKey).(string)
 	if !ok {
 		return nil, fmt.Errorf("%w: missing language", domain.ErrInval)
 	}
@@ -126,7 +129,7 @@ func (s *Service) Get(ctx context.Context, slug string) (*domain.Category, error
 }
 
 func (s *Service) All(ctx context.Context) ([]domain.Category, error) {
-	lang, ok := ctx.Value(domain.LangKey).(string)
+	lang, ok := ctx.Value(domain.LangContextKey).(string)
 	if !ok {
 		return nil, fmt.Errorf("%w: missing language", domain.ErrInval)
 	}
@@ -141,7 +144,7 @@ func (s *Service) All(ctx context.Context) ([]domain.Category, error) {
 }
 
 func (s *Service) AllNotHidden(ctx context.Context) ([]domain.Category, error) {
-	lang, ok := ctx.Value(domain.LangKey).(string)
+	lang, ok := ctx.Value(domain.LangContextKey).(string)
 	if !ok {
 		return nil, fmt.Errorf("%w: missing language", domain.ErrInval)
 	}
@@ -167,7 +170,7 @@ func (s *Service) AllNotHidden(ctx context.Context) ([]domain.Category, error) {
 func (s *Service) Search(ctx context.Context, filters *SearchParams) (*SearchResult, error) {
 	search.ClampParams(&filters.Params)
 
-	lang, err := domain.ResolveLang(ctx, filters.Lang)
+	lang, err := s.langs.ResolveLang(ctx, filters.Lang)
 	if err != nil {
 		return nil, err
 	}

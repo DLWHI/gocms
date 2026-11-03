@@ -2,7 +2,6 @@ package lang
 
 import (
 	"encoding/json"
-	"gocms/internal/domain"
 	"gocms/internal/server"
 	"net/http"
 )
@@ -16,10 +15,10 @@ type Handler struct {
 	Get     http.Handler
 	Create  http.Handler
 	Delete  http.Handler
-	service *Service
+	service *LocalService
 }
 
-func NewHandler(s *Service) *Handler {
+func NewHandler(s *LocalService) *Handler {
 	var hndl Handler
 	hndl.service = s
 	hndl.Get = http.HandlerFunc(hndl.get)
@@ -30,13 +29,13 @@ func NewHandler(s *Service) *Handler {
 
 // POST /languages - Add language
 func (h *Handler) create(w http.ResponseWriter, r *http.Request) {
-	var payload domain.Language
+	var payload Language
 	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
 		server.WriteDecodeError(w, err)
 		return
 	}
 
-	if err := h.service.Create(r.Context(), &payload); err != nil {
+	if err := h.service.Add(r.Context(), &payload); err != nil {
 		server.WriteServerError(w, "Language", err)
 		return
 	}
@@ -46,14 +45,8 @@ func (h *Handler) create(w http.ResponseWriter, r *http.Request) {
 
 // GET /languages - Get all languages
 func (h *Handler) get(w http.ResponseWriter, r *http.Request) {
-	languages, err := h.service.GetAll(r.Context())
-	if err != nil {
-		server.WriteServerError(w, "Language", err)
-		return
-	}
-
-	res := map[string][]domain.Language{
-		"languages": languages,
+	res := map[string][]Language{
+		"languages": h.service.GetSupported(),
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -68,7 +61,7 @@ func (h *Handler) delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := h.service.Delete(r.Context(), code)
+	err := h.service.Remove(r.Context(), code)
 	if err != nil {
 		server.WriteServerError(w, "Language", err)
 		return

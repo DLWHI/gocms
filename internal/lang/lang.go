@@ -1,19 +1,10 @@
-package domain
+package lang
 
 import (
 	"context"
 	"fmt"
+	"gocms/internal/domain"
 	"strings"
-)
-
-const (
-	LangEntityName = "languages"
-
-	LangKey = "language"
-
-	LangMaxNameLength = 64
-
-	LangISO639_1Length = 2
 )
 
 var iso6391 = map[string]struct{}{
@@ -44,41 +35,49 @@ var iso6391 = map[string]struct{}{
 
 type Language struct {
 	Name string `json:"name"`
-	Code string `json:"code"`
+	Code string `json:"code" gorm:"primaryKey;size:2"`
 }
 
-func ResolveLang(ctx context.Context, value string) (string, error) {
-	normalized := strings.TrimSpace(value)
-	if normalized == "" {
-		code, ok := ctx.Value(LangKey).(string)
-		if !ok {
-			return "", fmt.Errorf("%w: invalid language code", ErrInval)
-		} else if code == "" {
-			return "", fmt.Errorf("%w: missing language code", ErrInval)
-		}
+type Repository interface {
+	Create(ctx context.Context, lang *Language) error
+	GetAll(ctx context.Context) ([]Language, error)
+	Delete(ctx context.Context, code string) error
+}
 
-		return code, nil
-	}
-	return NormalizeLangCode(normalized)
+type Service interface {
+	GetSupported() []Language
+	IsSupported(code string) bool
+	DefaultLang(code string) Language
+	SetDefaultLang(code string) error
+	ResolveLang(ctx context.Context, code string) (string, error)
+	Add(ctx context.Context, lang *Language) error
+	Remove(ctx context.Context, code string) error
 }
 
 func NormalizeLangCode(value string) (string, error) {
 	normalized := strings.TrimSpace(value)
-	_, exists := iso6391[normalized]
-	if !exists {
-		return "", fmt.Errorf("%w: invalid language code", ErrInval)
+	if !IsISO639_1Code(normalized) {
+		return "", fmt.Errorf("%w: invalid language code", domain.ErrInval)
 	}
 	return normalized, nil
 }
 
 func ToISO639_1Code(value string) (string, error) {
-	if len(value) != LangISO639_1Length {
-		return "", fmt.Errorf("%w: invalid language code", ErrInval)
+	if len(value) != domain.LangISO639_1Length {
+		return "", fmt.Errorf("%w: invalid language code", domain.ErrInval)
 	}
 	normalized := strings.ToLower(strings.TrimSpace(value))
-	_, exists := iso6391[normalized]
-	if !exists {
-		return "", fmt.Errorf("%w: invalid language code", ErrInval)
+	if !IsISO639_1Code(normalized) {
+		return "", fmt.Errorf("%w: invalid language code", domain.ErrInval)
 	}
 	return normalized, nil
+}
+
+func IsISO639_1Code(value string) bool {
+	_, exists := iso6391[value]
+	return exists
+}
+
+func (*Language) TableName() string {
+	return "languages"
 }

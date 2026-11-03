@@ -16,7 +16,7 @@ type Fixtures struct {
 	DefaultPassword Password          `json:"default_password"`
 	Actors          map[string]*Actor `json:"actors"`
 	Users           []domain.User     `json:"users"`
-	Languages       []domain.Language `json:"languages"`
+	Languages       []lang.Language   `json:"languages"`
 	Categories      []domain.Category `json:"categories"`
 	Editors         []domain.Editor   `json:"editors"`
 }
@@ -76,7 +76,7 @@ func (f *Fixtures) ApplyFixtures(ctx context.Context, e *Environment) error {
 	}
 
 	for _, l := range f.Languages {
-		if err := db.WithContext(ctx).Save(lang.ToRecord(&l)).Error; err != nil {
+		if err := e.Lang.Add(ctx, &l); err != nil {
 			return err
 		}
 	}

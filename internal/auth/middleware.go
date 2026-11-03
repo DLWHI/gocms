@@ -82,7 +82,7 @@ func (m *JWTMiddleware) Wrap(next http.Handler) http.Handler {
 			return
 		}
 
-		ctx := context.WithValue(r.Context(), domain.UsernameKey, claims.Username)
+		ctx := context.WithValue(r.Context(), domain.UsernameContextKey, claims.Username)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
@@ -113,8 +113,8 @@ func (m *SessionMiddleware) Wrap(next http.Handler) http.Handler {
 			return
 		}
 
-		ctx = context.WithValue(ctx, domain.UsernameKey, username)
-		ctx = context.WithValue(ctx, domain.SessionIDKey, session)
+		ctx = context.WithValue(ctx, domain.UsernameContextKey, username)
+		ctx = context.WithValue(ctx, domain.SessionContextIDKey, session)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
@@ -122,7 +122,7 @@ func (m *SessionMiddleware) Wrap(next http.Handler) http.Handler {
 func (m *TestMiddleware) Wrap(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
-		ctx = context.WithValue(ctx, domain.UsernameKey, m.username)
+		ctx = context.WithValue(ctx, domain.UsernameContextKey, m.username)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }

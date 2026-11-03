@@ -3,8 +3,8 @@ package domain
 import "context"
 
 const (
-	UsernameKey  = "username"
-	SessionIDKey = "session"
+	UsernameContextKey  = "username"
+	SessionContextIDKey = "session"
 )
 
 type AuthService interface {

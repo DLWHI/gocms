@@ -5,21 +5,24 @@ import (
 	"errors"
 	"fmt"
 	"gocms/internal/domain"
+	"gocms/internal/lang"
 	"gocms/internal/logger"
 	"gocms/internal/search"
 )
 
 type Service struct {
-	repo Repository
-	se   SearchEngine
-	auth domain.AuthService
+	repo  Repository
+	se    SearchEngine
+	langs lang.Service
+	auth  domain.AuthService
 }
 
-func NewService(db Repository, se SearchEngine, auth domain.AuthService) *Service {
+func NewService(db Repository, se SearchEngine, langs lang.Service, auth domain.AuthService) *Service {
 	return &Service{
-		repo: db,
-		se:   se,
-		auth: auth,
+		repo:  db,
+		se:    se,
+		langs: langs,
+		auth:  auth,
 	}
 }
 
@@ -35,7 +38,7 @@ func (s *Service) Create(ctx context.Context, editor *domain.Editor) (string, er
 	}
 	created.Slug = slug
 
-	lang, err := domain.ResolveLang(ctx, editor.Lang)
+	lang, err := s.langs.ResolveLang(ctx, editor.Lang)
 	if err != nil {
 		return "", err
 	}
@@ -67,7 +70,7 @@ func (s *Service) Edit(ctx context.Context, slug string, diff *domain.EditorDiff
 		return "", err
 	}
 
-	lang, err := domain.ResolveLang(ctx, diff.Lang)
+	lang, err := s.langs.ResolveLang(ctx, diff.Lang)
 	if err != nil {
 		return "", err
 	}
@@ -103,7 +106,7 @@ func (s *Service) Edit(ctx context.Context, slug string, diff *domain.EditorDiff
 }
 
 func (s *Service) Get(ctx context.Context, slug string) (*domain.Editor, error) {
-	lang, ok := ctx.Value(domain.LangKey).(string)
+	lang, ok := ctx.Value(domain.LangContextKey).(string)
 	if !ok {
 		return nil, fmt.Errorf("%w: missing language", domain.ErrInval)
 	}
@@ -125,7 +128,7 @@ func (s *Service) Get(ctx context.Context, slug string) (*domain.Editor, error) 
 }
 
 func (s *Service) All(ctx context.Context) ([]domain.Editor, error) {
-	lang, ok := ctx.Value(domain.LangKey).(string)
+	lang, ok := ctx.Value(domain.LangContextKey).(string)
 	if !ok {
 		return nil, fmt.Errorf("%w: missing language", domain.ErrInval)
 	}
@@ -142,7 +145,7 @@ func (s *Service) All(ctx context.Context) ([]domain.Editor, error) {
 func (s *Service) Search(ctx context.Context, filters *SearchParams) (*SearchResult, error) {
 	search.ClampParams(&filters.Params)
 
-	lang, err := domain.ResolveLang(ctx, filters.Lang)
+	lang, err := s.langs.ResolveLang(ctx, filters.Lang)
 	if err != nil {
 		return nil, err
 	}

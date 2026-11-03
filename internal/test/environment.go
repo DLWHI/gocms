@@ -31,6 +31,7 @@ type Environment struct {
 	DB       *gorm.DB
 	Search   *Meilisearch
 	Redis    *redis.Client
+	Lang     lang.Service
 	Password password.PasswordService
 	Outbox   outbox.MessageRepository
 	Router   http.Handler
@@ -173,7 +174,7 @@ func LoadDataFromFile(path string, format string) (*Data, error) {
 }
 
 func (e *Environment) Clear(ctx context.Context) error {
-	if err := e.DB.Unscoped().Where("1 = 1").Delete(&lang.Record{}).Error; err != nil {
+	if err := e.DB.Unscoped().Where("1 = 1").Delete(&lang.Language{}).Error; err != nil {
 		return err
 	}
 	if err := e.DB.Unscoped().Where("1 = 1").Delete(&user.Record{}).Error; err != nil {

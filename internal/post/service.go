@@ -27,7 +27,7 @@ func NewService(repo Repository, se SearchEngine) *Service {
 }
 
 func (s *Service) hasPermissionsOnPost(ctx context.Context, action string, id uint) error {
-	initiator, ok := ctx.Value(domain.UsernameKey).(string)
+	initiator, ok := ctx.Value(domain.UsernameContextKey).(string)
 	if !ok {
 		return domain.ErrCred
 	}

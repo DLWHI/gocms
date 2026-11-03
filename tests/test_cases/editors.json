@@ -8,7 +8,7 @@
     "limits": "2 MiB (2097152 bytes) on every route except DELETE, which keeps 4 KiB. 413 above the limit. Size is measured in wire bytes.",
     "request": "path_params are unescaped and must be percent-encoded when substituted. headers: null removes a default header. A request with a body carries Content-Type: application/json unless overridden. body_generator {json_padded_bytes: N, base} = valid JSON of exactly N bytes, padded with an unknown field. {$repeat: {s, n}} expands to s repeated n times.",
     "expect.body": "empty | plain_text | json | any",
-    "json_assertions": "ops used: type, eq, len_eq, len_lte, gte, includes, excludes, sorted_asc, sorted_desc, absent. `absent` passes when the path yields no matches (field omitted); it is the only new op in this file. Paths with [*] resolve to lists; filter paths like $.editors[?(@.slug=='old-timer')].deleted_at must match exactly one element unless the op is absent.",
+    "json_assertions": "ops used: type, eq, len_eq, len_lte, gte, includes, excludes, sorted_asc, sorted_desc, is_null.",
     "eventually_ms": "Retry the step until it passes or the timeout elapses (search indexing is async).",
     "source": "documented = rules inside the source_document; stated = rules you gave outside it (413, 415, 2097153, 401, null -> zero value, bio any string); inferred = derived from conventions or from the earlier modules' tests.",
     "null_handling": "null decodes to the Go zero value. Search: query '', sort_by '', page and count -> defaults, deleted false, deleted_after/before 0 (no filter), lang -> header fallback. Create: name and bio '', lang -> header fallback; slug null is an empty slug and fails. Update: null/omitted fields are ignored.",
@@ -16,7 +16,9 @@
     "tags": "boundary, cache, security, regression, undocumented_limit, cross_system (touches /cms/languages), verify_normalisation, verify_slug_rules, verify_name_rules (editor names assumed to follow the category name rules), verify_printable, verify_bio_rules (bio stored verbatim incl. whitespace and control characters), verify_deleted_at_shape (omitted vs null when active), verify_deleted_filter (zero-value `deleted` means no filter), verify_deleted_visibility (list and GET include deleted editors), verify_zero_filter (deleted_after/before = 0 means no filter), verify_soft_delete, verify_list_shape (list and search items omit bio), verify_locale_precedence, verify_locale_validation, verify_content_language, verify_accept_language, verify_patch_new_translation, verify_patch_empty, verify_patch_create_perm, verify_patch_conflict, verify_noop, verify_cascade, verify_sortable (name and slug sortable; bio, lang not), verify_clamp, verify_doc_typo (count defaults to 1), verify_reserved_slug, verify_bodiless, verify_check_order.",
     "not_covered": "Binding users to editors ('editor rights'): the doc describes it but lists no route. Concurrency."
   },
-  "constants": {},
+  "constants": {
+    "FALLBACK_LANG": "en"
+  },
   "fixtures": {
     "default_password": "Seed-Passw0rd-1",
     "actors": {
@@ -71,6 +73,7 @@
       }
     },
     "users": [],
+    "fallback_language": "en",
     "languages": [
       {
         "name": "English",
@@ -1366,7 +1369,7 @@
               },
               {
                 "path": "$.deleted_at",
-                "op": "absent"
+                "op": "is_null"
               }
             ]
           }
@@ -2703,7 +2706,7 @@
               },
               {
                 "path": "$.deleted_at",
-                "op": "absent"
+                "op": "is_null"
               }
             ]
           }
@@ -2775,7 +2778,7 @@
               },
               {
                 "path": "$.deleted_at",
-                "op": "absent"
+                "op": "is_null"
               }
             ]
           }
@@ -8271,7 +8274,7 @@
               },
               {
                 "path": "$.deleted_at",
-                "op": "absent"
+                "op": "is_null"
               }
             ]
           }
@@ -9932,7 +9935,7 @@
               },
               {
                 "path": "$.results[*].bio",
-                "op": "absent"
+                "op": "is_null"
               }
             ]
           }
@@ -9980,7 +9983,7 @@
               },
               {
                 "path": "$.results[?(@.slug=='alice-smith')].deleted_at",
-                "op": "absent"
+                "op": "is_null"
               }
             ]
           }
@@ -15867,7 +15870,7 @@
             "json_assertions": [
               {
                 "path": "$.editors[*].bio",
-                "op": "absent"
+                "op": "is_null"
               }
             ]
           }
@@ -16067,7 +16070,7 @@
             "json_assertions": [
               {
                 "path": "$.editors[?(@.slug=='alice-smith')].deleted_at",
-                "op": "absent"
+                "op": "is_null"
               }
             ]
           }
@@ -17186,7 +17189,7 @@
               },
               {
                 "path": "$.deleted_at",
-                "op": "absent"
+                "op": "is_null"
               }
             ]
           }
@@ -19911,7 +19914,7 @@
               },
               {
                 "path": "$.deleted_at",
-                "op": "absent"
+                "op": "is_null"
               }
             ]
           }
@@ -21309,7 +21312,7 @@
               },
               {
                 "path": "$.deleted_at",
-                "op": "absent"
+                "op": "is_null"
               }
             ]
           }
@@ -28448,7 +28451,7 @@
               },
               {
                 "path": "$.deleted_at",
-                "op": "absent"
+                "op": "is_null"
               }
             ]
           }
@@ -28481,7 +28484,7 @@
               },
               {
                 "path": "$.deleted_at",
-                "op": "absent"
+                "op": "is_null"
               }
             ]
           }
@@ -29331,7 +29334,7 @@
               },
               {
                 "path": "$.deleted_at",
-                "op": "absent"
+                "op": "is_null"
               }
             ]
           }
@@ -29392,7 +29395,7 @@
               },
               {
                 "path": "$.deleted_at",
-                "op": "absent"
+                "op": "is_null"
               }
             ]
           }
@@ -29448,7 +29451,7 @@
               },
               {
                 "path": "$.deleted_at",
-                "op": "absent"
+                "op": "is_null"
               }
             ]
           }
@@ -29504,7 +29507,7 @@
               },
               {
                 "path": "$.deleted_at",
-                "op": "absent"
+                "op": "is_null"
               }
             ]
           }
@@ -29560,7 +29563,7 @@
               },
               {
                 "path": "$.deleted_at",
-                "op": "absent"
+                "op": "is_null"
               }
             ]
           }
@@ -29616,7 +29619,7 @@
               },
               {
                 "path": "$.deleted_at",
-                "op": "absent"
+                "op": "is_null"
               }
             ]
           }
@@ -29672,7 +29675,7 @@
               },
               {
                 "path": "$.deleted_at",
-                "op": "absent"
+                "op": "is_null"
               }
             ]
           }
@@ -29728,7 +29731,7 @@
               },
               {
                 "path": "$.deleted_at",
-                "op": "absent"
+                "op": "is_null"
               }
             ]
           }
@@ -29784,7 +29787,7 @@
               },
               {
                 "path": "$.deleted_at",
-                "op": "absent"
+                "op": "is_null"
               }
             ]
           }
@@ -29840,7 +29843,7 @@
               },
               {
                 "path": "$.deleted_at",
-                "op": "absent"
+                "op": "is_null"
               }
             ]
           }
@@ -29896,7 +29899,7 @@
               },
               {
                 "path": "$.deleted_at",
-                "op": "absent"
+                "op": "is_null"
               }
             ]
           }
@@ -29952,7 +29955,7 @@
               },
               {
                 "path": "$.deleted_at",
-                "op": "absent"
+                "op": "is_null"
               }
             ]
           }
@@ -30008,7 +30011,7 @@
               },
               {
                 "path": "$.deleted_at",
-                "op": "absent"
+                "op": "is_null"
               }
             ]
           }
@@ -30064,7 +30067,7 @@
               },
               {
                 "path": "$.deleted_at",
-                "op": "absent"
+                "op": "is_null"
               }
             ]
           }
@@ -30120,7 +30123,7 @@
               },
               {
                 "path": "$.deleted_at",
-                "op": "absent"
+                "op": "is_null"
               }
             ]
           }
@@ -30176,7 +30179,7 @@
               },
               {
                 "path": "$.deleted_at",
-                "op": "absent"
+                "op": "is_null"
               }
             ]
           }
@@ -30232,7 +30235,7 @@
               },
               {
                 "path": "$.deleted_at",
-                "op": "absent"
+                "op": "is_null"
               }
             ]
           }
@@ -30288,7 +30291,7 @@
               },
               {
                 "path": "$.deleted_at",
-                "op": "absent"
+                "op": "is_null"
               }
             ]
           }
@@ -30344,7 +30347,7 @@
               },
               {
                 "path": "$.deleted_at",
-                "op": "absent"
+                "op": "is_null"
               }
             ]
           }
@@ -30400,7 +30403,7 @@
               },
               {
                 "path": "$.deleted_at",
-                "op": "absent"
+                "op": "is_null"
               }
             ]
           }
@@ -30633,7 +30636,7 @@
               },
               {
                 "path": "$.deleted_at",
-                "op": "absent"
+                "op": "is_null"
               }
             ]
           }
@@ -30689,7 +30692,7 @@
               },
               {
                 "path": "$.deleted_at",
-                "op": "absent"
+                "op": "is_null"
               }
             ]
           }
@@ -30807,7 +30810,7 @@
               },
               {
                 "path": "$.deleted_at",
-                "op": "absent"
+                "op": "is_null"
               }
             ]
           }

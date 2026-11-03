@@ -16,7 +16,7 @@ import (
 const (
 	ConfigAddress = ""
 	ConfigPort    = "8080"
-	Filter        = ""
+	Filter        = "EDITORS-CREATE-001"
 )
 
 var (

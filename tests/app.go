@@ -144,6 +144,7 @@ func (app *Container) Init(ctx context.Context) error {
 	// app.ViewsCounter = views
 	app.OutboxRunner = relay
 
+	DestroyIndexes(ctx, app.Meilisearch)
 	if err := CreateIndexes(ctx, app.Meilisearch); err != nil {
 		return err
 	}
@@ -176,7 +177,7 @@ func (app *Container) TearDown() {
 	}
 
 	if err := DestroyIndexes(ctx, app.Meilisearch); err != nil {
-		logger.Error("Wipe", "Failed to drop table records", err)
+		logger.Error("Wipe", "Failed to delete search indexes", err)
 	}
 
 	sqlDB, err := app.DB.DB()

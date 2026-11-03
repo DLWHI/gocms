@@ -54,7 +54,11 @@ func (m *ResponseMiddleware) Wrap(next http.Handler) http.Handler {
 		lang := m.svc.DefaultLang().Code
 		header := r.Header.Get("Accept-Language")
 		tags, _, err := language.ParseAcceptLanguage(header)
-		if err == nil && len(tags) > 0 {
+		if err != nil {
+			http.Error(w, "Invalid 'Accept-Language'", http.StatusBadRequest)
+			return
+		}
+		if len(tags) > 0 {
 			base, conf := tags[0].Base()
 			if base.String() != "mul" {
 				if conf != language.No {

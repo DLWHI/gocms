@@ -81,12 +81,12 @@ func (r *Router) AddEditorRoutes(handler *editor.Handler) {
 		r.auth,
 	)
 
-	r.mux.Handle("GET /cms/editors", r.resLang(m(handler.All)))
-	r.mux.Handle("GET /cms/editors/{username}", r.resLang(m(handler.Get)))
-	r.mux.Handle("POST /cms/editors", r.reqLang(m(handler.Create)))
-	r.mux.Handle("POST /cms/editors/search", r.resLang(m(handler.Search)))
-	r.mux.Handle("PATCH /cms/editors/{username}", r.reqLang(m(handler.Update)))
-	r.mux.Handle("DELETE /cms/editors/{username}", m(handler.Delete))
+	r.mux.Handle("GET /cms/editors", m(r.resLang(handler.All)))
+	r.mux.Handle("GET /cms/editors/{slug}", m(r.resLang(handler.Get)))
+	r.mux.Handle("POST /cms/editors", m(r.reqLang(handler.Create)))
+	r.mux.Handle("POST /cms/editors/search", m(r.resLang(handler.Search)))
+	r.mux.Handle("PATCH /cms/editors/{slug}", m(r.reqLang(handler.Update)))
+	r.mux.Handle("DELETE /cms/editors/{slug}", m(handler.Delete))
 }
 
 func (r *Router) AddLangRoutes(handler *lang.Handler) {

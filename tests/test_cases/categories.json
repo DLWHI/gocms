@@ -8543,7 +8543,7 @@
       ]
     },
     {
-      "id": "CATEGORIES-CREATE-129",
+      "id": "CATEGORIES-CREATE-128",
       "group": "POST /cms/categories",
       "title": "409: padded slug variant",
       "source": "inferred",
@@ -8571,7 +8571,7 @@
       ]
     },
     {
-      "id": "CATEGORIES-CREATE-130",
+      "id": "CATEGORIES-CREATE-129",
       "group": "POST /cms/categories",
       "title": "409: duplicate via Content-Language fallback",
       "source": "inferred",
@@ -8599,7 +8599,7 @@
       ]
     },
     {
-      "id": "CATEGORIES-CREATE-131",
+      "id": "CATEGORIES-CREATE-130",
       "group": "POST /cms/categories",
       "title": "400 (validation) wins over 409 (conflict)",
       "source": "inferred",
@@ -8627,7 +8627,7 @@
       ]
     },
     {
-      "id": "CATEGORIES-CREATE-132",
+      "id": "CATEGORIES-CREATE-131",
       "group": "POST /cms/categories",
       "title": "slug can be re-created after deletion with fresh flags",
       "source": "inferred",
@@ -8727,7 +8727,7 @@
       ]
     },
     {
-      "id": "CATEGORIES-CREATE-133",
+      "id": "CATEGORIES-CREATE-132",
       "group": "POST /cms/categories",
       "title": "actor `root` may create",
       "source": "documented",
@@ -8784,7 +8784,7 @@
       ]
     },
     {
-      "id": "CATEGORIES-CREATE-134",
+      "id": "CATEGORIES-CREATE-133",
       "group": "POST /cms/categories",
       "title": "actor `creator` may create",
       "source": "documented",
@@ -8841,7 +8841,7 @@
       ]
     },
     {
-      "id": "CATEGORIES-CREATE-135",
+      "id": "CATEGORIES-CREATE-134",
       "group": "POST /cms/categories",
       "title": "actor `editor` lacks categories:create -> 401, nothing created",
       "source": "documented",
@@ -8886,7 +8886,7 @@
       ]
     },
     {
-      "id": "CATEGORIES-CREATE-136",
+      "id": "CATEGORIES-CREATE-135",
       "group": "POST /cms/categories",
       "title": "actor `deleter` lacks categories:create -> 401, nothing created",
       "source": "documented",
@@ -8931,7 +8931,7 @@
       ]
     },
     {
-      "id": "CATEGORIES-CREATE-137",
+      "id": "CATEGORIES-CREATE-136",
       "group": "POST /cms/categories",
       "title": "actor `reader` lacks categories:create -> 401, nothing created",
       "source": "documented",
@@ -8976,7 +8976,7 @@
       ]
     },
     {
-      "id": "CATEGORIES-CREATE-138",
+      "id": "CATEGORIES-CREATE-137",
       "group": "POST /cms/categories",
       "title": "insufficient permission wins over invalid body",
       "source": "inferred",
@@ -9004,7 +9004,7 @@
       ]
     },
     {
-      "id": "CATEGORIES-CREATE-139",
+      "id": "CATEGORIES-CREATE-138",
       "group": "POST /cms/categories",
       "title": "insufficient permission wins over conflict (no existence leak)",
       "source": "inferred",
@@ -9032,7 +9032,7 @@
       ]
     },
     {
-      "id": "CATEGORIES-CREATE-140",
+      "id": "CATEGORIES-CREATE-139",
       "group": "POST /cms/categories",
       "title": "created category appears in the list (cache invalidated)",
       "source": "inferred",
@@ -9117,7 +9117,7 @@
       ]
     },
     {
-      "id": "CATEGORIES-CREATE-141",
+      "id": "CATEGORIES-CREATE-140",
       "group": "POST /cms/categories",
       "title": "created category becomes searchable (async)",
       "source": "inferred",
@@ -9186,7 +9186,7 @@
       ]
     },
     {
-      "id": "CATEGORIES-CREATE-142",
+      "id": "CATEGORIES-CREATE-141",
       "group": "POST /cms/categories",
       "title": "created translation becomes searchable only in its language (async)",
       "source": "inferred",
@@ -10231,7 +10231,7 @@
       ]
     },
     {
-      "id": "CATEGORIES-SEARCH-020",
+      "id": "CATEGORIES-SEARCH-023",
       "group": "POST /cms/categories/search",
       "title": "400: lang missing everywhere",
       "source": "documented",
@@ -10255,7 +10255,7 @@
       ]
     },
     {
-      "id": "CATEGORIES-SEARCH-021",
+      "id": "CATEGORIES-SEARCH-024",
       "group": "POST /cms/categories/search",
       "title": "400: empty body lang and no header",
       "source": "documented",
@@ -10281,7 +10281,7 @@
       ]
     },
     {
-      "id": "CATEGORIES-SEARCH-022",
+      "id": "CATEGORIES-SEARCH-025",
       "group": "POST /cms/categories/search",
       "title": "400: null body lang and no header",
       "source": "stated",
@@ -10305,7 +10305,7 @@
       ]
     },
     {
-      "id": "CATEGORIES-SEARCH-023",
+      "id": "CATEGORIES-SEARCH-026",
       "group": "POST /cms/categories/search",
       "title": "400: body lang not in cms languages (fr)",
       "source": "documented",
@@ -10348,7 +10348,7 @@
       ]
     },
     {
-      "id": "CATEGORIES-SEARCH-024",
+      "id": "CATEGORIES-SEARCH-027",
       "group": "POST /cms/categories/search",
       "title": "400: body lang unassigned (xx)",
       "source": "inferred",
@@ -10374,7 +10374,7 @@
       ]
     },
     {
-      "id": "CATEGORIES-SEARCH-025",
+      "id": "CATEGORIES-SEARCH-028",
       "group": "POST /cms/categories/search",
       "title": "400: body lang 3 letters",
       "source": "inferred",
@@ -10400,7 +10400,7 @@
       ]
     },
     {
-      "id": "CATEGORIES-SEARCH-026",
+      "id": "CATEGORIES-SEARCH-029",
       "group": "POST /cms/categories/search",
       "title": "400: body lang region subtag",
       "source": "inferred",
@@ -10426,7 +10426,7 @@
       ]
     },
     {
-      "id": "CATEGORIES-SEARCH-027",
+      "id": "CATEGORIES-SEARCH-030",
       "group": "POST /cms/categories/search",
       "title": "an invalid body lang does not fall back to Content-Language",
       "source": "inferred",
@@ -10453,7 +10453,7 @@
       ]
     },
     {
-      "id": "CATEGORIES-SEARCH-028",
+      "id": "CATEGORIES-SEARCH-031",
       "group": "POST /cms/categories/search",
       "title": "400: body lang type is number",
       "source": "documented",
@@ -10477,7 +10477,7 @@
       ]
     },
     {
-      "id": "CATEGORIES-SEARCH-029",
+      "id": "CATEGORIES-SEARCH-032",
       "group": "POST /cms/categories/search",
       "title": "400: body lang type is boolean",
       "source": "documented",
@@ -10501,7 +10501,7 @@
       ]
     },
     {
-      "id": "CATEGORIES-SEARCH-030",
+      "id": "CATEGORIES-SEARCH-033",
       "group": "POST /cms/categories/search",
       "title": "400: body lang type is array",
       "source": "documented",
@@ -10525,7 +10525,7 @@
       ]
     },
     {
-      "id": "CATEGORIES-SEARCH-031",
+      "id": "CATEGORIES-SEARCH-034",
       "group": "POST /cms/categories/search",
       "title": "400: body lang type is object",
       "source": "documented",
@@ -10549,7 +10549,7 @@
       ]
     },
     {
-      "id": "CATEGORIES-SEARCH-032",
+      "id": "CATEGORIES-SEARCH-035",
       "group": "POST /cms/categories/search",
       "title": "any authenticated user (`reader`) may search",
       "source": "documented",
@@ -10598,7 +10598,7 @@
       ]
     },
     {
-      "id": "CATEGORIES-SEARCH-033",
+      "id": "CATEGORIES-SEARCH-036",
       "group": "POST /cms/categories/search",
       "title": "any authenticated user (`creator`) may search",
       "source": "documented",
@@ -10647,7 +10647,7 @@
       ]
     },
     {
-      "id": "CATEGORIES-SEARCH-034",
+      "id": "CATEGORIES-SEARCH-037",
       "group": "POST /cms/categories/search",
       "title": "any authenticated user (`deleter`) may search",
       "source": "documented",
@@ -10696,7 +10696,7 @@
       ]
     },
     {
-      "id": "CATEGORIES-SEARCH-035",
+      "id": "CATEGORIES-SEARCH-038",
       "group": "POST /cms/categories/search",
       "title": "any authenticated user (`editor`) may search",
       "source": "documented",
@@ -10745,7 +10745,7 @@
       ]
     },
     {
-      "id": "CATEGORIES-SEARCH-036",
+      "id": "CATEGORIES-SEARCH-039",
       "group": "POST /cms/categories/search",
       "title": "query by slug",
       "source": "documented",
@@ -10799,7 +10799,7 @@
       ]
     },
     {
-      "id": "CATEGORIES-SEARCH-037",
+      "id": "CATEGORIES-SEARCH-040",
       "group": "POST /cms/categories/search",
       "title": "query by name",
       "source": "documented",
@@ -10853,7 +10853,7 @@
       ]
     },
     {
-      "id": "CATEGORIES-SEARCH-038",
+      "id": "CATEGORIES-SEARCH-041",
       "group": "POST /cms/categories/search",
       "title": "query case-insensitive",
       "source": "inferred",
@@ -10907,7 +10907,7 @@
       ]
     },
     {
-      "id": "CATEGORIES-SEARCH-039",
+      "id": "CATEGORIES-SEARCH-042",
       "group": "POST /cms/categories/search",
       "title": "query prefix",
       "source": "inferred",
@@ -10961,7 +10961,7 @@
       ]
     },
     {
-      "id": "CATEGORIES-SEARCH-040",
+      "id": "CATEGORIES-SEARCH-043",
       "group": "POST /cms/categories/search",
       "title": "query surrounding whitespace",
       "source": "inferred",
@@ -11015,7 +11015,7 @@
       ]
     },
     {
-      "id": "CATEGORIES-SEARCH-041",
+      "id": "CATEGORIES-SEARCH-044",
       "group": "POST /cms/categories/search",
       "title": "query by multi-word name",
       "source": "inferred",
@@ -11069,7 +11069,7 @@
       ]
     },
     {
-      "id": "CATEGORIES-SEARCH-042",
+      "id": "CATEGORIES-SEARCH-045",
       "group": "POST /cms/categories/search",
       "title": "query by Cyrillic name in ru",
       "source": "inferred",
@@ -11123,7 +11123,7 @@
       ]
     },
     {
-      "id": "CATEGORIES-SEARCH-043",
+      "id": "CATEGORIES-SEARCH-046",
       "group": "POST /cms/categories/search",
       "title": "query name of another language does not match",
       "source": "inferred",
@@ -11172,7 +11172,7 @@
       ]
     },
     {
-      "id": "CATEGORIES-SEARCH-044",
+      "id": "CATEGORIES-SEARCH-047",
       "group": "POST /cms/categories/search",
       "title": "query slug without a translation in the language (faq/en)",
       "source": "inferred",
@@ -11221,7 +11221,7 @@
       ]
     },
     {
-      "id": "CATEGORIES-SEARCH-045",
+      "id": "CATEGORIES-SEARCH-048",
       "group": "POST /cms/categories/search",
       "title": "query slug with translation (faq/de)",
       "source": "inferred",
@@ -11270,7 +11270,7 @@
       ]
     },
     {
-      "id": "CATEGORIES-SEARCH-046",
+      "id": "CATEGORIES-SEARCH-049",
       "group": "POST /cms/categories/search",
       "title": "no match -> empty array, total 0",
       "source": "documented",
@@ -11324,7 +11324,7 @@
       ]
     },
     {
-      "id": "CATEGORIES-SEARCH-047",
+      "id": "CATEGORIES-SEARCH-050",
       "group": "POST /cms/categories/search",
       "title": "query text with double quote is treated as text",
       "source": "inferred",
@@ -11368,7 +11368,7 @@
       ]
     },
     {
-      "id": "CATEGORIES-SEARCH-048",
+      "id": "CATEGORIES-SEARCH-051",
       "group": "POST /cms/categories/search",
       "title": "query text with sql-ish is treated as text",
       "source": "inferred",
@@ -11412,7 +11412,7 @@
       ]
     },
     {
-      "id": "CATEGORIES-SEARCH-049",
+      "id": "CATEGORIES-SEARCH-052",
       "group": "POST /cms/categories/search",
       "title": "query text with backslash is treated as text",
       "source": "inferred",
@@ -11456,7 +11456,7 @@
       ]
     },
     {
-      "id": "CATEGORIES-SEARCH-050",
+      "id": "CATEGORIES-SEARCH-053",
       "group": "POST /cms/categories/search",
       "title": "query text with wildcards is treated as text",
       "source": "inferred",
@@ -11500,7 +11500,7 @@
       ]
     },
     {
-      "id": "CATEGORIES-SEARCH-051",
+      "id": "CATEGORIES-SEARCH-054",
       "group": "POST /cms/categories/search",
       "title": "query text with filter injection is treated as text",
       "source": "inferred",
@@ -11544,7 +11544,7 @@
       ]
     },
     {
-      "id": "CATEGORIES-SEARCH-052",
+      "id": "CATEGORIES-SEARCH-055",
       "group": "POST /cms/categories/search",
       "title": "query text with 1000 characters is treated as text",
       "source": "inferred",
@@ -11593,7 +11593,7 @@
       ]
     },
     {
-      "id": "CATEGORIES-SEARCH-053",
+      "id": "CATEGORIES-SEARCH-056",
       "group": "POST /cms/categories/search",
       "title": "query text with emoji is treated as text",
       "source": "inferred",
@@ -11637,7 +11637,7 @@
       ]
     },
     {
-      "id": "CATEGORIES-SEARCH-054",
+      "id": "CATEGORIES-SEARCH-057",
       "group": "POST /cms/categories/search",
       "title": "query null -> empty query",
       "source": "stated",
@@ -11673,7 +11673,7 @@
       ]
     },
     {
-      "id": "CATEGORIES-SEARCH-055",
+      "id": "CATEGORIES-SEARCH-058",
       "group": "POST /cms/categories/search",
       "title": "400: query is a number",
       "source": "documented",
@@ -11697,7 +11697,7 @@
       ]
     },
     {
-      "id": "CATEGORIES-SEARCH-056",
+      "id": "CATEGORIES-SEARCH-059",
       "group": "POST /cms/categories/search",
       "title": "hidden=true -> only hidden",
       "source": "documented",
@@ -11756,7 +11756,7 @@
       ]
     },
     {
-      "id": "CATEGORIES-SEARCH-057",
+      "id": "CATEGORIES-SEARCH-060",
       "group": "POST /cms/categories/search",
       "title": "hidden=false -> only visible",
       "source": "documented",
@@ -11811,7 +11811,7 @@
       ]
     },
     {
-      "id": "CATEGORIES-SEARCH-058",
+      "id": "CATEGORIES-SEARCH-061",
       "group": "POST /cms/categories/search",
       "title": "navbar=true",
       "source": "documented",
@@ -11876,7 +11876,7 @@
       ]
     },
     {
-      "id": "CATEGORIES-SEARCH-059",
+      "id": "CATEGORIES-SEARCH-062",
       "group": "POST /cms/categories/search",
       "title": "navbar=false",
       "source": "documented",
@@ -11936,7 +11936,7 @@
       ]
     },
     {
-      "id": "CATEGORIES-SEARCH-060",
+      "id": "CATEGORIES-SEARCH-063",
       "group": "POST /cms/categories/search",
       "title": "hidden=false AND navbar=true",
       "source": "documented",
@@ -12002,7 +12002,7 @@
       ]
     },
     {
-      "id": "CATEGORIES-SEARCH-061",
+      "id": "CATEGORIES-SEARCH-064",
       "group": "POST /cms/categories/search",
       "title": "hidden=true AND navbar=true -> empty",
       "source": "documented",
@@ -12052,7 +12052,7 @@
       ]
     },
     {
-      "id": "CATEGORIES-SEARCH-062",
+      "id": "CATEGORIES-SEARCH-065",
       "group": "POST /cms/categories/search",
       "title": "hidden=true in ru -> empty (secret has no ru)",
       "source": "documented",
@@ -12101,7 +12101,7 @@
       ]
     },
     {
-      "id": "CATEGORIES-SEARCH-063",
+      "id": "CATEGORIES-SEARCH-066",
       "group": "POST /cms/categories/search",
       "title": "query + filter",
       "source": "documented",
@@ -12151,7 +12151,7 @@
       ]
     },
     {
-      "id": "CATEGORIES-SEARCH-064",
+      "id": "CATEGORIES-SEARCH-067",
       "group": "POST /cms/categories/search",
       "title": "hidden null -> filter ignored",
       "source": "stated",
@@ -12187,7 +12187,7 @@
       ]
     },
     {
-      "id": "CATEGORIES-SEARCH-065",
+      "id": "CATEGORIES-SEARCH-068",
       "group": "POST /cms/categories/search",
       "title": "400: hidden is a string",
       "source": "documented",
@@ -12211,7 +12211,7 @@
       ]
     },
     {
-      "id": "CATEGORIES-SEARCH-066",
+      "id": "CATEGORIES-SEARCH-069",
       "group": "POST /cms/categories/search",
       "title": "400: hidden is a number",
       "source": "documented",
@@ -12235,7 +12235,7 @@
       ]
     },
     {
-      "id": "CATEGORIES-SEARCH-067",
+      "id": "CATEGORIES-SEARCH-070",
       "group": "POST /cms/categories/search",
       "title": "400: hidden is a array",
       "source": "documented",
@@ -12259,7 +12259,7 @@
       ]
     },
     {
-      "id": "CATEGORIES-SEARCH-068",
+      "id": "CATEGORIES-SEARCH-071",
       "group": "POST /cms/categories/search",
       "title": "navbar null -> filter ignored",
       "source": "stated",
@@ -12295,7 +12295,7 @@
       ]
     },
     {
-      "id": "CATEGORIES-SEARCH-069",
+      "id": "CATEGORIES-SEARCH-072",
       "group": "POST /cms/categories/search",
       "title": "400: navbar is a string",
       "source": "documented",
@@ -12319,7 +12319,7 @@
       ]
     },
     {
-      "id": "CATEGORIES-SEARCH-070",
+      "id": "CATEGORIES-SEARCH-073",
       "group": "POST /cms/categories/search",
       "title": "400: navbar is a number",
       "source": "documented",
@@ -12343,7 +12343,7 @@
       ]
     },
     {
-      "id": "CATEGORIES-SEARCH-071",
+      "id": "CATEGORIES-SEARCH-074",
       "group": "POST /cms/categories/search",
       "title": "400: navbar is a array",
       "source": "documented",
@@ -12367,7 +12367,7 @@
       ]
     },
     {
-      "id": "CATEGORIES-SEARCH-072",
+      "id": "CATEGORIES-SEARCH-075",
       "group": "POST /cms/categories/search",
       "title": "count defaults to 1 as documented",
       "source": "documented",
@@ -12421,7 +12421,7 @@
       "note": "Docs say count defaults to 1 (likely a typo for 15); pins the documented text."
     },
     {
-      "id": "CATEGORIES-SEARCH-073",
+      "id": "CATEGORIES-SEARCH-076",
       "group": "POST /cms/categories/search",
       "title": "count=2 -> two results",
       "source": "documented",
@@ -12475,7 +12475,7 @@
       ]
     },
     {
-      "id": "CATEGORIES-SEARCH-074",
+      "id": "CATEGORIES-SEARCH-077",
       "group": "POST /cms/categories/search",
       "title": "count=1, page 2 differs from page 1",
       "source": "inferred",
@@ -12578,7 +12578,7 @@
       ]
     },
     {
-      "id": "CATEGORIES-SEARCH-075",
+      "id": "CATEGORIES-SEARCH-078",
       "group": "POST /cms/categories/search",
       "title": "page past the end -> empty results",
       "source": "inferred",
@@ -12628,7 +12628,7 @@
       ]
     },
     {
-      "id": "CATEGORIES-SEARCH-076",
+      "id": "CATEGORIES-SEARCH-079",
       "group": "POST /cms/categories/search",
       "title": "count=0 is clamped to defaults",
       "source": "inferred",
@@ -12672,7 +12672,7 @@
       ]
     },
     {
-      "id": "CATEGORIES-SEARCH-077",
+      "id": "CATEGORIES-SEARCH-080",
       "group": "POST /cms/categories/search",
       "title": "count=-1 is clamped to defaults",
       "source": "inferred",
@@ -12716,7 +12716,7 @@
       ]
     },
     {
-      "id": "CATEGORIES-SEARCH-078",
+      "id": "CATEGORIES-SEARCH-081",
       "group": "POST /cms/categories/search",
       "title": "page=0 is clamped to defaults",
       "source": "inferred",
@@ -12760,7 +12760,7 @@
       ]
     },
     {
-      "id": "CATEGORIES-SEARCH-079",
+      "id": "CATEGORIES-SEARCH-082",
       "group": "POST /cms/categories/search",
       "title": "page=-1 is clamped to defaults",
       "source": "inferred",
@@ -12804,7 +12804,7 @@
       ]
     },
     {
-      "id": "CATEGORIES-SEARCH-080",
+      "id": "CATEGORIES-SEARCH-083",
       "group": "POST /cms/categories/search",
       "title": "count null -> zero value, default behaviour",
       "source": "stated",
@@ -12835,7 +12835,7 @@
       ]
     },
     {
-      "id": "CATEGORIES-SEARCH-081",
+      "id": "CATEGORIES-SEARCH-084",
       "group": "POST /cms/categories/search",
       "title": "page null -> zero value, default behaviour",
       "source": "stated",
@@ -12866,7 +12866,7 @@
       ]
     },
     {
-      "id": "CATEGORIES-SEARCH-082",
+      "id": "CATEGORIES-SEARCH-085",
       "group": "POST /cms/categories/search",
       "title": "sort_by null -> zero value, default behaviour",
       "source": "stated",
@@ -12897,7 +12897,7 @@
       ]
     },
     {
-      "id": "CATEGORIES-SEARCH-083",
+      "id": "CATEGORIES-SEARCH-086",
       "group": "POST /cms/categories/search",
       "title": "400: count=1.5",
       "source": "documented",
@@ -12921,7 +12921,7 @@
       ]
     },
     {
-      "id": "CATEGORIES-SEARCH-084",
+      "id": "CATEGORIES-SEARCH-087",
       "group": "POST /cms/categories/search",
       "title": "400: count=\"10\"",
       "source": "documented",
@@ -12945,7 +12945,7 @@
       ]
     },
     {
-      "id": "CATEGORIES-SEARCH-085",
+      "id": "CATEGORIES-SEARCH-088",
       "group": "POST /cms/categories/search",
       "title": "400: page=\"a\"",
       "source": "documented",
@@ -12969,7 +12969,7 @@
       ]
     },
     {
-      "id": "CATEGORIES-SEARCH-086",
+      "id": "CATEGORIES-SEARCH-089",
       "group": "POST /cms/categories/search",
       "title": "400: page=1.5",
       "source": "documented",
@@ -12993,7 +12993,7 @@
       ]
     },
     {
-      "id": "CATEGORIES-SEARCH-087",
+      "id": "CATEGORIES-SEARCH-090",
       "group": "POST /cms/categories/search",
       "title": "400: count=true",
       "source": "documented",
@@ -13017,7 +13017,7 @@
       ]
     },
     {
-      "id": "CATEGORIES-SEARCH-088",
+      "id": "CATEGORIES-SEARCH-091",
       "group": "POST /cms/categories/search",
       "title": "count=1000 -> capped at 100 results",
       "source": "documented",
@@ -13066,7 +13066,7 @@
       ]
     },
     {
-      "id": "CATEGORIES-SEARCH-093",
+      "id": "CATEGORIES-SEARCH-092",
       "group": "POST /cms/categories/search",
       "title": "sort_by name:asc",
       "source": "documented",
@@ -13115,7 +13115,7 @@
       ]
     },
     {
-      "id": "CATEGORIES-SEARCH-094",
+      "id": "CATEGORIES-SEARCH-093",
       "group": "POST /cms/categories/search",
       "title": "sort_by name:desc",
       "source": "documented",
@@ -13164,7 +13164,7 @@
       ]
     },
     {
-      "id": "CATEGORIES-SEARCH-095",
+      "id": "CATEGORIES-SEARCH-094",
       "group": "POST /cms/categories/search",
       "title": "sort_by slug:asc",
       "source": "documented",
@@ -13213,7 +13213,7 @@
       ]
     },
     {
-      "id": "CATEGORIES-SEARCH-096",
+      "id": "CATEGORIES-SEARCH-095",
       "group": "POST /cms/categories/search",
       "title": "sort_by slug:desc",
       "source": "documented",
@@ -13262,7 +13262,7 @@
       ]
     },
     {
-      "id": "CATEGORIES-SEARCH-097",
+      "id": "CATEGORIES-SEARCH-096",
       "group": "POST /cms/categories/search",
       "title": "400: sort_by hidden:asc (not sortable)",
       "source": "documented",
@@ -13289,7 +13289,7 @@
       ]
     },
     {
-      "id": "CATEGORIES-SEARCH-098",
+      "id": "CATEGORIES-SEARCH-097",
       "group": "POST /cms/categories/search",
       "title": "400: sort_by navbar:asc (not sortable)",
       "source": "documented",
@@ -13316,7 +13316,7 @@
       ]
     },
     {
-      "id": "CATEGORIES-SEARCH-099",
+      "id": "CATEGORIES-SEARCH-098",
       "group": "POST /cms/categories/search",
       "title": "400: sort_by lang:asc (not sortable)",
       "source": "documented",
@@ -13343,7 +13343,7 @@
       ]
     },
     {
-      "id": "CATEGORIES-SEARCH-100",
+      "id": "CATEGORIES-SEARCH-099",
       "group": "POST /cms/categories/search",
       "title": "400: sort_by unknown column",
       "source": "inferred",
@@ -13370,7 +13370,7 @@
       ]
     },
     {
-      "id": "CATEGORIES-SEARCH-101",
+      "id": "CATEGORIES-SEARCH-100",
       "group": "POST /cms/categories/search",
       "title": "400: sort_by missing direction",
       "source": "inferred",
@@ -13397,7 +13397,7 @@
       ]
     },
     {
-      "id": "CATEGORIES-SEARCH-102",
+      "id": "CATEGORIES-SEARCH-101",
       "group": "POST /cms/categories/search",
       "title": "400: sort_by bad direction",
       "source": "inferred",
@@ -13424,7 +13424,7 @@
       ]
     },
     {
-      "id": "CATEGORIES-SEARCH-103",
+      "id": "CATEGORIES-SEARCH-102",
       "group": "POST /cms/categories/search",
       "title": "400: sort_by missing column",
       "source": "inferred",
@@ -13451,7 +13451,7 @@
       ]
     },
     {
-      "id": "CATEGORIES-SEARCH-104",
+      "id": "CATEGORIES-SEARCH-103",
       "group": "POST /cms/categories/search",
       "title": "400: sort_by too many parts",
       "source": "inferred",
@@ -13478,7 +13478,7 @@
       ]
     },
     {
-      "id": "CATEGORIES-SEARCH-105",
+      "id": "CATEGORIES-SEARCH-104",
       "group": "POST /cms/categories/search",
       "title": "400: sort_by blank",
       "source": "inferred",
@@ -13505,7 +13505,7 @@
       ]
     },
     {
-      "id": "CATEGORIES-SEARCH-106",
+      "id": "CATEGORIES-SEARCH-105",
       "group": "POST /cms/categories/search",
       "title": "400: sort_by injection",
       "source": "inferred",
@@ -13532,7 +13532,7 @@
       ]
     },
     {
-      "id": "CATEGORIES-SEARCH-107",
+      "id": "CATEGORIES-SEARCH-106",
       "group": "POST /cms/categories/search",
       "title": "400: sort_by is a number",
       "source": "documented",
@@ -13556,7 +13556,7 @@
       ]
     },
     {
-      "id": "CATEGORIES-SEARCH-108",
+      "id": "CATEGORIES-SEARCH-107",
       "group": "POST /cms/categories/search",
       "title": "unknown fields are ignored",
       "source": "documented",
@@ -13609,7 +13609,7 @@
       ]
     },
     {
-      "id": "CATEGORIES-SEARCH-109",
+      "id": "CATEGORIES-SEARCH-108",
       "group": "POST /cms/categories/search",
       "title": "index reflects a rename (async)",
       "source": "inferred",
@@ -13765,7 +13765,7 @@
       ]
     },
     {
-      "id": "CATEGORIES-SEARCH-110",
+      "id": "CATEGORIES-SEARCH-109",
       "group": "POST /cms/categories/search",
       "title": "index reflects shared flag changes in every language (async)",
       "source": "inferred",
@@ -13875,7 +13875,7 @@
       ]
     },
     {
-      "id": "CATEGORIES-SEARCH-111",
+      "id": "CATEGORIES-SEARCH-110",
       "group": "POST /cms/categories/search",
       "title": "index reflects a name change only in its language (async)",
       "source": "inferred",
@@ -13985,7 +13985,7 @@
       ]
     },
     {
-      "id": "CATEGORIES-SEARCH-112",
+      "id": "CATEGORIES-SEARCH-111",
       "group": "POST /cms/categories/search",
       "title": "index reflects deletion (async)",
       "source": "inferred",
@@ -14087,7 +14087,7 @@
       ]
     },
     {
-      "id": "CATEGORIES-SEARCH-113",
+      "id": "CATEGORIES-SEARCH-112",
       "group": "POST /cms/categories/search",
       "title": "Searching a language that was deleted fallbacks to default",
       "source": "inferred",
@@ -28831,7 +28831,7 @@
       ]
     },
     {
-      "id": "CATEGORIES-GENERIC-009",
+      "id": "CATEGORIES-GENERIC-008",
       "group": "cross-cutting",
       "title": "new language can hold categories right away",
       "source": "inferred",
@@ -28932,7 +28932,7 @@
       ]
     },
     {
-      "id": "CATEGORIES-GENERIC-010",
+      "id": "CATEGORIES-GENERIC-009",
       "group": "cross-cutting",
       "title": "new language: PATCH creates a translation there",
       "source": "inferred",
@@ -29014,7 +29014,7 @@
       ]
     },
     {
-      "id": "CATEGORIES-GENERIC-011",
+      "id": "CATEGORIES-GENERIC-010",
       "group": "cross-cutting",
       "title": "deleting a language preserves search results (async)",
       "source": "inferred",
@@ -29094,7 +29094,7 @@
       ]
     },
     {
-      "id": "CATEGORIES-GENERIC-012",
+      "id": "CATEGORIES-GENERIC-011",
       "group": "cross-cutting",
       "title": "deleting every translation of a language leaves an empty list",
       "source": "inferred",
@@ -29157,7 +29157,7 @@
       ]
     },
     {
-      "id": "CATEGORIES-GENERIC-013",
+      "id": "CATEGORIES-GENERIC-012",
       "group": "cross-cutting",
       "title": "routing: PUT /cms/categories",
       "source": "inferred",
@@ -29182,7 +29182,7 @@
       "note": "Assumes Go 1.22+ ServeMux semantics."
     },
     {
-      "id": "CATEGORIES-GENERIC-014",
+      "id": "CATEGORIES-GENERIC-013",
       "group": "cross-cutting",
       "title": "routing: DELETE /cms/categories (collection)",
       "source": "inferred",
@@ -29203,7 +29203,7 @@
       "note": "Assumes Go 1.22+ ServeMux semantics."
     },
     {
-      "id": "CATEGORIES-GENERIC-015",
+      "id": "CATEGORIES-GENERIC-014",
       "group": "cross-cutting",
       "title": "routing: PUT /cms/categories/news",
       "source": "inferred",
@@ -29228,7 +29228,7 @@
       "note": "Assumes Go 1.22+ ServeMux semantics."
     },
     {
-      "id": "CATEGORIES-GENERIC-016",
+      "id": "CATEGORIES-GENERIC-015",
       "group": "cross-cutting",
       "title": "routing: POST /cms/categories/news",
       "source": "inferred",
@@ -29253,7 +29253,7 @@
       "note": "Assumes Go 1.22+ ServeMux semantics."
     },
     {
-      "id": "CATEGORIES-GENERIC-017",
+      "id": "CATEGORIES-GENERIC-016",
       "group": "cross-cutting",
       "title": "routing: GET /cms/categories/search/extra",
       "source": "inferred",
@@ -29276,7 +29276,7 @@
       ]
     },
     {
-      "id": "CATEGORIES-GENERIC-018",
+      "id": "CATEGORIES-GENERIC-017",
       "group": "cross-cutting",
       "title": "routing: GET /cms/categories/news/extra",
       "source": "inferred",
@@ -29299,7 +29299,7 @@
       ]
     },
     {
-      "id": "CATEGORIES-GENERIC-019",
+      "id": "CATEGORIES-GENERIC-018",
       "group": "cross-cutting",
       "title": "routing: trailing slash /cms/categories/",
       "source": "inferred",
@@ -29322,7 +29322,7 @@
       ]
     },
     {
-      "id": "CATEGORIES-GENERIC-020",
+      "id": "CATEGORIES-GENERIC-019",
       "group": "cross-cutting",
       "title": "routing: PATCH /cms/categories/search targets a slug named search",
       "source": "inferred",
@@ -29349,7 +29349,7 @@
       ]
     },
     {
-      "id": "CATEGORIES-GENERIC-021",
+      "id": "CATEGORIES-GENERIC-020",
       "group": "cross-cutting",
       "title": "routing: DELETE /cms/categories/search targets a slug named search",
       "source": "inferred",
@@ -29369,7 +29369,7 @@
       ]
     },
     {
-      "id": "CATEGORIES-GENERIC-022",
+      "id": "CATEGORIES-GENERIC-021",
       "group": "cross-cutting",
       "title": "routing: PUT /cms/categories/search",
       "source": "inferred",

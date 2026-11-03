@@ -10,6 +10,11 @@ const (
 	MaxTokenLength = 200
 )
 
+type Service interface {
+	Authorize(ctx context.Context, entity string, action string) bool
+	IsSubsetOf(ctx context.Context, permissions uint32) bool
+}
+
 type SessionRepository interface {
 	Create(ctx context.Context, username string) (string, error)
 	Revoke(ctx context.Context, username string, suid string) error

@@ -5,7 +5,6 @@ import (
 	"gocms/internal/auth"
 	"gocms/internal/cache"
 	"gocms/internal/category"
-	"gocms/internal/domain"
 	"gocms/internal/editor"
 	"gocms/internal/lang"
 	"gocms/internal/password"
@@ -27,7 +26,7 @@ const (
 
 type AuthModule struct {
 	Consumer    *auth.EventConsumer
-	Service     *auth.Service
+	Service     *auth.SessionService
 	Handler     *auth.Handler
 	UserRepo    auth.UserRepository
 	SessionRepo auth.SessionRepository
@@ -86,7 +85,7 @@ type LangModule struct {
 	DBRepo   lang.Repository
 }
 
-func NewAuthModule(db *gorm.DB, redis *redis.Client, passwords password.PasswordService) (*AuthModule, error) {
+func NewAuthModule(db *gorm.DB, redis *redis.Client, passwords password.Service) (*AuthModule, error) {
 	keys, err := cache.NewKeyspace(cache.KeyConfig{
 		Prefix: []string{"cms", "test"},
 	}, "sessions")
@@ -112,8 +111,8 @@ func NewUserModule(
 	db *gorm.DB,
 	search meilisearch.ServiceManager,
 	redis *redis.Client,
-	creds domain.AuthService,
-	passwords password.PasswordService,
+	creds auth.Service,
+	passwords password.Service,
 ) (*UserModule, error) {
 	keys, err := cache.NewKeyspace(cache.KeyConfig{
 		Prefix: []string{"cms", "test"},
@@ -165,7 +164,7 @@ func NewCategoryModule(
 	search meilisearch.ServiceManager,
 	redis *redis.Client,
 	langs lang.Service,
-	creds domain.AuthService,
+	creds auth.Service,
 ) (*CategoryModule, error) {
 	keys, err := cache.NewKeyspace(cache.KeyConfig{
 		Prefix: []string{"cms", "test"},
@@ -196,7 +195,7 @@ func NewEditorModule(
 	search meilisearch.ServiceManager,
 	redis *redis.Client,
 	langs lang.Service,
-	creds domain.AuthService,
+	creds auth.Service,
 ) (*EditorModule, error) {
 	keys, err := cache.NewKeyspace(cache.KeyConfig{
 		Prefix: []string{"cms", "test"},
@@ -244,7 +243,7 @@ func NewAdsModule(db *gorm.DB, search meilisearch.ServiceManager, redis *redis.C
 	}
 }
 
-func NewLangModule(ctx context.Context, db *gorm.DB, creds domain.AuthService) (*LangModule, error) {
+func NewLangModule(ctx context.Context, db *gorm.DB, creds auth.Service) (*LangModule, error) {
 	gormRepo := lang.NewGORMRepository(db)
 	service, err := lang.NewLocalService(ctx, "ru", gormRepo, creds)
 	if err != nil {

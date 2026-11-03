@@ -35,7 +35,7 @@ type Container struct {
 	DB          *gorm.DB
 	Redis       *redis.Client
 	Meilisearch meilisearch.ServiceManager
-	Passwords   password.PasswordService
+	Passwords   password.Service
 
 	Categories *CategoryModule
 	Users      *UserModule

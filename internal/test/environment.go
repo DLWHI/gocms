@@ -32,7 +32,7 @@ type Environment struct {
 	Search   *Meilisearch
 	Redis    *redis.Client
 	Lang     lang.Service
-	Password password.PasswordService
+	Password password.Service
 	Outbox   outbox.MessageRepository
 	Router   http.Handler
 	TestData *Data

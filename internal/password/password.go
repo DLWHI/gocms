@@ -4,7 +4,7 @@ import "encoding/json"
 
 type Password []byte
 
-type PasswordService interface {
+type Service interface {
 	Hash(password Password) ([]byte, error)
 	PasswordMatches(password Password, hash []byte) bool
 	GeneratePassword(length int) (Password, error)

@@ -40,7 +40,7 @@ type Container struct {
 	Langs      *LangModule
 	Auth       *AuthModule
 
-	PasswordService password.PasswordService
+	PasswordService password.Service
 	MessageRelay    outbox.MessageRepository
 	Router          *Router
 

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"gocms/internal/auth"
 	"gocms/internal/domain"
 	"gocms/internal/logger"
 	"gocms/internal/password"
@@ -13,11 +14,11 @@ import (
 type Service struct {
 	repo      Repository
 	se        SearchEngine
-	auth      domain.AuthService
-	passwords password.PasswordService
+	auth      auth.Service
+	passwords password.Service
 }
 
-func NewService(repo Repository, se SearchEngine, auth domain.AuthService, passwords password.PasswordService) *Service {
+func NewService(repo Repository, se SearchEngine, auth auth.Service, passwords password.Service) *Service {
 	return &Service{
 		repo:      repo,
 		se:        se,

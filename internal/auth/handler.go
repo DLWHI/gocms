@@ -22,10 +22,10 @@ type Handler struct {
 	Profile      http.Handler
 	Permissions  http.Handler
 	ChangePasswd http.Handler
-	userService  *Service
+	userService  *SessionService
 }
 
-func NewHandler(s *Service) *Handler {
+func NewHandler(s *SessionService) *Handler {
 	var hndl Handler
 	hndl.userService = s
 	hndl.Login = http.HandlerFunc(hndl.login)

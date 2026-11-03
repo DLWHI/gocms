@@ -9,21 +9,21 @@ import (
 	"time"
 )
 
-type Service struct {
+type SessionService struct {
 	users     UserRepository
-	passwords password.PasswordService
+	passwords password.Service
 	sessions  SessionRepository
 }
 
-func NewService(sessions SessionRepository, users UserRepository, passwords password.PasswordService) *Service {
-	return &Service{
+func NewService(sessions SessionRepository, users UserRepository, passwords password.Service) *SessionService {
+	return &SessionService{
 		users:     users,
 		sessions:  sessions,
 		passwords: passwords,
 	}
 }
 
-func (s *Service) PasswordMatches(ctx context.Context, username string, passwd password.Password) error {
+func (s *SessionService) PasswordMatches(ctx context.Context, username string, passwd password.Password) error {
 	hash, err := s.users.GetPasswordHash(ctx, username)
 	defer clear(hash)
 	if err != nil {
@@ -40,7 +40,7 @@ func (s *Service) PasswordMatches(ctx context.Context, username string, passwd p
 	return nil
 }
 
-func (s *Service) Login(ctx context.Context, username string, passwd password.Password) (string, error) {
+func (s *SessionService) Login(ctx context.Context, username string, passwd password.Password) (string, error) {
 	username, err := domain.NormalizeUsername(username)
 	if err != nil {
 		return "", err
@@ -66,7 +66,7 @@ func (s *Service) Login(ctx context.Context, username string, passwd password.Pa
 	return token, nil
 }
 
-func (s *Service) Logout(ctx context.Context) error {
+func (s *SessionService) Logout(ctx context.Context) error {
 	username, ok := ctx.Value(domain.UsernameContextKey).(string)
 	if !ok {
 		return nil
@@ -83,7 +83,7 @@ func (s *Service) Logout(ctx context.Context) error {
 	return nil
 }
 
-func (s *Service) CurrentUser(ctx context.Context) (*domain.User, error) {
+func (s *SessionService) CurrentUser(ctx context.Context) (*domain.User, error) {
 	session, ok := ctx.Value(domain.SessionContextIDKey).(string)
 	if !ok {
 		return nil, domain.ErrExpired
@@ -104,7 +104,7 @@ func (s *Service) CurrentUser(ctx context.Context) (*domain.User, error) {
 	return user, nil
 }
 
-func (s *Service) ChangePasswd(ctx context.Context, old password.Password, new password.Password) error {
+func (s *SessionService) ChangePasswd(ctx context.Context, old password.Password, new password.Password) error {
 	initiator, ok := ctx.Value(domain.UsernameContextKey).(string)
 	if !ok {
 		return domain.ErrCred
@@ -137,7 +137,7 @@ func (s *Service) ChangePasswd(ctx context.Context, old password.Password, new p
 	return nil
 }
 
-func (s *Service) Authorize(ctx context.Context, entity string, action string) bool {
+func (s *SessionService) Authorize(ctx context.Context, entity string, action string) bool {
 	username, ok := ctx.Value(domain.UsernameContextKey).(string)
 	if !ok {
 		return false
@@ -151,7 +151,7 @@ func (s *Service) Authorize(ctx context.Context, entity string, action string) b
 	return domain.HasPermission(user.Permissions, entity, action)
 }
 
-func (s *Service) IsSubsetOf(ctx context.Context, permissions uint32) bool {
+func (s *SessionService) IsSubsetOf(ctx context.Context, permissions uint32) bool {
 	username, ok := ctx.Value(domain.UsernameContextKey).(string)
 	if !ok {
 		return false

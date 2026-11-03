@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"gocms/internal/auth"
 	"gocms/internal/domain"
 	"gocms/internal/logger"
 	"strings"
@@ -19,11 +20,11 @@ type snapshot struct {
 type LocalService struct {
 	snap atomic.Pointer[snapshot]
 	repo Repository
-	auth domain.AuthService
+	auth auth.Service
 	mu   sync.Mutex
 }
 
-func NewLocalService(ctx context.Context, fallback string, repo Repository, auth domain.AuthService) (*LocalService, error) {
+func NewLocalService(ctx context.Context, fallback string, repo Repository, auth auth.Service) (*LocalService, error) {
 	svc := &LocalService{repo: repo, auth: auth}
 	svc.snap.Store(&snapshot{fallback: Language{Code: fallback}})
 	if err := svc.Reload(ctx, nil); err != nil {

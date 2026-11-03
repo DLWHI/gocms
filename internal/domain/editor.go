@@ -5,7 +5,7 @@ const (
 	EditorActionUpdate
 	EditorActionDelete
 
-	EditorEventName  = "editor"
+	EditorEvent      = "editor"
 	EditorEntityName = "editors"
 )
 
@@ -26,7 +26,7 @@ type EditorDiff struct {
 	Lang  string  `json:"lang"`
 }
 
-type EditorEvent struct {
+type EditorEventInfo struct {
 	Slug   string `json:"slug"`
 	Action int    `json:"action"`
 }

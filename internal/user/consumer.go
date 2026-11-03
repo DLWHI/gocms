@@ -21,7 +21,7 @@ func NewEventConsumer(db Repository, se SearchEngine) *EventConsumer {
 }
 
 func (s *EventConsumer) SyncSearch(ctx context.Context, data []byte) error {
-	var payload domain.UserEvent
+	var payload domain.UserEventInfo
 	if err := json.Unmarshal(data, &payload); err != nil {
 		return err
 	}

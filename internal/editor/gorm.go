@@ -209,11 +209,11 @@ func (r *GORMRepository) Delete(ctx context.Context, slug string) error {
 }
 
 func (*GORMRepository) writeMessage(tx *gorm.DB, action int, slug string) error {
-	payload := domain.EditorEvent{
+	payload := domain.EditorEventInfo{
 		Slug:   slug,
 		Action: action,
 	}
-	if err := outbox.WriteMessage(tx, domain.EditorEventName, "Editor.Repository", &payload); err != nil {
+	if err := outbox.WriteMessage(tx, domain.EditorEvent, "Editor.Repository", &payload); err != nil {
 		return err
 	}
 	return nil

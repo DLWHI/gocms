@@ -21,7 +21,7 @@ func NewEventConsumer(repo SessionRepository, manager UserRepository) *EventCons
 }
 
 func (s *EventConsumer) RevokeSessions(ctx context.Context, data []byte) error {
-	var payload domain.UserEvent
+	var payload domain.UserEventInfo
 	if err := json.Unmarshal(data, &payload); err != nil {
 		return err
 	}

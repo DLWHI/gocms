@@ -5,7 +5,7 @@ const (
 	CategoryActionUpdate
 	CategoryActionDelete
 
-	CategoryEventName  = "category"
+	CategoryEvent      = "category"
 	CategoryEntityName = "categories"
 )
 
@@ -25,7 +25,7 @@ type CategoryDiff struct {
 	Lang   string  `json:"lang"`
 }
 
-type CategoryEvent struct {
+type CategoryEventInfo struct {
 	Action int    `json:"action"`
 	Slug   string `json:"slug"`
 }

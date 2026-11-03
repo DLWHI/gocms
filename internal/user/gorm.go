@@ -205,11 +205,11 @@ func (r *GORMRepository) Suspend(ctx context.Context, username string) error {
 }
 
 func (*GORMRepository) writeMessage(tx *gorm.DB, action int, username string) error {
-	payload := domain.UserEvent{
+	payload := domain.UserEventInfo{
 		Username: username,
 		Action:   action,
 	}
-	if err := outbox.WriteMessage(tx, domain.UserEventName, "User.Repository", &payload); err != nil {
+	if err := outbox.WriteMessage(tx, domain.UserEvent, "User.Repository", &payload); err != nil {
 		return err
 	}
 	return nil

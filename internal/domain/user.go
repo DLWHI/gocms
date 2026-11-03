@@ -13,7 +13,7 @@ const (
 	UserActionLogin
 	UserActionPassword
 
-	UserEventName  = "user"
+	UserEvent      = "user"
 	UserEntityName = "users"
 
 	UserMaxUsernameLength = 64
@@ -33,7 +33,7 @@ type UserDiff struct {
 	Permissions *uint32 `json:"permissions,omitempty"`
 }
 
-type UserEvent struct {
+type UserEventInfo struct {
 	Action   int    `json:"action"`
 	Username string `json:"username"`
 }

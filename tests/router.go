@@ -20,12 +20,14 @@ const (
 type Router struct {
 	mux  *http.ServeMux
 	auth server.Middleware
+	lang server.Middleware
 }
 
-func NewRouter(provider auth.SessionRepository) *Router {
+func NewRouter(langs lang.Service, sessions auth.SessionRepository) *Router {
 	return &Router{
 		mux:  http.NewServeMux(),
-		auth: auth.NewSessionMiddleware(provider).Wrap,
+		auth: auth.NewSessionMiddleware(sessions).Wrap,
+		lang: lang.NewMiddleware(langs).Wrap,
 	}
 }
 
@@ -33,67 +35,67 @@ func (router *Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	router.mux.ServeHTTP(w, r)
 }
 
-func (router *Router) AddAuthRoutes(handler *auth.Handler) {
+func (r *Router) AddAuthRoutes(handler *auth.Handler) {
 	limiter := server.NewRequestLimiter(RequestLimit)
 	m := server.ChainMiddleware(
 		limiter.Wrap,
-		router.auth,
+		r.auth,
 		server.RequireJSON,
 	)
 
-	router.mux.Handle("POST /cms/login", limiter.Wrap(server.RequireJSON(handler.Login)))
-	router.mux.Handle("PATCH /cms/passwd", m(handler.ChangePasswd))
-	router.mux.Handle("POST /cms/logout", m(handler.Logout))
-	router.mux.Handle("GET /cms/profile", m(handler.Profile))
-	router.mux.Handle("GET /cms/permissions", m(handler.Permissions))
+	r.mux.Handle("POST /cms/login", limiter.Wrap(server.RequireJSON(handler.Login)))
+	r.mux.Handle("PATCH /cms/passwd", m(handler.ChangePasswd))
+	r.mux.Handle("POST /cms/logout", m(handler.Logout))
+	r.mux.Handle("GET /cms/profile", m(handler.Profile))
+	r.mux.Handle("GET /cms/permissions", m(handler.Permissions))
 }
 
-func (router *Router) AddUserRoutes(handler *user.Handler) {
+func (r *Router) AddUserRoutes(handler *user.Handler) {
 	limiter := server.NewRequestLimiter(RequestLimit)
 	m := server.ChainMiddleware(
 		limiter.Wrap,
-		router.auth,
+		r.auth,
 		server.RequireJSON,
 	)
 
-	router.mux.Handle("POST /cms/users", m(handler.Create))
-	router.mux.Handle("POST /cms/users/search", m(handler.Search))
-	router.mux.Handle("GET /cms/users", m(handler.All))
-	router.mux.Handle("GET /cms/users/{username}", m(handler.Get))
-	router.mux.Handle("PATCH /cms/users/{username}/email", m(handler.ChangeEmail))
-	router.mux.Handle("PATCH /cms/users/{username}/password", m(handler.ResetPassword))
-	router.mux.Handle("PATCH /cms/users/{username}/permissions", m(handler.UpdatePermissions))
-	router.mux.Handle("DELETE /cms/users/{username}", m(handler.Suspend))
+	r.mux.Handle("POST /cms/users", m(handler.Create))
+	r.mux.Handle("POST /cms/users/search", m(handler.Search))
+	r.mux.Handle("GET /cms/users", m(handler.All))
+	r.mux.Handle("GET /cms/users/{username}", m(handler.Get))
+	r.mux.Handle("PATCH /cms/users/{username}/email", m(handler.ChangeEmail))
+	r.mux.Handle("PATCH /cms/users/{username}/password", m(handler.ResetPassword))
+	r.mux.Handle("PATCH /cms/users/{username}/permissions", m(handler.UpdatePermissions))
+	r.mux.Handle("DELETE /cms/users/{username}", m(handler.Suspend))
 }
 
-func (router *Router) AddEditorRoutes(handler *editor.Handler) {
+func (r *Router) AddEditorRoutes(handler *editor.Handler) {
 	streamLimiter := server.NewRequestLimiter(ContentLimit)
 	m := server.ChainMiddleware(
 		streamLimiter.Wrap,
-		router.auth,
+		r.auth,
 		server.RequireJSON,
-		lang.Middleware,
+		r.lang,
 	)
 
-	router.mux.Handle("POST /cms/editors/search", m(handler.Search))
-	router.mux.Handle("GET /cms/editors", m(handler.All))
-	router.mux.Handle("POST /cms/editors", m(handler.Create))
-	router.mux.Handle("GET /cms/editors/{username}", m(handler.Get))
-	router.mux.Handle("PATCH /cms/editors/{username}", m(handler.Update))
-	router.mux.Handle("DELETE /cms/editors/{username}", m(handler.Delete))
+	r.mux.Handle("POST /cms/editors/search", m(handler.Search))
+	r.mux.Handle("GET /cms/editors", m(handler.All))
+	r.mux.Handle("POST /cms/editors", m(handler.Create))
+	r.mux.Handle("GET /cms/editors/{username}", m(handler.Get))
+	r.mux.Handle("PATCH /cms/editors/{username}", m(handler.Update))
+	r.mux.Handle("DELETE /cms/editors/{username}", m(handler.Delete))
 }
 
-func (router *Router) AddLangRoutes(handler *lang.Handler) {
+func (r *Router) AddLangRoutes(handler *lang.Handler) {
 	limiter := server.NewRequestLimiter(RequestLimit)
 	m := server.ChainMiddleware(
 		limiter.Wrap,
-		router.auth,
+		r.auth,
 		server.RequireJSON,
 	)
 
-	router.mux.Handle("GET /cms/languages", m(handler.Get))
-	router.mux.Handle("POST /cms/languages", m(handler.Create))
-	router.mux.Handle("DELETE /cms/languages/{code}", m(handler.Delete))
+	r.mux.Handle("GET /cms/languages", m(handler.Get))
+	r.mux.Handle("POST /cms/languages", m(handler.Create))
+	r.mux.Handle("DELETE /cms/languages/{code}", m(handler.Delete))
 }
 
 // func (router *Router) AddPostRoutes(handler *post.Handler) {
@@ -114,21 +116,21 @@ func (router *Router) AddLangRoutes(handler *lang.Handler) {
 // 	router.mux.Handle("DELETE /cms/posts/{id}/{language}", m(handler.DeleteLanguage))
 // }
 
-func (router *Router) AddCategoryRoutes(handler *category.Handler) {
+func (r *Router) AddCategoryRoutes(handler *category.Handler) {
 	limiter := server.NewRequestLimiter(RequestLimit)
 	m := server.ChainMiddleware(
 		limiter.Wrap,
-		router.auth,
+		r.auth,
 		server.RequireJSON,
-		lang.Middleware,
+		r.lang,
 	)
 
-	router.mux.Handle("POST /cms/categories/search", m(handler.Search))
-	router.mux.Handle("GET /cms/categories", m(handler.All))
-	router.mux.Handle("POST /cms/categories", m(handler.Create))
-	router.mux.Handle("GET /cms/categories/{slug}", m(handler.Get))
-	router.mux.Handle("PATCH /cms/categories/{slug}", m(handler.Update))
-	router.mux.Handle("DELETE /cms/categories/{slug}", m(handler.Delete))
+	r.mux.Handle("POST /cms/categories/search", m(handler.Search))
+	r.mux.Handle("GET /cms/categories", m(handler.All))
+	r.mux.Handle("POST /cms/categories", m(handler.Create))
+	r.mux.Handle("GET /cms/categories/{slug}", m(handler.Get))
+	r.mux.Handle("PATCH /cms/categories/{slug}", m(handler.Update))
+	r.mux.Handle("DELETE /cms/categories/{slug}", m(handler.Delete))
 }
 
 // func (router *Router) AddAdsRoutes(handler *ads.Handler) {
@@ -147,24 +149,24 @@ func (router *Router) AddCategoryRoutes(handler *category.Handler) {
 // 	router.mux.Handle("GET /cms/ads/groups", m(handler.Groups))
 // }
 
-func (router *Router) AddStorageRoutes(handler *storage.Handler) {
+func (r *Router) AddStorageRoutes(handler *storage.Handler) {
 	requestLimiter := server.NewRequestLimiter(RequestLimit)
 	streamLimiter := server.NewRequestLimiter(FileLimit)
 	m := server.ChainMiddleware(
 		requestLimiter.Wrap,
-		router.auth,
+		r.auth,
 	)
 	s := server.ChainMiddleware(
 		streamLimiter.Wrap,
-		router.auth,
+		r.auth,
 	)
 
-	router.mux.Handle("GET /storage/tree/{path...}", m(handler.Tree))
-	router.mux.Handle("GET /storage/media/{path...}", requestLimiter.Wrap(handler.Get))
-	router.mux.Handle("PUT /storage/media/{path...}", s(handler.Upload))
-	router.mux.Handle("DELETE /storage/media/{path...}", m(handler.Delete))
-	router.mux.Handle("PUT /storage/folders/{path...}", m(handler.Folder))
-	router.mux.Handle("GET /storage/preview/{path...}", requestLimiter.Wrap(handler.Preview))
+	r.mux.Handle("GET /storage/tree/{path...}", m(handler.Tree))
+	r.mux.Handle("GET /storage/media/{path...}", requestLimiter.Wrap(handler.Get))
+	r.mux.Handle("PUT /storage/media/{path...}", s(handler.Upload))
+	r.mux.Handle("DELETE /storage/media/{path...}", m(handler.Delete))
+	r.mux.Handle("PUT /storage/folders/{path...}", m(handler.Folder))
+	r.mux.Handle("GET /storage/preview/{path...}", requestLimiter.Wrap(handler.Preview))
 }
 
 // func (router *Router) AddPublicoutes(handler *public.Handler) {

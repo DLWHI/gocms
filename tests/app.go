@@ -106,7 +106,7 @@ func (app *Container) Init(ctx context.Context) error {
 
 	storageHandler := DefaultStorageHandler()
 
-	router := NewRouter(auth.SessionRepo)
+	router := NewRouter(langs.Service, auth.SessionRepo)
 
 	router.AddAuthRoutes(auth.Handler)
 	// router.AddPostRoutes(posts.Handler)

@@ -16,8 +16,7 @@ import (
 const (
 	ConfigAddress = ""
 	ConfigPort    = "8080"
-	// Filter        = "CATEGORIES-(GENERIC-007|011)"
-	Filter = ""
+	Filter        = ""
 )
 
 var (

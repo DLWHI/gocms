@@ -18,16 +18,18 @@ const (
 )
 
 type Router struct {
-	mux  *http.ServeMux
-	auth server.Middleware
-	lang server.Middleware
+	mux     *http.ServeMux
+	auth    server.Middleware
+	reqLang server.Middleware
+	resLang server.Middleware
 }
 
 func NewRouter(langs lang.Service, sessions auth.SessionRepository) *Router {
 	return &Router{
-		mux:  http.NewServeMux(),
-		auth: auth.NewSessionMiddleware(sessions).Wrap,
-		lang: lang.NewMiddleware(langs).Wrap,
+		mux:     http.NewServeMux(),
+		auth:    auth.NewSessionMiddleware(sessions).Wrap,
+		reqLang: lang.NewRequestMiddleware(langs).Wrap,
+		resLang: lang.NewResponseMiddleware(langs).Wrap,
 	}
 }
 
@@ -74,14 +76,13 @@ func (r *Router) AddEditorRoutes(handler *editor.Handler) {
 		streamLimiter.Wrap,
 		r.auth,
 		server.RequireJSON,
-		r.lang,
 	)
 
-	r.mux.Handle("POST /cms/editors/search", m(handler.Search))
-	r.mux.Handle("GET /cms/editors", m(handler.All))
-	r.mux.Handle("POST /cms/editors", m(handler.Create))
-	r.mux.Handle("GET /cms/editors/{username}", m(handler.Get))
-	r.mux.Handle("PATCH /cms/editors/{username}", m(handler.Update))
+	r.mux.Handle("GET /cms/editors", r.resLang(m(handler.All)))
+	r.mux.Handle("GET /cms/editors/{username}", r.resLang(m(handler.Get)))
+	r.mux.Handle("POST /cms/editors", r.reqLang(m(handler.Create)))
+	r.mux.Handle("POST /cms/editors/search", r.resLang(m(handler.Search)))
+	r.mux.Handle("PATCH /cms/editors/{username}", r.reqLang(m(handler.Update)))
 	r.mux.Handle("DELETE /cms/editors/{username}", m(handler.Delete))
 }
 
@@ -122,14 +123,13 @@ func (r *Router) AddCategoryRoutes(handler *category.Handler) {
 		limiter.Wrap,
 		r.auth,
 		server.RequireJSON,
-		r.lang,
 	)
 
-	r.mux.Handle("POST /cms/categories/search", m(handler.Search))
-	r.mux.Handle("GET /cms/categories", m(handler.All))
-	r.mux.Handle("POST /cms/categories", m(handler.Create))
-	r.mux.Handle("GET /cms/categories/{slug}", m(handler.Get))
-	r.mux.Handle("PATCH /cms/categories/{slug}", m(handler.Update))
+	r.mux.Handle("GET /cms/categories", r.resLang(m(handler.All)))
+	r.mux.Handle("GET /cms/categories/{slug}", r.resLang(m(handler.Get)))
+	r.mux.Handle("POST /cms/categories", r.reqLang(m(handler.Create)))
+	r.mux.Handle("POST /cms/categories/search", r.resLang(m(handler.Search)))
+	r.mux.Handle("PATCH /cms/categories/{slug}", r.resLang(m(handler.Update)))
 	r.mux.Handle("DELETE /cms/categories/{slug}", m(handler.Delete))
 }
 

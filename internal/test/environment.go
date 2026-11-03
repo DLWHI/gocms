@@ -170,6 +170,7 @@ func LoadDataFromFile(path string, format string) (*Data, error) {
 			}
 		}
 	}
+
 	return data, nil
 }
 

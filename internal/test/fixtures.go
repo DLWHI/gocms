@@ -13,12 +13,13 @@ import (
 )
 
 type Fixtures struct {
-	DefaultPassword Password          `json:"default_password"`
-	Actors          map[string]*Actor `json:"actors"`
-	Users           []domain.User     `json:"users"`
-	Languages       []lang.Language   `json:"languages"`
-	Categories      []domain.Category `json:"categories"`
-	Editors         []domain.Editor   `json:"editors"`
+	DefaultPassword  Password          `json:"default_password"`
+	Actors           map[string]*Actor `json:"actors"`
+	Users            []domain.User     `json:"users"`
+	Languages        []lang.Language   `json:"languages"`
+	FallbackLanguage string            `json:"fallback_language"`
+	Categories       []domain.Category `json:"categories"`
+	Editors          []domain.Editor   `json:"editors"`
 }
 
 func (f *Fixtures) ApplyFixtures(ctx context.Context, e *Environment) error {
@@ -82,6 +83,10 @@ func (f *Fixtures) ApplyFixtures(ctx context.Context, e *Environment) error {
 	}
 
 	if err := e.Lang.Reload(ctx, nil); err != nil {
+		return err
+	}
+
+	if err := e.Lang.SetDefaultLang(f.FallbackLanguage); err != nil {
 		return err
 	}
 

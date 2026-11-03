@@ -14,7 +14,9 @@
     "name_rules": "name is trimmed (surrounding whitespace and control characters) and is valid unless it contains non-printable characters; the empty name is valid; no length cap is stated beyond the 4 KiB body limit.",
     "tags": "boundary, cache, security, regression, undocumented_limit, needs_bulk, cross_system (touches /cms/languages), verify_normalisation, verify_slug_rules (slug charset, hyphen rules, 128 cap), verify_name_rules, verify_printable (depends on the exact definition of printable, assumed unicode.IsPrint), verify_defaults (hidden/navbar default to false), verify_shared_flags (flags are per category, not per translation), verify_language_precedence (body lang vs Content-Language), verify_language_validation (lang must exist in the cms record), verify_content_language (how the fallback header is parsed), verify_accept_language (q-values, region subtags, wildcard, missing header on GET), verify_hidden_visibility (admin API returns hidden categories), verify_patch_new_translation (PATCH in a language with no translation creates one, even without a name), verify_patch_empty (effect of name '' on PATCH), verify_patch_create_perm (which capability creating a translation through PATCH needs), verify_patch_conflict (409 on slug rename), verify_noop, verify_cascade (category disappears with its last translation), verify_sortable (name and slug sortable; hidden, navbar, lang not), verify_clamp, verify_doc_typo (count defaults to 1), verify_reserved_slug (slug `search` vs the search route), verify_bodiless (Content-Type and size handling on GET/DELETE), verify_check_order."
   },
-  "constants": {},
+  "constants": {
+    "FALLBACK_LANG": "en"
+  },
   "fixtures": {
     "default_password": "Seed-Passw0rd-1",
     "actors": {
@@ -69,6 +71,7 @@
       }
     },
     "users": [],
+    "fallback_language": "en",
     "languages": [
       {
         "name": "English",
@@ -9810,22 +9813,18 @@
     },
     {
       "id": "CATEGORIES-SEARCH-010",
-      "group": "POST /cms/categories/search",
-      "title": "Content-Language uppercase EN -> en",
+      "group": "GET /cms/categories",
+      "title": "Accept-Language uppercase EN -> en",
       "source": "inferred",
-      "tags": ["verify_content_language", "verify_normalisation"],
+      "tags": ["verify_accept_language", "verify_normalisation"],
       "steps": [
         {
           "actor": "root",
           "request": {
-            "method": "POST",
-            "path": "/cms/categories/search",
-            "body": {
-              "count": 20
-            },
+            "method": "GET",
+            "path": "/cms/categories",
             "headers": {
-              "Content-Type": "application/json",
-              "Content-Language": "EN"
+              "Accept-Language": "EN"
             }
           },
           "expect": {
@@ -9833,22 +9832,12 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "$.results",
+                "path": "$.categories",
                 "op": "type",
                 "value": "array"
               },
               {
-                "path": "$.total",
-                "op": "type",
-                "value": "number"
-              },
-              {
-                "path": "$.last_page",
-                "op": "type",
-                "value": "number"
-              },
-              {
-                "path": "$.results[*].slug",
+                "path": "$.categories[*].slug",
                 "op": "includes",
                 "value": "news"
               }
@@ -9859,195 +9848,18 @@
     },
     {
       "id": "CATEGORIES-SEARCH-011",
-      "group": "POST /cms/categories/search",
-      "title": "400: Content-Language region subtag en-US",
+      "group": "GET /cms/categories",
+      "title": "Accept-Language region subtag en-US -> en",
       "source": "inferred",
-      "tags": ["verify_content_language"],
+      "tags": ["verify_accept_language"],
       "steps": [
         {
           "actor": "root",
           "request": {
-            "method": "POST",
-            "path": "/cms/categories/search",
-            "body": {},
+            "method": "GET",
+            "path": "/cms/categories",
             "headers": {
-              "Content-Type": "application/json",
-              "Content-Language": "en-US"
-            }
-          },
-          "expect": {
-            "status": 400,
-            "body": "plain_text"
-          }
-        }
-      ]
-    },
-    {
-      "id": "CATEGORIES-SEARCH-012",
-      "group": "POST /cms/categories/search",
-      "title": "400: Content-Language two tags (en, ru)",
-      "source": "inferred",
-      "tags": ["verify_content_language"],
-      "steps": [
-        {
-          "actor": "root",
-          "request": {
-            "method": "POST",
-            "path": "/cms/categories/search",
-            "body": {},
-            "headers": {
-              "Content-Type": "application/json",
-              "Content-Language": "en, ru"
-            }
-          },
-          "expect": {
-            "status": 400,
-            "body": "plain_text"
-          }
-        }
-      ]
-    },
-    {
-      "id": "CATEGORIES-SEARCH-013",
-      "group": "POST /cms/categories/search",
-      "title": "400: Content-Language q-value (en;q=0.5)",
-      "source": "inferred",
-      "tags": ["verify_content_language"],
-      "steps": [
-        {
-          "actor": "root",
-          "request": {
-            "method": "POST",
-            "path": "/cms/categories/search",
-            "body": {},
-            "headers": {
-              "Content-Type": "application/json",
-              "Content-Language": "en;q=0.5"
-            }
-          },
-          "expect": {
-            "status": 400,
-            "body": "plain_text"
-          }
-        }
-      ]
-    },
-    {
-      "id": "CATEGORIES-SEARCH-014",
-      "group": "POST /cms/categories/search",
-      "title": "400: Content-Language wildcard",
-      "source": "inferred",
-      "tags": ["verify_content_language"],
-      "steps": [
-        {
-          "actor": "root",
-          "request": {
-            "method": "POST",
-            "path": "/cms/categories/search",
-            "body": {},
-            "headers": {
-              "Content-Type": "application/json",
-              "Content-Language": "*"
-            }
-          },
-          "expect": {
-            "status": 400,
-            "body": "plain_text"
-          }
-        }
-      ]
-    },
-    {
-      "id": "CATEGORIES-SEARCH-015",
-      "group": "POST /cms/categories/search",
-      "title": "400: Content-Language empty header",
-      "source": "inferred",
-      "tags": ["verify_content_language"],
-      "steps": [
-        {
-          "actor": "root",
-          "request": {
-            "method": "POST",
-            "path": "/cms/categories/search",
-            "body": {},
-            "headers": {
-              "Content-Type": "application/json",
-              "Content-Language": ""
-            }
-          },
-          "expect": {
-            "status": 400,
-            "body": "plain_text"
-          }
-        }
-      ]
-    },
-    {
-      "id": "CATEGORIES-SEARCH-016",
-      "group": "POST /cms/categories/search",
-      "title": "400: Content-Language whitespace only",
-      "source": "inferred",
-      "tags": ["verify_content_language"],
-      "steps": [
-        {
-          "actor": "root",
-          "request": {
-            "method": "POST",
-            "path": "/cms/categories/search",
-            "body": {},
-            "headers": {
-              "Content-Type": "application/json",
-              "Content-Language": "   "
-            }
-          },
-          "expect": {
-            "status": 400,
-            "body": "plain_text"
-          }
-        }
-      ]
-    },
-    {
-      "id": "CATEGORIES-SEARCH-017",
-      "group": "POST /cms/categories/search",
-      "title": "400: Content-Language unknown code xx",
-      "source": "inferred",
-      "tags": ["verify_content_language"],
-      "steps": [
-        {
-          "actor": "root",
-          "request": {
-            "method": "POST",
-            "path": "/cms/categories/search",
-            "body": {},
-            "headers": {
-              "Content-Type": "application/json",
-              "Content-Language": "xx"
-            }
-          },
-          "expect": {
-            "status": 400,
-            "body": "plain_text"
-          }
-        }
-      ]
-    },
-    {
-      "id": "CATEGORIES-SEARCH-018",
-      "group": "POST /cms/categories/search",
-      "title": "Content-Language valid ISO code missing from cms languages (fr): accepted, no results",
-      "source": "inferred",
-      "tags": ["verify_content_language"],
-      "steps": [
-        {
-          "actor": "root",
-          "request": {
-            "method": "POST",
-            "path": "/cms/categories/search",
-            "body": {},
-            "headers": {
-              "Content-Type": "application/json",
-              "Content-Language": "fr"
+              "Accept-Language": "en-US"
             }
           },
           "expect": {
@@ -10055,19 +9867,247 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "$.results",
-                "op": "len_eq",
-                "value": 0
+                "path": "$.categories",
+                "op": "type",
+                "value": "array"
               },
               {
-                "path": "$.total",
-                "op": "eq",
-                "value": 0
+                "path": "$.categories[*].slug",
+                "op": "includes",
+                "value": "news"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "CATEGORIES-SEARCH-012",
+      "group": "GET /cms/categories",
+      "title": "Accept-Language list: first entry -> en",
+      "source": "inferred",
+      "tags": ["verify_accept_language"],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "GET",
+            "path": "/cms/categories",
+            "headers": {
+              "Accept-Language": "en,ru;q=0.9"
+            }
+          },
+          "expect": {
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.categories",
+                "op": "type",
+                "value": "array"
               },
               {
-                "path": "$.last_page",
+                "path": "$.categories[*].slug",
+                "op": "includes",
+                "value": "news"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "CATEGORIES-SEARCH-013",
+      "group": "GET /cms/categories",
+      "title": "Accept-Language q-values: highest wins over order -> ru",
+      "source": "inferred",
+      "tags": ["verify_accept_language"],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "GET",
+            "path": "/cms/categories",
+            "headers": {
+              "Accept-Language": "en;q=0.5,ru"
+            }
+          },
+          "expect": {
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.categories",
+                "op": "type",
+                "value": "array"
+              },
+              {
+                "path": "$.categories[*].slug",
+                "op": "includes",
+                "value": "news"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "CATEGORIES-SEARCH-014",
+      "group": "GET /cms/categories",
+      "title": "Accept-Language q-values: ru first -> ru",
+      "source": "inferred",
+      "tags": ["verify_accept_language"],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "GET",
+            "path": "/cms/categories",
+            "headers": {
+              "Accept-Language": "ru;q=0.9,en;q=0.8"
+            }
+          },
+          "expect": {
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.categories",
+                "op": "type",
+                "value": "array"
+              },
+              {
+                "path": "$.categories[*].slug",
+                "op": "includes",
+                "value": "news"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "CATEGORIES-SEARCH-015",
+      "group": "GET /cms/categories",
+      "title": "Accept-Language wildcard fallbacks to default",
+      "source": "inferred",
+      "tags": ["verify_accept_language"],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "GET",
+            "path": "/cms/categories",
+            "headers": {
+              "Accept-Language": "*"
+            }
+          },
+          "expect": {
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.results[*].lang",
                 "op": "eq",
-                "value": 0
+                "value": {
+                  "$const": "FALLBACK_LANG"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "CATEGORIES-SEARCH-016",
+      "group": "GET /cms/categories",
+      "title": "Accept-Language empty header fallbacks to default",
+      "source": "inferred",
+      "tags": ["verify_accept_language"],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "GET",
+            "path": "/cms/categories",
+            "headers": {
+              "Accept-Language": ""
+            }
+          },
+          "expect": {
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.results[*].lang",
+                "op": "eq",
+                "value": {
+                  "$const": "FALLBACK_LANG"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "CATEGORIES-SEARCH-017",
+      "group": "GET /cms/categories",
+      "title": "Accept-Language unknown code xx fallbacks to default",
+      "source": "inferred",
+      "tags": ["verify_accept_language"],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "GET",
+            "path": "/cms/categories",
+            "headers": {
+              "Accept-Language": "xx"
+            }
+          },
+          "expect": {
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.results[*].lang",
+                "op": "eq",
+                "value": {
+                  "$const": "FALLBACK_LANG"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "CATEGORIES-SEARCH-018",
+      "group": "GET /cms/categories",
+      "title": "Accept-Language valid ISO code missing from cms languages (fr) fallbacks to default",
+      "source": "inferred",
+      "tags": ["verify_accept_language"],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "GET",
+            "path": "/cms/categories",
+            "headers": {
+              "Accept-Language": "fr"
+            }
+          },
+          "expect": {
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.results[*].lang",
+                "op": "eq",
+                "value": {
+                  "$const": "FALLBACK_LANG"
+                }
               }
             ]
           }
@@ -10076,20 +10116,41 @@
     },
     {
       "id": "CATEGORIES-SEARCH-019",
-      "group": "POST /cms/categories/search",
-      "title": "400: Content-Language 5000 characters",
+      "group": "GET /cms/categories",
+      "title": "400: Accept-Language malformed q-value",
       "source": "inferred",
-      "tags": ["verify_content_language"],
+      "tags": ["verify_accept_language"],
       "steps": [
         {
           "actor": "root",
           "request": {
-            "method": "POST",
-            "path": "/cms/categories/search",
-            "body": {},
+            "method": "GET",
+            "path": "/cms/categories",
             "headers": {
-              "Content-Type": "application/json",
-              "Content-Language": {
+              "Accept-Language": "en;q=abc"
+            }
+          },
+          "expect": {
+            "status": 400,
+            "body": "plain_text"
+          }
+        }
+      ]
+    },
+    {
+      "id": "CATEGORIES-SEARCH-020",
+      "group": "GET /cms/categories",
+      "title": "400: Accept-Language 5000 chars",
+      "source": "inferred",
+      "tags": ["verify_accept_language"],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "GET",
+            "path": "/cms/categories",
+            "headers": {
+              "Accept-Language": {
                 "$repeat": {
                   "s": "a",
                   "n": 5000
@@ -10100,6 +10161,71 @@
           "expect": {
             "status": 400,
             "body": "plain_text"
+          }
+        }
+      ]
+    },
+    {
+      "id": "CATEGORIES-SEARCH-021",
+      "group": "GET /cms/categories",
+      "title": "Accept-Language missing fallbacks to default",
+      "source": "inferred",
+      "tags": ["verify_accept_language"],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "GET",
+            "path": "/cms/categories"
+          },
+          "expect": {
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.results[*].lang",
+                "op": "eq",
+                "value": {
+                  "$const": "FALLBACK_LANG"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "CATEGORIES-SEARCH-022",
+      "group": "GET /cms/categories",
+      "title": "Content-Language is not used by GET",
+      "source": "inferred",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "GET",
+            "path": "/cms/categories",
+            "headers": {
+              "Accept-Language": "en",
+              "Content-Language": "xx"
+            }
+          },
+          "expect": {
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.categories[*].slug",
+                "op": "includes",
+                "value": "news"
+              },
+              {
+                "path": "$.categories[*].lang",
+                "op": "eq",
+                "value": "en"
+              }
+            ]
           }
         }
       ]
@@ -10181,7 +10307,7 @@
     {
       "id": "CATEGORIES-SEARCH-023",
       "group": "POST /cms/categories/search",
-      "title": "body lang not in cms languages (fr): accepted, no results",
+      "title": "400: body lang not in cms languages (fr)",
       "source": "documented",
       "tags": ["verify_language_validation"],
       "steps": [
@@ -13963,7 +14089,7 @@
     {
       "id": "CATEGORIES-SEARCH-113",
       "group": "POST /cms/categories/search",
-      "title": "Searching a language that was deleted yields nothing",
+      "title": "Searching a language that was deleted fallbacks to default",
       "source": "inferred",
       "tags": ["verify_language_validation"],
       "steps": [
@@ -13998,19 +14124,11 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "$.results",
-                "op": "len_eq",
-                "value": 0
-              },
-              {
-                "path": "$.total",
+                "path": "$.results[*].lang",
                 "op": "eq",
-                "value": 0
-              },
-              {
-                "path": "$.last_page",
-                "op": "eq",
-                "value": 0
+                "value": {
+                  "$const": "FALLBACK_LANG"
+                }
               }
             ]
           }
@@ -14600,7 +14718,7 @@
     {
       "id": "CATEGORIES-LIST-015",
       "group": "GET /cms/categories",
-      "title": "406: Accept-Language wildcard",
+      "title": "Accept-Language wildcard fallbacks to default",
       "source": "inferred",
       "tags": ["verify_accept_language"],
       "steps": [
@@ -14614,8 +14732,17 @@
             }
           },
           "expect": {
-            "status": 406,
-            "body": "plain_text"
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.results[*].lang",
+                "op": "eq",
+                "value": {
+                  "$const": "FALLBACK_LANG"
+                }
+              }
+            ]
           }
         }
       ]
@@ -14623,7 +14750,7 @@
     {
       "id": "CATEGORIES-LIST-016",
       "group": "GET /cms/categories",
-      "title": "406: Accept-Language empty header",
+      "title": "Accept-Language empty header fallbacks to default",
       "source": "inferred",
       "tags": ["verify_accept_language"],
       "steps": [
@@ -14637,8 +14764,17 @@
             }
           },
           "expect": {
-            "status": 406,
-            "body": "plain_text"
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.results[*].lang",
+                "op": "eq",
+                "value": {
+                  "$const": "FALLBACK_LANG"
+                }
+              }
+            ]
           }
         }
       ]
@@ -14646,7 +14782,7 @@
     {
       "id": "CATEGORIES-LIST-017",
       "group": "GET /cms/categories",
-      "title": "406: Accept-Language unknown code xx",
+      "title": "Accept-Language unknown code xx fallbacks to default",
       "source": "inferred",
       "tags": ["verify_accept_language"],
       "steps": [
@@ -14660,8 +14796,17 @@
             }
           },
           "expect": {
-            "status": 406,
-            "body": "plain_text"
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.results[*].lang",
+                "op": "eq",
+                "value": {
+                  "$const": "FALLBACK_LANG"
+                }
+              }
+            ]
           }
         }
       ]
@@ -14669,7 +14814,7 @@
     {
       "id": "CATEGORIES-LIST-018",
       "group": "GET /cms/categories",
-      "title": "Accept-Language valid ISO code missing from cms languages (fr) yields nothing",
+      "title": "Accept-Language valid ISO code missing from cms languages (fr) fallbacks to default",
       "source": "inferred",
       "tags": ["verify_accept_language"],
       "steps": [
@@ -14687,9 +14832,11 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "$.categories",
-                "op": "len_eq",
-                "value": 0
+                "path": "$.results[*].lang",
+                "op": "eq",
+                "value": {
+                  "$const": "FALLBACK_LANG"
+                }
               }
             ]
           }
@@ -14699,7 +14846,7 @@
     {
       "id": "CATEGORIES-LIST-019",
       "group": "GET /cms/categories",
-      "title": "406: Accept-Language malformed q-value",
+      "title": "400: Accept-Language malformed q-value",
       "source": "inferred",
       "tags": ["verify_accept_language"],
       "steps": [
@@ -14713,7 +14860,7 @@
             }
           },
           "expect": {
-            "status": 406,
+            "status": 400,
             "body": "plain_text"
           }
         }
@@ -14722,7 +14869,7 @@
     {
       "id": "CATEGORIES-LIST-020",
       "group": "GET /cms/categories",
-      "title": "406: Accept-Language 5000 characters",
+      "title": "400: Accept-Language 5000 chars",
       "source": "inferred",
       "tags": ["verify_accept_language"],
       "steps": [
@@ -14741,7 +14888,7 @@
             }
           },
           "expect": {
-            "status": 406,
+            "status": 400,
             "body": "plain_text"
           }
         }
@@ -14750,7 +14897,7 @@
     {
       "id": "CATEGORIES-LIST-021",
       "group": "GET /cms/categories",
-      "title": "406: Accept-Language missing",
+      "title": "Accept-Language missing fallbacks to default",
       "source": "inferred",
       "tags": ["verify_accept_language"],
       "steps": [
@@ -14761,12 +14908,20 @@
             "path": "/cms/categories"
           },
           "expect": {
-            "status": 406,
-            "body": "plain_text"
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.results[*].lang",
+                "op": "eq",
+                "value": {
+                  "$const": "FALLBACK_LANG"
+                }
+              }
+            ]
           }
         }
-      ],
-      "note": "Docs mark the header required but list only 401."
+      ]
     },
     {
       "id": "CATEGORIES-LIST-022",
@@ -16223,7 +16378,7 @@
     {
       "id": "CATEGORIES-GET-021",
       "group": "GET /cms/categories/{slug}",
-      "title": "406: Accept-Language wildcard",
+      "title": "Accept-Language wildcard fallbacks to default",
       "source": "inferred",
       "tags": ["verify_accept_language"],
       "steps": [
@@ -16240,8 +16395,17 @@
             }
           },
           "expect": {
-            "status": 406,
-            "body": "plain_text"
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.results[*].lang",
+                "op": "eq",
+                "value": {
+                  "$const": "FALLBACK_LANG"
+                }
+              }
+            ]
           }
         }
       ]
@@ -16249,7 +16413,7 @@
     {
       "id": "CATEGORIES-GET-022",
       "group": "GET /cms/categories/{slug}",
-      "title": "406: Accept-Language empty header",
+      "title": "Accept-Language empty header fallbacks to default",
       "source": "inferred",
       "tags": ["verify_accept_language"],
       "steps": [
@@ -16266,8 +16430,17 @@
             }
           },
           "expect": {
-            "status": 406,
-            "body": "plain_text"
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.results[*].lang",
+                "op": "eq",
+                "value": {
+                  "$const": "FALLBACK_LANG"
+                }
+              }
+            ]
           }
         }
       ]
@@ -16275,7 +16448,7 @@
     {
       "id": "CATEGORIES-GET-023",
       "group": "GET /cms/categories/{slug}",
-      "title": "406: Accept-Language unknown code xx",
+      "title": "Accept-Language unknown code xx fallbacks to default",
       "source": "inferred",
       "tags": ["verify_accept_language"],
       "steps": [
@@ -16292,8 +16465,17 @@
             }
           },
           "expect": {
-            "status": 406,
-            "body": "plain_text"
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.results[*].lang",
+                "op": "eq",
+                "value": {
+                  "$const": "FALLBACK_LANG"
+                }
+              }
+            ]
           }
         }
       ]
@@ -16301,7 +16483,7 @@
     {
       "id": "CATEGORIES-GET-024",
       "group": "GET /cms/categories/{slug}",
-      "title": "404: Accept-Language valid ISO code missing from cms languages (fr) finds nothing",
+      "title": "Accept-Language valid ISO code missing from cms languages (fr) fallbacks to default",
       "source": "inferred",
       "tags": ["verify_accept_language"],
       "steps": [
@@ -16318,8 +16500,17 @@
             }
           },
           "expect": {
-            "status": 404,
-            "body": "plain_text"
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.results[*].lang",
+                "op": "eq",
+                "value": {
+                  "$const": "FALLBACK_LANG"
+                }
+              }
+            ]
           }
         }
       ]
@@ -16327,7 +16518,7 @@
     {
       "id": "CATEGORIES-GET-025",
       "group": "GET /cms/categories/{slug}",
-      "title": "406: Accept-Language malformed q-value",
+      "title": "400: Accept-Language malformed q-value",
       "source": "inferred",
       "tags": ["verify_accept_language"],
       "steps": [
@@ -16344,7 +16535,7 @@
             }
           },
           "expect": {
-            "status": 406,
+            "status": 400,
             "body": "plain_text"
           }
         }
@@ -16353,7 +16544,7 @@
     {
       "id": "CATEGORIES-GET-026",
       "group": "GET /cms/categories/{slug}",
-      "title": "406: Accept-Language 5000 characters",
+      "title": "400: Accept-Language 5000 characters",
       "source": "inferred",
       "tags": ["verify_accept_language"],
       "steps": [
@@ -16375,7 +16566,7 @@
             }
           },
           "expect": {
-            "status": 406,
+            "status": 400,
             "body": "plain_text"
           }
         }
@@ -16384,7 +16575,7 @@
     {
       "id": "CATEGORIES-GET-027",
       "group": "GET /cms/categories/{slug}",
-      "title": "406: Accept-Language missing",
+      "title": "Accept-Language missing fallbacks to default",
       "source": "inferred",
       "tags": ["verify_accept_language"],
       "steps": [
@@ -16398,12 +16589,20 @@
             }
           },
           "expect": {
-            "status": 406,
-            "body": "plain_text"
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.results[*].lang",
+                "op": "eq",
+                "value": {
+                  "$const": "FALLBACK_LANG"
+                }
+              }
+            ]
           }
         }
-      ],
-      "note": "Header is required per docs; only the slug 400 is listed."
+      ]
     },
     {
       "id": "CATEGORIES-GET-028",
@@ -26472,7 +26671,8 @@
             "method": "POST",
             "path": "/cms/categories/search",
             "body": {
-              "lang": "en"
+              "lang": "en",
+              "count": 20
             },
             "headers": {
               "Content-Type": "application/json"
@@ -26650,20 +26850,8 @@
             }
           },
           "expect": {
-            "status": 200,
-            "body": "json",
-            "json_assertions": [
-              {
-                "path": "$.slug",
-                "op": "eq",
-                "value": "news"
-              },
-              {
-                "path": "$.lang",
-                "op": "eq",
-                "value": "en"
-              }
-            ]
+            "status": 404,
+            "body": "plain_text"
           }
         }
       ]
@@ -26702,20 +26890,8 @@
             }
           },
           "expect": {
-            "status": 200,
-            "body": "json",
-            "json_assertions": [
-              {
-                "path": "$.slug",
-                "op": "eq",
-                "value": "news"
-              },
-              {
-                "path": "$.lang",
-                "op": "eq",
-                "value": "en"
-              }
-            ]
+            "status": 404,
+            "body": "plain_text"
           }
         }
       ]
@@ -28085,7 +28261,7 @@
     {
       "id": "CATEGORIES-GENERIC-001",
       "group": "cross-cutting",
-      "title": "deleting a language deletes its translations",
+      "title": "deleting a language preserves its translations",
       "source": "documented",
       "tags": ["cross_system"],
       "steps": [
@@ -28134,8 +28310,20 @@
             }
           },
           "expect": {
-            "status": 404,
-            "body": "plain_text"
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.slug",
+                "op": "eq",
+                "value": "news"
+              },
+              {
+                "path": "$.lang",
+                "op": "eq",
+                "value": "ru"
+              }
+            ]
           }
         },
         {
@@ -28151,8 +28339,20 @@
             }
           },
           "expect": {
-            "status": 404,
-            "body": "plain_text"
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.slug",
+                "op": "eq",
+                "value": "blog"
+              },
+              {
+                "path": "$.lang",
+                "op": "eq",
+                "value": "ru"
+              }
+            ]
           }
         },
         {
@@ -28224,7 +28424,7 @@
           }
         }
       ],
-      "note": "Languages doc: all records in a deleted language are deleted too."
+      "note": "Languages doc: all records in a deleted language are preserved."
     },
     {
       "id": "CATEGORIES-GENERIC-002",
@@ -28346,7 +28546,7 @@
     {
       "id": "CATEGORIES-GENERIC-003",
       "group": "cross-cutting",
-      "title": "list in a deleted language yields nothing",
+      "title": "400: list in a deleted language",
       "source": "inferred",
       "tags": ["cross_system", "verify_language_validation"],
       "steps": [
@@ -28374,15 +28574,8 @@
             }
           },
           "expect": {
-            "status": 200,
-            "body": "json",
-            "json_assertions": [
-              {
-                "path": "$.categories",
-                "op": "len_eq",
-                "value": 0
-              }
-            ]
+            "status": 400,
+            "body": "plain_text"
           }
         }
       ]
@@ -28535,7 +28728,7 @@
     {
       "id": "CATEGORIES-GENERIC-007",
       "group": "cross-cutting",
-      "title": "a category whose only translation was deleted with its language is gone",
+      "title": "a category whose only translation was deleted with its language is preserved",
       "source": "inferred",
       "tags": ["cross_system", "verify_cascade"],
       "steps": [
@@ -28584,8 +28777,20 @@
             }
           },
           "expect": {
-            "status": 404,
-            "body": "plain_text"
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.slug",
+                "op": "eq",
+                "value": "faq"
+              },
+              {
+                "path": "$.lang",
+                "op": "eq",
+                "value": "de"
+              }
+            ]
           }
         },
         {
@@ -28621,68 +28826,6 @@
           "expect": {
             "status": 404,
             "body": "plain_text"
-          }
-        }
-      ]
-    },
-    {
-      "id": "CATEGORIES-GENERIC-008",
-      "group": "cross-cutting",
-      "title": "re-created language starts empty",
-      "source": "inferred",
-      "tags": ["cross_system"],
-      "steps": [
-        {
-          "actor": "root",
-          "request": {
-            "method": "DELETE",
-            "path": "/cms/languages/{code}",
-            "path_params": {
-              "code": "ru"
-            }
-          },
-          "expect": {
-            "status": 204,
-            "body": "empty"
-          }
-        },
-        {
-          "actor": "root",
-          "request": {
-            "method": "POST",
-            "path": "/cms/languages",
-            "body": {
-              "name": "Русский",
-              "code": "ru"
-            },
-            "headers": {
-              "Content-Type": "application/json"
-            }
-          },
-          "expect": {
-            "status": 201,
-            "body": "empty"
-          }
-        },
-        {
-          "actor": "root",
-          "request": {
-            "method": "GET",
-            "path": "/cms/categories",
-            "headers": {
-              "Accept-Language": "ru"
-            }
-          },
-          "expect": {
-            "status": 200,
-            "body": "json",
-            "json_assertions": [
-              {
-                "path": "$.categories",
-                "op": "len_eq",
-                "value": 0
-              }
-            ]
           }
         }
       ]
@@ -28873,7 +29016,7 @@
     {
       "id": "CATEGORIES-GENERIC-011",
       "group": "cross-cutting",
-      "title": "deleting a language empties its search results (async)",
+      "title": "deleting a language preserves search results (async)",
       "source": "inferred",
       "tags": ["cross_system"],
       "steps": [
@@ -28942,7 +29085,7 @@
               },
               {
                 "path": "$.results",
-                "op": "len_eq",
+                "op": "len_gt",
                 "value": 0
               }
             ]

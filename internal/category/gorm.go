@@ -146,7 +146,8 @@ func (r *GORMRepository) GetTranslations(ctx context.Context, slug string) ([]do
 
 	result := r.db.WithContext(ctx).Model(&RecordTranslation{}).
 		Preload("Category").
-		Where("category_slug = ?", slug).Find(&categories)
+		Where("category_slug = ?", slug).
+		Find(&categories)
 
 	if result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {

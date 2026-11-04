@@ -18,6 +18,8 @@ type KeyConfig struct {
 type Keyspace interface {
 	Key(id string) string
 	List(name string) string
+	KeyWithSuffix(id string, suffix string) string
+	ListWithSuffix(name string, suffix string) string
 }
 
 type SimpleKeyspace struct {
@@ -58,10 +60,25 @@ func NewHashedKeyspace(cfg KeyConfig, entity string) (*HashedKeyspace, error) {
 func (k *SimpleKeyspace) Key(id string) string    { return k.base + ":item:" + id }
 func (k *SimpleKeyspace) List(name string) string { return k.base + ":list:" + name }
 
+func (k *SimpleKeyspace) KeyWithSuffix(id string, suffix string) string {
+	return k.base + ":item:" + id + ":" + suffix
+}
+func (k *SimpleKeyspace) ListWithSuffix(name string, suffix string) string {
+	return k.base + ":list:" + name + ":" + suffix
+}
+
 // '{', '}' and '%' are escaped with their web code
 func (k *HashedKeyspace) Key(id string) string {
 	return k.prefix.base + ":item:{" + escaper.Replace(id) + "}"
 }
 func (k *HashedKeyspace) List(name string) string {
 	return k.prefix.base + ":list:{" + escaper.Replace(name) + "}"
+}
+
+// '{', '}' and '%' are escaped with their web code
+func (k *HashedKeyspace) KeyWithSuffix(id string, suffix string) string {
+	return k.prefix.base + ":item:{" + escaper.Replace(id) + "}:" + suffix
+}
+func (k *HashedKeyspace) ListWithSuffix(name string, suffix string) string {
+	return k.prefix.base + ":list:{" + escaper.Replace(name) + "}:" + suffix
 }

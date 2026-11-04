@@ -5,49 +5,9 @@ import (
 	"fmt"
 	"math"
 	"reflect"
-	"strings"
 )
 
 type JSONValue = any
-
-func ResolvePath(values map[string]JSONValue, path string) ([]JSONValue, error) {
-	currents := []JSONValue{values}
-	if path == "" || path == "$" {
-		return currents, nil
-	}
-	parts := strings.Split(path, ".")
-	for _, part := range parts {
-		if part == "" || part == "$" {
-			continue
-		}
-		key := part
-		expand := strings.HasSuffix(part, "[*]")
-		expanded := make([]JSONValue, 0, len(currents))
-		if expand {
-			key = strings.TrimSuffix(part, "[*]")
-		}
-
-		for _, current := range currents {
-			obj, ok := current.(map[string]JSONValue)
-			if !ok {
-				return nil, fmt.Errorf("values.%s, expected object, got %T", key, current)
-			}
-			if expand {
-				arr, ok := obj[key].([]JSONValue)
-				if !ok {
-					return nil, fmt.Errorf("values.%s, expected array, got %T", key, current)
-				}
-				for _, val := range arr {
-					expanded = append(expanded, val)
-				}
-			} else {
-				expanded = append(expanded, obj[key])
-			}
-		}
-		currents = expanded
-	}
-	return currents, nil
-}
 
 func ToLen(v JSONValue) (int, bool) {
 	switch n := v.(type) {

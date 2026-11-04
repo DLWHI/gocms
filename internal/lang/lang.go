@@ -62,17 +62,6 @@ func NormalizeLangCode(value string) (string, error) {
 	return normalized, nil
 }
 
-func ToISO639_1Code(value string) (string, error) {
-	if len(value) != domain.LangISO639_1Length {
-		return "", fmt.Errorf("%w: invalid language code", domain.ErrInval)
-	}
-	normalized := strings.ToLower(strings.TrimSpace(value))
-	if !IsISO639_1Code(normalized) {
-		return "", fmt.Errorf("%w: invalid language code", domain.ErrInval)
-	}
-	return normalized, nil
-}
-
 func IsISO639_1Code(value string) bool {
 	_, exists := iso6391[value]
 	return exists

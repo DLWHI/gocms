@@ -68,21 +68,17 @@ func (s *LocalService) DefaultLang() Language {
 
 func (s *LocalService) ResolveLang(ctx context.Context, code string) (string, error) {
 	normalized := strings.TrimSpace(code)
-	if normalized == "" {
+	if normalized != "" && !IsISO639_1Code(normalized) {
+		return "", fmt.Errorf("%w: invalid language code", domain.ErrInval)
+	}
+	if !s.IsSupported(normalized) {
 		code, ok := ctx.Value(domain.LangContextKey).(string)
 		if !ok {
 			return "", fmt.Errorf("%w: invalid language code", domain.ErrInval)
 		} else if code == "" {
 			return "", fmt.Errorf("%w: missing language code", domain.ErrInval)
 		}
-
 		return code, nil
-	}
-	if !IsISO639_1Code(normalized) {
-		return "", fmt.Errorf("%w: invalid language code", domain.ErrInval)
-	}
-	if !s.IsSupported(normalized) {
-		return "", fmt.Errorf("%w: language is not supported", domain.ErrInval)
 	}
 	return normalized, nil
 }

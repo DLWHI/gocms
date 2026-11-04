@@ -40,9 +40,12 @@ func (s *Service) Create(ctx context.Context, category *domain.Category) (string
 	}
 	created.Slug = slug
 
-	lang, err := s.langs.ResolveLang(ctx, category.Lang)
+	lang, err := lang.NormalizeLangCode(category.Lang)
 	if err != nil {
 		return "", err
+	}
+	if !s.langs.IsSupported(lang) {
+		return "", fmt.Errorf("%w: unsupported language", domain.ErrInval)
 	}
 	created.Lang = lang
 
@@ -72,9 +75,12 @@ func (s *Service) Edit(ctx context.Context, slug string, diff *domain.CategoryDi
 		return "", err
 	}
 
-	lang, err := s.langs.ResolveLang(ctx, diff.Lang)
+	lang, err := lang.NormalizeLangCode(diff.Lang)
 	if err != nil {
 		return "", err
+	}
+	if !s.langs.IsSupported(lang) {
+		return "", fmt.Errorf("%w: unsupported language", domain.ErrInval)
 	}
 
 	if diff.Slug != nil {

@@ -23,9 +23,9 @@ type Record struct {
 	Views       uint              `gorm:"not null;default:0"`
 	Preview     string            ``
 	Author      string            `gorm:"size:128;"`
-	Editor      editor.Record     `gorm:"foreignKey:Author;references:Username;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	Editor      editor.Record     `gorm:"foreignKey:Author;references:Slug;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 	CreatedBy   string            `gorm:"size:64;"`
-	User        user.Record       `gorm:"foreignKey:Author;references:Username;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	User        user.Record       `gorm:"foreignKey:CreatedBy;references:Username;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 	Categories  []category.Record `gorm:"many2many:post_categories;foreignKey:ID;joinForeignKey:PostID;references:Slug;joinReferences:CategorySlug;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;"`
 	Version     uint              `gorm:"default:1"`
 }

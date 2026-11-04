@@ -21,18 +21,16 @@ const (
 )
 
 type Router struct {
-	mux     *http.ServeMux
-	auth    server.Middleware
-	reqLang server.Middleware
-	resLang server.Middleware
+	mux  *http.ServeMux
+	auth server.Middleware
+	lang server.Middleware
 }
 
 func NewRouter(langs lang.Service, sessions auth.SessionRepository) *Router {
 	return &Router{
-		mux:     http.NewServeMux(),
-		auth:    auth.NewSessionMiddleware(sessions).Wrap,
-		reqLang: lang.NewRequestMiddleware(langs).Wrap,
-		resLang: lang.NewResponseMiddleware(langs).Wrap,
+		mux:  http.NewServeMux(),
+		auth: auth.NewSessionMiddleware(sessions).Wrap,
+		lang: lang.NewMiddleware(langs).Wrap,
 	}
 }
 
@@ -44,11 +42,11 @@ func (r *Router) AddAuthRoutes(handler *auth.Handler) {
 	limiter := server.NewRequestLimiter(RequestLimit)
 	m := server.ChainMiddleware(
 		limiter.Wrap,
-		server.RequireJSON,
 		r.auth,
+		server.RequireJSON,
 	)
 
-	r.mux.Handle("POST /cms/login", limiter.Wrap(handler.Login))
+	r.mux.Handle("POST /cms/login", limiter.Wrap(server.RequireJSON(handler.Login)))
 	r.mux.Handle("PATCH /cms/passwd", m(handler.ChangePasswd))
 	r.mux.Handle("POST /cms/logout", m(handler.Logout))
 	r.mux.Handle("GET /cms/profile", m(handler.Profile))
@@ -59,8 +57,8 @@ func (r *Router) AddUserRoutes(handler *user.Handler) {
 	limiter := server.NewRequestLimiter(RequestLimit)
 	m := server.ChainMiddleware(
 		limiter.Wrap,
-		server.RequireJSON,
 		r.auth,
+		server.RequireJSON,
 	)
 
 	r.mux.Handle("POST /cms/users", m(handler.Create))
@@ -77,15 +75,16 @@ func (r *Router) AddEditorRoutes(handler *editor.Handler) {
 	streamLimiter := server.NewRequestLimiter(ContentLimit)
 	m := server.ChainMiddleware(
 		streamLimiter.Wrap,
-		server.RequireJSON,
 		r.auth,
+		server.RequireJSON,
+		r.lang,
 	)
 
-	r.mux.Handle("GET /cms/editors", m(r.resLang(handler.All)))
-	r.mux.Handle("GET /cms/editors/{slug}", m(r.resLang(handler.Get)))
-	r.mux.Handle("POST /cms/editors", m(r.reqLang(handler.Create)))
-	r.mux.Handle("POST /cms/editors/search", m(r.resLang(handler.Search)))
-	r.mux.Handle("PATCH /cms/editors/{slug}", m(r.reqLang(handler.Update)))
+	r.mux.Handle("GET /cms/editors", m(handler.All))
+	r.mux.Handle("GET /cms/editors/{slug}", m(handler.Get))
+	r.mux.Handle("POST /cms/editors", m(handler.Create))
+	r.mux.Handle("POST /cms/editors/search", m(handler.Search))
+	r.mux.Handle("PATCH /cms/editors/{slug}", m(handler.Update))
 	r.mux.Handle("DELETE /cms/editors/{slug}", m(handler.Delete))
 }
 
@@ -93,8 +92,8 @@ func (r *Router) AddLangRoutes(handler *lang.Handler) {
 	limiter := server.NewRequestLimiter(RequestLimit)
 	m := server.ChainMiddleware(
 		limiter.Wrap,
-		server.RequireJSON,
 		r.auth,
+		server.RequireJSON,
 	)
 
 	r.mux.Handle("GET /cms/languages", m(handler.Get))
@@ -106,8 +105,8 @@ func (r *Router) AddPostRoutes(handler *post.Handler) {
 	streamLimiter := server.NewRequestLimiter(ContentLimit)
 	m := server.ChainMiddleware(
 		streamLimiter.Wrap,
-		server.RequireJSON,
 		r.auth,
+		server.RequireJSON,
 	)
 
 	r.mux.Handle("POST /cms/posts", m(handler.Create))
@@ -123,15 +122,16 @@ func (r *Router) AddCategoryRoutes(handler *category.Handler) {
 	limiter := server.NewRequestLimiter(RequestLimit)
 	m := server.ChainMiddleware(
 		limiter.Wrap,
-		server.RequireJSON,
 		r.auth,
+		server.RequireJSON,
+		r.lang,
 	)
 
-	r.mux.Handle("GET /cms/categories", r.resLang(m(handler.All)))
-	r.mux.Handle("GET /cms/categories/{slug}", r.resLang(m(handler.Get)))
-	r.mux.Handle("POST /cms/categories", r.reqLang(m(handler.Create)))
-	r.mux.Handle("POST /cms/categories/search", r.resLang(m(handler.Search)))
-	r.mux.Handle("PATCH /cms/categories/{slug}", r.reqLang(m(handler.Update)))
+	r.mux.Handle("GET /cms/categories", m(handler.All))
+	r.mux.Handle("GET /cms/categories/{slug}", m(handler.Get))
+	r.mux.Handle("POST /cms/categories", r.lang(m(handler.Create)))
+	r.mux.Handle("POST /cms/categories/search", m(handler.Search))
+	r.mux.Handle("PATCH /cms/categories/{slug}", m(handler.Update))
 	r.mux.Handle("DELETE /cms/categories/{slug}", m(handler.Delete))
 }
 
@@ -139,8 +139,8 @@ func (r *Router) AddAdsRoutes(handler *ads.Handler) {
 	limiter := server.NewRequestLimiter(RequestLimit)
 	m := server.ChainMiddleware(
 		limiter.Wrap,
-		server.RequireJSON,
 		r.auth,
+		server.RequireJSON,
 	)
 
 	r.mux.Handle("POST /cms/ads/search", m(handler.Search))
@@ -155,12 +155,12 @@ func (r *Router) AddStorageRoutes(handler *storage.Handler) {
 	requestLimiter := server.NewRequestLimiter(RequestLimit)
 	streamLimiter := server.NewRequestLimiter(FileLimit)
 	m := server.ChainMiddleware(
-		requestLimiter.Wrap,
 		r.auth,
+		requestLimiter.Wrap,
 	)
 	s := server.ChainMiddleware(
-		streamLimiter.Wrap,
 		r.auth,
+		streamLimiter.Wrap,
 	)
 
 	r.mux.Handle("GET /storage/tree/{path...}", m(handler.Tree))
@@ -176,7 +176,7 @@ func (r *Router) AddPublicoutes(handler *public.Handler) {
 	m := server.ChainMiddleware(
 		limiter.Wrap,
 		server.RequireJSON,
-		r.reqLang,
+		r.lang,
 	)
 
 	r.mux.Handle("GET /public/languages", limiter.Wrap(handler.LanguagesAll))

@@ -277,6 +277,13 @@ func (rd *RecordTranslation) ToDomain() *domain.Editor {
 func ToRecord(data *domain.Editor) *RecordTranslation {
 	var res RecordTranslation
 
+	if data.DeletedAt != nil {
+		res.Editor.DeletedAt = gorm.DeletedAt{
+			Valid: true,
+			Time:  time.Unix(*data.DeletedAt, 0),
+		}
+	}
+
 	res.Editor.Slug = data.Slug
 	res.EditorSlug = data.Slug
 	res.Editor.Owner = data.Owner

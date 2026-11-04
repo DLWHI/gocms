@@ -3,7 +3,6 @@ package category
 import (
 	"context"
 	"errors"
-	"fmt"
 	"gocms/internal/auth"
 	"gocms/internal/domain"
 	"gocms/internal/lang"
@@ -12,18 +11,16 @@ import (
 )
 
 type Service struct {
-	repo  Repository
-	se    SearchEngine
-	langs lang.Service
-	auth  auth.Service
+	repo Repository
+	se   SearchEngine
+	auth auth.Service
 }
 
-func NewService(repo Repository, se SearchEngine, langs lang.Service, auth auth.Service) *Service {
+func NewService(repo Repository, se SearchEngine, auth auth.Service) *Service {
 	return &Service{
-		repo:  repo,
-		se:    se,
-		langs: langs,
-		auth:  auth,
+		repo: repo,
+		se:   se,
+		auth: auth,
 	}
 }
 
@@ -40,12 +37,9 @@ func (s *Service) Create(ctx context.Context, category *domain.Category) (string
 	}
 	created.Slug = slug
 
-	lang, err := lang.NormalizeLangCode(category.Lang)
+	lang, err := lang.ResolveLang(ctx)
 	if err != nil {
 		return "", err
-	}
-	if !s.langs.IsSupported(lang) {
-		return "", fmt.Errorf("%w: unsupported language", domain.ErrInval)
 	}
 	created.Lang = lang
 
@@ -75,12 +69,9 @@ func (s *Service) Edit(ctx context.Context, slug string, diff *domain.CategoryDi
 		return "", err
 	}
 
-	lang, err := lang.NormalizeLangCode(diff.Lang)
+	lang, err := lang.ResolveLang(ctx)
 	if err != nil {
 		return "", err
-	}
-	if !s.langs.IsSupported(lang) {
-		return "", fmt.Errorf("%w: unsupported language", domain.ErrInval)
 	}
 
 	if diff.Slug != nil {
@@ -114,12 +105,12 @@ func (s *Service) Edit(ctx context.Context, slug string, diff *domain.CategoryDi
 }
 
 func (s *Service) Get(ctx context.Context, slug string) (*domain.Category, error) {
-	lang, ok := ctx.Value(domain.LangContextKey).(string)
-	if !ok {
-		return nil, fmt.Errorf("%w: missing language", domain.ErrInval)
+	lang, err := lang.ResolveLang(ctx)
+	if err != nil {
+		return nil, err
 	}
 
-	slug, err := domain.NormalizeSlug(slug)
+	slug, err = domain.NormalizeSlug(slug)
 	if err != nil {
 		return nil, err
 	}
@@ -136,9 +127,9 @@ func (s *Service) Get(ctx context.Context, slug string) (*domain.Category, error
 }
 
 func (s *Service) All(ctx context.Context) ([]domain.Category, error) {
-	lang, ok := ctx.Value(domain.LangContextKey).(string)
-	if !ok {
-		return nil, fmt.Errorf("%w: missing language", domain.ErrInval)
+	lang, err := lang.ResolveLang(ctx)
+	if err != nil {
+		return nil, err
 	}
 
 	categories, err := s.repo.GetAll(ctx, lang)
@@ -151,9 +142,9 @@ func (s *Service) All(ctx context.Context) ([]domain.Category, error) {
 }
 
 func (s *Service) AllNotHidden(ctx context.Context) ([]domain.Category, error) {
-	lang, ok := ctx.Value(domain.LangContextKey).(string)
-	if !ok {
-		return nil, fmt.Errorf("%w: missing language", domain.ErrInval)
+	lang, err := lang.ResolveLang(ctx)
+	if err != nil {
+		return nil, err
 	}
 
 	categories, err := s.repo.GetAll(ctx, lang)
@@ -177,13 +168,12 @@ func (s *Service) AllNotHidden(ctx context.Context) ([]domain.Category, error) {
 func (s *Service) Search(ctx context.Context, filters *SearchParams) (*SearchResult, error) {
 	search.ClampParams(&filters.Params)
 
-	lang, err := s.langs.ResolveLang(ctx, filters.Lang)
+	lang, err := lang.ResolveLang(ctx)
 	if err != nil {
 		return nil, err
 	}
-	filters.Lang = lang
 
-	categories, err := s.se.Search(ctx, filters)
+	categories, err := s.se.Search(ctx, lang, filters)
 	if err != nil {
 		if !errors.Is(err, domain.ErrInval) {
 			logger.Error("Category.Service", "Failed to search categories", err)

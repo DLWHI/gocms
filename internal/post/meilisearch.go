@@ -12,11 +12,6 @@ import (
 	"github.com/meilisearch/meilisearch-go"
 )
 
-type SearchDocument struct {
-	domain.Post
-	ID string `json:"id"`
-}
-
 type MeilisearchEngine struct {
 	search search.MeilisearchIndex
 }
@@ -38,8 +33,8 @@ func NewMeilisearchEngine(client meilisearch.ServiceManager, index string) *Meil
 	}
 }
 
-func (*MeilisearchEngine) buildFilter(params *SearchParams) string {
-	var clauses []string
+func (*MeilisearchEngine) buildFilter(params *SearchParams, language string) string {
+	clauses := []string{fmt.Sprintf("lang = %q", language)}
 
 	if params.ID > 0 {
 		clauses = append(clauses, fmt.Sprintf("post_id = %d", params.ID))
@@ -67,10 +62,6 @@ func (*MeilisearchEngine) buildFilter(params *SearchParams) string {
 		}
 		authorClauses := fmt.Sprintf("author IN [%s]", strings.Join(params.Authors, ", "))
 		clauses = append(clauses, authorClauses)
-	}
-
-	if params.Language != "" {
-		clauses = append(clauses, fmt.Sprintf("language = %q", params.Language))
 	}
 
 	if params.CreatedAfter != nil {
@@ -114,15 +105,14 @@ func (*MeilisearchEngine) buildSort(params *SearchParams) []string {
 
 func (r *MeilisearchEngine) Index(ctx context.Context, id uint, group ...domain.Post) error {
 	index := r.search.Client.Index(r.search.Config.Uid)
-	docs := make([]SearchDocument, 0, len(group))
 	for _, post := range group {
 		if post.PostID != id {
 			return fmt.Errorf("%w: group item not from provided post id", domain.ErrInval)
 		}
-		docs = append(docs, *ToSearchDocument(&post))
+		post.ID = fmt.Sprintf("%d-%s", post.PostID, post.Language)
 	}
 
-	task, err := index.AddDocumentsWithContext(ctx, docs, nil)
+	task, err := index.AddDocumentsWithContext(ctx, group, nil)
 	if err != nil {
 		return err
 	}
@@ -162,12 +152,12 @@ func (r *MeilisearchEngine) Delete(ctx context.Context, id uint) error {
 	return nil
 }
 
-func (r *MeilisearchEngine) Search(ctx context.Context, params *SearchParams) (*SearchResult, error) {
+func (r *MeilisearchEngine) Search(ctx context.Context, language string, params *SearchParams) (*SearchResult, error) {
 	var results SearchResult
 	req := &meilisearch.SearchRequest{
 		HitsPerPage:          &params.Count,
 		Page:                 params.Page,
-		Filter:               r.buildFilter(params),
+		Filter:               r.buildFilter(params, language),
 		Sort:                 r.buildSort(params),
 		AttributesToRetrieve: params.Select,
 	}
@@ -211,15 +201,4 @@ func (r *MeilisearchEngine) Configure(ctx context.Context) error {
 
 func (ms *MeilisearchEngine) Destroy(ctx context.Context) error {
 	return ms.search.Destroy(ctx)
-}
-
-func (p *SearchDocument) ToDomain() *domain.Post {
-	return &p.Post
-}
-
-func ToSearchDocument(p *domain.Post) *SearchDocument {
-	return &SearchDocument{
-		ID:   fmt.Sprintf("%d-%s", p.PostID, p.Language),
-		Post: *p,
-	}
 }

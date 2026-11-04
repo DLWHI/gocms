@@ -7,9 +7,6 @@ import (
 	"gocms/internal/editor"
 	"gocms/internal/lang"
 	"gocms/internal/user"
-	"time"
-
-	"gorm.io/gorm"
 )
 
 type Fixtures struct {
@@ -54,20 +51,10 @@ func (f *Fixtures) ApplyFixtures(ctx context.Context, e *Environment) error {
 	for _, u := range f.Users {
 		record := user.ToRecord(&u)
 		record.Password = hash
-		if u.SuspendedAt != nil {
-			record.SuspendedAt = gorm.DeletedAt{
-				Valid: true,
-				Time:  time.Unix(*u.SuspendedAt, 0),
-			}
-		}
-		if u.LastLogin != nil {
-			t := time.Unix(*u.LastLogin, 0)
-			record.LastLogin = &t
-		}
 		if err := db.WithContext(ctx).Save(record).Error; err != nil {
 			return err
 		}
-		task, err := ms.UsersIndex.AddDocumentsWithContext(ctx, user.ToSearchDocument(&u), nil)
+		task, err := ms.UsersIndex.AddDocumentsWithContext(ctx, &u, nil)
 		if err != nil {
 			return err
 		}
@@ -86,17 +73,13 @@ func (f *Fixtures) ApplyFixtures(ctx context.Context, e *Environment) error {
 		return err
 	}
 
-	if err := e.Lang.SetDefaultLang(f.FallbackLanguage); err != nil {
-		return err
-	}
-
 	for _, c := range f.Categories {
 		record := category.ToRecord(&c)
 		if err := db.WithContext(ctx).Save(record).Error; err != nil {
 			return err
 		}
 
-		task, err := ms.CategoriesIndex.AddDocumentsWithContext(ctx, category.ToSearchDocument(&c), nil)
+		task, err := ms.CategoriesIndex.AddDocumentsWithContext(ctx, &c, nil)
 		if err != nil {
 			return err
 		}
@@ -107,17 +90,11 @@ func (f *Fixtures) ApplyFixtures(ctx context.Context, e *Environment) error {
 
 	for _, e := range f.Editors {
 		record := editor.ToRecord(&e)
-		if e.DeletedAt != nil {
-			record.Editor.DeletedAt = gorm.DeletedAt{
-				Valid: true,
-				Time:  time.Unix(*e.DeletedAt, 0),
-			}
-		}
 		if err := db.WithContext(ctx).Save(record).Error; err != nil {
 			return err
 		}
 
-		task, err := ms.EditorsIndex.AddDocumentsWithContext(ctx, editor.ToSearchDocument(&e), nil)
+		task, err := ms.EditorsIndex.AddDocumentsWithContext(ctx, &e, nil)
 		if err != nil {
 			return err
 		}

@@ -77,11 +77,11 @@ func (r *Router) AddEditorRoutes(handler *editor.Handler) {
 		r.lang,
 	)
 
-	r.mux.Handle("GET /cms/editors", m(handler.All))
-	r.mux.Handle("GET /cms/editors/{slug}", m(handler.Get))
-	r.mux.Handle("POST /cms/editors", m(handler.Create))
-	r.mux.Handle("POST /cms/editors/search", m(handler.Search))
-	r.mux.Handle("PATCH /cms/editors/{slug}", m(handler.Update))
+	r.mux.Handle("GET /cms/editors/{lang}", m(handler.All))
+	r.mux.Handle("GET /cms/editors/{lang}/{slug}", m(handler.Get))
+	r.mux.Handle("POST /cms/editors/{lang}", m(handler.Create))
+	r.mux.Handle("POST /cms/editors/{lang}/search", m(handler.Search))
+	r.mux.Handle("PATCH /cms/editors/{lang}/{slug}", m(handler.Update))
 	r.mux.Handle("DELETE /cms/editors/{slug}", m(handler.Delete))
 }
 
@@ -125,11 +125,11 @@ func (r *Router) AddCategoryRoutes(handler *category.Handler) {
 		r.lang,
 	)
 
-	r.mux.Handle("GET /cms/categories", m(handler.All))
-	r.mux.Handle("GET /cms/categories/{slug}", m(handler.Get))
-	r.mux.Handle("POST /cms/categories", m(handler.Create))
-	r.mux.Handle("POST /cms/categories/search", m(handler.Search))
-	r.mux.Handle("PATCH /cms/categories/{slug}", m(handler.Update))
+	r.mux.Handle("GET /cms/categories/{lang}", m(handler.All))
+	r.mux.Handle("GET /cms/categories/{lang}/{slug}", m(handler.Get))
+	r.mux.Handle("POST /cms/categories/{lang}", m(handler.Create))
+	r.mux.Handle("POST /cms/categories/{lang}/search", m(handler.Search))
+	r.mux.Handle("PATCH /cms/categories/{lang}/{slug}", m(handler.Update))
 	r.mux.Handle("DELETE /cms/categories/{slug}", m(handler.Delete))
 }
 

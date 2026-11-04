@@ -2,8 +2,11 @@ package lang
 
 import (
 	"context"
-	"gocms/internal/domain"
 	"net/http"
+)
+
+const (
+	ContextKey = "lang"
 )
 
 type Middleware struct {
@@ -30,7 +33,7 @@ func (m *Middleware) Wrap(next http.Handler) http.Handler {
 				http.Error(w, "Invalid language code", http.StatusNotAcceptable)
 				return
 			}
-			ctx = context.WithValue(ctx, domain.LangContextKey, lang)
+			ctx = context.WithValue(ctx, ContextKey, lang)
 		}
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})

@@ -48,7 +48,8 @@ func NewHandler(s *Service) *Handler {
 // POST /users - Register new user
 func (h *Handler) create(w http.ResponseWriter, r *http.Request) {
 	var payload struct {
-		domain.User
+		domain.UserDiff
+		Username string            `json:"username"`
 		Password password.Password `json:"password"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
@@ -58,7 +59,9 @@ func (h *Handler) create(w http.ResponseWriter, r *http.Request) {
 	}
 	defer clear(payload.Password)
 
-	if _, err := h.userService.Create(r.Context(), &payload.User, payload.Password); err != nil {
+	user := &domain.User{Username: payload.Username}
+	payload.Apply(user)
+	if _, err := h.userService.Create(r.Context(), user, payload.Password); err != nil {
 		server.WriteServerError(w, "User", err)
 		return
 	}
@@ -126,13 +129,15 @@ func (h *Handler) changeEmail(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var payload domain.UserDiff
+	var payload struct {
+		Email *string `json:"email"`
+	}
 	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
 		server.WriteDecodeError(w, err)
 		return
 	}
 
-	if err := h.userService.ChangeEmail(r.Context(), username, &payload); err != nil {
+	if err := h.userService.ChangeEmail(r.Context(), username, &domain.UserDiff{Email: payload.Email}); err != nil {
 		server.WriteServerError(w, "User", err)
 		return
 	}
@@ -175,13 +180,15 @@ func (h *Handler) updatePermissions(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var payload domain.UserDiff
+	var payload struct {
+		Permissions *uint32 `json:"permissions"`
+	}
 	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
 		server.WriteDecodeError(w, err)
 		return
 	}
 
-	if err := h.userService.ChangePermissions(r.Context(), username, &payload); err != nil {
+	if err := h.userService.ChangePermissions(r.Context(), username, &domain.UserDiff{Permissions: payload.Permissions}); err != nil {
 		server.WriteServerError(w, "User", err)
 		return
 	}

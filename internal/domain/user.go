@@ -72,3 +72,13 @@ func NormalizeEmail(email string) (string, error) {
 	}
 	return parsed.Address, nil
 }
+
+func (u *UserDiff) Apply(target *User) {
+	if u.Email != nil {
+		target.Email = *u.Email
+	}
+
+	if u.Permissions != nil {
+		target.Permissions = *u.Permissions
+	}
+}

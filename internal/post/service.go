@@ -15,15 +15,13 @@ import (
 type Service struct {
 	repo Repository
 	se   SearchEngine
-	lang lang.Service
 	auth auth.Service
 }
 
-func NewService(repo Repository, se SearchEngine, lang lang.Service, auth auth.Service) *Service {
+func NewService(repo Repository, se SearchEngine, auth auth.Service) *Service {
 	return &Service{
 		repo: repo,
 		se:   se,
-		lang: lang,
 		auth: auth,
 	}
 }
@@ -61,11 +59,11 @@ func (s *Service) Create(ctx context.Context, post *domain.Post) (uint, error) {
 	}
 	post.CreatedBy = creator
 
-	lang, err := s.lang.ResolveLang(ctx, post.Language)
+	language, err := lang.ResolveLang(ctx)
 	if err != nil {
 		return 0, err
 	}
-	post.Language = lang
+	post.Language = language
 
 	slug, err := domain.NormalizeSlug(post.Slug)
 	if err != nil {
@@ -120,7 +118,7 @@ func (s *Service) Edit(ctx context.Context, id uint, diff *domain.PostDiff) erro
 		return err
 	}
 
-	lang, err := s.lang.ResolveLang(ctx, diff.Language)
+	language, err := lang.ResolveLang(ctx)
 	if err != nil {
 		return err
 	}
@@ -177,7 +175,7 @@ func (s *Service) Edit(ctx context.Context, id uint, diff *domain.PostDiff) erro
 		return fmt.Errorf("%w: MediaType is unknown value", err)
 	}
 
-	if err := s.repo.Update(ctx, id, lang, diff); err != nil {
+	if err := s.repo.Update(ctx, id, language, diff); err != nil {
 		if !errors.Is(err, domain.ErrNotFound) && !errors.Is(err, domain.ErrInval) {
 			logger.Error("Post.Service", "Failed to update post", err)
 		}
@@ -234,13 +232,12 @@ func (s *Service) Search(ctx context.Context, filters *SearchParams) (*SearchRes
 
 	search.ClampParams(&filters.Params)
 
-	lang, err := s.lang.ResolveLang(ctx, filters.Language)
+	language, err := lang.ResolveLang(ctx)
 	if err != nil {
 		return nil, err
 	}
-	filters.Language = lang
 
-	posts, err := s.se.Search(ctx, filters)
+	posts, err := s.se.Search(ctx, language, filters)
 	if err != nil {
 		logger.Error("Post.Service", "Failed to search posts", err)
 		return nil, err
@@ -249,12 +246,12 @@ func (s *Service) Search(ctx context.Context, filters *SearchParams) (*SearchRes
 }
 
 func (s *Service) Get(ctx context.Context, id uint) (*domain.Post, error) {
-	language := ctx.Value("language")
-	if language == nil {
-		return nil, fmt.Errorf("%w: empty language", domain.ErrInval)
+	language, err := lang.ResolveLang(ctx)
+	if err != nil {
+		return nil, err
 	}
 
-	post, err := s.repo.Get(ctx, id, language.(string))
+	post, err := s.repo.Get(ctx, id, language)
 	if err != nil {
 		logger.Error("Post.Service", "Failed to retrieve post", err)
 		return nil, err
@@ -264,12 +261,12 @@ func (s *Service) Get(ctx context.Context, id uint) (*domain.Post, error) {
 }
 
 func (s *Service) GetPublished(ctx context.Context, id uint, slug string) (*domain.Post, error) {
-	language := ctx.Value("language")
-	if language == nil {
-		return nil, fmt.Errorf("%w: empty language", domain.ErrInval)
+	language, err := lang.ResolveLang(ctx)
+	if err != nil {
+		return nil, err
 	}
 
-	post, err := s.repo.Get(ctx, id, language.(string))
+	post, err := s.repo.Get(ctx, id, language)
 	if err != nil {
 		logger.Error("Post.Service", "Failed to retrieve post translation", err)
 		return nil, err

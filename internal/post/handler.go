@@ -9,10 +9,10 @@ import (
 )
 
 // ------------------------------------------------------------------
-// POST /posts - Create post translation
-// POST /posts/search - Get/search posts
-// GET /posts/{id} - Get post by id
-// PATCH /posts/{id} - Update post translation
+// POST /posts/{lang} - Create post translation
+// POST /posts/{lang}/search - Get/search posts
+// GET /posts/{lang}/{id} - Get post by id
+// PATCH /posts/{lang}/{id} - Update post translation
 // PATCH /posts/{id}/views - Override posts views
 // DELETE /posts/{id} - Delete post with all translations
 //
@@ -40,16 +40,18 @@ func NewHandler(s *Service) *Handler {
 	return &hndl
 }
 
-// POST /posts - Create post translation
+// POST /posts/{lang} - Create post translation
 func (h *Handler) create(w http.ResponseWriter, r *http.Request) {
-	var post domain.Post
+	var payload domain.PostDiff
 
-	if err := json.NewDecoder(r.Body).Decode(&post); err != nil {
+	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
 		server.WriteDecodeError(w, err)
 		return
 	}
 
-	_, err := h.postService.Create(r.Context(), &post)
+	post := &domain.Post{}
+	payload.Apply(post)
+	_, err := h.postService.Create(r.Context(), post)
 	if err != nil {
 		server.WriteServerError(w, "Post", err)
 		return
@@ -58,7 +60,7 @@ func (h *Handler) create(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 }
 
-// POST /posts/search - Get/search posts
+// POST /posts/{lang}/search - Get/search posts
 func (h *Handler) search(w http.ResponseWriter, r *http.Request) {
 	var filters SearchParams
 
@@ -77,7 +79,7 @@ func (h *Handler) search(w http.ResponseWriter, r *http.Request) {
 	_ = json.NewEncoder(w).Encode(&posts)
 }
 
-// GET /posts/{id} - Get post by id
+// GET /posts/{lang}/{id} - Get post by id
 func (h *Handler) get(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.ParseUint(r.PathValue("id"), 10, 64)
 	if err != nil {
@@ -95,7 +97,7 @@ func (h *Handler) get(w http.ResponseWriter, r *http.Request) {
 	_ = json.NewEncoder(w).Encode(post)
 }
 
-// PATCH /posts/{id} - Update post translation
+// PATCH /posts/{lang}/{id} - Update post translation
 func (h *Handler) update(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.ParseUint(r.PathValue("id"), 10, 64)
 	if err != nil {

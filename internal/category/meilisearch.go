@@ -12,11 +12,6 @@ import (
 	"github.com/meilisearch/meilisearch-go"
 )
 
-type SearchDocument struct {
-	domain.Category
-	ID string `json:"id"`
-}
-
 type MeilisearchEngine struct {
 	search search.MeilisearchIndex
 }
@@ -38,12 +33,8 @@ func NewMeilisearchEngine(client meilisearch.ServiceManager, index string) *Meil
 	}
 }
 
-func (*MeilisearchEngine) buildFilter(params *SearchParams) string {
-	var clauses []string
-
-	if params.Lang != "" {
-		clauses = append(clauses, fmt.Sprintf("lang = %q", params.Lang))
-	}
+func (*MeilisearchEngine) buildFilter(params *SearchParams, language string) string {
+	clauses := []string{fmt.Sprintf("lang = %q", language)}
 
 	if params.Hidden != nil {
 		clauses = append(clauses, fmt.Sprintf("hidden = %t", *params.Hidden))
@@ -71,15 +62,14 @@ func (*MeilisearchEngine) buildSort(params *SearchParams) []string {
 func (ms *MeilisearchEngine) Index(ctx context.Context, slug string, group ...domain.Category) error {
 	index := ms.search.Client.Index(ms.search.Config.Uid)
 
-	docs := make([]SearchDocument, 0, len(group))
 	for _, category := range group {
 		if category.Slug != slug {
 			return fmt.Errorf("%w: group item not from provided category slug", domain.ErrInval)
 		}
-		docs = append(docs, *ToSearchDocument(&category))
+		category.ID = fmt.Sprintf("%s-%s", category.Slug, category.Lang)
 	}
 
-	task, err := index.AddDocumentsWithContext(ctx, docs, nil)
+	task, err := index.AddDocumentsWithContext(ctx, group, nil)
 	if err != nil {
 		return err
 	}
@@ -119,12 +109,12 @@ func (ms *MeilisearchEngine) Delete(ctx context.Context, slug string) error {
 	return nil
 }
 
-func (ms *MeilisearchEngine) Search(ctx context.Context, params *SearchParams) (*SearchResult, error) {
+func (ms *MeilisearchEngine) Search(ctx context.Context, language string, params *SearchParams) (*SearchResult, error) {
 	var results SearchResult
 	req := &meilisearch.SearchRequest{
 		HitsPerPage:          &params.Count,
 		Page:                 params.Page,
-		Filter:               ms.buildFilter(params),
+		Filter:               ms.buildFilter(params, language),
 		Sort:                 ms.buildSort(params),
 		AttributesToRetrieve: params.Select,
 	}
@@ -169,21 +159,4 @@ func (ms *MeilisearchEngine) Configure(ctx context.Context) error {
 
 func (ms *MeilisearchEngine) Destroy(ctx context.Context) error {
 	return ms.search.Destroy(ctx)
-}
-
-func (d *SearchDocument) ToDomain() *domain.Category {
-	return &domain.Category{
-		Slug:   d.Slug,
-		Hidden: d.Hidden,
-		Navbar: d.Navbar,
-		Lang:   d.Lang,
-		Name:   d.Name,
-	}
-}
-
-func ToSearchDocument(d *domain.Category) *SearchDocument {
-	return &SearchDocument{
-		ID:       fmt.Sprintf("%s-%s", d.Slug, d.Lang),
-		Category: *d,
-	}
 }

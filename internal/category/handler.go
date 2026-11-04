@@ -8,11 +8,11 @@ import (
 )
 
 // ------------------------------------------------------------------
-// GET /categories - Get all categories
-// GET /categories/{slug} - Get category
-// POST /categories/search - Get/search categories
-// POST /categories - Create category
-// PATCH /categories/{slug} - Update category
+// GET /categories/{lang} - Get all categories
+// GET /categories/{lang}/{slug} - Get category
+// POST /categories/{lang}/search - Get/search categories
+// POST /categories/{lang} - Create category
+// PATCH /categories/{lang}/{slug} - Update category
 // DELETE /categories/{slug} - Delete category
 // ------------------------------------------------------------------
 
@@ -38,7 +38,7 @@ func NewHandler(s *Service) *Handler {
 	return &hndl
 }
 
-// POST /categories/search - Get/search categories
+// POST /categories/{lang}/search - Get/search categories
 func (h *Handler) search(w http.ResponseWriter, r *http.Request) {
 	var filters SearchParams
 
@@ -57,7 +57,7 @@ func (h *Handler) search(w http.ResponseWriter, r *http.Request) {
 	_ = json.NewEncoder(w).Encode(categories)
 }
 
-// GET /categories - Get all categories
+// GET /categories/{lang} - Get all categories
 func (h *Handler) all(w http.ResponseWriter, r *http.Request) {
 	categories, err := h.categoryService.All(r.Context())
 	if err != nil {
@@ -73,15 +73,17 @@ func (h *Handler) all(w http.ResponseWriter, r *http.Request) {
 	_ = json.NewEncoder(w).Encode(res)
 }
 
-// POST /categories - Create category
+// POST /categories/{lang} - Create category
 func (h *Handler) create(w http.ResponseWriter, r *http.Request) {
-	var category domain.Category
-	if err := json.NewDecoder(r.Body).Decode(&category); err != nil {
+	var payload domain.CategoryDiff
+	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
 		server.WriteDecodeError(w, err)
 		return
 	}
 
-	if _, err := h.categoryService.Create(r.Context(), &category); err != nil {
+	category := &domain.Category{}
+	payload.Apply(category)
+	if _, err := h.categoryService.Create(r.Context(), category); err != nil {
 		server.WriteServerError(w, "Category", err)
 		return
 	}
@@ -89,7 +91,7 @@ func (h *Handler) create(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 }
 
-// GET /categories/{slug} - Get get
+// GET /categories/{lang}/{slug} - Get get
 func (h *Handler) get(w http.ResponseWriter, r *http.Request) {
 	slug := r.PathValue("slug")
 	if slug == "" {
@@ -107,7 +109,7 @@ func (h *Handler) get(w http.ResponseWriter, r *http.Request) {
 	_ = json.NewEncoder(w).Encode(category)
 }
 
-// PATCH /categories/{slug} - Update category
+// PATCH /categories/{lang}/{slug} - Update category
 func (h *Handler) update(w http.ResponseWriter, r *http.Request) {
 	slug := r.PathValue("slug")
 	if slug == "" {

@@ -84,7 +84,7 @@ func (app *Container) Init(ctx context.Context, cfg Config) error {
 	if err != nil {
 		return err
 	}
-	categories, err := NewCategoryModule(db, search, redis, langs.Service, auth.Service)
+	categories, err := NewCategoryModule(db, search, redis, auth.Service)
 	if err != nil {
 		return err
 	}
@@ -92,12 +92,12 @@ func (app *Container) Init(ctx context.Context, cfg Config) error {
 	if err != nil {
 		return err
 	}
-	posts, err := NewPostModule(db, search, redis, langs.Service, auth.Service)
+	posts, err := NewPostModule(db, search, redis, auth.Service)
 	if err != nil {
 		return err
 	}
 	ads := NewAdsModule(db, search, redis)
-	editors, err := NewEditorModule(db, search, redis, langs.Service, auth.Service)
+	editors, err := NewEditorModule(db, search, redis, auth.Service)
 	if err != nil {
 		return err
 	}

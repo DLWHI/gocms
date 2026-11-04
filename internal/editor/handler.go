@@ -8,11 +8,11 @@ import (
 )
 
 // ------------------------------------------------------------------
-// POST /editors/search - Get/search editors
-// GET /editors - Get all editors
-// POST /editors - Create editor
-// GET /editors/{username} - Get editor
-// PATCH /editors/{username} - Update editor
+// GET /editors/{lang} - Get all editors
+// GET /editors/{lang}/{username} - Get editor
+// POST /editors/{lang} - Create editor
+// POST /editors/{lang}/search - Get/search editors
+// PATCH /editors/{lang}/{username} - Update editor
 // DELETE /editors/{username} - Delete editor
 
 // ------------------------------------------------------------------
@@ -38,7 +38,7 @@ func NewHandler(s *Service) *Handler {
 	return &hndl
 }
 
-// POST /editors/search - Get/search editors
+// POST /editors/search/{lang} - Get/search editors
 func (h *Handler) search(w http.ResponseWriter, r *http.Request) {
 	var filters SearchParams
 
@@ -57,7 +57,7 @@ func (h *Handler) search(w http.ResponseWriter, r *http.Request) {
 	_ = json.NewEncoder(w).Encode(&editors)
 }
 
-// GET /editors - Get all editors
+// GET /editors/{lang} - Get all editors
 func (h *Handler) all(w http.ResponseWriter, r *http.Request) {
 	editors, err := h.editorService.All(r.Context())
 	if err != nil {
@@ -73,15 +73,17 @@ func (h *Handler) all(w http.ResponseWriter, r *http.Request) {
 	_ = json.NewEncoder(w).Encode(&res)
 }
 
-// POST /editors - Create editor
+// POST /editors/{lang} - Create editor
 func (h *Handler) create(w http.ResponseWriter, r *http.Request) {
-	var editor domain.Editor
-	if err := json.NewDecoder(r.Body).Decode(&editor); err != nil {
+	var payload domain.EditorDiff
+	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
 		server.WriteDecodeError(w, err)
 		return
 	}
 
-	if _, err := h.editorService.Create(r.Context(), &editor); err != nil {
+	editor := &domain.Editor{}
+	payload.Apply(editor)
+	if _, err := h.editorService.Create(r.Context(), editor); err != nil {
 		server.WriteServerError(w, "Editor", err)
 		return
 	}
@@ -89,7 +91,7 @@ func (h *Handler) create(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 }
 
-// GET /editors/{slug} - Get editor
+// GET /editors/{lang}/{slug} - Get editor
 func (h *Handler) get(w http.ResponseWriter, r *http.Request) {
 	slug := r.PathValue("slug")
 	if slug == "" {
@@ -107,7 +109,7 @@ func (h *Handler) get(w http.ResponseWriter, r *http.Request) {
 	_ = json.NewEncoder(w).Encode(editor)
 }
 
-// PATCH /editors/{slug} - Update editor
+// PATCH /editors/{lang}/{slug} - Update editor
 func (h *Handler) update(w http.ResponseWriter, r *http.Request) {
 	editor := r.PathValue("slug")
 	if editor == "" {

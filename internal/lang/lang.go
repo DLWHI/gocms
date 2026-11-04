@@ -47,7 +47,6 @@ type Repository interface {
 type Service interface {
 	GetSupported() []Language
 	IsSupported(code string) bool
-	ResolveLang(ctx context.Context, code string) (string, error)
 	Add(ctx context.Context, lang *Language) error
 	Remove(ctx context.Context, code string) error
 }
@@ -63,6 +62,14 @@ func NormalizeLangCode(value string) (string, error) {
 func IsISO639_1Code(value string) bool {
 	_, exists := iso6391[value]
 	return exists
+}
+
+func ResolveLang(ctx context.Context) (string, error) {
+	code, ok := ctx.Value(ContextKey).(string)
+	if !ok {
+		return "", fmt.Errorf("%w: missing language code", domain.ErrInval)
+	}
+	return code, nil
 }
 
 func (*Language) TableName() string {

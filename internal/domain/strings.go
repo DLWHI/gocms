@@ -2,6 +2,7 @@ package domain
 
 import (
 	"fmt"
+	"net/url"
 	"strings"
 	"unicode"
 )
@@ -45,4 +46,12 @@ func NormalizeName(value string) (string, error) {
 	}
 
 	return normalized, nil
+}
+
+func NormalizeURL(value string) (string, error) {
+	u, err := url.Parse(value)
+	if err != nil {
+		return "", fmt.Errorf("%w: %v", ErrInval, err)
+	}
+	return u.String(), nil
 }

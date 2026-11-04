@@ -82,7 +82,7 @@ func (app *Container) Init(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	categories, err := NewCategoryModule(db, search, redis, langs.Service, auth.Service)
+	categories, err := NewCategoryModule(db, search, redis, auth.Service)
 	if err != nil {
 		return err
 	}
@@ -92,7 +92,7 @@ func (app *Container) Init(ctx context.Context) error {
 	}
 	posts := NewPostModule(db, search, redis)
 	ads := NewAdsModule(db, search, redis)
-	editors, err := NewEditorModule(db, search, redis, langs.Service, auth.Service)
+	editors, err := NewEditorModule(db, search, redis, auth.Service)
 	if err != nil {
 		return err
 	}
@@ -202,7 +202,7 @@ func SoftMigrate(db *gorm.DB) error {
 		&user.Record{},
 		&editor.Record{},
 		&editor.RecordTranslation{},
-		&post.Meta{},
+		&post.Record{},
 		&post.Translation{},
 		&category.Record{},
 		&category.RecordTranslation{},
@@ -249,7 +249,7 @@ func DropAll(db *gorm.DB) error {
 		&user.Record{},
 		&editor.Record{},
 		&editor.RecordTranslation{},
-		&post.Meta{},
+		&post.Record{},
 		&post.Translation{},
 		&category.Record{},
 		&category.RecordTranslation{},

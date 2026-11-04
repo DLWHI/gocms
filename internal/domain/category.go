@@ -10,6 +10,7 @@ const (
 )
 
 type Category struct {
+	ID     string `json:"id,omitempty"`
 	Slug   string `json:"slug"`
 	Hidden bool   `json:"hidden"`
 	Navbar bool   `json:"navbar"`
@@ -22,10 +23,24 @@ type CategoryDiff struct {
 	Hidden *bool   `json:"hidden"`
 	Navbar *bool   `json:"navbar"`
 	Name   *string `json:"name"`
-	Lang   string  `json:"lang"`
 }
 
 type CategoryEventInfo struct {
 	Action int    `json:"action"`
 	Slug   string `json:"slug"`
+}
+
+func (u *CategoryDiff) Apply(target *Category) {
+	if u.Slug != nil {
+		target.Slug = *u.Slug
+	}
+	if u.Hidden != nil {
+		target.Hidden = *u.Hidden
+	}
+	if u.Navbar != nil {
+		target.Navbar = *u.Navbar
+	}
+	if u.Name != nil {
+		target.Name = *u.Name
+	}
 }

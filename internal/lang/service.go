@@ -3,11 +3,9 @@ package lang
 import (
 	"context"
 	"errors"
-	"fmt"
 	"gocms/internal/auth"
 	"gocms/internal/domain"
 	"gocms/internal/logger"
-	"strings"
 	"sync"
 	"sync/atomic"
 )
@@ -42,23 +40,6 @@ func (s *LocalService) IsSupported(code string) bool {
 	langs := *s.snap.Load()
 	_, exists := langs[code]
 	return exists
-}
-
-func (s *LocalService) ResolveLang(ctx context.Context, code string) (string, error) {
-	normalized := strings.TrimSpace(code)
-	if normalized != "" && !IsISO639_1Code(normalized) {
-		return "", fmt.Errorf("%w: invalid language code", domain.ErrInval)
-	}
-	if !s.IsSupported(normalized) {
-		code, ok := ctx.Value(domain.LangContextKey).(string)
-		if !ok {
-			return "", fmt.Errorf("%w: invalid language code", domain.ErrInval)
-		} else if code == "" {
-			return "", fmt.Errorf("%w: missing language code", domain.ErrInval)
-		}
-		return code, nil
-	}
-	return normalized, nil
 }
 
 func (s *LocalService) Add(ctx context.Context, lang *Language) error {

@@ -3,7 +3,6 @@ package editor
 import (
 	"context"
 	"errors"
-	"fmt"
 	"gocms/internal/auth"
 	"gocms/internal/domain"
 	"gocms/internal/lang"
@@ -12,18 +11,16 @@ import (
 )
 
 type Service struct {
-	repo  Repository
-	se    SearchEngine
-	langs lang.Service
-	auth  auth.Service
+	repo Repository
+	se   SearchEngine
+	auth auth.Service
 }
 
-func NewService(db Repository, se SearchEngine, langs lang.Service, auth auth.Service) *Service {
+func NewService(db Repository, se SearchEngine, auth auth.Service) *Service {
 	return &Service{
-		repo:  db,
-		se:    se,
-		langs: langs,
-		auth:  auth,
+		repo: db,
+		se:   se,
+		auth: auth,
 	}
 }
 
@@ -39,7 +36,7 @@ func (s *Service) Create(ctx context.Context, editor *domain.Editor) (string, er
 	}
 	created.Slug = slug
 
-	lang, err := s.langs.ResolveLang(ctx, editor.Lang)
+	lang, err := lang.ResolveLang(ctx)
 	if err != nil {
 		return "", err
 	}
@@ -71,7 +68,7 @@ func (s *Service) Edit(ctx context.Context, slug string, diff *domain.EditorDiff
 		return "", err
 	}
 
-	lang, err := s.langs.ResolveLang(ctx, diff.Lang)
+	lang, err := lang.ResolveLang(ctx)
 	if err != nil {
 		return "", err
 	}
@@ -107,12 +104,12 @@ func (s *Service) Edit(ctx context.Context, slug string, diff *domain.EditorDiff
 }
 
 func (s *Service) Get(ctx context.Context, slug string) (*domain.Editor, error) {
-	lang, ok := ctx.Value(domain.LangContextKey).(string)
-	if !ok {
-		return nil, fmt.Errorf("%w: missing language", domain.ErrInval)
+	lang, err := lang.ResolveLang(ctx)
+	if err != nil {
+		return nil, err
 	}
 
-	slug, err := domain.NormalizeSlug(slug)
+	slug, err = domain.NormalizeSlug(slug)
 	if err != nil {
 		return nil, err
 	}
@@ -129,9 +126,9 @@ func (s *Service) Get(ctx context.Context, slug string) (*domain.Editor, error) 
 }
 
 func (s *Service) All(ctx context.Context) ([]domain.Editor, error) {
-	lang, ok := ctx.Value(domain.LangContextKey).(string)
-	if !ok {
-		return nil, fmt.Errorf("%w: missing language", domain.ErrInval)
+	lang, err := lang.ResolveLang(ctx)
+	if err != nil {
+		return nil, err
 	}
 
 	editors, err := s.repo.GetAll(ctx, lang)
@@ -146,11 +143,10 @@ func (s *Service) All(ctx context.Context) ([]domain.Editor, error) {
 func (s *Service) Search(ctx context.Context, filters *SearchParams) (*SearchResult, error) {
 	search.ClampParams(&filters.Params)
 
-	lang, err := s.langs.ResolveLang(ctx, filters.Lang)
+	lang, err := lang.ResolveLang(ctx)
 	if err != nil {
 		return nil, err
 	}
-	filters.Lang = lang
 
 	filters.Select = []string{
 		"name",
@@ -159,7 +155,7 @@ func (s *Service) Search(ctx context.Context, filters *SearchParams) (*SearchRes
 		"deleted_at",
 	}
 
-	editors, err := s.se.Search(ctx, filters)
+	editors, err := s.se.Search(ctx, lang, filters)
 	if err != nil {
 		if !errors.Is(err, domain.ErrInval) {
 			logger.Error("Editor.Service", "Failed to search editor profiles", err)

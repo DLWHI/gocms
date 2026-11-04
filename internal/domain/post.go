@@ -1,9 +1,7 @@
 package domain
 
 import (
-	"fmt"
 	"html"
-	"net/url"
 	"strings"
 )
 
@@ -17,6 +15,7 @@ const (
 )
 
 type Post struct {
+	ID          string   `json:"id"`
 	PostID      uint     `json:"post_id"`
 	Title       string   `json:"title"`
 	Description string   `json:"description,omitempty"`
@@ -42,7 +41,6 @@ type PostDiff struct {
 	Content     *string  `json:"content"`
 	Slug        *string  `json:"slug"`
 	Keywords    *string  `json:"keywords"`
-	Language    string   `json:"language"`
 	PublishedAt *int64   `json:"published_at"`
 	Preview     *string  `json:"preview"`
 	Media       *string  `json:"media"`
@@ -57,18 +55,47 @@ type PostEventInfo struct {
 	Action int  `json:"action"`
 }
 
-func NormalizeURL(value string) (string, error) {
-	u, err := url.Parse(value)
-	if err != nil {
-		return "", fmt.Errorf("%w: %v", ErrInval, err)
-	}
-	return u.String(), nil
-}
-
 func NormalizeKeywords(value string) (string, error) {
 	parts := strings.Split(value, ",")
 	for i := range parts {
 		parts[i] = html.EscapeString(strings.TrimSpace(parts[i]))
 	}
 	return strings.Join(parts, ", "), nil
+}
+
+func (u *PostDiff) Apply(target *Post) {
+	target.PublishedAt = u.PublishedAt
+	if u.Title != nil {
+		target.Title = *u.Title
+	}
+	if u.Description != nil {
+		target.Description = *u.Description
+	}
+	if u.Content != nil {
+		target.Content = *u.Content
+	}
+	if u.Slug != nil {
+		target.Slug = *u.Slug
+	}
+	if u.Keywords != nil {
+		target.Keywords = *u.Keywords
+	}
+	if u.Preview != nil {
+		target.Preview = *u.Preview
+	}
+	if u.Media != nil {
+		target.Media = *u.Media
+	}
+	if u.MediaSource != nil {
+		target.MediaSource = *u.MediaSource
+	}
+	if u.MediaType != nil {
+		target.MediaType = *u.MediaType
+	}
+	if u.Author != nil {
+		target.Author = *u.Author
+	}
+	if u.Categories != nil {
+		target.Categories = u.Categories
+	}
 }

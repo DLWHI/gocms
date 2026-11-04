@@ -146,7 +146,6 @@ func NewPostModule(
 	db *gorm.DB,
 	search meilisearch.ServiceManager,
 	redis *redis.Client,
-	langs lang.Service,
 	creds auth.Service,
 ) (*PostModule, error) {
 	keys, err := cache.NewKeyspace(cache.KeyConfig{
@@ -161,7 +160,7 @@ func NewPostModule(
 	redisRepo := post.NewRedisRepository(flowRepo, redis, 30*time.Minute, keys)
 	searchEngine := post.NewMeilisearchEngine(search, PostsSearchIndexName)
 	consumer := post.NewEventConsumer(gormRepo, searchEngine)
-	service := post.NewService(redisRepo, searchEngine, langs, creds)
+	service := post.NewService(redisRepo, searchEngine, creds)
 	handler := post.NewHandler(service)
 	return &PostModule{
 		Consumer:          consumer,
@@ -178,7 +177,6 @@ func NewCategoryModule(
 	db *gorm.DB,
 	search meilisearch.ServiceManager,
 	redis *redis.Client,
-	langs lang.Service,
 	creds auth.Service,
 ) (*CategoryModule, error) {
 	keys, err := cache.NewKeyspace(cache.KeyConfig{
@@ -193,7 +191,7 @@ func NewCategoryModule(
 	redisRepo := category.NewRedisRepository(flowRepo, redis, 120*time.Minute, keys)
 	searchEngine := category.NewMeilisearchEngine(search, CategoriesSearchIndexName)
 	consumer := category.NewEventConsumer(gormRepo, searchEngine)
-	service := category.NewService(redisRepo, searchEngine, langs, creds)
+	service := category.NewService(redisRepo, searchEngine, creds)
 	handler := category.NewHandler(service)
 	return &CategoryModule{
 		Consumer:          consumer,
@@ -209,7 +207,6 @@ func NewEditorModule(
 	db *gorm.DB,
 	search meilisearch.ServiceManager,
 	redis *redis.Client,
-	langs lang.Service,
 	creds auth.Service,
 ) (*EditorModule, error) {
 	keys, err := cache.NewKeyspace(cache.KeyConfig{
@@ -224,7 +221,7 @@ func NewEditorModule(
 	redisRepo := editor.NewRedisRepository(flowRepo, redis, 120*time.Minute, keys)
 	searchEngine := editor.NewMeilisearchEngine(search, EditorsSearchIndexName)
 	consumer := editor.NewEventConsumer(gormRepo, searchEngine)
-	service := editor.NewService(redisRepo, searchEngine, langs, creds)
+	service := editor.NewService(redisRepo, searchEngine, creds)
 	handler := editor.NewHandler(service)
 	return &EditorModule{
 		Consumer:          consumer,
@@ -260,7 +257,7 @@ func NewAdsModule(db *gorm.DB, search meilisearch.ServiceManager, redis *redis.C
 
 func NewLangModule(ctx context.Context, db *gorm.DB, creds auth.Service) (*LangModule, error) {
 	gormRepo := lang.NewGORMRepository(db)
-	service, err := lang.NewLocalService(ctx, "ru", gormRepo, creds)
+	service, err := lang.NewLocalService(ctx, gormRepo, creds)
 	if err != nil {
 		return nil, err
 	}

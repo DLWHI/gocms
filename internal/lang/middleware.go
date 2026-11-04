@@ -30,7 +30,7 @@ func (m *Middleware) Wrap(next http.Handler) http.Handler {
 				return
 			}
 			if !m.svc.IsSupported(lang) {
-				http.Error(w, "Invalid language code", http.StatusNotAcceptable)
+				http.Error(w, "Language is not supported", http.StatusNotAcceptable)
 				return
 			}
 			ctx = context.WithValue(ctx, ContextKey, lang)

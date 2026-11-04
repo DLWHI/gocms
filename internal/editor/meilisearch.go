@@ -144,8 +144,13 @@ func (ms *MeilisearchEngine) Search(ctx context.Context, params *SearchParams) (
 
 	res, err := index.SearchWithContext(ctx, params.Query, req)
 	if err != nil {
-		if errors.Is(err, meilisearch.ErrInvalidRequestMethod) {
-			return nil, domain.ErrInval
+		var meiliErr *meilisearch.Error
+		if errors.As(err, &meiliErr) {
+			if meiliErr.StatusCode == http.StatusBadRequest &&
+				(meiliErr.MeilisearchApiError.Code == "invalid_search_filter" ||
+					meiliErr.MeilisearchApiError.Code == "invalid_search_sort") {
+				return nil, domain.ErrInval
+			}
 		}
 		return nil, err
 	}

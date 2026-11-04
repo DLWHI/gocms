@@ -88,7 +88,7 @@ func (r *RedisRepository) GetAny(ctx context.Context, slug string, lang string) 
 func (r *RedisRepository) GetAll(ctx context.Context, lang string) ([]domain.Editor, error) {
 	var editors []domain.Editor
 	var token string
-	key := r.keys.Key(allListBase + "-" + lang)
+	key := r.keys.List(allListBase + "-" + lang)
 	err := r.cache.Get(ctx, key, &editors)
 	switch {
 	case err == nil:

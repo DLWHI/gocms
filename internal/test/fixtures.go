@@ -107,6 +107,12 @@ func (f *Fixtures) ApplyFixtures(ctx context.Context, e *Environment) error {
 
 	for _, e := range f.Editors {
 		record := editor.ToRecord(&e)
+		if e.DeletedAt != nil {
+			record.Editor.DeletedAt = gorm.DeletedAt{
+				Valid: true,
+				Time:  time.Unix(*e.DeletedAt, 0),
+			}
+		}
 		if err := db.WithContext(ctx).Save(record).Error; err != nil {
 			return err
 		}

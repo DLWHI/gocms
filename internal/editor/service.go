@@ -93,7 +93,7 @@ func (s *Service) Edit(ctx context.Context, slug string, diff *domain.EditorDiff
 	}
 
 	if err := s.repo.Update(ctx, slug, lang, diff); err != nil {
-		if !errors.Is(err, domain.ErrNotFound) && !errors.Is(err, domain.ErrInval) {
+		if !errors.Is(err, domain.ErrNotFound) && !errors.Is(err, domain.ErrInval) && !errors.Is(err, domain.ErrDuplicate) {
 			logger.Error("Editor.Service", "Failed to update editor profile", err)
 		}
 		return "", err

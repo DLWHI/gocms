@@ -131,7 +131,7 @@ func (h *Handler) update(w http.ResponseWriter, r *http.Request) {
 
 // DELETE /editors/{slug} - Delete editor user
 func (h *Handler) delete(w http.ResponseWriter, r *http.Request) {
-	editor := r.PathValue("username")
+	editor := r.PathValue("slug")
 	if editor == "" {
 		server.WritePathError(w, "Missing editor slug")
 		return

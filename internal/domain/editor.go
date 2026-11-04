@@ -14,7 +14,7 @@ type Editor struct {
 	Bio       *string `json:"bio,omitempty"`
 	Name      string  `json:"name"`
 	Lang      string  `json:"lang"`
-	DeletedAt *int64  `json:"suspended_at,omitempty"`
+	DeletedAt *int64  `json:"deleted_at,omitempty"`
 	Owner     string  `json:"owner"`
 }
 

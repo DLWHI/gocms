@@ -114,7 +114,7 @@ func (r *GORMRepository) Update(ctx context.Context, slug string, lang string, d
 				}
 			} else if len(translationUpdate) > 0 {
 				result := tx.Model(&RecordTranslation{}).
-					Where("editor_slug = ? AND lang = ? AND version = ?", slug, lang, version).
+					Where("editor_slug = ? AND lang = ? AND version = ?", slug, lang, version.Translation).
 					Updates(translationUpdate)
 				if result.Error != nil {
 					return result.Error
@@ -152,6 +152,7 @@ func (r *GORMRepository) GetTranslations(ctx context.Context, slug string) ([]do
 	var editors []RecordTranslation
 
 	result := r.db.WithContext(ctx).
+		Unscoped().
 		Model(&RecordTranslation{}).
 		Preload("Editor").
 		Where("editor_slug = ?", slug).
@@ -174,7 +175,7 @@ func (r *GORMRepository) GetAll(ctx context.Context, lang string) ([]domain.Edit
 
 	result := r.db.WithContext(ctx).
 		Model(&RecordTranslation{}).
-		Joins("Editor").
+		Preload("Editor").
 		Where("lang = ?", lang).
 		Find(&editors)
 	if result.Error != nil {
@@ -184,7 +185,9 @@ func (r *GORMRepository) GetAll(ctx context.Context, lang string) ([]domain.Edit
 	vals := make([]domain.Editor, 0, len(editors))
 
 	for _, editor := range editors {
-		vals = append(vals, *editor.ToDomain())
+		if !editor.Editor.DeletedAt.Valid {
+			vals = append(vals, *editor.ToDomain())
+		}
 	}
 
 	return vals, nil

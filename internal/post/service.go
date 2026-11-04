@@ -2,123 +2,185 @@ package post
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"gocms/internal/auth"
 	"gocms/internal/domain"
+	"gocms/internal/lang"
 	"gocms/internal/logger"
 	"gocms/internal/search"
-	"strings"
-	"time"
-	"unicode"
+	"gocms/internal/storage"
 )
 
 type Service struct {
 	repo Repository
 	se   SearchEngine
+	lang lang.Service
+	auth auth.Service
 }
 
-func NewService(repo Repository, se SearchEngine) *Service {
+func NewService(repo Repository, se SearchEngine, lang lang.Service, auth auth.Service) *Service {
 	return &Service{
 		repo: repo,
 		se:   se,
+		lang: lang,
+		auth: auth,
 	}
 }
 
-func (s *Service) hasPermissionsOnPost(ctx context.Context, action string, id uint) error {
+func (s *Service) authorize(ctx context.Context, action string, id uint) error {
 	initiator, ok := ctx.Value(domain.UsernameContextKey).(string)
 	if !ok {
-		return domain.ErrCred
+		return domain.ErrPerm
 	}
 
-	if !auth.HasPermission(ctx, "posts", action) {
-		return domain.ErrCred
+	if !s.auth.Authorize(ctx, domain.PostEntityName, action) {
+		return domain.ErrPerm
 	}
-	post, err := s.repo.Get(ctx, id)
+	creator, err := s.repo.GetCreator(ctx, id)
 	if err != nil {
 		if !errors.Is(err, domain.ErrNotFound) {
 			logger.Error("Post.Service", "Failed to verify post ownership", err)
 		}
 		return err
 	}
-	if post.Author != initiator {
-		return domain.ErrCred
+	if creator != initiator {
+		return domain.ErrPerm
 	}
 	return nil
 }
 
-func (s *Service) sanitize(ctx context.Context, post *Document) error {
-	post.Slug = strings.TrimSpace(strings.ToLower(post.Slug))
-	if post.Slug == "" {
-		return fmt.Errorf("%w: slug cannot be empty", domain.ErrInval)
-	} else if strings.IndexFunc(post.Slug, unicode.IsSpace) >= 0 {
-		return fmt.Errorf("%w: no spaces allowed in slug", domain.ErrInval)
+func (s *Service) Create(ctx context.Context, post *domain.Post) (uint, error) {
+	if !s.auth.Authorize(ctx, domain.PostEntityName, domain.ActionCreateName) {
+		return 0, domain.ErrCred
 	}
 
-	post.Language = strings.TrimSpace(strings.ToLower(post.Language))
-	if post.Language == "" {
-		language := ctx.Value("language")
-		if language == nil {
-			return fmt.Errorf("%w: empty language", domain.ErrInval)
-		}
-		post.Language = language.(string)
+	creator, ok := ctx.Value("username").(string)
+	if !ok {
+		return 0, domain.ErrPerm
 	}
+	post.CreatedBy = creator
 
-	post.Keywords = strings.TrimSpace(post.Keywords)
-	return nil
-}
-
-func (s *Service) Create(ctx context.Context, post *Document) error {
-	author := ctx.Value("username")
-	if !auth.HasPermission(ctx, "posts", "create") {
-		return domain.ErrCred
-	}
-
-	post.Author = author.(string)
-
-	if err := s.sanitize(ctx, post); err != nil {
-		return err
-	}
-
-	if post.PublishedAt != nil {
-		post.CreatedAt = *post.PublishedAt
-	} else {
-		post.CreatedAt = time.Now().Unix()
-	}
-
-	model := post.ToModel()
-	if err := s.repo.Create(ctx, &model); err != nil {
-		logger.Error("Post.Service", "Failed to create post", err)
-		return err
-	}
-	post.PostID = model.PostID
-
-	return nil
-}
-
-func (s *Service) Edit(ctx context.Context, post *Document) (*Document, error) {
-	if err := s.hasPermissionsOnPost(ctx, "edit", post.PostID); err != nil {
-		return nil, err
-	}
-
-	if err := s.sanitize(ctx, post); err != nil {
-		return nil, err
-	}
-
-	model := post.ToModel()
-	err := s.repo.UpdateTranslation(ctx, &model)
+	lang, err := s.lang.ResolveLang(ctx, post.Language)
 	if err != nil {
-		logger.Error("Post.Service", "Failed to update post", err)
-		return nil, err
+		return 0, err
+	}
+	post.Language = lang
+
+	slug, err := domain.NormalizeSlug(post.Slug)
+	if err != nil {
+		return 0, err
+	}
+	post.Slug = slug
+
+	title, err := domain.NormalizeName(post.Title)
+	if err != nil {
+		return 0, err
+	}
+	post.Title = title
+
+	keywords, err := domain.NormalizeKeywords(post.Keywords)
+	if err != nil {
+		return 0, err
+	}
+	post.Keywords = keywords
+
+	preview, err := domain.NormalizeURL(post.Preview)
+	if err != nil {
+		return 0, err
+	}
+	post.Preview = preview
+
+	media, err := domain.NormalizeURL(post.Media)
+	if err != nil {
+		return 0, err
+	}
+	post.Media = media
+
+	source, err := domain.NormalizeName(post.MediaSource)
+	if err != nil {
+		return 0, err
+	}
+	post.MediaSource = source
+
+	if !storage.IsItemType(post.MediaType) {
+		return 0, fmt.Errorf("%w: MediaType is unknown value", err)
 	}
 
-	return post, nil
+	if err := s.repo.Create(ctx, post); err != nil {
+		logger.Error("Post.Service", "Failed to create post", err)
+		return 0, err
+	}
+
+	return post.PostID, nil
 }
 
-func (s *Service) IncrementViews(ctx context.Context, id uint, value uint) error {
-	if err := s.repo.IncrementViews(ctx, id, value); err != nil {
-		logger.Error("Post.Service", "Failed to increment post view count", err)
+func (s *Service) Edit(ctx context.Context, id uint, diff *domain.PostDiff) error {
+	if err := s.authorize(ctx, domain.ActionEditName, id); err != nil {
+		return err
+	}
+
+	lang, err := s.lang.ResolveLang(ctx, diff.Language)
+	if err != nil {
+		return err
+	}
+
+	if diff.Slug != nil {
+		slug, err := domain.NormalizeSlug(*diff.Slug)
+		if err != nil {
+			return err
+		}
+		diff.Slug = &slug
+	}
+
+	if diff.Title != nil {
+		title, err := domain.NormalizeName(*diff.Title)
+		if err != nil {
+			return err
+		}
+		diff.Title = &title
+	}
+
+	if diff.Keywords != nil {
+		keywords, err := domain.NormalizeKeywords(*diff.Keywords)
+		if err != nil {
+			return err
+		}
+		diff.Keywords = &keywords
+	}
+
+	if diff.Preview != nil {
+		preview, err := domain.NormalizeURL(*diff.Preview)
+		if err != nil {
+			return err
+		}
+		diff.Preview = &preview
+	}
+
+	if diff.Media != nil {
+		media, err := domain.NormalizeURL(*diff.Media)
+		if err != nil {
+			return err
+		}
+		diff.Media = &media
+	}
+
+	if diff.MediaSource != nil {
+		source, err := domain.NormalizeName(*diff.MediaSource)
+		if err != nil {
+			return err
+		}
+		diff.MediaSource = &source
+	}
+
+	if diff.MediaType != nil && !storage.IsItemType(*diff.MediaType) {
+		return fmt.Errorf("%w: MediaType is unknown value", err)
+	}
+
+	if err := s.repo.Update(ctx, id, lang, diff); err != nil {
+		if !errors.Is(err, domain.ErrNotFound) && !errors.Is(err, domain.ErrInval) {
+			logger.Error("Post.Service", "Failed to update post", err)
+		}
 		return err
 	}
 
@@ -126,18 +188,7 @@ func (s *Service) IncrementViews(ctx context.Context, id uint, value uint) error
 }
 
 func (s *Service) SetViews(ctx context.Context, id uint, value uint) error {
-	post, err := s.repo.Get(ctx, id)
-	if err != nil {
-		logger.Error("Post.Service", "Failed to retrieve post view count", err)
-		return err
-	}
-
-	updated := Meta{
-		ID:    post.ID,
-		Views: value,
-	}
-
-	if err := s.repo.Update(ctx, &updated); err != nil {
+	if err := s.repo.SetViews(ctx, id, value); err != nil {
 		logger.Error("Post.Service", "Failed to update post view count", err)
 		return err
 	}
@@ -145,17 +196,49 @@ func (s *Service) SetViews(ctx context.Context, id uint, value uint) error {
 	return nil
 }
 
+func (s *Service) CommitViews(ctx context.Context, id uint, value uint) (uint, error) {
+	views, err := s.repo.IncrementViews(ctx, id, value)
+	if err != nil {
+		logger.Error("Post.Service", "Failed to retrieve post view count", err)
+		return 0, err
+	}
+
+	return views, nil
+}
+
 func (s *Service) Search(ctx context.Context, filters *SearchParams) (*SearchResult, error) {
+	_, ok := ctx.Value(domain.UsernameContextKey).(string)
+	if !ok {
+		filters.Select = []string{
+			"post_id",
+			"title",
+			"language",
+			"published_at",
+			"created_at",
+			"views",
+			"author",
+			"created_by",
+			"categories",
+		}
+	} else {
+		filters.Select = []string{
+			"post_id",
+			"title",
+			"description",
+			"language",
+			"published_at",
+			"views",
+			"categories",
+		}
+	}
+
 	search.ClampParams(&filters.Params)
 
-	if filters.Language == "" {
-		language := ctx.Value("language")
-		if language == nil {
-			return nil, fmt.Errorf("%w: empty language", domain.ErrInval)
-		}
-
-		filters.Language = language.(string)
+	lang, err := s.lang.ResolveLang(ctx, filters.Language)
+	if err != nil {
+		return nil, err
 	}
+	filters.Language = lang
 
 	posts, err := s.se.Search(ctx, filters)
 	if err != nil {
@@ -165,147 +248,63 @@ func (s *Service) Search(ctx context.Context, filters *SearchParams) (*SearchRes
 	return posts, nil
 }
 
-func (s *Service) Get(ctx context.Context, id uint) (*Document, error) {
+func (s *Service) Get(ctx context.Context, id uint) (*domain.Post, error) {
 	language := ctx.Value("language")
 	if language == nil {
 		return nil, fmt.Errorf("%w: empty language", domain.ErrInval)
 	}
 
-	post, err := s.repo.GetTranslation(ctx, id, language.(string))
+	post, err := s.repo.Get(ctx, id, language.(string))
 	if err != nil {
 		logger.Error("Post.Service", "Failed to retrieve post", err)
 		return nil, err
 	}
 
-	doc := post.ToDoc()
-	doc.Categories, err = s.repo.GetCategories(ctx, id)
-	if err != nil {
-		logger.Error("Post.Service", "Failed to retrieve post categories", err)
-		return nil, err
-	}
-
-	return &doc, nil
+	return post, nil
 }
 
-func (s *Service) Read(ctx context.Context, id uint, slug string) (*Document, error) {
+func (s *Service) GetPublished(ctx context.Context, id uint, slug string) (*domain.Post, error) {
 	language := ctx.Value("language")
 	if language == nil {
 		return nil, fmt.Errorf("%w: empty language", domain.ErrInval)
 	}
 
-	post, err := s.repo.GetTranslation(ctx, id, language.(string))
+	post, err := s.repo.Get(ctx, id, language.(string))
 	if err != nil {
 		logger.Error("Post.Service", "Failed to retrieve post translation", err)
 		return nil, err
 	}
-	if post.Post.Slug != slug {
+	if post.Slug != slug {
 		return nil, domain.ErrNotFound
 	}
-	if post.Post.PublishedAt == nil {
+	if post.PublishedAt == nil {
 		return nil, domain.ErrNotFound
 	}
 
-	doc := post.ToDoc()
-	doc.Categories, err = s.repo.GetCategories(ctx, id)
-	if err != nil {
-		logger.Error("Post.Service", "Failed to retrieve post categories", err)
-		return nil, err
-	}
-
-	return &doc, nil
+	return post, nil
 }
 
 func (s *Service) GetViews(ctx context.Context, id uint) (uint, error) {
-	post, err := s.repo.Get(ctx, id)
+	views, err := s.repo.GetViews(ctx, id)
 	if err != nil {
 		logger.Error("Post.Service", "Failed to retrieve post view count", err)
 		return 0, err
 	}
 
-	return post.Views, nil
+	return views, nil
 }
 
 func (s *Service) Delete(ctx context.Context, id uint) error {
-	if err := s.hasPermissionsOnPost(ctx, "delete", id); err != nil {
+	if err := s.authorize(ctx, domain.ActionDeleteName, id); err != nil {
 		return err
 	}
 
 	if err := s.repo.Delete(ctx, id); err != nil {
-		logger.Error("Post.Service", "Failed to delete post", err)
+		if !errors.Is(err, domain.ErrNotFound) {
+			logger.Error("Post.Service", "Failed to delete post", err)
+		}
 		return err
 	}
 
 	return nil
-}
-
-func (s *Service) DeleteTranslation(ctx context.Context, id uint, language string) error {
-	if language == "" {
-		l := ctx.Value("language")
-		if l == nil {
-			return fmt.Errorf("%w: empty language", domain.ErrInval)
-		}
-		language = l.(string)
-	}
-
-	if err := s.hasPermissionsOnPost(ctx, "delete", id); err != nil {
-		return err
-	}
-
-	if err := s.repo.DeleteTranslation(ctx, id, language); err != nil {
-		logger.Error("Post.Service", "Failed to delete post translation", err)
-		return err
-	}
-
-	return nil
-}
-
-func (s *Service) SyncSearch(ctx context.Context, data []byte) error {
-	var payload MessagePayload
-	if err := json.Unmarshal(data, &payload); err != nil {
-		return err
-	}
-
-	switch payload.Action {
-	case "create", "update":
-		var doc Document
-		if payload.Language == "" {
-			post, err := s.repo.Get(ctx, payload.ID)
-			if err != nil {
-				if errors.Is(err, domain.ErrNotFound) {
-					return nil
-				}
-				return err
-			}
-			doc = post.ToDoc()
-		} else {
-			post, err := s.repo.GetTranslation(ctx, payload.ID, payload.Language)
-			if err != nil {
-				if errors.Is(err, domain.ErrNotFound) {
-					return nil
-				}
-				return err
-			}
-			doc = post.ToDoc()
-		}
-		categories, err := s.repo.GetCategories(ctx, payload.ID)
-		if err != nil {
-			return err
-		}
-		doc.Categories = categories
-		if err := s.se.Index(ctx, &doc); err != nil {
-			return err
-		}
-		return nil
-	case "delete":
-		if err := s.se.Delete(ctx, payload.ID); err != nil {
-			return err
-		}
-		return nil
-	case "delete.translation":
-		if err := s.se.DeleteTranslation(ctx, payload.ID, payload.Language); err != nil {
-			return err
-		}
-		return nil
-	}
-	return fmt.Errorf("%w: unknown action", domain.ErrInval)
 }

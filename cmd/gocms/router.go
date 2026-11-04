@@ -115,7 +115,6 @@ func (r *Router) AddPostRoutes(handler *post.Handler) {
 	r.mux.Handle("PATCH /cms/posts/{id}", m(handler.Update))
 	r.mux.Handle("PATCH /cms/posts/{id}/views", m(handler.UpdateViews))
 	r.mux.Handle("DELETE /cms/posts/{id}", m(handler.Delete))
-	r.mux.Handle("DELETE /cms/posts/{id}/{lang}", m(handler.DeleteLanguage))
 }
 
 func (r *Router) AddCategoryRoutes(handler *category.Handler) {

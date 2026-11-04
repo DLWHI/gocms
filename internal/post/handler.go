@@ -2,6 +2,7 @@ package post
 
 import (
 	"encoding/json"
+	"gocms/internal/domain"
 	"gocms/internal/server"
 	"net/http"
 	"strconv"
@@ -14,19 +15,17 @@ import (
 // PATCH /posts/{id} - Update post translation
 // PATCH /posts/{id}/views - Override posts views
 // DELETE /posts/{id} - Delete post with all translations
-// DELETE /posts/{id}/{lang} - Delete post translation
 //
 // ------------------------------------------------------------------
 
 type Handler struct {
-	Create         http.Handler
-	Search         http.Handler
-	Get            http.Handler
-	Update         http.Handler
-	UpdateViews    http.Handler
-	Delete         http.Handler
-	DeleteLanguage http.Handler
-	postService    *Service
+	Create      http.Handler
+	Search      http.Handler
+	Get         http.Handler
+	Update      http.Handler
+	UpdateViews http.Handler
+	Delete      http.Handler
+	postService *Service
 }
 
 func NewHandler(s *Service) *Handler {
@@ -38,20 +37,19 @@ func NewHandler(s *Service) *Handler {
 	hndl.Update = http.HandlerFunc(hndl.update)
 	hndl.UpdateViews = http.HandlerFunc(hndl.updateViews)
 	hndl.Delete = http.HandlerFunc(hndl.delete)
-	hndl.DeleteLanguage = http.HandlerFunc(hndl.deleteLanguage)
 	return &hndl
 }
 
 // POST /posts - Create post translation
 func (h *Handler) create(w http.ResponseWriter, r *http.Request) {
-	var post Document
+	var post domain.Post
 
 	if err := json.NewDecoder(r.Body).Decode(&post); err != nil {
-		http.Error(w, "Invalid JSON payload", http.StatusBadRequest)
+		server.WriteDecodeError(w, err)
 		return
 	}
 
-	err := h.postService.Create(r.Context(), &post)
+	_, err := h.postService.Create(r.Context(), &post)
 	if err != nil {
 		server.WriteServerError(w, "Post", err)
 		return
@@ -65,19 +63,8 @@ func (h *Handler) search(w http.ResponseWriter, r *http.Request) {
 	var filters SearchParams
 
 	if err := json.NewDecoder(r.Body).Decode(&filters); err != nil {
-		http.Error(w, "Invalid JSON payload", http.StatusBadRequest)
+		server.WriteDecodeError(w, err)
 		return
-	}
-
-	filters.Select = []string{
-		"post_id",
-		"title",
-		"language",
-		"published_at",
-		"created_at",
-		"views",
-		"author",
-		"categories",
 	}
 
 	posts, err := h.postService.Search(r.Context(), &filters)
@@ -94,7 +81,7 @@ func (h *Handler) search(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) get(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.ParseUint(r.PathValue("id"), 10, 64)
 	if err != nil {
-		http.Error(w, "Invalid ID", http.StatusBadRequest)
+		server.WritePathError(w, "Invalid ID")
 		return
 	}
 
@@ -112,19 +99,17 @@ func (h *Handler) get(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) update(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.ParseUint(r.PathValue("id"), 10, 64)
 	if err != nil {
-		http.Error(w, "Invalid ID", http.StatusBadRequest)
+		server.WritePathError(w, "Invalid ID")
 		return
 	}
-	var post Document
+	var post domain.PostDiff
 
 	if err := json.NewDecoder(r.Body).Decode(&post); err != nil {
-		http.Error(w, "Invalid JSON payload", http.StatusBadRequest)
+		server.WriteDecodeError(w, err)
 		return
 	}
 
-	post.PostID = uint(id)
-
-	if _, err := h.postService.Edit(r.Context(), &post); err != nil {
+	if err := h.postService.Edit(r.Context(), uint(id), &post); err != nil {
 		server.WriteServerError(w, "Post", err)
 		return
 	}
@@ -136,17 +121,19 @@ func (h *Handler) update(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) updateViews(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.ParseUint(r.PathValue("id"), 10, 64)
 	if err != nil {
-		http.Error(w, "Invalid ID", http.StatusBadRequest)
+		server.WritePathError(w, "Invalid ID")
 		return
 	}
-	var value uint
+	var payload struct {
+		Views *uint `json:"views"`
+	}
 
-	if err := json.NewDecoder(r.Body).Decode(&value); err != nil {
-		http.Error(w, "Invalid JSON payload", http.StatusBadRequest)
+	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil || payload.Views == nil {
+		server.WriteDecodeError(w, err)
 		return
 	}
 
-	if err := h.postService.SetViews(r.Context(), uint(id), value); err != nil {
+	if err := h.postService.SetViews(r.Context(), uint(id), *payload.Views); err != nil {
 		server.WriteServerError(w, "Post", err)
 		return
 	}
@@ -158,29 +145,12 @@ func (h *Handler) updateViews(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) delete(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.ParseUint(r.PathValue("id"), 10, 64)
 	if err != nil {
-		http.Error(w, "Invalid ID", http.StatusBadRequest)
+		server.WritePathError(w, "Invalid ID")
 		return
 	}
 
 	if err := h.postService.Delete(r.Context(), uint(id)); err != nil {
 		server.WriteServerError(w, "Post", err)
-		return
-	}
-
-	w.WriteHeader(http.StatusOK)
-}
-
-// DELETE /posts/{id}/{language} - Delete post translation
-func (h *Handler) deleteLanguage(w http.ResponseWriter, r *http.Request) {
-	language := r.PathValue("language")
-	id, err := strconv.ParseUint(r.PathValue("id"), 10, 64)
-	if err != nil {
-		http.Error(w, "Invalid ID", http.StatusBadRequest)
-		return
-	}
-
-	if err := h.postService.DeleteTranslation(r.Context(), uint(id), language); err != nil {
-		server.WriteServerError(w, "Post translation", err)
 		return
 	}
 

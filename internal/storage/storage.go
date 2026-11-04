@@ -2,7 +2,7 @@ package storage
 
 import "time"
 
-type ItemType string
+type ItemType = string
 
 const (
 	TypeFolder ItemType = "folder"
@@ -22,4 +22,13 @@ type Info struct {
 	Total uint64 `json:"total"`
 	Used  uint64 `json:"used"`
 	Free  uint64 `json:"free"`
+}
+
+func IsItemType(value string) bool {
+	switch value {
+	case TypeFolder, TypeFile, TypeVideo, TypeImage:
+		return true
+	default:
+		return false
+	}
 }

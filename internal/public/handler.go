@@ -117,7 +117,7 @@ func (h *Handler) postsGet(w http.ResponseWriter, r *http.Request) {
 	}
 	ctx := r.Context()
 
-	post, err := h.posts.Read(ctx, uint(id), slug)
+	post, err := h.posts.GetPublished(ctx, uint(id), slug)
 	if err != nil {
 		server.WriteServerError(w, "Post", err)
 		return
@@ -130,7 +130,6 @@ func (h *Handler) postsGet(w http.ResponseWriter, r *http.Request) {
 	}
 
 	post.CreatedAt = 0
-	post.ID = ""
 
 	w.Header().Set("Content-Type", "application/json")
 	_ = json.NewEncoder(w).Encode(&post)

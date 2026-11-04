@@ -3,339 +3,402 @@ package post
 import (
 	"context"
 	"errors"
+	"gocms/internal/category"
+	"gocms/internal/database"
 	"gocms/internal/domain"
+	"gocms/internal/editor"
+	"gocms/internal/flow"
 	"gocms/internal/outbox"
+	"gocms/internal/user"
+	"time"
 
 	"gorm.io/gorm"
 )
 
+type Record struct {
+	ID          uint              `gorm:"primaryKey;autoIncrement"`
+	Slug        string            `gorm:"size:128"`
+	CreatedAt   time.Time         `gorm:"default:current_timestamp"`
+	PublishedAt *time.Time        ``
+	Views       uint              `gorm:"not null;default:0"`
+	Preview     string            ``
+	Author      string            `gorm:"size:128;"`
+	Editor      editor.Record     `gorm:"foreignKey:Author;references:Username;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	CreatedBy   string            `gorm:"size:64;"`
+	User        user.Record       `gorm:"foreignKey:Author;references:Username;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	Categories  []category.Record `gorm:"many2many:post_categories;foreignKey:ID;joinForeignKey:PostID;references:Slug;joinReferences:CategorySlug;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;"`
+	Version     uint              `gorm:"default:1"`
+}
+
+type Translation struct {
+	Title       string `gorm:"not null"`
+	Description string `gorm:"not null"`
+	Keywords    string `gorm:"not null"`
+	Markdown    string ``
+	Media       string ``
+	MediaSource string ``
+	MediaType   string ``
+	Language    string `gorm:"size:2;primaryKey"`
+	PostID      uint   `gorm:"primaryKey"`
+	Post        Record `gorm:"foreignKey:PostID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	Version     uint   `gorm:"default:1"`
+}
+
+type RecordPatch = map[string]interface{}
+type TranslationPatch = map[string]interface{}
+
 type GORMRepository struct {
-	db *gorm.DB
+	db      *gorm.DB
+	retries uint
+	backoff time.Duration
 }
 
 func NewGORMRepository(db *gorm.DB) *GORMRepository {
-	return &GORMRepository{db: db}
+	return &GORMRepository{
+		db:      db,
+		retries: uint(5),
+		backoff: 100 * time.Millisecond,
+	}
 }
 
-func modelDiff(post *Meta) map[string]interface{} {
-	toUpdate := make(map[string]interface{})
-
-	if post.Slug != "" {
-		toUpdate["slug"] = post.Slug
-	}
-	if post.Preview != "" {
-		toUpdate["preview"] = post.Preview
-	}
-
-	toUpdate["published_at"] = post.PublishedAt
-	toUpdate["version"] = gorm.Expr("version + 1")
-
-	return toUpdate
-}
-
-func translationDiff(post *Translation) map[string]interface{} {
-	toUpdate := make(map[string]interface{})
-
-	if post.Title != "" {
-		toUpdate["title"] = post.Title
-	}
-	if post.Description != "" {
-		toUpdate["description"] = post.Description
-	}
-	if post.Keywords != "" {
-		toUpdate["keywords"] = post.Keywords
-	}
-	if post.Media != "" {
-		toUpdate["media"] = post.Media
-	}
-	if post.MediaSource != "" {
-		toUpdate["media_source"] = post.MediaSource
-	}
-	if post.MediaType != "" {
-		toUpdate["media_type"] = post.MediaType
-	}
-
-	if len(toUpdate) > 0 {
-		toUpdate["version"] = gorm.Expr("version + 1")
-	}
-
-	return toUpdate
-}
-
-func (r *GORMRepository) Create(ctx context.Context, post *Translation) error {
+func (r *GORMRepository) Create(ctx context.Context, post *domain.Post) error {
+	record := ToRecord(post)
 	return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		if err := tx.Create(post).Error; err != nil {
+		if err := tx.Create(record).Error; err != nil {
 			return err
 		}
-		if err := writeMessage(tx, "create", post.PostID, post.Language); err != nil {
+		if err := r.writeMessage(tx, domain.PostActionCreate, post.PostID); err != nil {
 			return err
 		}
+		post.PostID = record.Post.ID
 		return nil
 	})
 }
 
-func (r *GORMRepository) Update(ctx context.Context, diff *Meta) error {
-	var version struct {
-		Post        uint
-		Translation uint
-	}
-	for i := 0; i < 5; i++ {
-		err := r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-			pdiff := modelDiff(diff)
+func (r *GORMRepository) Update(ctx context.Context, id uint, language string, diff *domain.PostDiff) error {
+	err := flow.DoWithRetry(ctx, r.retries, r.backoff, func() error {
+		return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+			recordUpdate, translationUpdate := r.patch(diff)
+			var version struct {
+				Post        uint
+				Translation uint
+			}
 			err := tx.Table("posts AS p").
 				Select("p.version as post, pt.version as translation").
-				Joins("LEFT JOIN post_translations AS pt ON pt.post_id = p.id").
-				Where("p.id = ?", diff.ID).
+				Joins("INNER JOIN post_translations AS pt ON pt.post_id = p.id").
+				Where("p.id = ? AND pt.language = ?", id, language).
 				Take(&version).Error
 			if err != nil {
-				if errors.Is(err, gorm.ErrRecordNotFound) {
-					return domain.ErrNotFound
-				}
 				return err
 			}
 
-			result := tx.Model(&Meta{}).
-				Where("id = ? AND version = ?", diff.ID, version.Post).
-				Updates(pdiff)
+			result := tx.Model(&Record{}).
+				Where("id = ? AND version = ?", id, version.Post).
+				Updates(recordUpdate)
 			if result.Error != nil {
 				return result.Error
 			}
 			if result.RowsAffected == 0 {
-				return domain.ErrLock
+				return domain.ErrRetry
 			}
 
 			if err := tx.Model(diff).Association("Categories").Replace(&diff.Categories); err != nil {
 				return err
 			}
 
-			if err := writeMessage(tx, "update", diff.ID, ""); err != nil {
+			if version.Translation == 0 {
+				translationUpdate["post_id"] = id
+				translationUpdate["lang"] = language
+				translationUpdate["version"] = 1
+				result := tx.Model(&Translation{}).
+					Create(translationUpdate)
+				if result.Error != nil {
+					if errors.Is(err, gorm.ErrDuplicatedKey) {
+						return domain.ErrRetry
+					}
+					return result.Error
+				}
+			} else if len(translationUpdate) > 0 {
+				result := tx.Model(&Translation{}).
+					Where("post_id = ? AND lang = ? AND version = ?", id, language, version.Translation).
+					Updates(translationUpdate)
+				if result.Error != nil {
+					return result.Error
+				}
+				if result.RowsAffected == 0 {
+					return domain.ErrRetry
+				}
+			}
+
+			if err := r.writeMessage(tx, domain.PostActionUpdate, id); err != nil {
 				return err
 			}
 
 			return nil
 		})
-		if err == nil {
-			return nil
-		} else if !errors.Is(err, domain.ErrLock) {
-			return err
-		}
-	}
-	return domain.ErrLock
+	})
+	return database.MapError(err)
 }
 
-func (r *GORMRepository) UpdateTranslation(ctx context.Context, diff *Translation) error {
-	var version struct {
-		Post        uint
-		Translation uint
-	}
-	for i := 0; i < 5; i++ {
-		err := r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-			pdiff := modelDiff(&diff.Post)
-			ptdiff := translationDiff(diff)
-			err := tx.Table("posts AS p").
-				Select("p.version as post, pt.version as translation").
-				Joins("LEFT JOIN post_translations AS pt ON pt.post_id = p.id AND pt.language = ?", diff.Language).
-				Where("p.id = ?", diff.PostID).
-				Take(&version).Error
-			if err != nil {
-				if errors.Is(err, gorm.ErrRecordNotFound) {
-					return domain.ErrNotFound
-				}
+func (r *GORMRepository) SetViews(ctx context.Context, id uint, value uint) error {
+	err := flow.DoWithRetry(ctx, r.retries, r.backoff, func() error {
+		var views uint
+		return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+			if err := tx.Table("posts").Select("views").Where("id = ?", id).Take(&views).Error; err != nil {
 				return err
 			}
 
-			result := tx.Model(&Meta{}).
-				Where("id = ? AND version = ?", diff.PostID, version.Post).
-				Updates(pdiff)
+			result := tx.Model(&Record{}).
+				Where("id = ? AND views = ?", id, views).
+				Update("views", value)
 			if result.Error != nil {
 				return result.Error
 			}
 			if result.RowsAffected == 0 {
-				return domain.ErrLock
+				return domain.ErrRetry
 			}
 
-			if err := tx.Model(&diff.Post).Association("Categories").Replace(&diff.Post.Categories); err != nil {
-				return err
-			}
-
-			if len(ptdiff) > 0 {
-				if version.Translation == 0 {
-					diff.Version = 1
-					if err := tx.Create(diff).Error; err != nil {
-						return err
-					}
-				} else {
-					result := tx.Model(&Translation{}).
-						Where("post_id = ? AND language = ? AND version = ?", diff.PostID, diff.Language, version.Translation).
-						Updates(ptdiff)
-					if result.Error != nil {
-						return result.Error
-					}
-					if result.RowsAffected == 0 {
-						return domain.ErrLock
-					}
-				}
-			}
-
-			if err := writeMessage(tx, "update", diff.PostID, diff.Language); err != nil {
+			if err := r.writeMessage(tx, domain.PostActionUpdate, id); err != nil {
 				return err
 			}
 
 			return nil
 		})
-		if err == nil {
-			return nil
-		} else if !errors.Is(err, domain.ErrLock) {
-			return err
-		}
-	}
-	return domain.ErrLock
+	})
+	return database.MapError(err)
 }
 
-func (r *GORMRepository) IncrementViews(ctx context.Context, id uint, value uint) error {
-	var post Meta
-	for i := 0; i < 5; i++ {
-		err := r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-			if err := tx.Table("posts").Where("id = ?", id).Take(&post).Error; err != nil {
-				if errors.Is(err, gorm.ErrRecordNotFound) {
-					return domain.ErrNotFound
-				}
+func (r *GORMRepository) IncrementViews(ctx context.Context, id uint, value uint) (uint, error) {
+	var views uint
+	err := database.MapError(flow.DoWithRetry(ctx, r.retries, r.backoff, func() error {
+		return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+			if err := tx.Table("posts").Select("views").Where("id = ?", id).Take(&views).Error; err != nil {
 				return err
 			}
 
-			result := tx.Model(&Meta{}).
-				Where("id = ? AND views = ?", id, post.Views).
+			result := tx.Model(&Record{}).
+				Where("id = ? AND views = ?", id, views).
 				Update("views", gorm.Expr("views + ?", value))
 			if result.Error != nil {
 				return result.Error
 			}
 			if result.RowsAffected == 0 {
-				return domain.ErrLock
+				return domain.ErrRetry
 			}
 
-			if err := writeMessage(tx, "update", id, ""); err != nil {
+			if err := r.writeMessage(tx, domain.PostActionUpdate, id); err != nil {
 				return err
 			}
 
 			return nil
 		})
-		if err == nil {
-			return nil
-		} else if !errors.Is(err, domain.ErrLock) {
-			return err
-		}
+	}))
+	if err != nil {
+		return 0, err
 	}
-	return domain.ErrLock
+	return views + value, nil
 }
 
-func (r *GORMRepository) Get(ctx context.Context, id uint) (*Meta, error) {
-	var post Meta
+func (r *GORMRepository) Get(ctx context.Context, id uint, language string) (*domain.Post, error) {
+	var post Translation
 
-	result := r.db.WithContext(ctx).Model(&Meta{}).
-		Where("id = ?", id).
+	result := r.db.WithContext(ctx).Model(&Translation{}).
+		Preload("Post").
+		Where("post_id = ? AND lang = ?", id, language).
 		Take(&post)
 	if result.Error != nil {
-		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-			return nil, domain.ErrNotFound
-		}
 		return nil, result.Error
 	}
 
-	return &post, nil
+	return post.ToDomain(), nil
 }
 
-func (r *GORMRepository) GetTranslation(ctx context.Context, id uint, language string) (*Translation, error) {
-	var res struct {
-		Meta
-		Title       string
-		Media       string
-		MediaSource string
-		MediaType   string
-		Description string
-		Keywords    string
-		Language    string
+func (r *GORMRepository) GetTranslations(ctx context.Context, id uint) ([]domain.Post, error) {
+	var posts []Translation
+
+	result := r.db.WithContext(ctx).Model(&Translation{}).
+		Preload("Post").
+		Where("post_id = ?", id).
+		Find(&posts)
+	if result.Error != nil {
+		return nil, result.Error
 	}
 
-	err := r.db.WithContext(ctx).
-		Table("posts AS p").
-		Select("*").
-		Joins("INNER JOIN post_translations AS pt ON pt.post_id = p.id AND pt.language = ?").
-		Where("p.id = ?", id, language).
-		Take(&res).Error
-	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, domain.ErrNotFound
-		}
-		return nil, err
+	vals := make([]domain.Post, 0, len(posts))
+
+	for _, post := range posts {
+		vals = append(vals, *post.ToDomain())
 	}
-	res.Meta.Version = 0
-	return &Translation{
-		Title:       res.Title,
-		Description: res.Description,
-		Keywords:    res.Keywords,
-		Language:    language,
-		Media:       res.Media,
-		MediaSource: res.MediaSource,
-		MediaType:   res.MediaType,
-		PostID:      res.ID,
-		Post:        res.Meta,
-	}, nil
+
+	return vals, nil
 }
 
-func (r *GORMRepository) GetCategories(ctx context.Context, id uint) ([]string, error) {
-	categories := make([]string, 0)
+func (r *GORMRepository) GetViews(ctx context.Context, id uint) (uint, error) {
+	var views uint
 
-	err := r.db.WithContext(ctx).
-		Table("categories").
-		Select("categories.slug").
-		Joins("JOIN post_categories ON post_categories.category_slug = categories.slug").
-		Where("post_categories.post_id = ?", id).
-		Pluck("categories.slug", &categories).Error
-	if err != nil {
-		return nil, err
+	result := r.db.WithContext(ctx).Model(&Record{}).
+		Select("views").
+		Where("id = ?", id).
+		Take(&views)
+	if result.Error != nil {
+		return 0, result.Error
 	}
-	return categories, nil
+
+	return views, nil
+}
+
+func (r *GORMRepository) GetCreator(ctx context.Context, id uint) (string, error) {
+	var creator string
+
+	result := r.db.WithContext(ctx).Model(&Record{}).
+		Select("created_by").
+		Where("id = ?", id).
+		Take(&creator)
+	if result.Error != nil {
+		return "", result.Error
+	}
+
+	return creator, nil
 }
 
 func (r *GORMRepository) Delete(ctx context.Context, id uint) error {
-	return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+	err := r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		result := tx.Where("id = ?", id).
-			Delete(&Meta{})
+			Delete(&Record{})
 		if result.Error != nil {
 			return result.Error
 		}
 		if result.RowsAffected == 0 {
 			return domain.ErrNotFound
 		}
-		if err := writeMessage(tx, "delete", id, ""); err != nil {
+		if err := r.writeMessage(tx, domain.PostActionDelete, id); err != nil {
 			return err
 		}
 		return nil
 	})
+	return database.MapError(err)
 }
 
-func (r *GORMRepository) DeleteTranslation(ctx context.Context, id uint, language string) error {
-	return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		result := tx.Where("post_id = ? AND language = ?", id, language).
-			Delete(&Translation{})
-		if result.RowsAffected == 0 {
-			return domain.ErrNotFound
-		}
-		if err := writeMessage(tx, "delete.translation", id, language); err != nil {
-			return err
-		}
-		return nil
-	})
-}
-
-func writeMessage(tx *gorm.DB, action string, id uint, language string) error {
-	payload := MessagePayload{
-		ID:       id,
-		Language: language,
-		Action:   action,
+func (*GORMRepository) writeMessage(tx *gorm.DB, action int, id uint) error {
+	payload := domain.PostEventInfo{
+		PostID: id,
+		Action: action,
 	}
-	if err := outbox.WriteMessage(tx, "post", "Post.Repository", &payload); err != nil {
+	if err := outbox.WriteMessage(tx, domain.PostEvent, "Post.Repository", &payload); err != nil {
 		return err
 	}
 	return nil
+}
+
+func (*GORMRepository) patch(diff *domain.PostDiff) (RecordPatch, TranslationPatch) {
+	record := make(map[string]interface{})
+	translation := make(map[string]interface{})
+
+	if diff.Slug != nil {
+		record["slug"] = *diff.Slug
+	}
+	if diff.Preview != nil {
+		record["preview"] = *diff.Preview
+	}
+	if diff.Author != nil {
+		translation["author"] = *diff.Author
+	}
+
+	if diff.Title != nil {
+		translation["title"] = diff.Title
+	}
+	if diff.Description != nil {
+		translation["description"] = diff.Description
+	}
+	if diff.Keywords != nil {
+		translation["keywords"] = diff.Keywords
+	}
+	if diff.Media != nil {
+		translation["media"] = diff.Media
+	}
+	if diff.MediaSource != nil {
+		translation["media_source"] = diff.MediaSource
+	}
+	if diff.MediaType != nil {
+		translation["media_type"] = diff.MediaType
+	}
+
+	if len(translation) > 0 {
+		translation["version"] = gorm.Expr("version + 1")
+	}
+
+	record["published_at"] = diff.PublishedAt
+	record["version"] = gorm.Expr("version + 1")
+
+	return record, translation
+}
+
+func (*Record) TableName() string {
+	return "posts"
+}
+
+func (*Translation) TableName() string {
+	return "post_translations"
+}
+
+func (r *Translation) ToDomain() *domain.Post {
+	var res domain.Post
+
+	if r.Post.PublishedAt != nil {
+		ts := r.Post.PublishedAt.Unix()
+		res.PublishedAt = &ts
+	}
+
+	// To make json.Marshall convert no categories to empty array
+	categories := make([]string, 0, len(r.Post.Categories))
+	for _, category := range r.Post.Categories {
+		categories = append(categories, category.Slug)
+	}
+	res.Categories = categories
+
+	res.PostID = r.PostID
+	res.Title = r.Title
+	res.Description = r.Description
+	res.Slug = r.Post.Slug
+	res.Keywords = r.Keywords
+	res.Language = r.Language
+	res.CreatedAt = r.Post.CreatedAt.Unix()
+	res.Views = r.Post.Views
+	res.Preview = r.Post.Preview
+	res.Media = r.Media
+	res.MediaType = r.MediaType
+	res.MediaSource = r.MediaSource
+	res.Author = r.Post.Author
+
+	return &res
+}
+
+func ToRecord(data *domain.Post) *Translation {
+	var res Translation
+	if data.PublishedAt != nil {
+		ts := time.Unix(*data.PublishedAt, 0).UTC()
+		res.Post.PublishedAt = &ts
+	}
+
+	// To make json.Marshall convert no categories to empty array
+	categories := make([]category.Record, 0, len(data.Categories))
+	for _, categ := range data.Categories {
+		categories = append(categories, category.Record{Slug: categ})
+	}
+	res.Post.Categories = categories
+
+	res.PostID = data.PostID
+	res.Title = data.Title
+	res.Description = data.Description
+	res.Keywords = data.Keywords
+	res.Language = data.Language
+	res.Post.ID = data.PostID
+	res.Post.Slug = data.Slug
+	res.Post.Views = data.Views
+	res.Post.Author = data.Author
+	res.Post.Preview = data.Preview
+	res.Media = data.Media
+	res.MediaType = data.MediaType
+	res.MediaSource = data.MediaSource
+	return &res
 }

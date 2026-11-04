@@ -3,7 +3,7 @@ package post
 import (
 	"context"
 	"errors"
-	"fmt"
+	"strconv"
 	"time"
 
 	"gocms/internal/cache"
@@ -11,218 +11,117 @@ import (
 	"gocms/internal/logger"
 
 	"github.com/redis/go-redis/v9"
-	"golang.org/x/sync/singleflight"
 )
 
 type RedisRepository struct {
-	origin    Repository
-	rdb       *redis.Client
-	ttl       time.Duration
-	keyFormat string
-	group     singleflight.Group
+	Repository
+	cache cache.RedisClient
+	ttl   time.Duration
+	keys  cache.Keyspace
 }
 
-type RedisConfig struct {
-	Client    *redis.Client
-	TTL       time.Duration
-	KeyFormat string
-}
-
-func NewRedisRepository(db Repository, config *RedisConfig) *RedisRepository {
+func NewRedisRepository(origin Repository, client *redis.Client, ttl time.Duration, config cache.Keyspace) *RedisRepository {
 	return &RedisRepository{
-		origin:    db,
-		rdb:       config.Client,
-		ttl:       config.TTL,
-		keyFormat: config.KeyFormat,
+		Repository: origin,
+		ttl:        ttl,
+		keys:       config,
+		cache: cache.RedisClient{
+			Client:   client,
+			LeaseTTL: 5 * time.Second,
+		},
 	}
 }
 
-func (r *RedisRepository) Create(ctx context.Context, post *Translation) error {
-	return r.origin.Create(ctx, post)
-}
-
-func (r *RedisRepository) Update(ctx context.Context, post *Meta) error {
-	if err := r.origin.Update(ctx, post); err != nil {
+func (r *RedisRepository) Update(ctx context.Context, id uint, lang string, diff *domain.PostDiff) error {
+	if err := r.Repository.Update(ctx, id, lang, diff); err != nil {
 		return err
 	}
-	pattern := fmt.Sprintf(r.keyFormat, post.ID, "*")
-	if err := cache.EraseRedisKeyPattern(r.rdb, ctx, pattern); err != nil {
+	pattern := r.keys.KeyWithSuffix(strconv.FormatUint(uint64(id), 10), "translation:*")
+	if err := r.cache.InvalidatePattern(ctx, pattern); err != nil {
 		logger.Warn("Post.Redis", "Failed to invalidate cached entries.", err)
 	}
 	return nil
 }
 
-func (r *RedisRepository) UpdateTranslation(ctx context.Context, post *Translation) error {
-	if err := r.origin.UpdateTranslation(ctx, post); err != nil {
-		return err
-	}
-	pattern := fmt.Sprintf(r.keyFormat, post.PostID, "*")
-	if err := cache.EraseRedisKeyPattern(r.rdb, ctx, pattern); err != nil {
-		logger.Warn("Post.Redis", "Failed to invalidate cached entries.", err)
-	}
-	return nil
-}
+func (r *RedisRepository) Get(ctx context.Context, id uint, language string) (*domain.Post, error) {
+	var post domain.Post
+	var token string
+	key := r.keys.KeyWithSuffix(strconv.FormatUint(uint64(id), 10), "translation:"+language)
 
-func (r *RedisRepository) IncrementViews(ctx context.Context, id uint, value uint) error {
-	return r.origin.IncrementViews(ctx, id, value)
-}
-
-func (r *RedisRepository) Get(ctx context.Context, id uint) (*Meta, error) {
-	var post Meta
-	key := fmt.Sprintf(r.keyFormat, id, "__all")
-
-	if err := cache.UnmarshalRedisKey(r.rdb, ctx, key, &post); err != nil {
-		if !errors.Is(err, redis.Nil) {
-			logger.Warn("Post.Redis", "Failed to read from cache.", err)
-		}
-	} else {
+	err := r.cache.Get(ctx, key, &post)
+	switch {
+	case err == nil:
 		return &post, nil
+	case errors.Is(err, redis.Nil):
+		token, err = r.cache.Lease(ctx, key)
+		if err != nil {
+			logger.Warn("User.Redis", "Redis error while trying to lease key", err, "key", key)
+		}
+	default:
+		logger.Warn("User.Redis", "Redis error while trying to retrieve key", err, "key", key)
 	}
 
-	ch := r.group.DoChan(key, func() (any, error) {
-		bg, cancel := context.WithTimeout(context.Background(), 20*time.Second)
-		defer cancel()
+	p, err := r.Repository.Get(ctx, id, language)
+	if err != nil {
+		return nil, err
+	}
+	post = *p
 
-		post, err := r.origin.Get(bg, id)
-		if err != nil {
-			if !errors.Is(err, domain.ErrNotFound) {
-				r.group.Forget(key)
+	if token != "" {
+		if err := r.cache.Return(ctx, key, token, p, r.ttl); err != nil {
+			if !errors.Is(err, redis.Nil) {
+				logger.Warn("User.Redis", "Redis error while trying to store key", err, "key", key)
 			}
-			return nil, err
 		}
-
-		if err := cache.MarshalRedisKey(r.rdb, bg, key, r.ttl, &post); err != nil {
-			logger.Warn("Post.Redis", "Failed to write to cache.", err)
-		}
-
-		return post, nil
-	})
-
-	select {
-	case <-ctx.Done():
-		return nil, ctx.Err()
-
-	case res := <-ch:
-		if res.Err != nil {
-			return nil, res.Err
-		}
-		post = *res.Val.(*Meta)
 	}
 
 	return &post, nil
 }
 
-func (r *RedisRepository) GetTranslation(ctx context.Context, id uint, language string) (*Translation, error) {
-	var post Translation
-	key := fmt.Sprintf(r.keyFormat, id, language)
+func (r *RedisRepository) CreatorOf(ctx context.Context, id uint) (string, error) {
+	var token string
+	var creator string
+	key := r.keys.KeyWithSuffix(strconv.FormatUint(uint64(id), 10), "created_by")
 
-	if err := cache.UnmarshalRedisKey(r.rdb, ctx, key, &post); err != nil {
-		if !errors.Is(err, redis.Nil) {
-			logger.Warn("Post.Redis", "Failed to read from cache.", err)
-		}
-	} else {
-		return &post, nil
-	}
-
-	ch := r.group.DoChan(key, func() (any, error) {
-		bg, cancel := context.WithTimeout(context.Background(), 20*time.Second)
-		defer cancel()
-
-		post, err := r.origin.GetTranslation(bg, id, language)
+	err := r.cache.Get(ctx, key, &creator)
+	switch {
+	case err == nil:
+		return creator, nil
+	case errors.Is(err, redis.Nil):
+		token, err = r.cache.Lease(ctx, key)
 		if err != nil {
-			if !errors.Is(err, domain.ErrNotFound) {
-				r.group.Forget(key)
+			logger.Warn("User.Redis", "Redis error while trying to lease key", err, "key", key)
+		}
+	default:
+		logger.Warn("User.Redis", "Redis error while trying to retrieve key", err, "key", key)
+	}
+
+	c, err := r.Repository.GetCreator(ctx, id)
+	if err != nil {
+		return "", err
+	}
+	creator = c
+
+	if token != "" {
+		if err := r.cache.Return(ctx, key, token, &c, r.ttl); err != nil {
+			if !errors.Is(err, redis.Nil) {
+				logger.Warn("User.Redis", "Redis error while trying to store key", err, "key", key)
 			}
-			return nil, err
 		}
-
-		if err := cache.MarshalRedisKey(r.rdb, bg, key, r.ttl, &post); err != nil {
-			logger.Warn("Post.Redis", "Failed to write to cache.", err)
-		}
-
-		return post, nil
-	})
-
-	select {
-	case <-ctx.Done():
-		return nil, ctx.Err()
-
-	case res := <-ch:
-		if res.Err != nil {
-			return nil, res.Err
-		}
-		post = *res.Val.(*Translation)
 	}
 
-	return &post, nil
-}
-
-func (r *RedisRepository) GetCategories(ctx context.Context, id uint) ([]string, error) {
-	categories := make([]string, 0)
-
-	key := fmt.Sprintf(r.keyFormat, id, "categories")
-
-	if err := cache.UnmarshalRedisKey(r.rdb, ctx, key, &categories); err != nil {
-		if !errors.Is(err, redis.Nil) {
-			logger.Warn("Post.Redis", "Failed to read from cache.", err)
-		}
-	} else {
-		return categories, nil
-	}
-
-	ch := r.group.DoChan(key, func() (any, error) {
-		bg, cancel := context.WithTimeout(context.Background(), 20*time.Second)
-		defer cancel()
-
-		post, err := r.origin.GetCategories(bg, id)
-		if err != nil {
-			if !errors.Is(err, domain.ErrNotFound) {
-				r.group.Forget(key)
-			}
-			return nil, err
-		}
-
-		if err := cache.MarshalRedisKey(r.rdb, bg, key, r.ttl, &post); err != nil {
-			logger.Warn("Post.Redis", "Failed to write to cache.", err)
-		}
-
-		return post, nil
-	})
-
-	select {
-	case <-ctx.Done():
-		return nil, ctx.Err()
-
-	case res := <-ch:
-		if res.Err != nil {
-			return nil, res.Err
-		}
-		categories = res.Val.([]string)
-	}
-	return categories, nil
+	return creator, nil
 }
 
 func (r *RedisRepository) Delete(ctx context.Context, id uint) error {
-	if err := r.origin.Delete(ctx, id); err != nil {
+	if err := r.Repository.Delete(ctx, id); err != nil {
 		return err
 	}
 
-	pattern := fmt.Sprintf(r.keyFormat, id, "*")
-	if err := cache.EraseRedisKeyPattern(r.rdb, ctx, pattern); err != nil {
+	pattern := r.keys.KeyWithSuffix(strconv.FormatUint(uint64(id), 10), "translation:*")
+	if err := r.cache.InvalidatePattern(ctx, pattern); err != nil {
 		logger.Warn("Post.Redis", "Failed to invalidate cached entries.", err)
 	}
 
-	return nil
-}
-
-func (r *RedisRepository) DeleteTranslation(ctx context.Context, id uint, language string) error {
-	if err := r.origin.DeleteTranslation(ctx, id, language); err != nil {
-		return err
-	}
-
-	key := fmt.Sprintf(r.keyFormat, id, language)
-	if _, err := r.rdb.Del(ctx, key).Result(); err != nil {
-		logger.Warn("Post.Redis", "Failed to delete from cache.", err)
-	}
 	return nil
 }

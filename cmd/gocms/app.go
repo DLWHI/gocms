@@ -92,7 +92,10 @@ func (app *Container) Init(ctx context.Context, cfg Config) error {
 	if err != nil {
 		return err
 	}
-	posts := NewPostModule(db, search, redis)
+	posts, err := NewPostModule(db, search, redis, langs.Service, auth.Service)
+	if err != nil {
+		return err
+	}
 	ads := NewAdsModule(db, search, redis)
 	editors, err := NewEditorModule(db, search, redis, langs.Service, auth.Service)
 	if err != nil {
@@ -152,7 +155,7 @@ func (app *Container) Init(ctx context.Context, cfg Config) error {
 
 func (app *Container) WireEvents(dispatcher outbox.Publisher) {
 	app.Subscriptions = make([]*outbox.Subscription, 0, 6)
-	app.Subscriptions = append(app.Subscriptions, dispatcher.Subscribe("post", app.Posts.Service.SyncSearch))
+	app.Subscriptions = append(app.Subscriptions, dispatcher.Subscribe(domain.PostEvent, app.Posts.Consumer.SyncSearch))
 	app.Subscriptions = append(app.Subscriptions, dispatcher.Subscribe(domain.UserEvent, app.Users.Consumer.SyncSearch))
 	app.Subscriptions = append(app.Subscriptions, dispatcher.Subscribe(domain.UserEvent, app.Auth.Consumer.RevokeSessions))
 	app.Subscriptions = append(app.Subscriptions, dispatcher.Subscribe(domain.CategoryEvent, app.Categories.Consumer.SyncSearch))

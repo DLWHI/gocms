@@ -45,10 +45,12 @@ type UserModule struct {
 }
 
 type PostModule struct {
+	Consumer          *post.EventConsumer
 	Service           *post.Service
 	Handler           *post.Handler
-	RedisRepo         *post.RedisRepository
-	GORMRepo          *post.GORMRepository
+	DedupRepo         post.Repository
+	CacheRepo         post.Repository
+	DBRepo            post.Repository
 	MeilisearchEngine post.SearchEngine
 }
 
@@ -140,25 +142,36 @@ func NewUserModule(
 	}, nil
 }
 
-func NewPostModule(db *gorm.DB, search meilisearch.ServiceManager, redis *redis.Client) *PostModule {
-	redisCfg := post.RedisConfig{
-		Client:    redis,
-		TTL:       30 * time.Minute,
-		KeyFormat: "cms:posts:%d:%s",
+func NewPostModule(
+	db *gorm.DB,
+	search meilisearch.ServiceManager,
+	redis *redis.Client,
+	langs lang.Service,
+	creds auth.Service,
+) (*PostModule, error) {
+	keys, err := cache.NewKeyspace(cache.KeyConfig{
+		Prefix: []string{"cms"},
+	}, "categories")
+	if err != nil {
+		return nil, err
 	}
 
-	repo := post.NewGORMRepository(db)
-	cacheRepo := post.NewRedisRepository(repo, &redisCfg)
+	gormRepo := post.NewGORMRepository(db)
+	flowRepo := post.NewFlowRepository(gormRepo, 20*time.Second, keys)
+	redisRepo := post.NewRedisRepository(flowRepo, redis, 30*time.Minute, keys)
 	searchEngine := post.NewMeilisearchEngine(search, PostsSearchIndexName)
-	service := post.NewService(cacheRepo, searchEngine)
+	consumer := post.NewEventConsumer(gormRepo, searchEngine)
+	service := post.NewService(redisRepo, searchEngine, langs, creds)
 	handler := post.NewHandler(service)
 	return &PostModule{
+		Consumer:          consumer,
 		Service:           service,
 		Handler:           handler,
-		RedisRepo:         cacheRepo,
-		GORMRepo:          repo,
+		CacheRepo:         redisRepo,
+		DBRepo:            gormRepo,
+		DedupRepo:         flowRepo,
 		MeilisearchEngine: searchEngine,
-	}
+	}, nil
 }
 
 func NewCategoryModule(

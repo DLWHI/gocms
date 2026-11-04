@@ -166,7 +166,7 @@ func (c *RedisCounter) Commit(ctx context.Context) error {
 			logger.Error("PostViewCounter.Service", "Failed to remove staged post views after reading", err)
 		}
 
-		if err := c.service.IncrementViews(ctx, id, uint(value)); err != nil {
+		if _, err := c.service.CommitViews(ctx, id, uint(value)); err != nil {
 			logger.Error("PostViewCounter.Service", "Failed to persist pending post views; restoring them to cache", err)
 			if _, err := c.rdb.IncrBy(ctx, key, int64(value)).Result(); err != nil {
 				return fmt.Errorf("failed to restore pending post views to cache: %w", err)

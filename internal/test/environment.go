@@ -16,6 +16,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/meilisearch/meilisearch-go"
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 )
@@ -141,6 +142,25 @@ func (d *Data) ExpandToken(name string, arg JSONValue) (JSONValue, error) {
 			return nil, fmt.Errorf("$actor_perms requests unknown actor")
 		}
 		return json.Number(strconv.FormatUint(uint64(actor.Permissions), 10)), nil
+	case "$printf":
+		m, ok := arg.(map[string]any)
+		if !ok {
+			return nil, fmt.Errorf("$repeat expects {format, values}")
+		}
+		format, ok1 := m["format"].(string)
+		values, ok2 := m["values"].([]any)
+		if !ok1 || !ok2 {
+			return nil, fmt.Errorf("$repeat needs format string and values array")
+		}
+		resolved := make([]any, 0, len(values))
+		for _, val := range values {
+			v, err := d.Resolve(val)
+			if err != nil {
+				return nil, fmt.Errorf("$printf.values: %w", err)
+			}
+			resolved = append(resolved, v)
+		}
+		return fmt.Sprintf(format, resolved...), nil
 	default:
 		return nil, fmt.Errorf("value is not a state token")
 	}
@@ -175,46 +195,40 @@ func LoadDataFromFile(path string, format string) (*Data, error) {
 }
 
 func (e *Environment) Clear(ctx context.Context) error {
-	if err := e.DB.Unscoped().Where("1 = 1").Delete(&lang.Language{}).Error; err != nil {
-		return err
+	entites := []any{
+		&lang.Language{},
+		&user.Record{},
+		&category.Record{},
+		&editor.Record{},
+		&outbox.Message{},
 	}
-	if err := e.DB.Unscoped().Where("1 = 1").Delete(&user.Record{}).Error; err != nil {
-		return err
-	}
-	if err := e.DB.Unscoped().Where("1 = 1").Delete(&category.Record{}).Error; err != nil {
-		return err
-	}
-	if err := e.DB.Unscoped().Where("1 = 1").Delete(&editor.Record{}).Error; err != nil {
-		return err
-	}
-	if err := e.DB.Unscoped().Where("1 = 1").Delete(&outbox.Message{}).Error; err != nil {
-		return err
+
+	for _, entity := range entites {
+		if err := e.DB.Unscoped().Where("1 = 1").Delete(entity).Error; err != nil {
+			return err
+		}
 	}
 
 	if err := e.Redis.FlushDB(ctx).Err(); err != nil {
 		return err
 	}
 
-	task, err := e.Search.UsersIndex.DeleteAllDocumentsWithContext(ctx, nil)
-	if err != nil {
-		return err
+	indexes := []meilisearch.IndexManager{
+		e.Search.UsersIndex,
+		e.Search.CategoriesIndex,
+		e.Search.EditorsIndex,
+		e.Search.PostsIndex,
+		e.Search.AdsIndex,
 	}
-	if err := e.Search.WaitForTask(ctx, task); err != nil {
-		return err
-	}
-	task, err = e.Search.CategoriesIndex.DeleteAllDocumentsWithContext(ctx, nil)
-	if err != nil {
-		return err
-	}
-	if err := e.Search.WaitForTask(ctx, task); err != nil {
-		return err
-	}
-	task, err = e.Search.EditorsIndex.DeleteAllDocumentsWithContext(ctx, nil)
-	if err != nil {
-		return err
-	}
-	if err := e.Search.WaitForTask(ctx, task); err != nil {
-		return err
+	for _, index := range indexes {
+
+		task, err := index.DeleteAllDocumentsWithContext(ctx, nil)
+		if err != nil {
+			return err
+		}
+		if err := e.Search.WaitForTask(ctx, task); err != nil {
+			return err
+		}
 	}
 
 	return nil

@@ -4,8 +4,6 @@ import (
 	"context"
 	"gocms/internal/domain"
 	"net/http"
-
-	"golang.org/x/text/language"
 )
 
 type Middleware struct {
@@ -21,20 +19,19 @@ func NewMiddleware(svc Service) *Middleware {
 func (m *Middleware) Wrap(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
-		lang := m.svc.DefaultLang().Code
-		header := r.Header.Get("Accept-Language")
-		tags, _, err := language.ParseAcceptLanguage(header)
-		if err != nil {
-			http.Error(w, "Invalid 'Accept-Language'", http.StatusBadRequest)
-			return
-		}
-		if len(tags) > 0 {
-			base, conf := tags[0].Base()
-			if base.String() != "mul" && conf != language.No && m.svc.IsSupported(base.String()) {
-				lang = base.String()
+		lang := r.PathValue("lang")
+		if lang != "" {
+			lang, err := NormalizeLangCode(lang)
+			if err != nil {
+				http.Error(w, "Invalid language code", http.StatusBadRequest)
+				return
 			}
+			if !m.svc.IsSupported(lang) {
+				http.Error(w, "Invalid language code", http.StatusNotAcceptable)
+				return
+			}
+			ctx = context.WithValue(ctx, domain.LangContextKey, lang)
 		}
-		ctx = context.WithValue(ctx, domain.LangContextKey, lang)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }

@@ -12,58 +12,36 @@ import (
 	"sync/atomic"
 )
 
-type snapshot struct {
-	langs    map[string]Language
-	fallback Language
-}
-
 type LocalService struct {
-	snap atomic.Pointer[snapshot]
+	snap atomic.Pointer[map[string]Language]
 	repo Repository
 	auth auth.Service
 	mu   sync.Mutex
 }
 
-func NewLocalService(ctx context.Context, fallback string, repo Repository, auth auth.Service) (*LocalService, error) {
+func NewLocalService(ctx context.Context, repo Repository, auth auth.Service) (*LocalService, error) {
 	svc := &LocalService{repo: repo, auth: auth}
-	svc.snap.Store(&snapshot{fallback: Language{Code: fallback}})
+	svc.snap.Store(&map[string]Language{})
 	if err := svc.Reload(ctx, nil); err != nil {
 		return nil, err
 	}
 	return svc, nil
 }
 
-func (s *LocalService) SetDefaultLang(code string) error {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	sn := *s.snap.Load()
-
-	lang, exists := sn.langs[code]
-	if !exists {
-		return fmt.Errorf("%w: language is not supported", domain.ErrInval)
-	}
-	sn.fallback = lang
-	s.snap.Store(&sn)
-	return nil
-}
-
 func (s *LocalService) GetSupported() []Language {
-	sn := s.snap.Load()
-	langs := make([]Language, 0, len(sn.langs))
+	langs := *s.snap.Load()
+	res := make([]Language, 0, len(langs))
 
-	for _, lang := range sn.langs {
-		langs = append(langs, lang)
+	for _, lang := range langs {
+		res = append(res, lang)
 	}
-	return langs
+	return res
 }
 
 func (s *LocalService) IsSupported(code string) bool {
-	_, exists := s.snap.Load().langs[code]
+	langs := *s.snap.Load()
+	_, exists := langs[code]
 	return exists
-}
-
-func (s *LocalService) DefaultLang() Language {
-	return s.snap.Load().fallback
 }
 
 func (s *LocalService) ResolveLang(ctx context.Context, code string) (string, error) {
@@ -144,20 +122,6 @@ func (s *LocalService) Reload(ctx context.Context, _ []byte) error {
 		langmap[lang.Code] = lang
 	}
 
-	sn := *s.snap.Load()
-
-	if value, ok := langmap[sn.fallback.Code]; ok {
-		sn.fallback = value
-	} else if len(langs) > 0 {
-		logger.Warn("Language.Service", "Fallback language is missing, using first language", nil, "value", langs[0])
-		sn.fallback = langs[0]
-	} else {
-		logger.Warn("Language.Service", "Fallback language is missing, it will be applied on next add", nil)
-		sn.fallback = Language{}
-	}
-
-	sn.langs = langmap
-
-	s.snap.Store(&sn)
+	s.snap.Store(&langmap)
 	return nil
 }

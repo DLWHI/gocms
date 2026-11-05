@@ -5,11 +5,12 @@ import (
 	"net/url"
 	"strings"
 	"unicode"
+	"unicode/utf8"
 )
 
 const (
-	MaxSlugLength = 128
-	MaxNameLength = 254
+	MaxSlugChars = 128
+	MaxNameChars = 254
 )
 
 func IsInvalidSlugRune(r rune) bool {
@@ -27,19 +28,19 @@ func NormalizeSlug(value string) (string, error) {
 	if normalized == "" {
 		return "", fmt.Errorf("%w: slug cannot be empty", ErrInval)
 	}
-	if len(normalized) > MaxSlugLength {
-		return "", fmt.Errorf("%w: slug is longer than %d chars", ErrInval, MaxSlugLength)
-	}
 	if strings.IndexFunc(normalized, IsInvalidSlugRune) >= 0 {
 		return "", fmt.Errorf("%w: slug must contain only letters, numbers, dashes or underscores", ErrInval)
+	}
+	if len(normalized) > MaxSlugChars {
+		return "", fmt.Errorf("%w: slug is longer than %d chars", ErrInval, MaxSlugChars)
 	}
 	return strings.ToLower(normalized), nil
 }
 
 func NormalizeName(value string) (string, error) {
 	normalized := strings.TrimSpace(value)
-	if len(normalized) > MaxNameLength {
-		return "", fmt.Errorf("%w: name is longer than %d chars", ErrInval, MaxNameLength)
+	if utf8.RuneCountInString(normalized) > MaxNameChars {
+		return "", fmt.Errorf("%w: name is longer than %d chars", ErrInval, MaxNameChars)
 	}
 	if strings.IndexFunc(normalized, IsNonGraphic) >= 0 {
 		return "", fmt.Errorf("%w: name must not contain non printable characters", ErrInval)

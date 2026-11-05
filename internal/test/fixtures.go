@@ -2,6 +2,7 @@ package test
 
 import (
 	"context"
+	"fmt"
 	"gocms/internal/category"
 	"gocms/internal/domain"
 	"gocms/internal/editor"
@@ -31,6 +32,7 @@ func (f *Fixtures) ApplyFixtures(ctx context.Context, e *Environment) error {
 		if err := db.WithContext(ctx).Save(actor.ToRecord(hash)).Error; err != nil {
 			return err
 		}
+
 		task, err := ms.UsersIndex.AddDocumentsWithContext(ctx, actor.ToDomain(), nil)
 		if err != nil {
 			return err
@@ -79,6 +81,7 @@ func (f *Fixtures) ApplyFixtures(ctx context.Context, e *Environment) error {
 			return err
 		}
 
+		c.ID = fmt.Sprintf("%s-%s", c.Slug, c.Lang)
 		task, err := ms.CategoriesIndex.AddDocumentsWithContext(ctx, &c, nil)
 		if err != nil {
 			return err
@@ -94,6 +97,7 @@ func (f *Fixtures) ApplyFixtures(ctx context.Context, e *Environment) error {
 			return err
 		}
 
+		e.ID = fmt.Sprintf("%s-%s", e.Slug, e.Lang)
 		task, err := ms.EditorsIndex.AddDocumentsWithContext(ctx, &e, nil)
 		if err != nil {
 			return err

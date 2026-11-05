@@ -73,11 +73,11 @@ func (*MeilisearchEngine) buildSort(params *SearchParams) []string {
 func (ms *MeilisearchEngine) Index(ctx context.Context, slug string, group ...domain.Editor) error {
 	index := ms.search.Client.Index(ms.search.Config.Uid)
 
-	for _, editor := range group {
-		if editor.Slug != slug {
-			return fmt.Errorf("%w: group item not from provided editor slug", domain.ErrInval)
+	for i := range group {
+		if group[i].Slug != slug {
+			return fmt.Errorf("%w: group item not from provided category slug", domain.ErrInval)
 		}
-		editor.ID = fmt.Sprintf("%s-%s", editor.Slug, editor.Lang)
+		group[i].ID = fmt.Sprintf("%s-%s", slug, group[i].Lang)
 	}
 
 	task, err := index.AddDocumentsWithContext(ctx, group, nil)

@@ -124,6 +124,13 @@ func ToNumber(v JSONValue) (float64, bool) {
 func TypeMatches(value JSONValue, typename string) error {
 	switch typename {
 	case "number":
+		val, ok := ToNumber(value)
+		if ok && val == math.Trunc(val) {
+			return nil
+		}
+		return fmt.Errorf("Assertion failed: expected integer, got %T", value)
+	case "integer":
+
 		switch value.(type) {
 		case float64, json.Number:
 			return nil
@@ -152,7 +159,7 @@ func TypeMatches(value JSONValue, typename string) error {
 	case "null":
 		return IsNull(value)
 	}
-	return fmt.Errorf("Invalid type in assertion, got %T", typename)
+	return fmt.Errorf("Invalid type value in assertion, got %s", typename)
 }
 
 func Eq(lhs JSONValue, rhs JSONValue) error {

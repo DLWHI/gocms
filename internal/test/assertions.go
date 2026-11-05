@@ -178,7 +178,7 @@ func (a *Assertion) opGte(values []JSONValue) error {
 func (a *Assertion) opType(values []JSONValue) error {
 	typename, ok := a.Value.(string)
 	if !ok {
-		return fmt.Errorf("Invalid type value in assertion, got %T", a.Value)
+		return fmt.Errorf("Invalid value type in assertion, got %T", a.Value)
 	}
 	for _, value := range values {
 		if err := TypeMatches(value, typename); err != nil {

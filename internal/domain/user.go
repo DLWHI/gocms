@@ -16,8 +16,8 @@ const (
 	UserEvent      = "user"
 	UserEntityName = "users"
 
-	UserMaxUsernameLength = 64
-	UserMaxEmailLength    = 254
+	UserMaxUsernameChars = 64
+	UserMaxEmailChars    = 254
 )
 
 type User struct {
@@ -49,11 +49,11 @@ func NormalizeUsername(value string) (string, error) {
 	if normalized == "" {
 		return "", fmt.Errorf("%w: username cannot be empty", ErrInval)
 	}
-	if len(normalized) > UserMaxUsernameLength {
-		return "", fmt.Errorf("%w: username is longer than %d chars", ErrInval, UserMaxUsernameLength)
-	}
 	if strings.IndexFunc(normalized, IsInvalidUsernameRune) >= 0 {
 		return "", fmt.Errorf("%w: username must contain only letters, numbers, dashes or underscores", ErrInval)
+	}
+	if len(normalized) > UserMaxUsernameChars {
+		return "", fmt.Errorf("%w: username is longer than %d chars", ErrInval, UserMaxUsernameChars)
 	}
 
 	return strings.ToLower(normalized), nil
@@ -63,7 +63,7 @@ func NormalizeEmail(email string) (string, error) {
 	if email == "" {
 		return email, nil
 	}
-	if len(email) > UserMaxEmailLength {
+	if len(email) > UserMaxEmailChars {
 		return "", fmt.Errorf("%w: email too long", ErrInval)
 	}
 	parsed, err := mail.ParseAddress(email)

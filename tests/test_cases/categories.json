@@ -7,7 +7,7 @@
     "request": "path_params are unescaped and must be percent-encoded when substituted. headers: a value of null removes a default header (default: Authorization from actor; Content-Type application/json whenever a body is sent). body_raw (even empty string) overrides body. body_generator {json_padded_bytes: N, base} = valid JSON of exactly N bytes, padded with an unknown field.",
     "tokens": "{$repeat: {s, n}} string s repeated n times. Tokens appear only as direct field values (body, headers, path_params, assertion value).",
     "expect.body": "empty | plain_text | json | any. Defaults used by the author: 201/204 -> empty, 4xx -> plain_text, 200 -> json.",
-    "json_assertions": "ops: eq, ne, type, len_eq, len_lte, gte, includes, excludes, is_null, not_null, unix_or_null, sorted_asc, sorted_desc. Paths with [*] resolve to lists. type values: array, integer, boolean, string.",
+    "json_assertions": "ops: eq, ne, type, len_eq, len_lte, gte, includes, excludes, is_null, not_null, unix_or_null, sorted_asc, sorted_desc. Paths with [*] resolve to lists. type values: array, number, integer, boolean, string.",
     "eventually_ms": "Retry the step until it passes or the timeout elapses (indexing is async).",
     "source": "documented = rules inside the source_document; stated = rules you gave outside the source_document; inferred = derived from code or conventions.",
     "tags": "boundary, cache, security, regression, assumes_distinct_bits (create/update/delete are separate bits)."
@@ -35,43 +35,50 @@
         "slug": "category",
         "hidden": false,
         "navbar": true,
-        "translations": {
-          "en": "Category",
-          "ru": "Категория"
-        }
+        "name": "Category",
+        "lang": "en"
+      },
+      {
+        "slug": "category",
+        "hidden": false,
+        "navbar": true,
+        "name": "Категория",
+        "lang": "ru"
       },
       {
         "slug": "another-category",
         "hidden": false,
         "navbar": false,
-        "translations": {
-          "en": "Another category"
-        }
+        "name": "Another category",
+        "lang": "en"
       },
       {
         "slug": "secret",
         "hidden": true,
         "navbar": false,
-        "translations": {
-          "en": "Secret"
-        }
+        "name": "Secret",
+        "lang": "en"
       },
       {
         "slug": "news",
         "hidden": false,
         "navbar": true,
-        "translations": {
-          "en": "News",
-          "ru": "Новости"
-        }
+        "name": "News",
+        "lang": "en"
+      },
+      {
+        "slug": "news",
+        "hidden": false,
+        "navbar": true,
+        "name": "Новости",
+        "lang": "ru"
       },
       {
         "slug": "zebra",
         "hidden": true,
         "navbar": true,
-        "translations": {
-          "en": "Zebra"
-        }
+        "name": "Zebra",
+        "lang": "en"
       }
     ],
     "actors": {
@@ -109,7 +116,7 @@
         "username": "updater",
         "permanent": false,
         "caps": {
-          "categories": ["update"]
+          "categories": ["edit"]
         }
       },
       "deleter": {
@@ -123,7 +130,7 @@
         "username": "limited",
         "permanent": false,
         "caps": {
-          "categories": ["create", "update"]
+          "categories": ["create", "edit"]
         }
       },
       "reader": {
@@ -294,6 +301,9 @@
             "path_params": {
               "lang": "en"
             },
+            "headers": {
+              "Content-Type": "application/json"
+            },
             "body": {
               "slug": "anon",
               "name": "Anon"
@@ -336,6 +346,9 @@
             "path_params": {
               "lang": "en"
             },
+            "headers": {
+              "Content-Type": "application/json"
+            },
             "body": {}
           },
           "expect": {
@@ -360,6 +373,9 @@
             "path_params": {
               "lang": "en",
               "slug": "category"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             },
             "body": {
               "name": "Anon"
@@ -957,6 +973,9 @@
             "path_params": {
               "lang": "en"
             },
+            "headers": {
+              "Content-Type": "application/json"
+            },
             "body": {
               "slug": "sports",
               "name": "Sports",
@@ -1049,6 +1068,9 @@
             "path_params": {
               "lang": "en"
             },
+            "headers": {
+              "Content-Type": "application/json"
+            },
             "body": {
               "slug": "minimal",
               "name": "Minimal"
@@ -1117,6 +1139,9 @@
             "path": "/cms/categories/{lang}",
             "path_params": {
               "lang": "ru"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             },
             "body": {
               "slug": "another-category",
@@ -1231,6 +1256,9 @@
             "path_params": {
               "lang": "en"
             },
+            "headers": {
+              "Content-Type": "application/json"
+            },
             "body": {
               "slug": "category",
               "name": "Other",
@@ -1301,6 +1329,9 @@
             "path_params": {
               "lang": "en"
             },
+            "headers": {
+              "Content-Type": "application/json"
+            },
             "body": {
               "slug": "CATEGORY",
               "name": "Other"
@@ -1348,6 +1379,9 @@
             "path": "/cms/categories/{lang}",
             "path_params": {
               "lang": "en"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             },
             "body": {
               "slug": "Mixed_Case-9",
@@ -1418,6 +1452,9 @@
             "path_params": {
               "lang": "en"
             },
+            "headers": {
+              "Content-Type": "application/json"
+            },
             "body": {
               "slug": "\t -_trim-me_- \n",
               "name": "  Trimmed  "
@@ -1487,6 +1524,9 @@
             "path_params": {
               "lang": "en"
             },
+            "headers": {
+              "Content-Type": "application/json"
+            },
             "body": {
               "slug": "",
               "name": "Name"
@@ -1504,6 +1544,9 @@
             "path": "/cms/categories/{lang}",
             "path_params": {
               "lang": "en"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             },
             "body": {
               "slug": "   ",
@@ -1523,6 +1566,9 @@
             "path_params": {
               "lang": "en"
             },
+            "headers": {
+              "Content-Type": "application/json"
+            },
             "body": {
               "slug": "-_-",
               "name": "Name"
@@ -1540,6 +1586,9 @@
             "path": "/cms/categories/{lang}",
             "path_params": {
               "lang": "en"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             },
             "body": {
               "slug": "bad slug",
@@ -1559,6 +1608,9 @@
             "path_params": {
               "lang": "en"
             },
+            "headers": {
+              "Content-Type": "application/json"
+            },
             "body": {
               "slug": "bad/slug",
               "name": "Name"
@@ -1577,6 +1629,9 @@
             "path_params": {
               "lang": "en"
             },
+            "headers": {
+              "Content-Type": "application/json"
+            },
             "body": {
               "slug": "bad.slug",
               "name": "Name"
@@ -1594,6 +1649,9 @@
             "path": "/cms/categories/{lang}",
             "path_params": {
               "lang": "en"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             },
             "body": {
               "slug": "категория",
@@ -1642,6 +1700,9 @@
             "path": "/cms/categories/{lang}",
             "path_params": {
               "lang": "en"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             },
             "body": {
               "slug": {
@@ -1693,6 +1754,9 @@
             "path_params": {
               "lang": "en"
             },
+            "headers": {
+              "Content-Type": "application/json"
+            },
             "body": {
               "slug": {
                 "$repeat": {
@@ -1725,6 +1789,9 @@
             "path_params": {
               "lang": "en"
             },
+            "headers": {
+              "Content-Type": "application/json"
+            },
             "body": {
               "slug": "name-254",
               "name": {
@@ -1747,6 +1814,9 @@
             "path": "/cms/categories/{lang}",
             "path_params": {
               "lang": "en"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             },
             "body": {
               "slug": "name-255",
@@ -1795,6 +1865,9 @@
             "path_params": {
               "lang": "en"
             },
+            "headers": {
+              "Content-Type": "application/json"
+            },
             "body": {
               "slug": "cyrillic-200",
               "name": {
@@ -1827,76 +1900,8 @@
             "path_params": {
               "lang": "en"
             },
-            "body": {
-              "slug": "bad-name"
-            }
-          },
-          "expect": {
-            "status": 400,
-            "body": "plain_text"
-          }
-        },
-        {
-          "actor": "root",
-          "request": {
-            "method": "POST",
-            "path": "/cms/categories/{lang}",
-            "path_params": {
-              "lang": "en"
-            },
-            "body": {
-              "slug": "bad-name",
-              "name": null
-            }
-          },
-          "expect": {
-            "status": 400,
-            "body": "plain_text"
-          }
-        },
-        {
-          "actor": "root",
-          "request": {
-            "method": "POST",
-            "path": "/cms/categories/{lang}",
-            "path_params": {
-              "lang": "en"
-            },
-            "body": {
-              "slug": "bad-name",
-              "name": ""
-            }
-          },
-          "expect": {
-            "status": 400,
-            "body": "plain_text"
-          }
-        },
-        {
-          "actor": "root",
-          "request": {
-            "method": "POST",
-            "path": "/cms/categories/{lang}",
-            "path_params": {
-              "lang": "en"
-            },
-            "body": {
-              "slug": "bad-name",
-              "name": "   "
-            }
-          },
-          "expect": {
-            "status": 400,
-            "body": "plain_text"
-          }
-        },
-        {
-          "actor": "root",
-          "request": {
-            "method": "POST",
-            "path": "/cms/categories/{lang}",
-            "path_params": {
-              "lang": "en"
+            "headers": {
+              "Content-Type": "application/json"
             },
             "body": {
               "slug": "bad-name",
@@ -1916,6 +1921,9 @@
             "path_params": {
               "lang": "en"
             },
+            "headers": {
+              "Content-Type": "application/json"
+            },
             "body": {
               "slug": "bad-name",
               "name": "line\nbreak"
@@ -1934,6 +1942,9 @@
             "path_params": {
               "lang": "en"
             },
+            "headers": {
+              "Content-Type": "application/json"
+            },
             "body": {
               "slug": "bad-name",
               "name": "bell\u0007"
@@ -1951,6 +1962,9 @@
             "path": "/cms/categories/{lang}",
             "path_params": {
               "lang": "en"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             },
             "body": {
               "slug": "bad-name",
@@ -1994,6 +2008,9 @@
             "path_params": {
               "lang": "en"
             },
+            "headers": {
+              "Content-Type": "application/json"
+            },
             "body": {}
           },
           "expect": {
@@ -2008,6 +2025,9 @@
             "path": "/cms/categories/{lang}",
             "path_params": {
               "lang": "en"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             },
             "body": {
               "name": "No slug"
@@ -2025,6 +2045,9 @@
             "path": "/cms/categories/{lang}",
             "path_params": {
               "lang": "en"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             },
             "body": {
               "slug": 123,
@@ -2044,6 +2067,9 @@
             "path_params": {
               "lang": "en"
             },
+            "headers": {
+              "Content-Type": "application/json"
+            },
             "body": {
               "slug": "typed",
               "name": false
@@ -2061,6 +2087,9 @@
             "path": "/cms/categories/{lang}",
             "path_params": {
               "lang": "en"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             },
             "body": {
               "slug": "typed",
@@ -2081,6 +2110,9 @@
             "path_params": {
               "lang": "en"
             },
+            "headers": {
+              "Content-Type": "application/json"
+            },
             "body": {
               "slug": "typed",
               "name": "Typed",
@@ -2100,6 +2132,9 @@
             "path_params": {
               "lang": "en"
             },
+            "headers": {
+              "Content-Type": "application/json"
+            },
             "body_raw": "{"
           },
           "expect": {
@@ -2114,6 +2149,9 @@
             "path": "/cms/categories/{lang}",
             "path_params": {
               "lang": "en"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             },
             "body_raw": ""
           },
@@ -2130,6 +2168,9 @@
             "path_params": {
               "lang": "en"
             },
+            "headers": {
+              "Content-Type": "application/json"
+            },
             "body_raw": "[]"
           },
           "expect": {
@@ -2144,6 +2185,9 @@
             "path": "/cms/categories/{lang}",
             "path_params": {
               "lang": "en"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             },
             "body_raw": "null"
           },
@@ -2204,6 +2248,9 @@
             "path": "/cms/categories/{lang}",
             "path_params": {
               "lang": "en"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             },
             "body": {
               "slug": "special",
@@ -2284,6 +2331,9 @@
             "path_params": {
               "lang": "en"
             },
+            "headers": {
+              "Content-Type": "application/json"
+            },
             "body": {
               "slug": "by-creator",
               "name": "By creator"
@@ -2353,6 +2403,9 @@
             "path_params": {
               "lang": "en"
             },
+            "headers": {
+              "Content-Type": "application/json"
+            },
             "body": {
               "slug": "denied",
               "name": "Denied"
@@ -2371,6 +2424,9 @@
             "path_params": {
               "lang": "en"
             },
+            "headers": {
+              "Content-Type": "application/json"
+            },
             "body": {
               "slug": "denied",
               "name": "Denied"
@@ -2388,6 +2444,9 @@
             "path": "/cms/categories/{lang}",
             "path_params": {
               "lang": "en"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             },
             "body": {
               "slug": "denied",
@@ -2430,6 +2489,9 @@
             "path": "/cms/categories/{lang}/search",
             "path_params": {
               "lang": "en"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             },
             "body": {}
           },
@@ -2476,6 +2538,9 @@
             "path": "/cms/categories/{lang}/search",
             "path_params": {
               "lang": "en"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             },
             "body": {
               "query": "Another",
@@ -2536,6 +2601,9 @@
             "path_params": {
               "lang": "ru"
             },
+            "headers": {
+              "Content-Type": "application/json"
+            },
             "body": {
               "query": "category",
               "count": 15
@@ -2580,6 +2648,9 @@
             "path_params": {
               "lang": "ru"
             },
+            "headers": {
+              "Content-Type": "application/json"
+            },
             "body": {
               "query": "Новос",
               "count": 15
@@ -2618,6 +2689,9 @@
             "path": "/cms/categories/{lang}/search",
             "path_params": {
               "lang": "en"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             },
             "body": {
               "query": "CATEGORY",
@@ -2663,6 +2737,9 @@
             "path_params": {
               "lang": "en"
             },
+            "headers": {
+              "Content-Type": "application/json"
+            },
             "body": {
               "query": "zzzz",
               "count": 15
@@ -2707,8 +2784,11 @@
             "path_params": {
               "lang": "en"
             },
+            "headers": {
+              "Content-Type": "application/json"
+            },
             "body": {
-              "query": "%",
+              "query": "%z%",
               "count": 15
             }
           },
@@ -2732,8 +2812,11 @@
             "path_params": {
               "lang": "en"
             },
+            "headers": {
+              "Content-Type": "application/json"
+            },
             "body": {
-              "query": "_",
+              "query": "_z_",
               "count": 15
             }
           },
@@ -2756,6 +2839,9 @@
             "path": "/cms/categories/{lang}/search",
             "path_params": {
               "lang": "en"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             },
             "body": {
               "query": "' OR 1=1 --",
@@ -2790,6 +2876,9 @@
             "path": "/cms/categories/{lang}/search",
             "path_params": {
               "lang": "en"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             },
             "body": {
               "sort_by": "slug:asc",
@@ -2846,6 +2935,9 @@
             "path_params": {
               "lang": "en"
             },
+            "headers": {
+              "Content-Type": "application/json"
+            },
             "body": {
               "sort_by": "slug:asc",
               "page": 3,
@@ -2876,6 +2968,9 @@
             "path": "/cms/categories/{lang}/search",
             "path_params": {
               "lang": "en"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             },
             "body": {
               "sort_by": "slug:asc",
@@ -2916,6 +3011,9 @@
             "path": "/cms/categories/{lang}/search",
             "path_params": {
               "lang": "en"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             },
             "body": {
               "sort_by": "name:desc",
@@ -2960,6 +3058,9 @@
             "path_params": {
               "lang": "en"
             },
+            "headers": {
+              "Content-Type": "application/json"
+            },
             "body": {
               "sort_by": "bogus:asc"
             }
@@ -2977,6 +3078,9 @@
             "path_params": {
               "lang": "en"
             },
+            "headers": {
+              "Content-Type": "application/json"
+            },
             "body": {
               "sort_by": "name:sideways"
             }
@@ -2993,6 +3097,9 @@
             "path": "/cms/categories/{lang}/search",
             "path_params": {
               "lang": "en"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             },
             "body": {
               "sort_by": "name:asc; DROP TABLE categories"
@@ -3041,6 +3148,9 @@
             "path_params": {
               "lang": "en"
             },
+            "headers": {
+              "Content-Type": "application/json"
+            },
             "body": {
               "sort_by": "slug:asc",
               "page": 0,
@@ -3072,6 +3182,9 @@
             "path_params": {
               "lang": "en"
             },
+            "headers": {
+              "Content-Type": "application/json"
+            },
             "body": {
               "count": 0
             }
@@ -3095,6 +3208,9 @@
             "path": "/cms/categories/{lang}/search",
             "path_params": {
               "lang": "en"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             },
             "body": {
               "count": 1000
@@ -3134,6 +3250,9 @@
             "path_params": {
               "lang": "en"
             },
+            "headers": {
+              "Content-Type": "application/json"
+            },
             "body": {
               "hidden": true,
               "count": 100
@@ -3168,6 +3287,9 @@
             "path": "/cms/categories/{lang}/search",
             "path_params": {
               "lang": "en"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             },
             "body": {
               "hidden": false,
@@ -3213,6 +3335,9 @@
             "path_params": {
               "lang": "en"
             },
+            "headers": {
+              "Content-Type": "application/json"
+            },
             "body": {
               "navbar": true,
               "count": 100
@@ -3252,6 +3377,9 @@
             "path": "/cms/categories/{lang}/search",
             "path_params": {
               "lang": "en"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             },
             "body": {
               "navbar": false,
@@ -3297,6 +3425,9 @@
             "path_params": {
               "lang": "en"
             },
+            "headers": {
+              "Content-Type": "application/json"
+            },
             "body": {
               "hidden": true,
               "navbar": true,
@@ -3327,6 +3458,9 @@
             "path": "/cms/categories/{lang}/search",
             "path_params": {
               "lang": "en"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             },
             "body": {
               "hidden": false,
@@ -3359,6 +3493,9 @@
             "path_params": {
               "lang": "en"
             },
+            "headers": {
+              "Content-Type": "application/json"
+            },
             "body": {
               "query": "category",
               "navbar": true,
@@ -3389,6 +3526,9 @@
             "path": "/cms/categories/{lang}/search",
             "path_params": {
               "lang": "en"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             },
             "body": {
               "hidden": null,
@@ -3425,6 +3565,9 @@
             "path_params": {
               "lang": "ru"
             },
+            "headers": {
+              "Content-Type": "application/json"
+            },
             "body": {
               "count": 100
             }
@@ -3458,6 +3601,9 @@
             "path": "/cms/categories/{lang}/search",
             "path_params": {
               "lang": "de"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             },
             "body": {
               "count": 100
@@ -3497,6 +3643,9 @@
             "path_params": {
               "lang": "en"
             },
+            "headers": {
+              "Content-Type": "application/json"
+            },
             "body": {
               "page": "one"
             }
@@ -3513,6 +3662,9 @@
             "path": "/cms/categories/{lang}/search",
             "path_params": {
               "lang": "en"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             },
             "body": {
               "count": "ten"
@@ -3531,6 +3683,9 @@
             "path_params": {
               "lang": "en"
             },
+            "headers": {
+              "Content-Type": "application/json"
+            },
             "body": {
               "hidden": "yes"
             }
@@ -3548,6 +3703,9 @@
             "path_params": {
               "lang": "en"
             },
+            "headers": {
+              "Content-Type": "application/json"
+            },
             "body": {
               "query": 5
             }
@@ -3564,6 +3722,9 @@
             "path": "/cms/categories/{lang}/search",
             "path_params": {
               "lang": "en"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             },
             "body_raw": "{"
           },
@@ -3589,6 +3750,9 @@
             "path_params": {
               "lang": "en"
             },
+            "headers": {
+              "Content-Type": "application/json"
+            },
             "body": {
               "slug": "fresh-topic",
               "name": "Zorbulax"
@@ -3606,6 +3770,9 @@
             "path": "/cms/categories/{lang}/search",
             "path_params": {
               "lang": "en"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             },
             "body": {
               "query": "Zorbulax"
@@ -3633,6 +3800,9 @@
               "lang": "en",
               "slug": "fresh-topic"
             },
+            "headers": {
+              "Content-Type": "application/json"
+            },
             "body": {
               "name": "Quibblet"
             }
@@ -3649,6 +3819,9 @@
             "path": "/cms/categories/{lang}/search",
             "path_params": {
               "lang": "en"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             },
             "body": {
               "query": "Quibblet"
@@ -3674,6 +3847,9 @@
             "path": "/cms/categories/{lang}/search",
             "path_params": {
               "lang": "en"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             },
             "body": {
               "query": "Zorbulax"
@@ -3713,6 +3889,9 @@
             "path": "/cms/categories/{lang}/search",
             "path_params": {
               "lang": "en"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             },
             "body": {
               "query": "Quibblet"
@@ -3790,6 +3969,9 @@
             "path_params": {
               "lang": "en",
               "slug": "category"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             },
             "body": {
               "name": "Renamed"
@@ -3970,6 +4152,9 @@
               "lang": "en",
               "slug": "category"
             },
+            "headers": {
+              "Content-Type": "application/json"
+            },
             "body": {
               "hidden": true,
               "navbar": false
@@ -4082,6 +4267,9 @@
               "lang": "en",
               "slug": "zebra"
             },
+            "headers": {
+              "Content-Type": "application/json"
+            },
             "body": {
               "name": null,
               "slug": null,
@@ -4153,6 +4341,9 @@
             "path_params": {
               "lang": "en",
               "slug": "news"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             },
             "body": {
               "slug": "headlines"
@@ -4295,6 +4486,9 @@
               "lang": "en",
               "slug": "another-category"
             },
+            "headers": {
+              "Content-Type": "application/json"
+            },
             "body": {
               "slug": "  New-Slug_ "
             }
@@ -4378,6 +4572,9 @@
             "path_params": {
               "lang": "en",
               "slug": "news"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             },
             "body": {
               "slug": "category"
@@ -4532,6 +4729,9 @@
               "lang": "en",
               "slug": "category"
             },
+            "headers": {
+              "Content-Type": "application/json"
+            },
             "body": {
               "slug": "bad slug"
             }
@@ -4550,6 +4750,9 @@
               "lang": "en",
               "slug": "category"
             },
+            "headers": {
+              "Content-Type": "application/json"
+            },
             "body": {
               "slug": ""
             }
@@ -4567,6 +4770,9 @@
             "path_params": {
               "lang": "en",
               "slug": "category"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             },
             "body": {
               "name": {
@@ -4591,6 +4797,9 @@
               "lang": "en",
               "slug": "category"
             },
+            "headers": {
+              "Content-Type": "application/json"
+            },
             "body": {
               "name": "tab\there"
             }
@@ -4609,6 +4818,9 @@
               "lang": "en",
               "slug": "category"
             },
+            "headers": {
+              "Content-Type": "application/json"
+            },
             "body": {
               "hidden": "yes"
             }
@@ -4626,6 +4838,9 @@
             "path_params": {
               "lang": "en",
               "slug": "category"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             },
             "body_raw": "{"
           },
@@ -4694,6 +4909,9 @@
               "lang": "en",
               "slug": "bad slug"
             },
+            "headers": {
+              "Content-Type": "application/json"
+            },
             "body": {
               "name": "X"
             }
@@ -4720,6 +4938,9 @@
             "path_params": {
               "lang": "en",
               "slug": "nonexistent"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             },
             "body": {
               "name": "X"
@@ -4762,6 +4983,9 @@
             "path_params": {
               "lang": "de",
               "slug": "category"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             },
             "body": {
               "name": "Kategorie"
@@ -4895,6 +5119,9 @@
               "lang": "en",
               "slug": "zebra"
             },
+            "headers": {
+              "Content-Type": "application/json"
+            },
             "body": {
               "name": "Zebra 2"
             }
@@ -4964,6 +5191,9 @@
               "lang": "en",
               "slug": "zebra"
             },
+            "headers": {
+              "Content-Type": "application/json"
+            },
             "body": {
               "name": "Hacked"
             }
@@ -4982,6 +5212,9 @@
               "lang": "en",
               "slug": "zebra"
             },
+            "headers": {
+              "Content-Type": "application/json"
+            },
             "body": {
               "name": "Hacked"
             }
@@ -4999,6 +5232,9 @@
             "path_params": {
               "lang": "en",
               "slug": "zebra"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             },
             "body": {
               "name": "Hacked"
@@ -5279,6 +5515,9 @@
             "path": "/cms/categories/{lang}",
             "path_params": {
               "lang": "en"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             },
             "body": {
               "slug": "category",
@@ -5617,6 +5856,9 @@
             "path_params": {
               "lang": "fr"
             },
+            "headers": {
+              "Content-Type": "application/json"
+            },
             "body": {
               "slug": "french",
               "name": "Français"
@@ -5659,6 +5901,9 @@
             "path_params": {
               "lang": "fr",
               "slug": "category"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             },
             "body": {
               "name": "Catégorie"
@@ -5707,6 +5952,9 @@
             "path_params": {
               "lang": "en"
             },
+            "headers": {
+              "Content-Type": "application/json"
+            },
             "body_generator": {
               "json_padded_bytes": 4097,
               "base": {
@@ -5742,6 +5990,9 @@
             "path": "/cms/categories/{lang}",
             "path_params": {
               "lang": "en"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             },
             "body_generator": {
               "json_padded_bytes": 4096,
@@ -5814,6 +6065,9 @@
             "path": "/cms/categories/{lang}/search",
             "path_params": {
               "lang": "en"
+            },
+            "headers": {
+              "Content-Type": "application/json"
             },
             "body_generator": {
               "json_padded_bytes": 4097,

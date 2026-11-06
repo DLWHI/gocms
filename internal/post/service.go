@@ -101,7 +101,7 @@ func (s *Service) Create(ctx context.Context, post *domain.Post) error {
 	}
 	post.MediaSource = source
 
-	if !storage.IsMediaType(post.MediaType) {
+	if post.MediaType != "" && !storage.IsMediaType(post.MediaType) {
 		return fmt.Errorf("%w: MediaType is unknown value", err)
 	}
 

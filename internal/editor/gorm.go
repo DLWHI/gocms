@@ -175,8 +175,8 @@ func (r *GORMRepository) GetAll(ctx context.Context, lang string) ([]domain.Edit
 
 	result := r.db.WithContext(ctx).
 		Model(&RecordTranslation{}).
-		Preload("Editor").
-		Where("lang = ?", lang).
+		InnerJoins("Editor").
+		Where("lang = ? AND Editor.deleted_at IS NULL", lang).
 		Find(&editors)
 	if result.Error != nil {
 		return nil, result.Error
@@ -185,9 +185,7 @@ func (r *GORMRepository) GetAll(ctx context.Context, lang string) ([]domain.Edit
 	vals := make([]domain.Editor, 0, len(editors))
 
 	for _, editor := range editors {
-		if !editor.Editor.DeletedAt.Valid {
-			vals = append(vals, *editor.ToDomain())
-		}
+		vals = append(vals, *editor.ToDomain())
 	}
 
 	return vals, nil

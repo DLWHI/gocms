@@ -114,7 +114,7 @@ func (r *Router) AddPostRoutes(handler *post.Handler) {
 	r.mux.Handle("POST /cms/posts/{lang}/search", m(handler.Search))
 	r.mux.Handle("GET /cms/posts/{lang}/{id}", m(handler.Get))
 	r.mux.Handle("PATCH /cms/posts/{lang}/{id}", m(handler.Update))
-	r.mux.Handle("PATCH /cms/posts/{id}/views", m(handler.UpdateViews))
+	r.mux.Handle("PUT /cms/posts/views/{id}", m(handler.UpdateViews))
 	r.mux.Handle("DELETE /cms/posts/{id}", m(handler.Delete))
 }
 
@@ -143,12 +143,12 @@ func (r *Router) AddAdsRoutes(handler *ads.Handler) {
 		server.RequireJSON,
 	)
 
-	r.mux.Handle("POST /cms/ads/search", m(handler.Search))
-	r.mux.Handle("POST /cms/ads", m(handler.Create))
 	r.mux.Handle("GET /cms/ads/{id}", m(handler.Get))
+	r.mux.Handle("GET /cms/ads/groups", m(handler.Groups))
+	r.mux.Handle("POST /cms/ads", m(handler.Create))
+	r.mux.Handle("POST /cms/ads/search", m(handler.Search))
 	r.mux.Handle("PATCH /cms/ads/{id}", m(handler.Update))
 	r.mux.Handle("DELETE /cms/ads/{id}", m(handler.Delete))
-	r.mux.Handle("GET /cms/ads/groups", m(handler.Groups))
 }
 
 func (r *Router) AddStorageRoutes(handler *storage.Handler) {

@@ -2,18 +2,20 @@ package ads
 
 import (
 	"encoding/json"
+	"fmt"
+	"gocms/internal/domain"
 	"gocms/internal/server"
 	"net/http"
 	"strconv"
 )
 
 // ------------------------------------------------------------------
-// POST /ads/search - Get/search ads
-// POST /ads - Create ad
 // GET /ads/{id} - Get ad
+// GET /ads/groups - Get ad groups
+// POST /ads - Create ad
+// POST /ads/search - Get/search ads
 // PATCH /ads/{id} - Update ad
 // DELETE /ads/{id} - Delete ad
-// GET /ads/groups - Get ad groups
 // ------------------------------------------------------------------
 
 type Handler struct {
@@ -43,7 +45,7 @@ func (h *Handler) ads(w http.ResponseWriter, r *http.Request) {
 	var filters SearchParams
 
 	if err := json.NewDecoder(r.Body).Decode(&filters); err != nil {
-		http.Error(w, "Invalid JSON payload", http.StatusBadRequest)
+		server.WriteDecodeError(w, err)
 		return
 	}
 
@@ -59,27 +61,34 @@ func (h *Handler) ads(w http.ResponseWriter, r *http.Request) {
 
 // POST /ads/create - Create ad
 func (h *Handler) create(w http.ResponseWriter, r *http.Request) {
-	var ad Doc
-
-	if err := json.NewDecoder(r.Body).Decode(&ad); err != nil {
-		http.Error(w, "Invalid JSON payload", http.StatusBadRequest)
+	var payload domain.AdvertisementDiff
+	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+		server.WriteDecodeError(w, err)
 		return
 	}
 
-	err := h.adService.Create(r.Context(), &ad)
-	if err != nil {
+	ad := &domain.Advertisement{}
+	payload.Apply(ad)
+	if err := h.adService.Create(r.Context(), ad); err != nil {
 		server.WriteServerError(w, "Advertisement", err)
 		return
 	}
 
+	res := map[string]any{
+		"id":       ad.ID,
+		"location": fmt.Sprintf("/cms/ads/%d", ad.ID),
+	}
+
 	w.WriteHeader(http.StatusCreated)
+	w.Header().Set("Content-Type", "application/json")
+	_ = json.NewEncoder(w).Encode(&res)
 }
 
 // GET /ads/{id} - Get ad
 func (h *Handler) get(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.ParseUint(r.PathValue("id"), 10, 0)
 	if err != nil {
-		http.Error(w, "Invalid ID", http.StatusBadRequest)
+		server.WritePathError(w, "Invalid ID")
 		return
 	}
 
@@ -97,20 +106,16 @@ func (h *Handler) get(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) update(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.ParseUint(r.PathValue("id"), 10, 0)
 	if err != nil {
-		http.Error(w, "Invalid ID", http.StatusBadRequest)
+		server.WritePathError(w, "Invalid ID")
 		return
 	}
-	var ad Doc
-
+	var ad domain.AdvertisementDiff
 	if err := json.NewDecoder(r.Body).Decode(&ad); err != nil {
-		http.Error(w, "Invalid JSON payload", http.StatusBadRequest)
+		server.WriteDecodeError(w, err)
 		return
 	}
 
-	ad.ID = uint(id)
-
-	_, err = h.adService.Update(r.Context(), &ad)
-	if err != nil {
+	if err = h.adService.Update(r.Context(), uint(id), &ad); err != nil {
 		server.WriteServerError(w, "Advertisement", err)
 		return
 	}
@@ -150,7 +155,7 @@ func (h *Handler) groups(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) getGroup(w http.ResponseWriter, r *http.Request) {
 	group := r.PathValue("group")
 	if group == "" {
-		http.Error(w, "Missing groups", http.StatusBadRequest)
+		server.WritePathError(w, "Invalid ID")
 		return
 	}
 
@@ -162,34 +167,4 @@ func (h *Handler) getGroup(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	_ = json.NewEncoder(w).Encode(&ads)
-}
-
-// POST /ads/groups/search - Get multiple ad groups
-func (h *Handler) getGroups(w http.ResponseWriter, r *http.Request) {
-	var groups []string
-
-	if err := json.NewDecoder(r.Body).Decode(&groups); err != nil {
-		http.Error(w, "Invalid JSON payload", http.StatusBadRequest)
-		return
-	}
-
-	if (len(groups)) == 0 {
-		w.WriteHeader(http.StatusOK)
-		_ = json.NewEncoder(w).Encode(&[]string{})
-		return
-	}
-
-	advertisements := make(map[string][]Doc, len(groups))
-
-	for _, group := range groups {
-		ads, err := h.adService.GetGroup(r.Context(), group)
-		if err != nil {
-			server.WriteServerError(w, "Advertisement", err)
-			return
-		}
-		advertisements[group] = ads
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	_ = json.NewEncoder(w).Encode(&advertisements)
 }

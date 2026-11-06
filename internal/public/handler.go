@@ -5,6 +5,7 @@ import (
 	"gocms/internal/ads"
 	"gocms/internal/analytics"
 	"gocms/internal/category"
+	"gocms/internal/domain"
 	"gocms/internal/editor"
 	"gocms/internal/lang"
 	"gocms/internal/post"
@@ -191,7 +192,7 @@ func (h *Handler) adsGet(w http.ResponseWriter, r *http.Request) {
 	values := r.URL.Query()["groups"]
 	if len(values) == 0 {
 		w.Header().Set("Content-Type", "application/json")
-		_ = json.NewEncoder(w).Encode(&map[string][]ads.Doc{})
+		_ = json.NewEncoder(w).Encode(&map[string][]domain.Advertisement{})
 		return
 	}
 	for _, val := range values {
@@ -203,7 +204,7 @@ func (h *Handler) adsGet(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	advertisements := make(map[string][]ads.Doc, len(groups))
+	advertisements := make(map[string][]domain.Advertisement, len(groups))
 
 	for _, group := range groups {
 		ads, err := h.ads.GetGroup(r.Context(), group)

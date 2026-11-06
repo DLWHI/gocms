@@ -1,10 +1,12 @@
 package tests
 
 import (
+	"gocms/internal/ads"
 	"gocms/internal/auth"
 	"gocms/internal/category"
 	"gocms/internal/editor"
 	"gocms/internal/lang"
+	"gocms/internal/post"
 	"gocms/internal/server"
 	"gocms/internal/storage"
 	"gocms/internal/user"
@@ -98,23 +100,22 @@ func (r *Router) AddLangRoutes(handler *lang.Handler) {
 	r.mux.Handle("DELETE /cms/languages/{code}", m(handler.Delete))
 }
 
-// func (router *Router) AddPostRoutes(handler *post.Handler) {
-// 	streamLimiter := server.NewRequestLimiter(ContentLimit)
-// 	m := server.ChainMiddleware(
-// 		streamLimiter.Wrap,
-// 		router.auth,
-// 		server.RequireJSON,
-// 		language.Middleware,
-// 	)
+func (r *Router) AddPostRoutes(handler *post.Handler) {
+	streamLimiter := server.NewRequestLimiter(ContentLimit)
+	m := server.ChainMiddleware(
+		streamLimiter.Wrap,
+		r.auth,
+		server.RequireJSON,
+		r.lang,
+	)
 
-// 	router.mux.Handle("POST /cms/posts", m(handler.Create))
-// 	router.mux.Handle("POST /cms/posts/search", m(handler.Search))
-// 	router.mux.Handle("GET /cms/posts/{id}", m(handler.Get))
-// 	router.mux.Handle("PATCH /cms/posts/{id}", m(handler.Update))
-// 	router.mux.Handle("PATCH /cms/posts/{id}/views", m(handler.UpdateViews))
-// 	router.mux.Handle("DELETE /cms/posts/{id}", m(handler.Delete))
-// 	router.mux.Handle("DELETE /cms/posts/{id}/{language}", m(handler.DeleteLanguage))
-// }
+	r.mux.Handle("POST /cms/posts/{lang}", m(handler.Create))
+	r.mux.Handle("POST /cms/posts/{lang}/search", m(handler.Search))
+	r.mux.Handle("GET /cms/posts/{lang}/{id}", m(handler.Get))
+	r.mux.Handle("PATCH /cms/posts/{lang}/{id}", m(handler.Update))
+	r.mux.Handle("PUT /cms/posts/views/{id}", m(handler.UpdateViews))
+	r.mux.Handle("DELETE /cms/posts/{id}", m(handler.Delete))
+}
 
 func (r *Router) AddCategoryRoutes(handler *category.Handler) {
 	limiter := server.NewRequestLimiter(RequestLimit)
@@ -133,21 +134,21 @@ func (r *Router) AddCategoryRoutes(handler *category.Handler) {
 	r.mux.Handle("DELETE /cms/categories/{slug}", m(handler.Delete))
 }
 
-// func (router *Router) AddAdsRoutes(handler *ads.Handler) {
-// 	limiter := server.NewRequestLimiter(RequestLimit)
-// 	m := server.ChainMiddleware(
-// 		limiter.Wrap,
-// 		router.auth,
-// 		server.RequireJSON,
-// 	)
+func (router *Router) AddAdsRoutes(handler *ads.Handler) {
+	limiter := server.NewRequestLimiter(RequestLimit)
+	m := server.ChainMiddleware(
+		limiter.Wrap,
+		router.auth,
+		server.RequireJSON,
+	)
 
-// 	router.mux.Handle("POST /cms/ads/search", m(handler.Search))
-// 	router.mux.Handle("POST /cms/ads", m(handler.Create))
-// 	router.mux.Handle("GET /cms/ads/{id}", m(handler.Get))
-// 	router.mux.Handle("PATCH /cms/ads/{id}", m(handler.Update))
-// 	router.mux.Handle("DELETE /cms/ads/{id}", m(handler.Delete))
-// 	router.mux.Handle("GET /cms/ads/groups", m(handler.Groups))
-// }
+	router.mux.Handle("GET /cms/ads/{id}", m(handler.Get))
+	router.mux.Handle("GET /cms/ads/groups", m(handler.Groups))
+	router.mux.Handle("POST /cms/ads", m(handler.Create))
+	router.mux.Handle("POST /cms/ads/search", m(handler.Search))
+	router.mux.Handle("PATCH /cms/ads/{id}", m(handler.Update))
+	router.mux.Handle("DELETE /cms/ads/{id}", m(handler.Delete))
+}
 
 func (r *Router) AddStorageRoutes(handler *storage.Handler) {
 	requestLimiter := server.NewRequestLimiter(RequestLimit)

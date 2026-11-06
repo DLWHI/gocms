@@ -75,10 +75,12 @@ type CategoryModule struct {
 }
 
 type AdsModule struct {
+	Consumer          *ads.EventConsumer
 	Service           *ads.Service
 	Handler           *ads.Handler
-	RedisRepo         *ads.RedisRepository
-	GORMRepo          *ads.GORMRepository
+	DedupRepo         ads.Repository
+	CacheRepo         ads.Repository
+	DBRepo            ads.Repository
 	MeilisearchEngine ads.SearchEngine
 }
 
@@ -150,7 +152,7 @@ func NewPostModule(
 ) (*PostModule, error) {
 	keys, err := cache.NewKeyspace(cache.KeyConfig{
 		Prefix: []string{"cms"},
-	}, "categories")
+	}, "posts")
 	if err != nil {
 		return nil, err
 	}
@@ -234,25 +236,35 @@ func NewEditorModule(
 	}, nil
 }
 
-func NewAdsModule(db *gorm.DB, search meilisearch.ServiceManager, redis *redis.Client) *AdsModule {
-	redisCfg := ads.RedisConfig{
-		Client:    redis,
-		TTL:       60 * time.Minute,
-		KeyFormat: "cms:ads:%d",
+func NewAdsModule(
+	db *gorm.DB,
+	search meilisearch.ServiceManager,
+	redis *redis.Client,
+	creds auth.Service,
+) (*AdsModule, error) {
+	keys, err := cache.NewKeyspace(cache.KeyConfig{
+		Prefix: []string{"cms"},
+	}, "ads")
+	if err != nil {
+		return nil, err
 	}
 
-	repo := ads.NewGORMRepository(db)
-	cacheRepo := ads.NewRedisRepository(repo, &redisCfg)
+	gormRepo := ads.NewGORMRepository(db)
+	flowRepo := ads.NewFlowRepository(gormRepo, 20*time.Second, keys)
+	redisRepo := ads.NewRedisRepository(flowRepo, redis, 12*time.Hour, keys)
 	searchEngine := ads.NewMeilisearchEngine(search, AdsSearchIndexName)
-	service := ads.NewService(cacheRepo, searchEngine)
+	consume := ads.NewEventConsumer(gormRepo, searchEngine)
+	service := ads.NewService(redisRepo, searchEngine)
 	handler := ads.NewHandler(service)
 	return &AdsModule{
+		Consumer:          consume,
 		Service:           service,
 		Handler:           handler,
-		RedisRepo:         cacheRepo,
-		GORMRepo:          repo,
+		CacheRepo:         redisRepo,
+		DBRepo:            gormRepo,
 		MeilisearchEngine: searchEngine,
-	}
+		DedupRepo:         flowRepo,
+	}, nil
 }
 
 func NewLangModule(ctx context.Context, db *gorm.DB, creds auth.Service) (*LangModule, error) {

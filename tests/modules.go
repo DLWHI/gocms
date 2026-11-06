@@ -2,12 +2,14 @@ package tests
 
 import (
 	"context"
+	"gocms/internal/ads"
 	"gocms/internal/auth"
 	"gocms/internal/cache"
 	"gocms/internal/category"
 	"gocms/internal/editor"
 	"gocms/internal/lang"
 	"gocms/internal/password"
+	"gocms/internal/post"
 	"gocms/internal/user"
 	"time"
 
@@ -43,11 +45,13 @@ type UserModule struct {
 }
 
 type PostModule struct {
-	// Service           *post.Service
-	// Handler           *post.Handler
-	// RedisRepo         *post.RedisRepository
-	// GORMRepo          *post.GORMRepository
-	// MeilisearchEngine *post.MeilisearchEngine
+	Consumer          *post.EventConsumer
+	Service           *post.Service
+	Handler           *post.Handler
+	DedupRepo         post.Repository
+	CacheRepo         post.Repository
+	DBRepo            post.Repository
+	MeilisearchEngine post.SearchEngine
 }
 
 type EditorModule struct {
@@ -71,11 +75,13 @@ type CategoryModule struct {
 }
 
 type AdsModule struct {
-	// Service           *ads.Service
-	// Handler           *ads.Handler
-	// RedisRepo         *ads.RedisRepository
-	// GORMRepo          *ads.GORMRepository
-	// MeilisearchEngine *ads.MeilisearchEngine
+	Consumer          *ads.EventConsumer
+	Service           *ads.Service
+	Handler           *ads.Handler
+	DedupRepo         ads.Repository
+	CacheRepo         ads.Repository
+	DBRepo            ads.Repository
+	MeilisearchEngine ads.SearchEngine
 }
 
 type LangModule struct {
@@ -138,25 +144,35 @@ func NewUserModule(
 	}, nil
 }
 
-func NewPostModule(db *gorm.DB, search meilisearch.ServiceManager, redis *redis.Client) *PostModule {
-	// redisCfg := post.RedisConfig{
-	// 	Client:    redis,
-	// 	TTL:       3 * time.Minute,
-	// 	KeyFormat: "test_cms:posts:%d:%s",
-	// }
-
-	// repo := post.NewGORMRepository(db)
-	// cacheRepo := post.NewRedisRepository(repo, &redisCfg)
-	// searchEngine := post.NewMeilisearchEngine(search, PostsSearchIndexName)
-	// service := post.NewService(cacheRepo, searchEngine)
-	// handler := post.NewHandler(service)
-	return &PostModule{
-		// Service:           service,
-		// Handler:           handler,
-		// RedisRepo:         cacheRepo,
-		// GORMRepo:          repo,
-		// MeilisearchEngine: searchEngine,
+func NewPostModule(
+	db *gorm.DB,
+	search meilisearch.ServiceManager,
+	redis *redis.Client,
+	creds auth.Service,
+) (*PostModule, error) {
+	keys, err := cache.NewKeyspace(cache.KeyConfig{
+		Prefix: []string{"cms"},
+	}, "posts")
+	if err != nil {
+		return nil, err
 	}
+
+	gormRepo := post.NewGORMRepository(db)
+	flowRepo := post.NewFlowRepository(gormRepo, 20*time.Second, keys)
+	redisRepo := post.NewRedisRepository(flowRepo, redis, 30*time.Minute, keys)
+	searchEngine := post.NewMeilisearchEngine(search, PostsSearchIndexName)
+	consumer := post.NewEventConsumer(gormRepo, searchEngine)
+	service := post.NewService(redisRepo, searchEngine, creds)
+	handler := post.NewHandler(service)
+	return &PostModule{
+		Consumer:          consumer,
+		Service:           service,
+		Handler:           handler,
+		CacheRepo:         redisRepo,
+		DBRepo:            gormRepo,
+		DedupRepo:         flowRepo,
+		MeilisearchEngine: searchEngine,
+	}, nil
 }
 
 func NewCategoryModule(
@@ -220,25 +236,35 @@ func NewEditorModule(
 	}, nil
 }
 
-func NewAdsModule(db *gorm.DB, search meilisearch.ServiceManager, redis *redis.Client) *AdsModule {
-	// redisCfg := ads.RedisConfig{
-	// 	Client:    redis,
-	// 	TTL:       3 * time.Minute,
-	// 	KeyFormat: "test_cms:ads:%d",
-	// }
-
-	// repo := ads.NewGORMRepository(db)
-	// cacheRepo := ads.NewRedisRepository(repo, &redisCfg)
-	// searchEngine := ads.NewMeilisearchEngine(search, AdsSearchIndexName)
-	// service := ads.NewService(cacheRepo, searchEngine)
-	// handler := ads.NewHandler(service)
-	return &AdsModule{
-		// Service:           service,
-		// Handler:           handler,
-		// RedisRepo:         cacheRepo,
-		// GORMRepo:          repo,
-		// MeilisearchEngine: searchEngine,
+func NewAdsModule(
+	db *gorm.DB,
+	search meilisearch.ServiceManager,
+	redis *redis.Client,
+	creds auth.Service,
+) (*AdsModule, error) {
+	keys, err := cache.NewKeyspace(cache.KeyConfig{
+		Prefix: []string{"cms", "test"},
+	}, "ads")
+	if err != nil {
+		return nil, err
 	}
+
+	gormRepo := ads.NewGORMRepository(db)
+	flowRepo := ads.NewFlowRepository(gormRepo, 20*time.Second, keys)
+	redisRepo := ads.NewRedisRepository(flowRepo, redis, 12*time.Hour, keys)
+	searchEngine := ads.NewMeilisearchEngine(search, AdsSearchIndexName)
+	consume := ads.NewEventConsumer(gormRepo, searchEngine)
+	service := ads.NewService(redisRepo, searchEngine)
+	handler := ads.NewHandler(service)
+	return &AdsModule{
+		Consumer:          consume,
+		Service:           service,
+		Handler:           handler,
+		CacheRepo:         redisRepo,
+		DBRepo:            gormRepo,
+		MeilisearchEngine: searchEngine,
+		DedupRepo:         flowRepo,
+	}, nil
 }
 
 func NewLangModule(ctx context.Context, db *gorm.DB, creds auth.Service) (*LangModule, error) {

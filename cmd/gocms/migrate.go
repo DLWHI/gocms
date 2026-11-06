@@ -49,7 +49,7 @@ func HardReset(ctx context.Context, app *Container) error {
 func SoftMigrate(db *gorm.DB) error {
 
 	err := db.AutoMigrate(
-		&ads.Model{},
+		&ads.Record{},
 		&user.Record{},
 		&editor.Record{},
 		&editor.RecordTranslation{},
@@ -98,7 +98,7 @@ func DropAll(db *gorm.DB) error {
 		return err
 	}
 	if err := db.Migrator().DropTable(
-		&ads.Model{},
+		&ads.Record{},
 		&user.Record{},
 		&editor.Record{},
 		&editor.RecordTranslation{},

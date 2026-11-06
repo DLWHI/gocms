@@ -27,20 +27,16 @@ func NewMeilisearchEngine(client meilisearch.ServiceManager, index string) *Meil
 				PrimaryKey: "id",
 			},
 			Settings: meilisearch.Settings{
-				SearchableAttributes: []string{"name", "description"},
-				FilterableAttributes: []string{"group", "expires_at", "id"},
+				SearchableAttributes: []string{"name", "description", "id"},
+				FilterableAttributes: []string{"group", "expires_at"},
 				SortableAttributes:   []string{"id", "name", "priority", "expires_at", "group"},
 			},
 		},
 	}
 }
 
-func buildFilter(params *SearchParams) string {
+func (*MeilisearchEngine) buildFilter(params *SearchParams) string {
 	var clauses []string
-
-	if params.ID != 0 {
-		clauses = append(clauses, fmt.Sprintf("id = %d", params.ID))
-	}
 
 	if params.Expired != nil {
 		if *params.Expired {
@@ -68,7 +64,7 @@ func buildFilter(params *SearchParams) string {
 	return strings.Join(clauses, " AND ")
 }
 
-func buildSort(params *SearchParams) []string {
+func (*MeilisearchEngine) buildSort(params *SearchParams) []string {
 	var sortParams []string
 
 	if params.SortBy != "" {
@@ -82,7 +78,7 @@ func buildSort(params *SearchParams) []string {
 	return sortParams
 }
 
-func (r *MeilisearchEngine) Index(ctx context.Context, ad *Doc) error {
+func (r *MeilisearchEngine) Index(ctx context.Context, ad *domain.Advertisement) error {
 	index := r.search.Client.Index(r.search.Config.PrimaryKey)
 	task, err := index.AddDocumentsWithContext(ctx, ad, nil)
 	if err != nil {
@@ -94,8 +90,8 @@ func (r *MeilisearchEngine) Index(ctx context.Context, ad *Doc) error {
 	return err
 }
 
-func (r *MeilisearchEngine) Get(ctx context.Context, id uint) (*Doc, error) {
-	var ad Doc
+func (r *MeilisearchEngine) Get(ctx context.Context, id uint) (*domain.Advertisement, error) {
+	var ad domain.Advertisement
 	docID := strconv.FormatUint(uint64(id), 10)
 	err := r.search.Client.Index(r.search.Config.Uid).GetDocumentWithContext(ctx, docID, nil, &ad)
 	if err != nil {
@@ -128,8 +124,8 @@ func (r *MeilisearchEngine) Search(ctx context.Context, params *SearchParams) (*
 	req := &meilisearch.SearchRequest{
 		HitsPerPage:          &params.Count,
 		Page:                 params.Page,
-		Filter:               buildFilter(params),
-		Sort:                 buildSort(params),
+		Filter:               r.buildFilter(params),
+		Sort:                 r.buildSort(params),
 		AttributesToRetrieve: params.Select,
 	}
 	index := r.search.Client.Index(r.search.Config.Uid)

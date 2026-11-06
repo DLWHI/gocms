@@ -90,8 +90,14 @@ func (app *Container) Init(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	posts := NewPostModule(db, search, redis)
-	ads := NewAdsModule(db, search, redis)
+	posts, err := NewPostModule(db, search, redis, auth.Service)
+	if err != nil {
+		return err
+	}
+	ads, err := NewAdsModule(db, search, redis, auth.Service)
+	if err != nil {
+		return err
+	}
 	editors, err := NewEditorModule(db, search, redis, auth.Service)
 	if err != nil {
 		return err
@@ -198,7 +204,7 @@ func (app *Container) TearDown() {
 func SoftMigrate(db *gorm.DB) error {
 
 	err := db.AutoMigrate(
-		&ads.Model{},
+		&ads.Record{},
 		&user.Record{},
 		&editor.Record{},
 		&editor.RecordTranslation{},
@@ -245,7 +251,7 @@ func DropAll(db *gorm.DB) error {
 		return err
 	}
 	if err := db.Migrator().DropTable(
-		&ads.Model{},
+		&ads.Record{},
 		&user.Record{},
 		&editor.Record{},
 		&editor.RecordTranslation{},

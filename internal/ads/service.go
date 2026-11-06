@@ -2,8 +2,6 @@ package ads
 
 import (
 	"context"
-	"encoding/json"
-	"errors"
 	"fmt"
 	"gocms/internal/auth"
 	"gocms/internal/domain"
@@ -11,13 +9,13 @@ import (
 	"gocms/internal/search"
 	"net/url"
 	"strings"
-	"time"
 	"unicode"
 )
 
 type Service struct {
 	repo Repository
 	se   SearchEngine
+	auth auth.Service
 }
 
 func NewService(repo Repository, se SearchEngine) *Service {
@@ -45,7 +43,7 @@ func isValidURL(str string) bool {
 	return true
 }
 
-func (s *Service) sanitize(ad *Doc) error {
+func (s *Service) sanitize(ad *domain.Advertisement) error {
 	ad.Group = strings.TrimSpace(strings.ToLower(ad.Group))
 	if strings.IndexFunc(ad.Group, unicode.IsSpace) >= 0 {
 		return fmt.Errorf("%w: no spaces allowed in group", domain.ErrInval)
@@ -58,17 +56,42 @@ func (s *Service) sanitize(ad *Doc) error {
 	return nil
 }
 
-func (s *Service) Create(ctx context.Context, ad *Doc) error {
-	if !auth.HasPermission(ctx, "ads", "create") {
+func (s *Service) Create(ctx context.Context, ad *domain.Advertisement) error {
+	if !s.auth.Authorize(ctx, domain.AdvertisementEntityName, domain.ActionCreateName) {
 		return domain.ErrCred
 	}
 
-	if err := s.sanitize(ad); err != nil {
+	name, err := domain.NormalizeName(ad.Name)
+	if err != nil {
 		return err
 	}
+	if name == "" {
+		return fmt.Errorf("%w: name cannot be empty", err)
+	}
+	ad.Name = name
 
-	model := ad.ToModel()
-	if err := s.repo.Create(ctx, &model); err != nil {
+	group := strings.TrimSpace(ad.Group)
+	if group != "" {
+		group, err := domain.NormalizeSlug(group)
+		if err != nil {
+			return err
+		}
+		ad.Group = group
+	}
+
+	url, err := domain.NormalizeURL(ad.URL)
+	if err != nil {
+		return err
+	}
+	ad.URL = url
+
+	banner, err := domain.NormalizeURL(ad.Banner)
+	if err != nil {
+		return err
+	}
+	ad.Banner = banner
+
+	if err := s.repo.Create(ctx, ad); err != nil {
 		logger.Error("Ads.Service", "Failed to create advertisement", err)
 		return err
 	}
@@ -76,51 +99,71 @@ func (s *Service) Create(ctx context.Context, ad *Doc) error {
 	return nil
 }
 
-func (s *Service) Update(ctx context.Context, ad *Doc) (*Doc, error) {
-	if !auth.HasPermission(ctx, "ads", "edit") {
-		return nil, domain.ErrCred
+func (s *Service) Update(ctx context.Context, id uint, diff *domain.AdvertisementDiff) error {
+	if !s.auth.Authorize(ctx, domain.AdvertisementEntityName, domain.ActionEditName) {
+		return domain.ErrPerm
 	}
 
-	if err := s.sanitize(ad); err != nil {
-		return nil, err
+	if diff.Name != nil {
+		name, err := domain.NormalizeName(*diff.Name)
+		if err != nil {
+			return err
+		}
+		if name == "" {
+			return fmt.Errorf("%w: name cannot be empty", err)
+		}
+		diff.Name = &name
 	}
 
-	model := ad.ToModel()
-	if err := s.repo.Update(ctx, &model); err != nil {
+	if diff.Group != nil {
+		group := strings.TrimSpace(*diff.Group)
+		if group != "" {
+			group, err := domain.NormalizeSlug(group)
+			if err != nil {
+				return err
+			}
+			diff.Group = &group
+		}
+	}
+
+	if diff.URL != nil {
+		url, err := domain.NormalizeURL(*diff.URL)
+		if err != nil {
+			return err
+		}
+		diff.URL = &url
+	}
+
+	if diff.Banner != nil {
+		banner, err := domain.NormalizeURL(*diff.Banner)
+		if err != nil {
+			return err
+		}
+		diff.Banner = &banner
+	}
+	if err := s.repo.Update(ctx, id, diff); err != nil {
 		logger.Error("Ads.Service", "Failed to update advertisement", err)
-		return nil, err
+		return err
 	}
 
-	return ad, nil
+	return nil
 }
 
-func (s *Service) Get(ctx context.Context, id uint) (*Doc, error) {
+func (s *Service) Get(ctx context.Context, id uint) (*domain.Advertisement, error) {
 	ad, err := s.repo.Get(ctx, id)
 	if err != nil {
 		logger.Error("Ads.Service", "Failed to retrieve advertisement", err)
 		return nil, err
 	}
 
-	doc := ad.ToDoc()
-	return &doc, nil
+	return ad, nil
 }
 
-func (s *Service) GetGroup(ctx context.Context, group string) ([]Doc, error) {
-	model, err := s.repo.GetGroup(ctx, group)
+func (s *Service) GetGroup(ctx context.Context, group string) ([]domain.Advertisement, error) {
+	ads, err := s.repo.GetGroup(ctx, group)
 	if err != nil {
 		logger.Error("Ads.Service", "Failed to retrieve advertisements", err)
 		return nil, err
-	}
-
-	ads := make([]Doc, 0, len(model))
-	now := time.Now()
-	for _, ad := range model {
-		if ad.ExpiresAt == nil || ad.ExpiresAt.After(now) {
-			ad.ID = 0
-			ad.ExpiresAt = nil
-			ad.Description = ""
-			ads = append(ads, ad.ToDoc())
-		}
 	}
 
 	return ads, nil
@@ -149,7 +192,7 @@ func (s *Service) Search(ctx context.Context, filters *SearchParams) (*SearchRes
 }
 
 func (s *Service) Delete(ctx context.Context, id uint) error {
-	if !auth.HasPermission(ctx, "ads", "delete") {
+	if !s.auth.Authorize(ctx, domain.AdvertisementEntityName, domain.ActionDeleteName) {
 		return domain.ErrCred
 	}
 
@@ -159,34 +202,4 @@ func (s *Service) Delete(ctx context.Context, id uint) error {
 	}
 
 	return nil
-}
-
-func (s *Service) SyncSearch(ctx context.Context, data []byte) error {
-	var payload MessagePayload
-	if err := json.Unmarshal(data, &payload); err != nil {
-		return err
-	}
-
-	switch payload.Action {
-	case "create", "update":
-		category, err := s.repo.Get(ctx, payload.ID)
-		if err != nil {
-			if errors.Is(err, domain.ErrNotFound) {
-				return nil
-			}
-			return err
-		}
-		doc := category.ToDoc()
-
-		if err := s.se.Index(ctx, &doc); err != nil {
-			return err
-		}
-		return nil
-	case "delete":
-		if err := s.se.Delete(ctx, payload.ID); err != nil {
-			return err
-		}
-		return nil
-	}
-	return fmt.Errorf("%w: unknown action", domain.ErrInval)
 }

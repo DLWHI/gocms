@@ -22,7 +22,7 @@ type Record struct {
 	PublishedAt *time.Time        ``
 	Views       uint              `gorm:"not null;default:0"`
 	Preview     string            ``
-	Author      string            `gorm:"size:128;"`
+	Author      *string           `gorm:"size:128;"`
 	Editor      editor.Record     `gorm:"foreignKey:Author;references:Slug;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 	CreatedBy   string            `gorm:"size:64;"`
 	User        user.Record       `gorm:"foreignKey:CreatedBy;references:Username;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
@@ -301,9 +301,6 @@ func (*GORMRepository) patch(diff *domain.PostDiff) (RecordPatch, TranslationPat
 	if diff.Preview != nil {
 		record["preview"] = *diff.Preview
 	}
-	if diff.Author != nil {
-		translation["author"] = *diff.Author
-	}
 
 	if diff.Title != nil {
 		translation["title"] = diff.Title
@@ -328,6 +325,7 @@ func (*GORMRepository) patch(diff *domain.PostDiff) (RecordPatch, TranslationPat
 		translation["version"] = gorm.Expr("version + 1")
 	}
 
+	record["author"] = diff.Author
 	record["published_at"] = diff.PublishedAt
 	record["version"] = gorm.Expr("version + 1")
 
@@ -369,7 +367,9 @@ func (r *Translation) ToDomain() *domain.Post {
 	res.Media = r.Media
 	res.MediaType = r.MediaType
 	res.MediaSource = r.MediaSource
-	res.Author = r.Post.Author
+	if r.Post.Author != nil {
+		res.Author = *r.Post.Author
+	}
 
 	return &res
 }
@@ -396,10 +396,12 @@ func ToRecord(data *domain.Post) *Translation {
 	res.Post.ID = data.PostID
 	res.Post.Slug = data.Slug
 	res.Post.Views = data.Views
-	res.Post.Author = data.Author
 	res.Post.Preview = data.Preview
 	res.Media = data.Media
 	res.MediaType = data.MediaType
 	res.MediaSource = data.MediaSource
+
+	author := data.Author
+	res.Post.Author = &author
 	return &res
 }

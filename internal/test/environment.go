@@ -4,12 +4,14 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"gocms/internal/ads"
 	"gocms/internal/category"
 	"gocms/internal/domain"
 	"gocms/internal/editor"
 	"gocms/internal/lang"
 	"gocms/internal/outbox"
 	"gocms/internal/password"
+	"gocms/internal/post"
 	"gocms/internal/user"
 	"net/http"
 	"os"
@@ -200,6 +202,8 @@ func (e *Environment) Clear(ctx context.Context) error {
 		&user.Record{},
 		&category.Record{},
 		&editor.Record{},
+		&post.Record{},
+		&ads.Record{},
 		&outbox.Message{},
 	}
 

@@ -3,21 +3,25 @@ package test
 import (
 	"context"
 	"fmt"
+	"gocms/internal/ads"
 	"gocms/internal/category"
 	"gocms/internal/domain"
 	"gocms/internal/editor"
 	"gocms/internal/lang"
+	"gocms/internal/post"
 	"gocms/internal/user"
 )
 
 type Fixtures struct {
-	DefaultPassword  Password          `json:"default_password"`
-	Actors           map[string]*Actor `json:"actors"`
-	Users            []domain.User     `json:"users"`
-	Languages        []lang.Language   `json:"languages"`
-	FallbackLanguage string            `json:"fallback_language"`
-	Categories       []domain.Category `json:"categories"`
-	Editors          []domain.Editor   `json:"editors"`
+	DefaultPassword  Password               `json:"default_password"`
+	Actors           map[string]*Actor      `json:"actors"`
+	Users            []domain.User          `json:"users"`
+	Languages        []lang.Language        `json:"languages"`
+	FallbackLanguage string                 `json:"fallback_language"`
+	Categories       []domain.Category      `json:"categories"`
+	Editors          []domain.Editor        `json:"editors"`
+	Posts            []domain.Post          `json:"posts"`
+	Ads              []domain.Advertisement `json:"ads"`
 }
 
 func (f *Fixtures) ApplyFixtures(ctx context.Context, e *Environment) error {
@@ -98,6 +102,37 @@ func (f *Fixtures) ApplyFixtures(ctx context.Context, e *Environment) error {
 		}
 
 		e.ID = fmt.Sprintf("%s-%s", e.Slug, e.Language)
+		task, err := ms.EditorsIndex.AddDocumentsWithContext(ctx, &e, nil)
+		if err != nil {
+			return err
+		}
+		if err := ms.WaitForTask(ctx, task); err != nil {
+			return err
+		}
+	}
+
+	for _, p := range f.Posts {
+		record := post.ToRecord(&p)
+		if err := db.WithContext(ctx).Save(record).Error; err != nil {
+			return err
+		}
+
+		p.ID = fmt.Sprintf("%d-%s", p.PostID, p.Language)
+		task, err := ms.EditorsIndex.AddDocumentsWithContext(ctx, &e, nil)
+		if err != nil {
+			return err
+		}
+		if err := ms.WaitForTask(ctx, task); err != nil {
+			return err
+		}
+	}
+
+	for _, a := range f.Ads {
+		record := ads.ToRecord(&a)
+		if err := db.WithContext(ctx).Save(record).Error; err != nil {
+			return err
+		}
+
 		task, err := ms.EditorsIndex.AddDocumentsWithContext(ctx, &e, nil)
 		if err != nil {
 			return err

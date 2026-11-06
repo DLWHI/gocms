@@ -29,7 +29,7 @@ func (s *EventConsumer) SyncSearch(ctx context.Context, data []byte) error {
 	switch payload.Action {
 	case domain.UserActionPassword:
 		return nil
-	case domain.UserActionCreate, domain.UserActionLogin, domain.UserActionSuspend, domain.UserActionUpdate:
+	case domain.ActionCreate, domain.ActionEdit:
 		user, err := s.db.Get(ctx, payload.Username)
 		if err != nil {
 			logger.Error("User.Service", "Failed to retreive user from db", err, "payload", payload)

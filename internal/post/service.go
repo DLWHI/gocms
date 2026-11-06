@@ -32,7 +32,7 @@ func (s *Service) authorize(ctx context.Context, action string, id uint) error {
 		return domain.ErrPerm
 	}
 
-	if !s.auth.Authorize(ctx, domain.PostEntityName, action) {
+	if !s.auth.Authorize(ctx, domain.EntityName(&domain.Post{}), action) {
 		return domain.ErrPerm
 	}
 	creator, err := s.repo.GetCreator(ctx, id)
@@ -49,7 +49,7 @@ func (s *Service) authorize(ctx context.Context, action string, id uint) error {
 }
 
 func (s *Service) Create(ctx context.Context, post *domain.Post) error {
-	if !s.auth.Authorize(ctx, domain.PostEntityName, domain.ActionCreateName) {
+	if !s.auth.Authorize(ctx, domain.EntityName(&domain.Post{}), domain.ActionCreate) {
 		return domain.ErrCred
 	}
 
@@ -114,7 +114,7 @@ func (s *Service) Create(ctx context.Context, post *domain.Post) error {
 }
 
 func (s *Service) Edit(ctx context.Context, id uint, diff *domain.PostDiff) error {
-	if err := s.authorize(ctx, domain.ActionEditName, id); err != nil {
+	if err := s.authorize(ctx, domain.ActionEdit, id); err != nil {
 		return err
 	}
 
@@ -186,6 +186,10 @@ func (s *Service) Edit(ctx context.Context, id uint, diff *domain.PostDiff) erro
 }
 
 func (s *Service) SetViews(ctx context.Context, id uint, value uint) error {
+	if !s.auth.Authorize(ctx, "views", domain.ActionEdit) {
+		return domain.ErrPerm
+	}
+
 	if err := s.repo.SetViews(ctx, id, value); err != nil {
 		logger.Error("Post.Service", "Failed to update post view count", err)
 		return err
@@ -292,7 +296,7 @@ func (s *Service) GetViews(ctx context.Context, id uint) (uint, error) {
 }
 
 func (s *Service) Delete(ctx context.Context, id uint) error {
-	if err := s.authorize(ctx, domain.ActionDeleteName, id); err != nil {
+	if err := s.authorize(ctx, domain.ActionDelete, id); err != nil {
 		return err
 	}
 

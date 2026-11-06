@@ -49,7 +49,7 @@ func (r *GORMRepository) Create(ctx context.Context, category *domain.Category) 
 		if err := tx.Create(ToRecord(category)).Error; err != nil {
 			return err
 		}
-		if err := r.writeMessage(tx, domain.CategoryActionCreate, string(category.Slug)); err != nil {
+		if err := r.writeMessage(tx, domain.ActionCreate, string(category.Slug)); err != nil {
 			return err
 		}
 		return nil
@@ -86,7 +86,7 @@ func (r *GORMRepository) Update(ctx context.Context, slug string, lang string, d
 				}
 
 				if diff.Slug != nil {
-					if err := r.writeMessage(tx, domain.CategoryActionDelete, slug); err != nil {
+					if err := r.writeMessage(tx, domain.ActionDelete, slug); err != nil {
 						return err
 					}
 					slug = *diff.Slug
@@ -117,7 +117,7 @@ func (r *GORMRepository) Update(ctx context.Context, slug string, lang string, d
 				}
 			}
 
-			if err := r.writeMessage(tx, domain.CategoryActionUpdate, slug); err != nil {
+			if err := r.writeMessage(tx, domain.ActionEdit, slug); err != nil {
 				return err
 			}
 			return nil
@@ -199,7 +199,7 @@ func (r *GORMRepository) Delete(ctx context.Context, slug string) error {
 		if result.RowsAffected == 0 {
 			return domain.ErrNotFound
 		}
-		if err := r.writeMessage(tx, domain.CategoryActionDelete, slug); err != nil {
+		if err := r.writeMessage(tx, domain.ActionDelete, slug); err != nil {
 			return err
 		}
 		return nil
@@ -207,7 +207,7 @@ func (r *GORMRepository) Delete(ctx context.Context, slug string) error {
 	return database.MapError(err)
 }
 
-func (*GORMRepository) writeMessage(tx *gorm.DB, action int, slug string) error {
+func (*GORMRepository) writeMessage(tx *gorm.DB, action string, slug string) error {
 	payload := domain.CategoryEventInfo{
 		Action: action,
 		Slug:   slug,

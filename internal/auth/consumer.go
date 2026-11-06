@@ -27,13 +27,13 @@ func (s *EventConsumer) RevokeSessions(ctx context.Context, data []byte) error {
 	}
 
 	switch payload.Action {
-	case domain.UserActionPassword, domain.UserActionSuspend:
+	case domain.UserActionPassword, domain.ActionDelete:
 		if err := s.sessions.RevokeUser(ctx, payload.Username); err != nil {
 			logger.Error("Auth.Service", "Failed to revoke user's sessions", err, "username", payload.Username)
 			return err
 		}
 		return nil
-	case domain.UserActionCreate, domain.UserActionLogin, domain.UserActionUpdate:
+	case domain.ActionCreate, domain.ActionEdit:
 		return nil
 	}
 	return fmt.Errorf("%w: unknown action", domain.ErrInval)

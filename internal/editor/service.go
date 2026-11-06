@@ -25,7 +25,7 @@ func NewService(db Repository, se SearchEngine, auth auth.Service) *Service {
 }
 
 func (s *Service) Create(ctx context.Context, editor *domain.Editor) error {
-	if !s.auth.Authorize(ctx, domain.EditorEntityName, domain.ActionCreateName) {
+	if !s.auth.Authorize(ctx, domain.EntityName(&domain.Editor{}), domain.ActionCreate) {
 		return domain.ErrPerm
 	}
 
@@ -58,7 +58,7 @@ func (s *Service) Create(ctx context.Context, editor *domain.Editor) error {
 }
 
 func (s *Service) Edit(ctx context.Context, slug string, diff *domain.EditorDiff) (string, error) {
-	if !s.auth.Authorize(ctx, domain.EditorEntityName, domain.ActionEditName) {
+	if !s.auth.Authorize(ctx, domain.EntityName(&domain.Editor{}), domain.ActionEdit) {
 		return "", domain.ErrPerm
 	}
 
@@ -166,7 +166,7 @@ func (s *Service) Search(ctx context.Context, filters *SearchParams) (*SearchRes
 }
 
 func (s *Service) Delete(ctx context.Context, slug string) error {
-	if !s.auth.Authorize(ctx, domain.EditorEntityName, domain.ActionDeleteName) {
+	if !s.auth.Authorize(ctx, domain.EntityName(&domain.Editor{}), domain.ActionDelete) {
 		return domain.ErrPerm
 	}
 

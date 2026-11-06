@@ -7,14 +7,10 @@ import (
 )
 
 const (
-	UserActionCreate = 1 << iota
-	UserActionUpdate
-	UserActionSuspend
-	UserActionLogin
-	UserActionPassword
+	UserActionLogin    = "login"
+	UserActionPassword = "reset"
 
-	UserEvent      = "user"
-	UserEntityName = "users"
+	UserEvent = "user"
 
 	UserMaxUsernameChars = 64
 	UserMaxEmailChars    = 254
@@ -34,7 +30,7 @@ type UserDiff struct {
 }
 
 type UserEventInfo struct {
-	Action   int    `json:"action"`
+	Action   string `json:"action"`
 	Username string `json:"username"`
 }
 

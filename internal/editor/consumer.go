@@ -27,7 +27,7 @@ func (s *EventConsumer) SyncSearch(ctx context.Context, data []byte) error {
 	}
 
 	switch payload.Action {
-	case domain.EditorActionCreate, domain.EditorActionUpdate, domain.EditorActionDelete:
+	case domain.ActionCreate, domain.ActionDelete:
 		translations, err := s.db.GetTranslations(ctx, payload.Slug)
 		if err != nil {
 			logger.Error("Editor.Service", "Failed to retreive editor translations from db", err, "payload", payload)

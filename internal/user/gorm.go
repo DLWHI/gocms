@@ -43,7 +43,7 @@ func (r *GORMRepository) Create(ctx context.Context, user *domain.User, pwdhash 
 		if err := tx.Create(record).Error; err != nil {
 			return err
 		}
-		if err := r.writeMessage(tx, domain.UserActionCreate, user.Username); err != nil {
+		if err := r.writeMessage(tx, domain.ActionCreate, user.Username); err != nil {
 			return err
 		}
 		return nil
@@ -64,7 +64,7 @@ func (r *GORMRepository) Update(ctx context.Context, username string, diff *doma
 			if result.RowsAffected == 0 {
 				return domain.ErrNotFound
 			}
-			if err := r.writeMessage(tx, domain.UserActionUpdate, username); err != nil {
+			if err := r.writeMessage(tx, domain.ActionEdit, username); err != nil {
 				return err
 			}
 		}
@@ -196,7 +196,7 @@ func (r *GORMRepository) Suspend(ctx context.Context, username string) error {
 		if result.RowsAffected == 0 {
 			return domain.ErrNotFound
 		}
-		if err := r.writeMessage(tx, domain.UserActionSuspend, username); err != nil {
+		if err := r.writeMessage(tx, domain.ActionDelete, username); err != nil {
 			return err
 		}
 		return nil
@@ -204,7 +204,7 @@ func (r *GORMRepository) Suspend(ctx context.Context, username string) error {
 	return database.MapError(err)
 }
 
-func (*GORMRepository) writeMessage(tx *gorm.DB, action int, username string) error {
+func (*GORMRepository) writeMessage(tx *gorm.DB, action string, username string) error {
 	payload := domain.UserEventInfo{
 		Username: username,
 		Action:   action,
@@ -232,7 +232,7 @@ func (*GORMRepository) patch(diff *domain.UserDiff) map[string]interface{} {
 }
 
 func (*Record) TableName() string {
-	return domain.UserEntityName
+	return "users"
 }
 
 func (rd *Record) ToDomain() *domain.User {

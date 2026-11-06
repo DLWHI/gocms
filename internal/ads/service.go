@@ -57,7 +57,7 @@ func (s *Service) sanitize(ad *domain.Advertisement) error {
 }
 
 func (s *Service) Create(ctx context.Context, ad *domain.Advertisement) error {
-	if !s.auth.Authorize(ctx, domain.AdvertisementEntityName, domain.ActionCreateName) {
+	if !s.auth.Authorize(ctx, domain.EntityName(&domain.Advertisement{}), domain.ActionCreate) {
 		return domain.ErrCred
 	}
 
@@ -100,7 +100,7 @@ func (s *Service) Create(ctx context.Context, ad *domain.Advertisement) error {
 }
 
 func (s *Service) Update(ctx context.Context, id uint, diff *domain.AdvertisementDiff) error {
-	if !s.auth.Authorize(ctx, domain.AdvertisementEntityName, domain.ActionEditName) {
+	if !s.auth.Authorize(ctx, domain.EntityName(&domain.Advertisement{}), domain.ActionEdit) {
 		return domain.ErrPerm
 	}
 
@@ -192,7 +192,7 @@ func (s *Service) Search(ctx context.Context, filters *SearchParams) (*SearchRes
 }
 
 func (s *Service) Delete(ctx context.Context, id uint) error {
-	if !s.auth.Authorize(ctx, domain.AdvertisementEntityName, domain.ActionDeleteName) {
+	if !s.auth.Authorize(ctx, domain.EntityName(&domain.Advertisement{}), domain.ActionDelete) {
 		return domain.ErrCred
 	}
 

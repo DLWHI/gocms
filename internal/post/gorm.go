@@ -67,7 +67,7 @@ func (r *GORMRepository) Create(ctx context.Context, post *domain.Post) error {
 		if err := tx.Create(record).Error; err != nil {
 			return err
 		}
-		if err := r.writeMessage(tx, domain.PostActionCreate, post.PostID); err != nil {
+		if err := r.writeMessage(tx, domain.ActionCreate, post.PostID); err != nil {
 			return err
 		}
 		post.PostID = record.Post.ID
@@ -130,7 +130,7 @@ func (r *GORMRepository) Update(ctx context.Context, id uint, language string, d
 				}
 			}
 
-			if err := r.writeMessage(tx, domain.PostActionUpdate, id); err != nil {
+			if err := r.writeMessage(tx, domain.ActionEdit, id); err != nil {
 				return err
 			}
 
@@ -158,7 +158,7 @@ func (r *GORMRepository) SetViews(ctx context.Context, id uint, value uint) erro
 				return domain.ErrRetry
 			}
 
-			if err := r.writeMessage(tx, domain.PostActionUpdate, id); err != nil {
+			if err := r.writeMessage(tx, domain.ActionEdit, id); err != nil {
 				return err
 			}
 
@@ -186,7 +186,7 @@ func (r *GORMRepository) IncrementViews(ctx context.Context, id uint, value uint
 				return domain.ErrRetry
 			}
 
-			if err := r.writeMessage(tx, domain.PostActionUpdate, id); err != nil {
+			if err := r.writeMessage(tx, domain.ActionEdit, id); err != nil {
 				return err
 			}
 
@@ -272,7 +272,7 @@ func (r *GORMRepository) Delete(ctx context.Context, id uint) error {
 		if result.RowsAffected == 0 {
 			return domain.ErrNotFound
 		}
-		if err := r.writeMessage(tx, domain.PostActionDelete, id); err != nil {
+		if err := r.writeMessage(tx, domain.ActionDelete, id); err != nil {
 			return err
 		}
 		return nil
@@ -280,7 +280,7 @@ func (r *GORMRepository) Delete(ctx context.Context, id uint) error {
 	return database.MapError(err)
 }
 
-func (*GORMRepository) writeMessage(tx *gorm.DB, action int, id uint) error {
+func (*GORMRepository) writeMessage(tx *gorm.DB, action string, id uint) error {
 	payload := domain.PostEventInfo{
 		PostID: id,
 		Action: action,

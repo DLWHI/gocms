@@ -1,12 +1,7 @@
 package domain
 
 const (
-	CategoryActionCreate = 1 << iota
-	CategoryActionUpdate
-	CategoryActionDelete
-
-	CategoryEvent      = "category"
-	CategoryEntityName = "categories"
+	CategoryEvent = "category"
 )
 
 type Category struct {
@@ -26,7 +21,7 @@ type CategoryDiff struct {
 }
 
 type CategoryEventInfo struct {
-	Action int    `json:"action"`
+	Action string `json:"action"`
 	Slug   string `json:"slug"`
 }
 

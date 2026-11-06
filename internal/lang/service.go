@@ -43,7 +43,7 @@ func (s *LocalService) IsSupported(code string) bool {
 }
 
 func (s *LocalService) Add(ctx context.Context, lang *Language) error {
-	if !s.auth.Authorize(ctx, domain.LangEntityName, domain.ActionCreateName) {
+	if !s.auth.Authorize(ctx, EntityName, domain.ActionCreate) {
 		return domain.ErrCred
 	}
 
@@ -71,7 +71,7 @@ func (s *LocalService) Add(ctx context.Context, lang *Language) error {
 }
 
 func (s *LocalService) Remove(ctx context.Context, code string) error {
-	if !s.auth.Authorize(ctx, domain.LangEntityName, domain.ActionDeleteName) {
+	if !s.auth.Authorize(ctx, EntityName, domain.ActionDelete) {
 		return domain.ErrCred
 	}
 

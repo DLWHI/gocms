@@ -1,25 +1,27 @@
 package domain
 
+import "fmt"
+
 const (
-	ActionCreateName = "create"
-	ActionEditName   = "edit"
-	ActionDeleteName = "delete"
+	ActionCreate = "create"
+	ActionEdit   = "edit"
+	ActionDelete = "delete"
 )
 
 var actions = map[string]uint32{
-	ActionDeleteName: 0x04,
-	ActionEditName:   0x02,
-	ActionCreateName: 0x01,
+	ActionDelete: 0x04,
+	ActionEdit:   0x02,
+	ActionCreate: 0x01,
 }
 
 var entites = map[string]uint32{
-	"posts":            0,
-	CategoryEntityName: 3,
-	"ads":              6,
-	"views":            9,
-	UserEntityName:     12,
-	"editors":          15,
-	LangEntityName:     18,
+	EntityName(&Post{}):          0,
+	EntityName(&Category{}):      3,
+	EntityName(&Advertisement{}): 6,
+	"views":                      9,
+	EntityName(&User{}):          12,
+	EntityName(&Editor{}):        15,
+	"languages":                  18,
 }
 
 const (
@@ -29,6 +31,23 @@ const (
 	RoleAdmin      = uint32(0x001FF3F6) // posts:edit;delete, categories:all, ads:all, users:all, editors:all, languages:all
 	RoleRoot       = uint32(0xFFFFFFFF) // everything possible, even future
 )
+
+func EntityName(entity any) string {
+	switch entity.(type) {
+	case Advertisement, *Advertisement:
+		return "ads"
+	case Category, *Category:
+		return "categories"
+	case Editor, *Editor:
+		return "editors"
+	case Post, *Post:
+		return "posts"
+	case User, *User:
+		return "users"
+	default:
+		panic(fmt.Errorf("%w: unregistered entity requested", ErrInval))
+	}
+}
 
 func GetEntities() map[string]uint32 {
 	return entites

@@ -161,13 +161,13 @@ func (app *Container) Init(ctx context.Context) error {
 
 func (app *Container) WireEvents(dispatcher outbox.Publisher) {
 	app.Subscriptions = make([]*outbox.Subscription, 0, 6)
-	// app.Subscriptions = append(app.Subscriptions, dispatcher.Subscribe("post", app.Posts.Service.SyncSearch))
+	app.Subscriptions = append(app.Subscriptions, dispatcher.Subscribe(domain.PostEvent, app.Posts.Consumer.SyncSearch))
 	app.Subscriptions = append(app.Subscriptions, dispatcher.Subscribe(domain.UserEvent, app.Users.Consumer.SyncSearch))
 	app.Subscriptions = append(app.Subscriptions, dispatcher.Subscribe(domain.UserEvent, app.Auth.Consumer.RevokeSessions))
 	app.Subscriptions = append(app.Subscriptions, dispatcher.Subscribe(domain.CategoryEvent, app.Categories.Consumer.SyncSearch))
 	app.Subscriptions = append(app.Subscriptions, dispatcher.Subscribe(domain.EditorEvent, app.Editors.Consumer.SyncSearch))
-	// app.Subscriptions = append(app.Subscriptions, dispatcher.Subscribe("ads", app.Ads.Service.SyncSearch))
-	app.Subscriptions = append(app.Subscriptions, dispatcher.Subscribe(domain.LangUpdateEvent, app.Langs.Consumer.Reload))
+	app.Subscriptions = append(app.Subscriptions, dispatcher.Subscribe(domain.AdvertisementEvent, app.Ads.Consumer.SyncSearch))
+	app.Subscriptions = append(app.Subscriptions, dispatcher.Subscribe(lang.Event, app.Langs.Consumer.Reload))
 }
 
 func (app *Container) TearDown() {

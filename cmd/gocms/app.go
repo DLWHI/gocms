@@ -5,6 +5,7 @@ import (
 	"gocms/internal/analytics"
 	"gocms/internal/domain"
 	"gocms/internal/flow"
+	"gocms/internal/lang"
 	"gocms/internal/logger"
 	"gocms/internal/outbox"
 	"gocms/internal/password"
@@ -164,7 +165,7 @@ func (app *Container) WireEvents(dispatcher outbox.Publisher) {
 	app.Subscriptions = append(app.Subscriptions, dispatcher.Subscribe(domain.CategoryEvent, app.Categories.Consumer.SyncSearch))
 	app.Subscriptions = append(app.Subscriptions, dispatcher.Subscribe(domain.EditorEvent, app.Editors.Consumer.SyncSearch))
 	app.Subscriptions = append(app.Subscriptions, dispatcher.Subscribe(domain.AdvertisementEvent, app.Ads.Consumer.SyncSearch))
-	app.Subscriptions = append(app.Subscriptions, dispatcher.Subscribe(domain.LangUpdateEvent, app.Langs.Consumer.Reload))
+	app.Subscriptions = append(app.Subscriptions, dispatcher.Subscribe(lang.Event, app.Langs.Consumer.Reload))
 }
 
 func (app *Container) TearDown() {

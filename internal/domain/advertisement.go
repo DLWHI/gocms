@@ -1,12 +1,7 @@
 package domain
 
 const (
-	AdvertisemenActionCreate = 1 << iota
-	AdvertisementActionUpdate
-	AdvertisementActionDelete
-
-	AdvertisementEvent      = "ad"
-	AdvertisementEntityName = "ads"
+	AdvertisementEvent = "ad"
 )
 
 type Advertisement struct {
@@ -31,8 +26,8 @@ type AdvertisementDiff struct {
 }
 
 type AdvertisementEventInfo struct {
-	ID     uint `json:"id"`
-	Action int  `json:"action"`
+	ID     uint   `json:"id"`
+	Action string `json:"action"`
 }
 
 func (u *AdvertisementDiff) Apply(target *Advertisement) {

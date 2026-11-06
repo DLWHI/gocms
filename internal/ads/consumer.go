@@ -28,7 +28,7 @@ func (s *EventConsumer) SyncSearch(ctx context.Context, data []byte) error {
 	}
 
 	switch payload.Action {
-	case domain.AdvertisemenActionCreate, domain.AdvertisementActionUpdate:
+	case domain.ActionCreate, domain.ActionEdit:
 		ad, err := s.db.Get(ctx, payload.ID)
 		if err != nil {
 			if errors.Is(err, domain.ErrNotFound) {
@@ -42,7 +42,7 @@ func (s *EventConsumer) SyncSearch(ctx context.Context, data []byte) error {
 			return err
 		}
 		return nil
-	case domain.AdvertisementActionDelete:
+	case domain.ActionDelete:
 		if err := s.se.Delete(ctx, payload.ID); err != nil {
 			logger.Error("Advertisement.Consumer", "Failed to remove advertisement from index", err, "payload", payload)
 			return err

@@ -50,7 +50,7 @@ func (r *GORMRepository) Create(ctx context.Context, editor *domain.Editor) erro
 		if err := tx.Create(ToRecord(editor)).Error; err != nil {
 			return err
 		}
-		if err := r.writeMessage(tx, domain.EditorActionCreate, editor.Slug); err != nil {
+		if err := r.writeMessage(tx, domain.ActionCreate, editor.Slug); err != nil {
 			return err
 		}
 		return nil
@@ -93,7 +93,7 @@ func (r *GORMRepository) Update(ctx context.Context, slug string, lang string, d
 				}
 
 				if diff.Slug != nil {
-					if err := r.writeMessage(tx, domain.EditorActionDelete, slug); err != nil {
+					if err := r.writeMessage(tx, domain.ActionDelete, slug); err != nil {
 						return err
 					}
 					slug = *diff.Slug
@@ -123,7 +123,7 @@ func (r *GORMRepository) Update(ctx context.Context, slug string, lang string, d
 					return domain.ErrRetry
 				}
 			}
-			if err := r.writeMessage(tx, domain.EditorActionUpdate, slug); err != nil {
+			if err := r.writeMessage(tx, domain.ActionEdit, slug); err != nil {
 				return err
 			}
 			return nil
@@ -201,7 +201,7 @@ func (r *GORMRepository) Delete(ctx context.Context, slug string) error {
 		if result.RowsAffected == 0 {
 			return domain.ErrNotFound
 		}
-		if err := r.writeMessage(tx, domain.EditorActionDelete, slug); err != nil {
+		if err := r.writeMessage(tx, domain.ActionDelete, slug); err != nil {
 			return err
 		}
 		return nil
@@ -209,7 +209,7 @@ func (r *GORMRepository) Delete(ctx context.Context, slug string) error {
 	return database.MapError(err)
 }
 
-func (*GORMRepository) writeMessage(tx *gorm.DB, action int, slug string) error {
+func (*GORMRepository) writeMessage(tx *gorm.DB, action string, slug string) error {
 	payload := domain.EditorEventInfo{
 		Slug:   slug,
 		Action: action,

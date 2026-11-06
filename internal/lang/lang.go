@@ -7,6 +7,11 @@ import (
 	"strings"
 )
 
+const (
+	EntityName = "languages"
+	Event      = "lang.update"
+)
+
 var iso6391 = map[string]struct{}{
 	"aa": {}, "ab": {}, "ae": {}, "af": {}, "ak": {}, "am": {}, "an": {}, "ar": {},
 	"as": {}, "av": {}, "ay": {}, "az": {}, "ba": {}, "be": {}, "bg": {}, "bi": {},

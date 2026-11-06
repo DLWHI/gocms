@@ -27,7 +27,7 @@ func (s *EventConsumer) SyncSearch(ctx context.Context, data []byte) error {
 	}
 
 	switch payload.Action {
-	case domain.PostActionCreate, domain.PostActionUpdate:
+	case domain.ActionCreate, domain.ActionEdit:
 		translations, err := s.db.GetTranslations(ctx, payload.PostID)
 		if err != nil {
 			logger.Error("Post.Service", "Failed to retreive post translations from db", err, "payload", payload)
@@ -35,7 +35,7 @@ func (s *EventConsumer) SyncSearch(ctx context.Context, data []byte) error {
 		}
 		_ = translations
 		return nil
-	case domain.PostActionDelete:
+	case domain.ActionDelete:
 		if err := s.se.Delete(ctx, payload.PostID); err != nil {
 			return err
 		}

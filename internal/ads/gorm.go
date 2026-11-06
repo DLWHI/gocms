@@ -45,7 +45,7 @@ func (r *GORMRepository) Create(ctx context.Context, ad *domain.Advertisement) e
 			return err
 		}
 		ad.ID = record.ID
-		if err := r.writeMessage(tx, domain.AdvertisemenActionCreate, record.ID); err != nil {
+		if err := r.writeMessage(tx, domain.ActionCreate, record.ID); err != nil {
 			return err
 		}
 		return nil
@@ -74,7 +74,7 @@ func (r *GORMRepository) Update(ctx context.Context, id uint, diff *domain.Adver
 			if result.RowsAffected == 0 {
 				return domain.ErrRetry
 			}
-			if err := r.writeMessage(tx, domain.AdvertisementActionUpdate, id); err != nil {
+			if err := r.writeMessage(tx, domain.ActionEdit, id); err != nil {
 				return err
 			}
 			return nil
@@ -143,7 +143,7 @@ func (r *GORMRepository) Delete(ctx context.Context, id uint) error {
 		if result.RowsAffected == 0 {
 			return domain.ErrNotFound
 		}
-		if err := r.writeMessage(tx, domain.AdvertisementActionDelete, id); err != nil {
+		if err := r.writeMessage(tx, domain.ActionDelete, id); err != nil {
 			return err
 		}
 		return nil
@@ -151,7 +151,7 @@ func (r *GORMRepository) Delete(ctx context.Context, id uint) error {
 	return database.MapError(err)
 }
 
-func (*GORMRepository) writeMessage(tx *gorm.DB, action int, id uint) error {
+func (*GORMRepository) writeMessage(tx *gorm.DB, action string, id uint) error {
 	payload := domain.AdvertisementEventInfo{
 		ID:     id,
 		Action: action,

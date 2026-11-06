@@ -1,12 +1,7 @@
 package domain
 
 const (
-	EditorActionCreate = 1 << iota
-	EditorActionUpdate
-	EditorActionDelete
-
-	EditorEvent      = "editor"
-	EditorEntityName = "editors"
+	EditorEvent = "editor"
 )
 
 type Editor struct {
@@ -28,7 +23,7 @@ type EditorDiff struct {
 
 type EditorEventInfo struct {
 	Slug   string `json:"slug"`
-	Action int    `json:"action"`
+	Action string `json:"action"`
 }
 
 func (u *EditorDiff) Apply(target *Editor) {

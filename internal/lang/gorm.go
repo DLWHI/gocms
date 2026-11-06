@@ -23,7 +23,7 @@ func (r *GORMRepository) Create(ctx context.Context, lang *Language) error {
 			return err
 		}
 
-		if err := outbox.WriteMessage(tx, domain.LangUpdateEvent, "Language.Repository", nil); err != nil {
+		if err := outbox.WriteMessage(tx, Event, "Language.Repository", nil); err != nil {
 			return err
 		}
 
@@ -56,7 +56,7 @@ func (r *GORMRepository) Delete(ctx context.Context, code string) error {
 			return domain.ErrNotFound
 		}
 
-		if err := outbox.WriteMessage(tx, domain.LangUpdateEvent, "Language.Repository", nil); err != nil {
+		if err := outbox.WriteMessage(tx, Event, "Language.Repository", nil); err != nil {
 			return err
 		}
 

@@ -27,7 +27,7 @@ func (s *EventConsumer) SyncSearch(ctx context.Context, data []byte) error {
 	}
 
 	switch payload.Action {
-	case domain.CategoryActionCreate, domain.CategoryActionUpdate:
+	case domain.ActionCreate, domain.ActionEdit:
 		translations, err := s.db.GetTranslations(ctx, payload.Slug)
 		if err != nil {
 			logger.Error("Category.Service", "Failed to retreive category translations from db", err, "payload", payload)
@@ -39,7 +39,7 @@ func (s *EventConsumer) SyncSearch(ctx context.Context, data []byte) error {
 			return err
 		}
 		return nil
-	case domain.CategoryActionDelete:
+	case domain.ActionDelete:
 		if err := s.se.Delete(ctx, payload.Slug); err != nil {
 			logger.Error("Category.Service", "Failed to remove categories from index", err, "payload", payload)
 			return err

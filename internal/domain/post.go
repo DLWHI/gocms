@@ -6,12 +6,7 @@ import (
 )
 
 const (
-	PostActionCreate = 1 << iota
-	PostActionUpdate
-	PostActionDelete
-
-	PostEvent      = "post"
-	PostEntityName = "posts"
+	PostEvent = "post"
 )
 
 type Post struct {
@@ -51,8 +46,8 @@ type PostDiff struct {
 }
 
 type PostEventInfo struct {
-	PostID uint `json:"post_id"`
-	Action int  `json:"action"`
+	PostID uint   `json:"post_id"`
+	Action string `json:"action"`
 }
 
 func NormalizeKeywords(value string) (string, error) {

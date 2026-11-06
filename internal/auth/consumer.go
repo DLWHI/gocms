@@ -33,7 +33,7 @@ func (s *EventConsumer) RevokeSessions(ctx context.Context, data []byte) error {
 			return err
 		}
 		return nil
-	case domain.ActionCreate, domain.ActionEdit:
+	case domain.ActionCreate, domain.ActionEdit, domain.UserActionLogin:
 		return nil
 	}
 	return fmt.Errorf("%w: unknown action", domain.ErrInval)

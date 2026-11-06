@@ -30,13 +30,14 @@ func (s *EventConsumer) SyncSearch(ctx context.Context, data []byte) error {
 	case domain.ActionCreate, domain.ActionEdit:
 		translations, err := s.db.GetTranslations(ctx, payload.PostID)
 		if err != nil {
-			logger.Error("Post.Service", "Failed to retreive post translations from db", err, "payload", payload)
+			logger.Error("Post.Consumer", "Failed to retreive post translations from db", err, "payload", payload)
 			return err
 		}
 		_ = translations
 		return nil
 	case domain.ActionDelete:
 		if err := s.se.Delete(ctx, payload.PostID); err != nil {
+			logger.Error("Post.Consumer", "Failed to remove post from index", err, "payload", payload)
 			return err
 		}
 		return nil

@@ -27,15 +27,15 @@ func (s *EventConsumer) SyncSearch(ctx context.Context, data []byte) error {
 	}
 
 	switch payload.Action {
-	case domain.ActionCreate, domain.ActionDelete:
+	case domain.ActionCreate, domain.ActionEdit, domain.ActionDelete:
 		translations, err := s.db.GetTranslations(ctx, payload.Slug)
 		if err != nil {
-			logger.Error("Editor.Service", "Failed to retreive editor translations from db", err, "payload", payload)
+			logger.Error("Editor.Consumer", "Failed to retreive editor translations from db", err, "payload", payload)
 			return err
 		}
 
 		if err := s.se.Index(ctx, payload.Slug, translations...); err != nil {
-			logger.Error("Editor.Service", "Failed to index editors", err, "payload", payload)
+			logger.Error("Editor.Consumer", "Failed to index editors", err, "payload", payload)
 			return err
 		}
 		return nil

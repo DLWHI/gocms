@@ -30,18 +30,18 @@ func (s *EventConsumer) SyncSearch(ctx context.Context, data []byte) error {
 	case domain.ActionCreate, domain.ActionEdit:
 		translations, err := s.db.GetTranslations(ctx, payload.Slug)
 		if err != nil {
-			logger.Error("Category.Service", "Failed to retreive category translations from db", err, "payload", payload)
+			logger.Error("Category.Consumer", "Failed to retreive category translations from db", err, "payload", payload)
 			return err
 		}
 
 		if err := s.se.Index(ctx, payload.Slug, translations...); err != nil {
-			logger.Error("Category.Service", "Failed to index categories", err, "payload", payload)
+			logger.Error("Category.Consumer", "Failed to index categories", err, "payload", payload)
 			return err
 		}
 		return nil
 	case domain.ActionDelete:
 		if err := s.se.Delete(ctx, payload.Slug); err != nil {
-			logger.Error("Category.Service", "Failed to remove categories from index", err, "payload", payload)
+			logger.Error("Category.Consumer", "Failed to remove categories from index", err, "payload", payload)
 			return err
 		}
 		return nil

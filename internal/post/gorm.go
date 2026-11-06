@@ -217,6 +217,7 @@ func (r *GORMRepository) GetTranslations(ctx context.Context, id uint) ([]domain
 	var posts []Translation
 
 	result := r.db.WithContext(ctx).Model(&Translation{}).
+		Preload("Categories").
 		Preload("Post").
 		Where("post_id = ?", id).
 		Find(&posts)

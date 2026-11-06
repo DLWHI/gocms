@@ -25,8 +25,8 @@ func NewMeilisearchEngine(client meilisearch.ServiceManager, index string) *Meil
 				PrimaryKey: "id",
 			},
 			Settings: meilisearch.Settings{
-				SearchableAttributes: []string{"title", "description", "keywords"},
-				FilterableAttributes: []string{"post_id", "language", "author", "created_at", "created_by", "published_at", "categories"},
+				SearchableAttributes: []string{"title", "description", "keywords", "post_id"},
+				FilterableAttributes: []string{"language", "author", "created_at", "created_by", "published_at", "categories"},
 				SortableAttributes:   []string{"post_id", "title", "author", "created_at", "published_at", "created_by", "views"},
 			},
 		},
@@ -35,10 +35,6 @@ func NewMeilisearchEngine(client meilisearch.ServiceManager, index string) *Meil
 
 func (*MeilisearchEngine) buildFilter(params *SearchParams, language string) string {
 	clauses := []string{fmt.Sprintf("lang = %q", language)}
-
-	if params.ID > 0 {
-		clauses = append(clauses, fmt.Sprintf("post_id = %d", params.ID))
-	}
 
 	if len(params.Categories) > 0 {
 		for i := range params.Categories {

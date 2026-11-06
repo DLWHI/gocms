@@ -9,13 +9,12 @@ import (
 )
 
 // ------------------------------------------------------------------
+// GET /posts/{lang}/{id} - Get post by id
 // POST /posts/{lang} - Create post translation
 // POST /posts/{lang}/search - Get/search posts
-// GET /posts/{lang}/{id} - Get post by id
 // PATCH /posts/{lang}/{id} - Update post translation
-// PATCH /posts/{id}/views - Override posts views
+// PUT /posts/views/{id} - Override posts views
 // DELETE /posts/{id} - Delete post with all translations
-//
 // ------------------------------------------------------------------
 
 type Handler struct {

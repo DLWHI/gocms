@@ -9,7 +9,6 @@ import (
 
 type SearchParams struct {
 	search.Params
-	ID                uint       `json:"id,omitempty"`
 	Categories        []string   `json:"categories,omitempty"`
 	ExcludeCategories []string   `json:"exclude_categories,omitempty"`
 	Authors           []string   `json:"authors,omitempty"`

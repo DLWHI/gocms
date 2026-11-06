@@ -67,11 +67,11 @@ func (s *SessionService) Login(ctx context.Context, username string, passwd pass
 }
 
 func (s *SessionService) Logout(ctx context.Context) error {
-	username, ok := ctx.Value(domain.UsernameContextKey).(string)
+	username, ok := ctx.Value(UsernameContextKey).(string)
 	if !ok {
 		return nil
 	}
-	session, ok := ctx.Value(domain.SessionContextIDKey).(string)
+	session, ok := ctx.Value(SessionContextIDKey).(string)
 	if !ok {
 		return nil
 	}
@@ -84,7 +84,7 @@ func (s *SessionService) Logout(ctx context.Context) error {
 }
 
 func (s *SessionService) CurrentUser(ctx context.Context) (*domain.User, error) {
-	session, ok := ctx.Value(domain.SessionContextIDKey).(string)
+	session, ok := ctx.Value(SessionContextIDKey).(string)
 	if !ok {
 		return nil, domain.ErrExpired
 	}
@@ -105,7 +105,7 @@ func (s *SessionService) CurrentUser(ctx context.Context) (*domain.User, error) 
 }
 
 func (s *SessionService) ChangePasswd(ctx context.Context, old password.Password, new password.Password) error {
-	initiator, ok := ctx.Value(domain.UsernameContextKey).(string)
+	initiator, ok := ctx.Value(UsernameContextKey).(string)
 	if !ok {
 		return domain.ErrCred
 	}
@@ -138,7 +138,7 @@ func (s *SessionService) ChangePasswd(ctx context.Context, old password.Password
 }
 
 func (s *SessionService) Authorize(ctx context.Context, entity string, action string) bool {
-	username, ok := ctx.Value(domain.UsernameContextKey).(string)
+	username, ok := ctx.Value(UsernameContextKey).(string)
 	if !ok {
 		return false
 	}
@@ -152,7 +152,7 @@ func (s *SessionService) Authorize(ctx context.Context, entity string, action st
 }
 
 func (s *SessionService) IsSubsetOf(ctx context.Context, permissions uint32) bool {
-	username, ok := ctx.Value(domain.UsernameContextKey).(string)
+	username, ok := ctx.Value(UsernameContextKey).(string)
 	if !ok {
 		return false
 	}

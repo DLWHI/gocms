@@ -27,7 +27,7 @@ func NewService(repo Repository, se SearchEngine, auth auth.Service) *Service {
 }
 
 func (s *Service) authorize(ctx context.Context, action string, id uint) error {
-	initiator, ok := ctx.Value(domain.UsernameContextKey).(string)
+	initiator, ok := ctx.Value(auth.UsernameContextKey).(string)
 	if !ok {
 		return domain.ErrPerm
 	}
@@ -209,7 +209,7 @@ func (s *Service) CommitViews(ctx context.Context, id uint, value uint) (uint, e
 }
 
 func (s *Service) Search(ctx context.Context, filters *SearchParams) (*SearchResult, error) {
-	_, ok := ctx.Value(domain.UsernameContextKey).(string)
+	_, ok := ctx.Value(auth.UsernameContextKey).(string)
 	if !ok {
 		filters.Select = []string{
 			"post_id",

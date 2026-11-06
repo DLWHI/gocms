@@ -139,7 +139,7 @@ func (s *Service) ChangeEmail(ctx context.Context, username string, diff *domain
 		return err
 	}
 
-	initiator, ok := ctx.Value(domain.UsernameContextKey).(string)
+	initiator, ok := ctx.Value(auth.UsernameContextKey).(string)
 	if !ok {
 		return domain.ErrPerm
 	}
@@ -173,7 +173,7 @@ func (s *Service) ChangePermissions(ctx context.Context, username string, diff *
 		return err
 	}
 
-	initiator, ok := ctx.Value(domain.UsernameContextKey).(string)
+	initiator, ok := ctx.Value(auth.UsernameContextKey).(string)
 	if !ok {
 		return domain.ErrPerm
 	}
@@ -207,7 +207,7 @@ func (s *Service) OverridePassword(ctx context.Context, username string, passwor
 		return err
 	}
 
-	initiator, ok := ctx.Value(domain.UsernameContextKey).(string)
+	initiator, ok := ctx.Value(auth.UsernameContextKey).(string)
 	if !ok {
 		return domain.ErrPerm
 	}

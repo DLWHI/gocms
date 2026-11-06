@@ -24,38 +24,37 @@ func NewService(db Repository, se SearchEngine, auth auth.Service) *Service {
 	}
 }
 
-func (s *Service) Create(ctx context.Context, editor *domain.Editor) (string, error) {
+func (s *Service) Create(ctx context.Context, editor *domain.Editor) error {
 	if !s.auth.Authorize(ctx, domain.EditorEntityName, domain.ActionCreateName) {
-		return "", domain.ErrPerm
+		return domain.ErrPerm
 	}
 
-	created := *editor
 	slug, err := domain.NormalizeSlug(editor.Slug)
 	if err != nil {
-		return "", err
+		return err
 	}
-	created.Slug = slug
+	editor.Slug = slug
 
 	lang, err := lang.ResolveLang(ctx)
 	if err != nil {
-		return "", err
+		return err
 	}
-	created.Lang = lang
+	editor.Language = lang
 
 	name, err := domain.NormalizeName(editor.Name)
 	if err != nil {
-		return "", err
+		return err
 	}
-	created.Name = name
+	editor.Name = name
 
-	if err := s.repo.Create(ctx, &created); err != nil {
+	if err := s.repo.Create(ctx, editor); err != nil {
 		if !errors.Is(err, domain.ErrDuplicate) && !errors.Is(err, domain.ErrInval) {
 			logger.Error("Editor.Service", "Failed to create editor profile", err)
 		}
-		return "", err
+		return err
 	}
 
-	return created.Slug, nil
+	return nil
 }
 
 func (s *Service) Edit(ctx context.Context, slug string, diff *domain.EditorDiff) (string, error) {

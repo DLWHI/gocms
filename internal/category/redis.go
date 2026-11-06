@@ -35,7 +35,7 @@ func (r *RedisRepository) Create(ctx context.Context, category *domain.Category)
 	if err := r.Repository.Create(ctx, category); err != nil {
 		return err
 	}
-	key := r.keys.List(notHiddenListBase + "-" + category.Lang)
+	key := r.keys.List(notHiddenListBase + "-" + category.Language)
 	if err := r.cache.Invalidate(ctx, key); err != nil {
 		logger.Warn("User.Redis", "Redis error while trying to delete key", err, "key", key)
 	}

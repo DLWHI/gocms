@@ -2,6 +2,7 @@ package post
 
 import (
 	"encoding/json"
+	"fmt"
 	"gocms/internal/domain"
 	"gocms/internal/server"
 	"net/http"
@@ -50,13 +51,19 @@ func (h *Handler) create(w http.ResponseWriter, r *http.Request) {
 
 	post := &domain.Post{}
 	payload.Apply(post)
-	_, err := h.postService.Create(r.Context(), post)
-	if err != nil {
+	if err := h.postService.Create(r.Context(), post); err != nil {
 		server.WriteServerError(w, "Post", err)
 		return
 	}
 
+	res := map[string]any{
+		"id":       post.PostID,
+		"location": fmt.Sprintf("/cms/posts/%s/%d", post.Language, post.PostID),
+	}
+
 	w.WriteHeader(http.StatusCreated)
+	w.Header().Set("Content-Type", "application/json")
+	_ = json.NewEncoder(w).Encode(&res)
 }
 
 // POST /posts/{lang}/search - Get/search posts

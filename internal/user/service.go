@@ -27,49 +27,47 @@ func NewService(repo Repository, se SearchEngine, auth auth.Service, passwords p
 	}
 }
 
-func (s *Service) Create(ctx context.Context, user *domain.User, password password.Password) (string, error) {
+func (s *Service) Create(ctx context.Context, user *domain.User, password password.Password) error {
 	if !s.auth.Authorize(ctx, domain.UserEntityName, domain.ActionCreateName) || !s.auth.IsSubsetOf(ctx, user.Permissions) {
-		return "", domain.ErrPerm
+		return domain.ErrPerm
 	}
 
 	if err := s.passwords.IsValidPassword(password); err != nil {
-		return "", err
+		return err
 	}
 
-	var created domain.User
 	username, err := domain.NormalizeUsername(user.Username)
 	if err != nil {
-		return "", err
+		return err
 	}
-	created.Username = username
+	user.Username = username
 
 	email, err := domain.NormalizeEmail(user.Email)
 	if err != nil {
-		return "", err
+		return err
 	}
-	created.Email = email
+	user.Email = email
 
 	hash, err := s.passwords.Hash(password)
 	if err != nil {
 		logger.Error("User.Service", "Failed to hash the user password", err)
-		return "", err
+		return err
 	}
 	defer clear(hash)
 
-	created.Permissions = user.Permissions
-	if created.Permissions == 0 {
-		created.Permissions = domain.RoleEditor
+	if user.Permissions == 0 {
+		user.Permissions = domain.RoleEditor
 	}
 
-	err = s.repo.Create(ctx, &created, hash)
+	err = s.repo.Create(ctx, user, hash)
 	if err != nil {
 		if !errors.Is(err, domain.ErrDuplicate) {
 			logger.Error("User.Service", "Failed to create user", err, "data", user)
 		}
-		return "", err
+		return err
 	}
 
-	return created.Username, nil
+	return nil
 }
 
 func (s *Service) Get(ctx context.Context, username string) (*domain.User, error) {

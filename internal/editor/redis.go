@@ -35,7 +35,7 @@ func (r *RedisRepository) Create(ctx context.Context, editor *domain.Editor) err
 	if err := r.Repository.Create(ctx, editor); err != nil {
 		return err
 	}
-	key := r.keys.List(allListBase + "-" + editor.Lang)
+	key := r.keys.List(allListBase + "-" + editor.Language)
 	if err := r.cache.Invalidate(ctx, key); err != nil {
 		logger.Warn("User.Redis", "Redis error while trying to delete key", err, "key", key)
 	}

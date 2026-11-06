@@ -27,7 +27,7 @@ func (r *FlowRepository) Create(ctx context.Context, category *domain.Category) 
 	if err := r.Repository.Create(ctx, category); err != nil {
 		return err
 	}
-	r.group.Forget(r.keys.List(notHiddenListBase + "-" + category.Lang))
+	r.group.Forget(r.keys.List(notHiddenListBase + "-" + category.Language))
 	return nil
 }
 

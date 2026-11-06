@@ -2,6 +2,7 @@ package user
 
 import (
 	"encoding/json"
+	"fmt"
 	"gocms/internal/domain"
 	"gocms/internal/password"
 	"gocms/internal/server"
@@ -61,12 +62,19 @@ func (h *Handler) create(w http.ResponseWriter, r *http.Request) {
 
 	user := &domain.User{Username: payload.Username}
 	payload.Apply(user)
-	if _, err := h.userService.Create(r.Context(), user, payload.Password); err != nil {
+	if err := h.userService.Create(r.Context(), user, payload.Password); err != nil {
 		server.WriteServerError(w, "User", err)
 		return
 	}
 
+	res := map[string]any{
+		"slug":     user.Username,
+		"location": fmt.Sprintf("/cms/users/%s", user.Username),
+	}
+
 	w.WriteHeader(http.StatusCreated)
+	w.Header().Set("Content-Type", "application/json")
+	_ = json.NewEncoder(w).Encode(&res)
 }
 
 // GET /users - Get all users

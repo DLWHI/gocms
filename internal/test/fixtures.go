@@ -81,7 +81,7 @@ func (f *Fixtures) ApplyFixtures(ctx context.Context, e *Environment) error {
 			return err
 		}
 
-		c.ID = fmt.Sprintf("%s-%s", c.Slug, c.Lang)
+		c.ID = fmt.Sprintf("%s-%s", c.Slug, c.Language)
 		task, err := ms.CategoriesIndex.AddDocumentsWithContext(ctx, &c, nil)
 		if err != nil {
 			return err
@@ -97,7 +97,7 @@ func (f *Fixtures) ApplyFixtures(ctx context.Context, e *Environment) error {
 			return err
 		}
 
-		e.ID = fmt.Sprintf("%s-%s", e.Slug, e.Lang)
+		e.ID = fmt.Sprintf("%s-%s", e.Slug, e.Language)
 		task, err := ms.EditorsIndex.AddDocumentsWithContext(ctx, &e, nil)
 		if err != nil {
 			return err

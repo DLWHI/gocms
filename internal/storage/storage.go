@@ -32,3 +32,12 @@ func IsItemType(value string) bool {
 		return false
 	}
 }
+
+func IsMediaType(value string) bool {
+	switch value {
+	case TypeVideo, TypeImage:
+		return true
+	default:
+		return false
+	}
+}

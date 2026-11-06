@@ -2,6 +2,7 @@ package category
 
 import (
 	"encoding/json"
+	"fmt"
 	"gocms/internal/domain"
 	"gocms/internal/server"
 	"net/http"
@@ -83,12 +84,19 @@ func (h *Handler) create(w http.ResponseWriter, r *http.Request) {
 
 	category := &domain.Category{}
 	payload.Apply(category)
-	if _, err := h.categoryService.Create(r.Context(), category); err != nil {
+	if err := h.categoryService.Create(r.Context(), category); err != nil {
 		server.WriteServerError(w, "Category", err)
 		return
 	}
 
+	res := map[string]any{
+		"slug":     category.Slug,
+		"location": fmt.Sprintf("/cms/categories/%s/%s", category.Language, category.Slug),
+	}
+
 	w.WriteHeader(http.StatusCreated)
+	w.Header().Set("Content-Type", "application/json")
+	_ = json.NewEncoder(w).Encode(&res)
 }
 
 // GET /categories/{lang}/{slug} - Get get

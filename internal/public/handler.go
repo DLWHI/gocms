@@ -78,7 +78,6 @@ func (h *Handler) postsSearch(w http.ResponseWriter, r *http.Request) {
 	params.Published = &trueVal
 	params.CreatedAfter = nil
 	params.CreatedBefore = nil
-	params.ID = 0
 	params.Select = []string{
 		"post_id",
 		"title",

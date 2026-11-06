@@ -24,39 +24,37 @@ func NewService(repo Repository, se SearchEngine, auth auth.Service) *Service {
 	}
 }
 
-func (s *Service) Create(ctx context.Context, category *domain.Category) (string, error) {
+func (s *Service) Create(ctx context.Context, category *domain.Category) error {
 	if !s.auth.Authorize(ctx, domain.CategoryEntityName, domain.ActionCreateName) {
-		return "", domain.ErrPerm
+		return domain.ErrPerm
 	}
 
-	var created domain.Category
-	created = *category
 	slug, err := domain.NormalizeSlug(category.Slug)
 	if err != nil {
-		return "", err
+		return err
 	}
-	created.Slug = slug
+	category.Slug = slug
 
 	lang, err := lang.ResolveLang(ctx)
 	if err != nil {
-		return "", err
+		return err
 	}
-	created.Lang = lang
+	category.Language = lang
 
 	name, err := domain.NormalizeName(category.Name)
 	if err != nil {
-		return "", err
+		return err
 	}
-	created.Name = name
+	category.Name = name
 
-	if err := s.repo.Create(ctx, &created); err != nil {
+	if err := s.repo.Create(ctx, category); err != nil {
 		if !errors.Is(err, domain.ErrDuplicate) && !errors.Is(err, domain.ErrInval) {
 			logger.Error("Category.Service", "Failed to create category", err)
 		}
-		return "", err
+		return err
 	}
 
-	return created.Slug, nil
+	return nil
 }
 
 func (s *Service) Edit(ctx context.Context, slug string, diff *domain.CategoryDiff) (string, error) {

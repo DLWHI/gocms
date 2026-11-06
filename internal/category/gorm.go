@@ -260,7 +260,7 @@ func (rd *RecordTranslation) ToDomain() *domain.Category {
 	res.Hidden = rd.Category.Hidden
 	res.Navbar = rd.Category.Navbar
 	res.Name = rd.Name
-	res.Lang = rd.Lang
+	res.Language = rd.Lang
 	return &res
 }
 
@@ -269,7 +269,7 @@ func ToRecord(data *domain.Category) *RecordTranslation {
 
 	res.CategorySlug = data.Slug
 	res.Name = data.Name
-	res.Lang = data.Lang
+	res.Lang = data.Language
 	res.Category = Record{
 		Slug:   data.Slug,
 		Hidden: data.Hidden,

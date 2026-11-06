@@ -28,7 +28,7 @@ func (r *FlowRepository) Create(ctx context.Context, editor *domain.Editor) erro
 	if err := r.Repository.Create(ctx, editor); err != nil {
 		return err
 	}
-	r.group.Forget(r.keys.List(allListBase + "-" + editor.Lang))
+	r.group.Forget(r.keys.List(allListBase + "-" + editor.Language))
 	return nil
 }
 

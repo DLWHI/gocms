@@ -2,6 +2,7 @@ package editor
 
 import (
 	"encoding/json"
+	"fmt"
 	"gocms/internal/domain"
 	"gocms/internal/server"
 	"net/http"
@@ -83,12 +84,19 @@ func (h *Handler) create(w http.ResponseWriter, r *http.Request) {
 
 	editor := &domain.Editor{}
 	payload.Apply(editor)
-	if _, err := h.editorService.Create(r.Context(), editor); err != nil {
+	if err := h.editorService.Create(r.Context(), editor); err != nil {
 		server.WriteServerError(w, "Editor", err)
 		return
 	}
 
+	res := map[string]any{
+		"slug":     editor.Slug,
+		"location": fmt.Sprintf("/cms/editors/%s/%s", editor.Language, editor.Slug),
+	}
+
 	w.WriteHeader(http.StatusCreated)
+	w.Header().Set("Content-Type", "application/json")
+	_ = json.NewEncoder(w).Encode(&res)
 }
 
 // GET /editors/{lang}/{slug} - Get editor

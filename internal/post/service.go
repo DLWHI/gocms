@@ -48,69 +48,69 @@ func (s *Service) authorize(ctx context.Context, action string, id uint) error {
 	return nil
 }
 
-func (s *Service) Create(ctx context.Context, post *domain.Post) (uint, error) {
+func (s *Service) Create(ctx context.Context, post *domain.Post) error {
 	if !s.auth.Authorize(ctx, domain.PostEntityName, domain.ActionCreateName) {
-		return 0, domain.ErrCred
+		return domain.ErrCred
 	}
 
 	creator, ok := ctx.Value("username").(string)
 	if !ok {
-		return 0, domain.ErrPerm
+		return domain.ErrPerm
 	}
 	post.CreatedBy = creator
 
 	language, err := lang.ResolveLang(ctx)
 	if err != nil {
-		return 0, err
+		return err
 	}
 	post.Language = language
 
 	slug, err := domain.NormalizeSlug(post.Slug)
 	if err != nil {
-		return 0, err
+		return err
 	}
 	post.Slug = slug
 
 	title, err := domain.NormalizeName(post.Title)
 	if err != nil {
-		return 0, err
+		return err
 	}
 	post.Title = title
 
 	keywords, err := domain.NormalizeKeywords(post.Keywords)
 	if err != nil {
-		return 0, err
+		return err
 	}
 	post.Keywords = keywords
 
 	preview, err := domain.NormalizeURL(post.Preview)
 	if err != nil {
-		return 0, err
+		return err
 	}
 	post.Preview = preview
 
 	media, err := domain.NormalizeURL(post.Media)
 	if err != nil {
-		return 0, err
+		return err
 	}
 	post.Media = media
 
 	source, err := domain.NormalizeName(post.MediaSource)
 	if err != nil {
-		return 0, err
+		return err
 	}
 	post.MediaSource = source
 
-	if !storage.IsItemType(post.MediaType) {
-		return 0, fmt.Errorf("%w: MediaType is unknown value", err)
+	if !storage.IsMediaType(post.MediaType) {
+		return fmt.Errorf("%w: MediaType is unknown value", err)
 	}
 
 	if err := s.repo.Create(ctx, post); err != nil {
 		logger.Error("Post.Service", "Failed to create post", err)
-		return 0, err
+		return err
 	}
 
-	return post.PostID, nil
+	return nil
 }
 
 func (s *Service) Edit(ctx context.Context, id uint, diff *domain.PostDiff) error {

@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"gocms/internal/ads"
+	"gocms/internal/advertisement"
 	"gocms/internal/category"
 	"gocms/internal/domain"
 	"gocms/internal/editor"
@@ -203,7 +203,7 @@ func (e *Environment) Clear(ctx context.Context) error {
 		&category.Record{},
 		&editor.Record{},
 		&post.Record{},
-		&ads.Record{},
+		&advertisement.Record{},
 		&outbox.Message{},
 	}
 

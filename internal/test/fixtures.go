@@ -3,7 +3,7 @@ package test
 import (
 	"context"
 	"fmt"
-	"gocms/internal/ads"
+	"gocms/internal/advertisement"
 	"gocms/internal/category"
 	"gocms/internal/domain"
 	"gocms/internal/editor"
@@ -128,7 +128,7 @@ func (f *Fixtures) ApplyFixtures(ctx context.Context, e *Environment) error {
 	}
 
 	for _, a := range f.Ads {
-		record := ads.ToRecord(&a)
+		record := advertisement.ToRecord(&a)
 		if err := db.WithContext(ctx).Save(record).Error; err != nil {
 			return err
 		}

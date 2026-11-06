@@ -2,7 +2,7 @@ package public
 
 import (
 	"encoding/json"
-	"gocms/internal/ads"
+	"gocms/internal/advertisement"
 	"gocms/internal/analytics"
 	"gocms/internal/category"
 	"gocms/internal/domain"
@@ -44,11 +44,11 @@ type Handler struct {
 	editors       *editor.Service
 	categories    *category.Service
 	languages     *lang.LocalService
-	ads           *ads.Service
+	ads           *advertisement.Service
 	views         analytics.PostViewCounterService
 }
 
-func NewHandler(ps *post.Service, es *editor.Service, cs *category.Service, ls *lang.LocalService, as *ads.Service, vc analytics.PostViewCounterService) *Handler {
+func NewHandler(ps *post.Service, es *editor.Service, cs *category.Service, ls *lang.LocalService, as *advertisement.Service, vc analytics.PostViewCounterService) *Handler {
 	var hndl Handler
 	hndl.posts = ps
 	hndl.editors = es

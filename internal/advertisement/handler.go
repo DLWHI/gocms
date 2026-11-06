@@ -1,4 +1,4 @@
-package ads
+package advertisement
 
 import (
 	"encoding/json"

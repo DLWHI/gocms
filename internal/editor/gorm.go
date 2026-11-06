@@ -72,7 +72,7 @@ func (r *GORMRepository) Update(ctx context.Context, slug string, lang string, d
 			err := tx.Table("editors AS e").
 				Select("e.version AS record, COALESCE(et.version, 0) AS translation").
 				Joins("LEFT JOIN editor_translations et ON et.editor_slug = e.slug AND et.lang = ?", lang).
-				Where("e.slug = ?", slug).
+				Where("e.slug = ? AND e.deleted_at IS NULL", slug).
 				Take(&version).Error
 			if err != nil {
 				if errors.Is(err, gorm.ErrRecordNotFound) {

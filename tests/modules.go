@@ -2,7 +2,7 @@ package tests
 
 import (
 	"context"
-	"gocms/internal/ads"
+	"gocms/internal/advertisement"
 	"gocms/internal/auth"
 	"gocms/internal/cache"
 	"gocms/internal/category"
@@ -75,13 +75,13 @@ type CategoryModule struct {
 }
 
 type AdsModule struct {
-	Consumer          *ads.EventConsumer
-	Service           *ads.Service
-	Handler           *ads.Handler
-	DedupRepo         ads.Repository
-	CacheRepo         ads.Repository
-	DBRepo            ads.Repository
-	MeilisearchEngine ads.SearchEngine
+	Consumer          *advertisement.EventConsumer
+	Service           *advertisement.Service
+	Handler           *advertisement.Handler
+	DedupRepo         advertisement.Repository
+	CacheRepo         advertisement.Repository
+	DBRepo            advertisement.Repository
+	MeilisearchEngine advertisement.SearchEngine
 }
 
 type LangModule struct {
@@ -249,13 +249,13 @@ func NewAdsModule(
 		return nil, err
 	}
 
-	gormRepo := ads.NewGORMRepository(db)
-	flowRepo := ads.NewFlowRepository(gormRepo, 20*time.Second, keys)
-	redisRepo := ads.NewRedisRepository(flowRepo, redis, 12*time.Hour, keys)
-	searchEngine := ads.NewMeilisearchEngine(search, AdsSearchIndexName)
-	consume := ads.NewEventConsumer(gormRepo, searchEngine)
-	service := ads.NewService(redisRepo, searchEngine)
-	handler := ads.NewHandler(service)
+	gormRepo := advertisement.NewGORMRepository(db)
+	flowRepo := advertisement.NewFlowRepository(gormRepo, 20*time.Second, keys)
+	redisRepo := advertisement.NewRedisRepository(flowRepo, redis, 12*time.Hour, keys)
+	searchEngine := advertisement.NewMeilisearchEngine(search, AdsSearchIndexName)
+	consume := advertisement.NewEventConsumer(gormRepo, searchEngine)
+	service := advertisement.NewService(redisRepo, searchEngine)
+	handler := advertisement.NewHandler(service)
 	return &AdsModule{
 		Consumer:          consume,
 		Service:           service,

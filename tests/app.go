@@ -3,7 +3,7 @@ package tests
 import (
 	"context"
 	"fmt"
-	"gocms/internal/ads"
+	"gocms/internal/advertisement"
 	"gocms/internal/category"
 	"gocms/internal/domain"
 	"gocms/internal/editor"
@@ -204,7 +204,7 @@ func (app *Container) TearDown() {
 func SoftMigrate(db *gorm.DB) error {
 
 	err := db.AutoMigrate(
-		&ads.Record{},
+		&advertisement.Record{},
 		&user.Record{},
 		&editor.Record{},
 		&editor.RecordTranslation{},
@@ -233,7 +233,7 @@ func CreateIndexes(ctx context.Context, client meilisearch.ServiceManager) error
 		category.NewMeilisearchEngine(client, CategoriesSearchIndexName),
 		editor.NewMeilisearchEngine(client, EditorsSearchIndexName),
 		post.NewMeilisearchEngine(client, PostsSearchIndexName),
-		ads.NewMeilisearchEngine(client, AdsSearchIndexName),
+		advertisement.NewMeilisearchEngine(client, AdsSearchIndexName),
 	}
 
 	for _, index := range indexes {
@@ -251,7 +251,7 @@ func DropAll(db *gorm.DB) error {
 		return err
 	}
 	if err := db.Migrator().DropTable(
-		&ads.Record{},
+		&advertisement.Record{},
 		&user.Record{},
 		&editor.Record{},
 		&editor.RecordTranslation{},
@@ -273,7 +273,7 @@ func DestroyIndexes(ctx context.Context, client meilisearch.ServiceManager) erro
 		category.NewMeilisearchEngine(client, CategoriesSearchIndexName),
 		editor.NewMeilisearchEngine(client, EditorsSearchIndexName),
 		post.NewMeilisearchEngine(client, PostsSearchIndexName),
-		ads.NewMeilisearchEngine(client, AdsSearchIndexName),
+		advertisement.NewMeilisearchEngine(client, AdsSearchIndexName),
 	}
 
 	for _, index := range indexes {

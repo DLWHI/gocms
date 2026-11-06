@@ -30,7 +30,7 @@ type Record struct {
 	Version     uint              `gorm:"default:1"`
 }
 
-type Translation struct {
+type RecordTranslation struct {
 	Title       string `gorm:"not null"`
 	Description string `gorm:"not null"`
 	Keywords    string `gorm:"not null"`
@@ -110,7 +110,7 @@ func (r *GORMRepository) Update(ctx context.Context, id uint, language string, d
 				translationUpdate["post_id"] = id
 				translationUpdate["lang"] = language
 				translationUpdate["version"] = 1
-				result := tx.Model(&Translation{}).
+				result := tx.Model(&RecordTranslation{}).
 					Create(translationUpdate)
 				if result.Error != nil {
 					if errors.Is(err, gorm.ErrDuplicatedKey) {
@@ -119,7 +119,7 @@ func (r *GORMRepository) Update(ctx context.Context, id uint, language string, d
 					return result.Error
 				}
 			} else if len(translationUpdate) > 0 {
-				result := tx.Model(&Translation{}).
+				result := tx.Model(&RecordTranslation{}).
 					Where("post_id = ? AND lang = ? AND version = ?", id, language, version.Translation).
 					Updates(translationUpdate)
 				if result.Error != nil {
@@ -200,9 +200,9 @@ func (r *GORMRepository) IncrementViews(ctx context.Context, id uint, value uint
 }
 
 func (r *GORMRepository) Get(ctx context.Context, id uint, language string) (*domain.Post, error) {
-	var post Translation
+	var post RecordTranslation
 
-	result := r.db.WithContext(ctx).Model(&Translation{}).
+	result := r.db.WithContext(ctx).Model(&RecordTranslation{}).
 		Preload("Post").
 		Where("post_id = ? AND lang = ?", id, language).
 		Take(&post)
@@ -214,9 +214,9 @@ func (r *GORMRepository) Get(ctx context.Context, id uint, language string) (*do
 }
 
 func (r *GORMRepository) GetTranslations(ctx context.Context, id uint) ([]domain.Post, error) {
-	var posts []Translation
+	var posts []RecordTranslation
 
-	result := r.db.WithContext(ctx).Model(&Translation{}).
+	result := r.db.WithContext(ctx).Model(&RecordTranslation{}).
 		Preload("Categories").
 		Preload("Post").
 		Where("post_id = ?", id).
@@ -336,11 +336,11 @@ func (*Record) TableName() string {
 	return "posts"
 }
 
-func (*Translation) TableName() string {
+func (*RecordTranslation) TableName() string {
 	return "post_translations"
 }
 
-func (r *Translation) ToDomain() *domain.Post {
+func (r *RecordTranslation) ToDomain() *domain.Post {
 	var res domain.Post
 
 	if r.Post.PublishedAt != nil {
@@ -374,8 +374,8 @@ func (r *Translation) ToDomain() *domain.Post {
 	return &res
 }
 
-func ToRecord(data *domain.Post) *Translation {
-	var res Translation
+func ToRecord(data *domain.Post) *RecordTranslation {
+	var res RecordTranslation
 	if data.PublishedAt != nil {
 		ts := time.Unix(*data.PublishedAt, 0).UTC()
 		res.Post.PublishedAt = &ts

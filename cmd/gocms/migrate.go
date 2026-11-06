@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	"gocms/internal/ads"
+	"gocms/internal/advertisement"
 	"gocms/internal/category"
 	"gocms/internal/editor"
 	"gocms/internal/lang"
@@ -49,12 +49,12 @@ func HardReset(ctx context.Context, app *Container) error {
 func SoftMigrate(db *gorm.DB) error {
 
 	err := db.AutoMigrate(
-		&ads.Record{},
+		&advertisement.Record{},
 		&user.Record{},
 		&editor.Record{},
 		&editor.RecordTranslation{},
 		&post.Record{},
-		&post.Translation{},
+		&post.RecordTranslation{},
 		&category.Record{},
 		&category.RecordTranslation{},
 		&lang.Language{},
@@ -98,12 +98,12 @@ func DropAll(db *gorm.DB) error {
 		return err
 	}
 	if err := db.Migrator().DropTable(
-		&ads.Record{},
+		&advertisement.Record{},
 		&user.Record{},
 		&editor.Record{},
 		&editor.RecordTranslation{},
 		&post.Record{},
-		&post.Translation{},
+		&post.RecordTranslation{},
 		&category.Record{},
 		&category.RecordTranslation{},
 		&lang.Language{},
@@ -120,7 +120,7 @@ func ReCreateIndexes(ctx context.Context, client meilisearch.ServiceManager) err
 		category.NewMeilisearchEngine(client, CategoriesSearchIndexName),
 		editor.NewMeilisearchEngine(client, EditorsSearchIndexName),
 		post.NewMeilisearchEngine(client, PostsSearchIndexName),
-		ads.NewMeilisearchEngine(client, AdsSearchIndexName),
+		advertisement.NewMeilisearchEngine(client, AdsSearchIndexName),
 	}
 
 	for _, index := range indexes {
@@ -144,7 +144,7 @@ func ConfigureIndexes(ctx context.Context, client meilisearch.ServiceManager) er
 		category.NewMeilisearchEngine(client, CategoriesSearchIndexName),
 		editor.NewMeilisearchEngine(client, EditorsSearchIndexName),
 		post.NewMeilisearchEngine(client, PostsSearchIndexName),
-		ads.NewMeilisearchEngine(client, AdsSearchIndexName),
+		advertisement.NewMeilisearchEngine(client, AdsSearchIndexName),
 	}
 
 	for _, index := range indexes {

@@ -1,7 +1,7 @@
 package main
 
 import (
-	"gocms/internal/ads"
+	"gocms/internal/advertisement"
 	"gocms/internal/auth"
 	"gocms/internal/category"
 	"gocms/internal/editor"
@@ -135,7 +135,7 @@ func (r *Router) AddCategoryRoutes(handler *category.Handler) {
 	r.mux.Handle("DELETE /cms/categories/{slug}", m(handler.Delete))
 }
 
-func (r *Router) AddAdsRoutes(handler *ads.Handler) {
+func (r *Router) AddAdsRoutes(handler *advertisement.Handler) {
 	limiter := server.NewRequestLimiter(RequestLimit)
 	m := server.ChainMiddleware(
 		limiter.Wrap,

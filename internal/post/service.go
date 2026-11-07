@@ -101,6 +101,14 @@ func (s *Service) Create(ctx context.Context, post *domain.Post) error {
 	}
 	post.MediaSource = source
 
+	for i := range post.Categories {
+		slug, err := domain.NormalizeSlug(post.Categories[i])
+		if err != nil {
+			return err
+		}
+		post.Categories[i] = slug
+	}
+
 	if post.MediaType != "" && !storage.IsMediaType(post.MediaType) {
 		return fmt.Errorf("%w: MediaType is unknown value", err)
 	}
@@ -173,6 +181,14 @@ func (s *Service) Edit(ctx context.Context, id uint, diff *domain.PostDiff) erro
 
 	if diff.MediaType != nil && !storage.IsItemType(*diff.MediaType) {
 		return fmt.Errorf("%w: MediaType is unknown value", err)
+	}
+
+	for i := range diff.Categories {
+		slug, err := domain.NormalizeSlug(diff.Categories[i])
+		if err != nil {
+			return err
+		}
+		diff.Categories[i] = slug
 	}
 
 	if err := s.repo.Update(ctx, id, language, diff); err != nil {

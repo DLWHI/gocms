@@ -4,16 +4,15 @@ import (
 	"context"
 	"gocms/internal/domain"
 	"gocms/internal/search"
-	"time"
 )
 
 type SearchParams struct {
 	search.Params
-	Expired       *bool      `json:"expired,omitempty"`
-	ExpiresAfter  *time.Time `json:"expires_after,omitempty"`
-	ExpiresBefore *time.Time `json:"expires_before,omitempty"`
-	Groups        []string   `json:"groups,omitempty"`
-	Select        []string   `json:"select,omitempty"`
+	Expired       *bool    `json:"expired,omitempty"`
+	ExpiresAfter  *int64   `json:"expires_after,omitempty"`
+	ExpiresBefore *int64   `json:"expires_before,omitempty"`
+	Groups        []string `json:"groups,omitempty"`
+	Select        []string `json:"select,omitempty"`
 }
 
 type SearchResult = search.Result[domain.Advertisement]

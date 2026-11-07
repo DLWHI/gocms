@@ -47,10 +47,10 @@ func (*MeilisearchEngine) buildFilter(params *SearchParams) string {
 	}
 
 	if params.ExpiresAfter != nil {
-		clauses = append(clauses, fmt.Sprintf("expires_at >= %d", params.ExpiresAfter.Unix()))
+		clauses = append(clauses, fmt.Sprintf("expires_at >= %d", *params.ExpiresAfter))
 	}
 	if params.ExpiresBefore != nil {
-		clauses = append(clauses, fmt.Sprintf("expires_at <= %d", params.ExpiresBefore.Unix()))
+		clauses = append(clauses, fmt.Sprintf("expires_at <= %d", *params.ExpiresBefore))
 	}
 
 	if len(params.Groups) > 0 {

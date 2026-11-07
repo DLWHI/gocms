@@ -63,7 +63,7 @@ func (s *Service) Create(ctx context.Context, post *domain.Post) error {
 	if err != nil {
 		return err
 	}
-	post.Language = language
+	post.Lang = language
 
 	slug, err := domain.NormalizeSlug(post.Slug)
 	if err != nil {

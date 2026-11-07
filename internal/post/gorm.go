@@ -38,7 +38,7 @@ type RecordTranslation struct {
 	Media       string ``
 	MediaSource string ``
 	MediaType   string ``
-	Language    string `gorm:"size:2;primaryKey"`
+	Lang        string `gorm:"size:2;primaryKey"`
 	PostID      uint   `gorm:"primaryKey"`
 	Post        Record `gorm:"foreignKey:PostID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 	Version     uint   `gorm:"default:1"`
@@ -86,7 +86,7 @@ func (r *GORMRepository) Update(ctx context.Context, id uint, language string, d
 			err := tx.Table("posts AS p").
 				Select("p.version as post, pt.version as translation").
 				Joins("INNER JOIN post_translations AS pt ON pt.post_id = p.id").
-				Where("p.id = ? AND pt.language = ?", id, language).
+				Where("p.id = ? AND pt.lang = ?", id, language).
 				Take(&version).Error
 			if err != nil {
 				return err
@@ -362,7 +362,7 @@ func (r *RecordTranslation) ToDomain() *domain.Post {
 	res.Description = r.Description
 	res.Slug = r.Post.Slug
 	res.Keywords = r.Keywords
-	res.Language = r.Language
+	res.Lang = r.Lang
 	res.CreatedAt = r.Post.CreatedAt.Unix()
 	res.Views = r.Post.Views
 	res.Preview = r.Post.Preview
@@ -400,7 +400,7 @@ func ToRecord(data *domain.Post) *RecordTranslation {
 	res.Title = data.Title
 	res.Description = data.Description
 	res.Keywords = data.Keywords
-	res.Language = data.Language
+	res.Lang = data.Lang
 	res.Post.ID = data.PostID
 	res.Post.Slug = data.Slug
 	res.Post.Views = data.Views

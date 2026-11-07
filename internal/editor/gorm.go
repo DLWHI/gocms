@@ -58,7 +58,7 @@ func (r *GORMRepository) Create(ctx context.Context, editor *domain.Editor) erro
 	return database.MapError(err)
 }
 
-func (r *GORMRepository) Update(ctx context.Context, slug string, lang string, diff *domain.EditorDiff) error {
+func (r *GORMRepository) Update(ctx context.Context, slug string, language string, diff *domain.EditorDiff) error {
 	return database.MapError(flow.DoWithRetry(ctx, r.retries, r.backoff, func() error {
 		return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 			recordUpdate, translationUpdate := r.patch(diff)
@@ -71,7 +71,7 @@ func (r *GORMRepository) Update(ctx context.Context, slug string, lang string, d
 			}
 			err := tx.Table("editors AS e").
 				Select("e.version AS record, COALESCE(et.version, 0) AS translation").
-				Joins("LEFT JOIN editor_translations et ON et.editor_slug = e.slug AND et.lang = ?", lang).
+				Joins("LEFT JOIN editor_translations et ON et.editor_slug = e.slug AND et.lang = ?", language).
 				Where("e.slug = ? AND e.deleted_at IS NULL", slug).
 				Take(&version).Error
 			if err != nil {
@@ -102,7 +102,7 @@ func (r *GORMRepository) Update(ctx context.Context, slug string, lang string, d
 
 			if version.Translation == 0 {
 				translationUpdate["editor_slug"] = slug
-				translationUpdate["lang"] = lang
+				translationUpdate["lang"] = language
 				translationUpdate["version"] = 1
 				result := tx.Model(&RecordTranslation{}).
 					Create(translationUpdate)
@@ -114,7 +114,7 @@ func (r *GORMRepository) Update(ctx context.Context, slug string, lang string, d
 				}
 			} else if len(translationUpdate) > 0 {
 				result := tx.Model(&RecordTranslation{}).
-					Where("editor_slug = ? AND lang = ? AND version = ?", slug, lang, version.Translation).
+					Where("editor_slug = ? AND lang = ? AND version = ?", slug, language, version.Translation).
 					Updates(translationUpdate)
 				if result.Error != nil {
 					return result.Error
@@ -131,12 +131,12 @@ func (r *GORMRepository) Update(ctx context.Context, slug string, lang string, d
 	}))
 }
 
-func (r *GORMRepository) GetAny(ctx context.Context, slug string, lang string) (*domain.Editor, error) {
+func (r *GORMRepository) GetAny(ctx context.Context, slug string, language string) (*domain.Editor, error) {
 	var record RecordTranslation
 	result := r.db.WithContext(ctx).Model(&RecordTranslation{}).
 		Unscoped().
 		Preload("Editor").
-		Where("editor_slug = ? AND lang = ?", slug, lang).
+		Where("editor_slug = ? AND lang = ?", slug, language).
 		Take(&record)
 	if result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
@@ -170,13 +170,13 @@ func (r *GORMRepository) GetTranslations(ctx context.Context, slug string) ([]do
 	return vals, nil
 }
 
-func (r *GORMRepository) GetAll(ctx context.Context, lang string) ([]domain.Editor, error) {
+func (r *GORMRepository) GetAll(ctx context.Context, language string) ([]domain.Editor, error) {
 	var editors []RecordTranslation
 
 	result := r.db.WithContext(ctx).
 		Model(&RecordTranslation{}).
 		InnerJoins("Editor").
-		Where("lang = ? AND Editor.deleted_at IS NULL", lang).
+		Where("lang = ? AND Editor.deleted_at IS NULL", language).
 		Find(&editors)
 	if result.Error != nil {
 		return nil, result.Error
@@ -266,7 +266,7 @@ func (rd *RecordTranslation) ToDomain() *domain.Editor {
 	res.Owner = rd.Editor.Owner
 	res.Slug = rd.Editor.Slug
 	res.Name = rd.Name
-	res.Language = rd.Lang
+	res.Lang = rd.Lang
 	bio := rd.Bio
 	res.Bio = &bio
 	return &res
@@ -285,7 +285,7 @@ func ToRecord(data *domain.Editor) *RecordTranslation {
 	res.Editor.Slug = data.Slug
 	res.EditorSlug = data.Slug
 	res.Editor.Owner = data.Owner
-	res.Lang = data.Language
+	res.Lang = data.Lang
 	res.Name = data.Name
 	if data.Bio != nil {
 		res.Bio = *data.Bio

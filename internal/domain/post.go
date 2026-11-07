@@ -17,7 +17,7 @@ type Post struct {
 	Content     string   `json:"content,omitempty"`
 	Slug        string   `json:"slug"`
 	Keywords    string   `json:"keywords,omitempty"`
-	Language    string   `json:"language"`
+	Lang        string   `json:"lang"`
 	CreatedAt   int64    `json:"created_at,omitempty"`
 	PublishedAt *int64   `json:"published_at"`
 	Views       uint     `json:"views"`

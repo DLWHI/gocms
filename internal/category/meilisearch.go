@@ -66,7 +66,7 @@ func (ms *MeilisearchEngine) Index(ctx context.Context, slug string, group ...do
 		if group[i].Slug != slug {
 			return fmt.Errorf("%w: group item not from provided category slug", domain.ErrInval)
 		}
-		group[i].ID = fmt.Sprintf("%s-%s", slug, group[i].Language)
+		group[i].ID = fmt.Sprintf("%s-%s", slug, group[i].Lang)
 	}
 
 	task, err := index.AddDocumentsWithContext(ctx, group, nil)
@@ -79,9 +79,9 @@ func (ms *MeilisearchEngine) Index(ctx context.Context, slug string, group ...do
 	return nil
 }
 
-func (ms *MeilisearchEngine) Get(ctx context.Context, slug string, lang string) (*domain.Category, error) {
+func (ms *MeilisearchEngine) Get(ctx context.Context, slug string, language string) (*domain.Category, error) {
 	var category domain.Category
-	id := fmt.Sprintf("%s-%s", slug, lang)
+	id := fmt.Sprintf("%s-%s", slug, language)
 	err := ms.search.Client.Index(ms.search.Config.Uid).GetDocumentWithContext(ctx, id, nil, &category)
 	if err != nil {
 		var meiliErr *meilisearch.Error

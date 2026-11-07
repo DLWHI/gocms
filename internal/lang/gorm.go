@@ -17,9 +17,9 @@ func NewGORMRepository(db *gorm.DB) *GORMRepository {
 	return &GORMRepository{db: db}
 }
 
-func (r *GORMRepository) Create(ctx context.Context, lang *Language) error {
+func (r *GORMRepository) Create(ctx context.Context, language *Language) error {
 	err := r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		if err := tx.Create(lang).Error; err != nil {
+		if err := tx.Create(language).Error; err != nil {
 			return err
 		}
 

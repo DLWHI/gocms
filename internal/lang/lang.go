@@ -44,7 +44,7 @@ type Language struct {
 }
 
 type Repository interface {
-	Create(ctx context.Context, lang *Language) error
+	Create(ctx context.Context, language *Language) error
 	GetAll(ctx context.Context) ([]Language, error)
 	Delete(ctx context.Context, code string) error
 }
@@ -52,7 +52,7 @@ type Repository interface {
 type Service interface {
 	GetSupported() []Language
 	IsSupported(code string) bool
-	Add(ctx context.Context, lang *Language) error
+	Add(ctx context.Context, language *Language) error
 	Remove(ctx context.Context, code string) error
 }
 

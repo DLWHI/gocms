@@ -91,7 +91,7 @@ func (h *Handler) create(w http.ResponseWriter, r *http.Request) {
 
 	res := map[string]any{
 		"slug":     editor.Slug,
-		"location": fmt.Sprintf("/cms/editors/%s/%s", editor.Language, editor.Slug),
+		"location": fmt.Sprintf("/cms/editors/%s/%s", editor.Lang, editor.Slug),
 	}
 
 	w.Header().Set("Content-Type", "application/json")

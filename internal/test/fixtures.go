@@ -75,7 +75,7 @@ func (f *Fixtures) ApplyFixtures(ctx context.Context, e *Environment) error {
 		}
 	}
 
-	if err := e.Lang.Reload(ctx, nil); err != nil {
+	if err := e.Langs.Reload(ctx, nil); err != nil {
 		return err
 	}
 
@@ -85,7 +85,7 @@ func (f *Fixtures) ApplyFixtures(ctx context.Context, e *Environment) error {
 			return err
 		}
 
-		ctg.ID = fmt.Sprintf("%s-%s", ctg.Slug, ctg.Language)
+		ctg.ID = fmt.Sprintf("%s-%s", ctg.Slug, ctg.Lang)
 		task, err := ms.CategoriesIndex.AddDocumentsWithContext(ctx, &ctg, nil)
 		if err != nil {
 			return err
@@ -101,7 +101,7 @@ func (f *Fixtures) ApplyFixtures(ctx context.Context, e *Environment) error {
 			return err
 		}
 
-		ed.ID = fmt.Sprintf("%s-%s", ed.Slug, ed.Language)
+		ed.ID = fmt.Sprintf("%s-%s", ed.Slug, ed.Lang)
 		task, err := ms.EditorsIndex.AddDocumentsWithContext(ctx, &ed, nil)
 		if err != nil {
 			return err
@@ -117,7 +117,7 @@ func (f *Fixtures) ApplyFixtures(ctx context.Context, e *Environment) error {
 			return err
 		}
 
-		pt.ID = fmt.Sprintf("%d-%s", pt.PostID, pt.Language)
+		pt.ID = fmt.Sprintf("%d-%s", pt.PostID, pt.Lang)
 		task, err := ms.PostsIndex.AddDocumentsWithContext(ctx, &pt, nil)
 		if err != nil {
 			return err

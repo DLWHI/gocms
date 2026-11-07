@@ -27,11 +27,11 @@ func NewLocalService(ctx context.Context, repo Repository, auth auth.Service) (*
 }
 
 func (s *LocalService) GetSupported() []Language {
-	langs := *s.snap.Load()
-	res := make([]Language, 0, len(langs))
+	languages := *s.snap.Load()
+	res := make([]Language, 0, len(languages))
 
-	for _, lang := range langs {
-		res = append(res, lang)
+	for _, language := range languages {
+		res = append(res, language)
 	}
 	return res
 }
@@ -42,19 +42,19 @@ func (s *LocalService) IsSupported(code string) bool {
 	return exists
 }
 
-func (s *LocalService) Add(ctx context.Context, lang *Language) error {
+func (s *LocalService) Add(ctx context.Context, language *Language) error {
 	if !s.auth.Authorize(ctx, EntityName, domain.ActionCreate) {
 		return domain.ErrCred
 	}
 
-	created := *lang
-	name, err := domain.NormalizeName(lang.Name)
+	created := *language
+	name, err := domain.NormalizeName(language.Name)
 	if err != nil {
 		return err
 	}
 	created.Name = name
 
-	code, err := NormalizeLangCode(lang.Code)
+	code, err := NormalizeLangCode(language.Code)
 	if err != nil {
 		return err
 	}
@@ -93,14 +93,14 @@ func (s *LocalService) Remove(ctx context.Context, code string) error {
 func (s *LocalService) Reload(ctx context.Context, _ []byte) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	langs, err := s.repo.GetAll(ctx)
+	languages, err := s.repo.GetAll(ctx)
 	if err != nil {
 		return err
 	}
 
 	langmap := make(map[string]Language, 0)
-	for _, lang := range langs {
-		langmap[lang.Code] = lang
+	for _, language := range languages {
+		langmap[language.Code] = language
 	}
 
 	s.snap.Store(&langmap)

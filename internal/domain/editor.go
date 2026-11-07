@@ -9,7 +9,7 @@ type Editor struct {
 	Slug      string  `json:"slug"`
 	Bio       *string `json:"bio,omitempty"`
 	Name      string  `json:"name"`
-	Language  string  `json:"lang"`
+	Lang      string  `json:"lang"`
 	DeletedAt *int64  `json:"deleted_at,omitempty"`
 	Owner     string  `json:"owner"`
 }

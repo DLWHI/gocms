@@ -18,7 +18,7 @@ type SearchResult = search.Result[domain.Editor]
 
 type SearchEngine interface {
 	Index(ctx context.Context, slug string, group ...domain.Editor) error
-	Get(ctx context.Context, username string, lang string) (*domain.Editor, error)
-	Search(ctx context.Context, lang string, filters *SearchParams) (*SearchResult, error)
+	Get(ctx context.Context, username string, language string) (*domain.Editor, error)
+	Search(ctx context.Context, language string, filters *SearchParams) (*SearchResult, error)
 	Delete(ctx context.Context, username string) error
 }

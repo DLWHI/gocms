@@ -32,8 +32,8 @@ func NewRedisRepository(origin Repository, client *redis.Client, ttl time.Durati
 	}
 }
 
-func (r *RedisRepository) Update(ctx context.Context, id uint, lang string, diff *domain.PostDiff) error {
-	if err := r.Repository.Update(ctx, id, lang, diff); err != nil {
+func (r *RedisRepository) Update(ctx context.Context, id uint, language string, diff *domain.PostDiff) error {
+	if err := r.Repository.Update(ctx, id, language, diff); err != nil {
 		return err
 	}
 	pattern := r.keys.KeyWithSuffix(strconv.FormatUint(uint64(id), 10), "translation:*")

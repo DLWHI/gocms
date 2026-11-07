@@ -91,7 +91,7 @@ func (h *Handler) create(w http.ResponseWriter, r *http.Request) {
 
 	res := map[string]any{
 		"slug":     category.Slug,
-		"location": fmt.Sprintf("/cms/categories/%s/%s", category.Language, category.Slug),
+		"location": fmt.Sprintf("/cms/categories/%s/%s", category.Lang, category.Slug),
 	}
 
 	w.Header().Set("Content-Type", "application/json")

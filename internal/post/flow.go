@@ -24,8 +24,8 @@ func NewFlowRepository(db Repository, timeout time.Duration, config cache.Keyspa
 	}
 }
 
-func (r *FlowRepository) Update(ctx context.Context, id uint, lang string, diff *domain.PostDiff) error {
-	if err := r.Repository.Update(ctx, id, lang, diff); err != nil {
+func (r *FlowRepository) Update(ctx context.Context, id uint, language string, diff *domain.PostDiff) error {
+	if err := r.Repository.Update(ctx, id, language, diff); err != nil {
 		return err
 	}
 	r.group.ForgetPattern(r.keys.KeyWithSuffix(strconv.FormatUint(uint64(id), 10), "translation:*"))

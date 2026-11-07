@@ -105,7 +105,7 @@ func (r *MeilisearchEngine) Index(ctx context.Context, id uint, group ...domain.
 		if group[i].PostID != id {
 			return fmt.Errorf("%w: group item not from provided post id", domain.ErrInval)
 		}
-		group[i].ID = fmt.Sprintf("%d-%s", group[i].PostID, group[i].Language)
+		group[i].ID = fmt.Sprintf("%d-%s", group[i].PostID, group[i].Lang)
 	}
 
 	task, err := index.AddDocumentsWithContext(ctx, group, nil)

@@ -57,7 +57,7 @@ func (r *GORMRepository) Create(ctx context.Context, category *domain.Category) 
 	return database.MapError(err)
 }
 
-func (r *GORMRepository) Update(ctx context.Context, slug string, lang string, diff *domain.CategoryDiff) error {
+func (r *GORMRepository) Update(ctx context.Context, slug string, language string, diff *domain.CategoryDiff) error {
 	return database.MapError(flow.DoWithRetry(ctx, r.retries, r.backoff, func() error {
 		return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 			recordUpdate, translationUpdate := r.patch(diff)
@@ -67,7 +67,7 @@ func (r *GORMRepository) Update(ctx context.Context, slug string, lang string, d
 			}
 			err := tx.Table("categories AS c").
 				Select("c.version AS record, COALESCE(ct.version, 0) AS translation").
-				Joins("LEFT JOIN category_translations ct ON ct.category_slug = c.slug AND ct.lang = ?", lang).
+				Joins("LEFT JOIN category_translations ct ON ct.category_slug = c.slug AND ct.lang = ?", language).
 				Where("c.slug = ?", slug).
 				Take(&version).Error
 			if err != nil {
@@ -95,7 +95,7 @@ func (r *GORMRepository) Update(ctx context.Context, slug string, lang string, d
 
 			if version.Translation == 0 {
 				translationUpdate["category_slug"] = slug
-				translationUpdate["lang"] = lang
+				translationUpdate["lang"] = language
 				translationUpdate["version"] = 1
 				result := tx.Model(&RecordTranslation{}).
 					Create(translationUpdate)
@@ -107,7 +107,7 @@ func (r *GORMRepository) Update(ctx context.Context, slug string, lang string, d
 				}
 			} else if len(translationUpdate) > 0 {
 				result := tx.Model(&RecordTranslation{}).
-					Where("category_slug = ? AND lang = ? AND version = ?", slug, lang, version.Translation).
+					Where("category_slug = ? AND lang = ? AND version = ?", slug, language, version.Translation).
 					Updates(translationUpdate)
 				if result.Error != nil {
 					return result.Error
@@ -125,11 +125,11 @@ func (r *GORMRepository) Update(ctx context.Context, slug string, lang string, d
 	}))
 }
 
-func (r *GORMRepository) Get(ctx context.Context, slug string, lang string) (*domain.Category, error) {
+func (r *GORMRepository) Get(ctx context.Context, slug string, language string) (*domain.Category, error) {
 	var record RecordTranslation
 	result := r.db.WithContext(ctx).Model(&RecordTranslation{}).
 		Preload("Category").
-		Where("category_slug = ? AND lang = ?", slug, lang).
+		Where("category_slug = ? AND lang = ?", slug, language).
 		Take(&record)
 	if result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
@@ -165,12 +165,12 @@ func (r *GORMRepository) GetTranslations(ctx context.Context, slug string) ([]do
 	return vals, nil
 }
 
-func (r *GORMRepository) GetAll(ctx context.Context, lang string) ([]domain.Category, error) {
+func (r *GORMRepository) GetAll(ctx context.Context, language string) ([]domain.Category, error) {
 	var categories []RecordTranslation
 
 	result := r.db.WithContext(ctx).Model(&RecordTranslation{}).
 		Preload("Category").
-		Where("lang = ?", lang).
+		Where("lang = ?", language).
 		Find(&categories)
 
 	if result.Error != nil {
@@ -260,7 +260,7 @@ func (rd *RecordTranslation) ToDomain() *domain.Category {
 	res.Hidden = rd.Category.Hidden
 	res.Navbar = rd.Category.Navbar
 	res.Name = rd.Name
-	res.Language = rd.Lang
+	res.Lang = rd.Lang
 	return &res
 }
 
@@ -269,7 +269,7 @@ func ToRecord(data *domain.Category) *RecordTranslation {
 
 	res.CategorySlug = data.Slug
 	res.Name = data.Name
-	res.Lang = data.Language
+	res.Lang = data.Lang
 	res.Category = Record{
 		Slug:   data.Slug,
 		Hidden: data.Hidden,

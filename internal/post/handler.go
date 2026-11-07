@@ -58,7 +58,7 @@ func (h *Handler) create(w http.ResponseWriter, r *http.Request) {
 
 	res := map[string]any{
 		"id":       post.PostID,
-		"location": fmt.Sprintf("/cms/posts/%s/%d", post.Language, post.PostID),
+		"location": fmt.Sprintf("/cms/posts/%s/%d", post.Lang, post.PostID),
 	}
 
 	w.Header().Set("Content-Type", "application/json")

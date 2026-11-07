@@ -35,15 +35,15 @@ func (r *RedisRepository) Create(ctx context.Context, editor *domain.Editor) err
 	if err := r.Repository.Create(ctx, editor); err != nil {
 		return err
 	}
-	key := r.keys.List(allListBase + "-" + editor.Language)
+	key := r.keys.List(allListBase + "-" + editor.Lang)
 	if err := r.cache.Invalidate(ctx, key); err != nil {
 		logger.Warn("User.Redis", "Redis error while trying to delete key", err, "key", key)
 	}
 	return nil
 }
 
-func (r *RedisRepository) Update(ctx context.Context, slug string, lang string, editor *domain.EditorDiff) error {
-	if err := r.Repository.Update(ctx, slug, lang, editor); err != nil {
+func (r *RedisRepository) Update(ctx context.Context, slug string, language string, editor *domain.EditorDiff) error {
+	if err := r.Repository.Update(ctx, slug, language, editor); err != nil {
 		return err
 	}
 	r.invalidateGroups(ctx, r.keys.Key(slug+"-"+"*"))
@@ -51,10 +51,10 @@ func (r *RedisRepository) Update(ctx context.Context, slug string, lang string, 
 	return nil
 }
 
-func (r *RedisRepository) GetAny(ctx context.Context, slug string, lang string) (*domain.Editor, error) {
+func (r *RedisRepository) GetAny(ctx context.Context, slug string, language string) (*domain.Editor, error) {
 	var editor domain.Editor
 	var token string
-	key := r.keys.Key(slug + "-" + lang)
+	key := r.keys.Key(slug + "-" + language)
 	err := r.cache.Get(ctx, key, &editor)
 	switch {
 	case err == nil:
@@ -68,7 +68,7 @@ func (r *RedisRepository) GetAny(ctx context.Context, slug string, lang string) 
 		logger.Warn("User.Redis", "Redis error while trying to retrieve key", err, "key", key)
 	}
 
-	e, err := r.Repository.GetAny(ctx, slug, lang)
+	e, err := r.Repository.GetAny(ctx, slug, language)
 	if err != nil {
 		return nil, err
 	}
@@ -85,10 +85,10 @@ func (r *RedisRepository) GetAny(ctx context.Context, slug string, lang string) 
 	return &editor, nil
 }
 
-func (r *RedisRepository) GetAll(ctx context.Context, lang string) ([]domain.Editor, error) {
+func (r *RedisRepository) GetAll(ctx context.Context, language string) ([]domain.Editor, error) {
 	var editors []domain.Editor
 	var token string
-	key := r.keys.List(allListBase + "-" + lang)
+	key := r.keys.List(allListBase + "-" + language)
 	err := r.cache.Get(ctx, key, &editors)
 	switch {
 	case err == nil:
@@ -102,7 +102,7 @@ func (r *RedisRepository) GetAll(ctx context.Context, lang string) ([]domain.Edi
 		logger.Warn("User.Redis", "Redis error while trying to retrieve key", err, "key", key)
 	}
 
-	e, err := r.Repository.GetAll(ctx, lang)
+	e, err := r.Repository.GetAll(ctx, language)
 	if err != nil {
 		return nil, err
 	}

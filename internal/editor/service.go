@@ -35,11 +35,11 @@ func (s *Service) Create(ctx context.Context, editor *domain.Editor) error {
 	}
 	editor.Slug = slug
 
-	lang, err := lang.ResolveLang(ctx)
+	language, err := lang.ResolveLang(ctx)
 	if err != nil {
 		return err
 	}
-	editor.Language = lang
+	editor.Lang = language
 
 	name, err := domain.NormalizeName(editor.Name)
 	if err != nil {
@@ -67,7 +67,7 @@ func (s *Service) Edit(ctx context.Context, slug string, diff *domain.EditorDiff
 		return "", err
 	}
 
-	lang, err := lang.ResolveLang(ctx)
+	language, err := lang.ResolveLang(ctx)
 	if err != nil {
 		return "", err
 	}
@@ -88,7 +88,7 @@ func (s *Service) Edit(ctx context.Context, slug string, diff *domain.EditorDiff
 		diff.Name = &normalized
 	}
 
-	if err := s.repo.Update(ctx, slug, lang, diff); err != nil {
+	if err := s.repo.Update(ctx, slug, language, diff); err != nil {
 		if !errors.Is(err, domain.ErrNotFound) && !errors.Is(err, domain.ErrInval) && !errors.Is(err, domain.ErrDuplicate) {
 			logger.Error("Editor.Service", "Failed to update editor profile", err)
 		}
@@ -103,7 +103,7 @@ func (s *Service) Edit(ctx context.Context, slug string, diff *domain.EditorDiff
 }
 
 func (s *Service) Get(ctx context.Context, slug string) (*domain.Editor, error) {
-	lang, err := lang.ResolveLang(ctx)
+	language, err := lang.ResolveLang(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -113,7 +113,7 @@ func (s *Service) Get(ctx context.Context, slug string) (*domain.Editor, error) 
 		return nil, err
 	}
 
-	editor, err := s.repo.GetAny(ctx, slug, lang)
+	editor, err := s.repo.GetAny(ctx, slug, language)
 	if err != nil {
 		if !errors.Is(err, domain.ErrNotFound) {
 			logger.Error("Editor.Service", "Failed to retrieve editor profile", err)
@@ -125,12 +125,12 @@ func (s *Service) Get(ctx context.Context, slug string) (*domain.Editor, error) 
 }
 
 func (s *Service) All(ctx context.Context) ([]domain.Editor, error) {
-	lang, err := lang.ResolveLang(ctx)
+	language, err := lang.ResolveLang(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	editors, err := s.repo.GetAll(ctx, lang)
+	editors, err := s.repo.GetAll(ctx, language)
 	if err != nil {
 		logger.Error("Editor.Service", "Failed to list editor profiles", err)
 		return nil, err
@@ -142,7 +142,7 @@ func (s *Service) All(ctx context.Context) ([]domain.Editor, error) {
 func (s *Service) Search(ctx context.Context, filters *SearchParams) (*SearchResult, error) {
 	search.ClampParams(&filters.Params)
 
-	lang, err := lang.ResolveLang(ctx)
+	language, err := lang.ResolveLang(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -154,7 +154,7 @@ func (s *Service) Search(ctx context.Context, filters *SearchParams) (*SearchRes
 		"deleted_at",
 	}
 
-	editors, err := s.se.Search(ctx, lang, filters)
+	editors, err := s.se.Search(ctx, language, filters)
 	if err != nil {
 		if !errors.Is(err, domain.ErrInval) {
 			logger.Error("Editor.Service", "Failed to search editor profiles", err)

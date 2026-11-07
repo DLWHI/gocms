@@ -34,7 +34,7 @@ type Environment struct {
 	DB       *gorm.DB
 	Search   *Meilisearch
 	Redis    *redis.Client
-	Lang     *lang.LocalService
+	Langs    *lang.LocalService
 	Password password.Service
 	Outbox   outbox.MessageRepository
 	Router   http.Handler

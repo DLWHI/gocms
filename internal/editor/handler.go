@@ -18,18 +18,18 @@ import (
 
 // ------------------------------------------------------------------
 type Handler struct {
-	Search        http.Handler
-	All           http.Handler
-	Create        http.Handler
-	Get           http.Handler
-	Update        http.Handler
-	Delete        http.Handler
-	editorService *Service
+	Search  http.Handler
+	All     http.Handler
+	Create  http.Handler
+	Get     http.Handler
+	Update  http.Handler
+	Delete  http.Handler
+	service *Service
 }
 
-func NewHandler(s *Service) *Handler {
+func NewHandler(service *Service) *Handler {
 	var hndl Handler
-	hndl.editorService = s
+	hndl.service = service
 	hndl.Search = http.HandlerFunc(hndl.search)
 	hndl.All = http.HandlerFunc(hndl.all)
 	hndl.Create = http.HandlerFunc(hndl.create)
@@ -48,7 +48,7 @@ func (h *Handler) search(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	editors, err := h.editorService.Search(r.Context(), &filters)
+	editors, err := h.service.Search(r.Context(), &filters)
 	if err != nil {
 		server.WriteServerError(w, "Editor", err)
 		return
@@ -60,7 +60,7 @@ func (h *Handler) search(w http.ResponseWriter, r *http.Request) {
 
 // GET /editors/{lang} - Get all editors
 func (h *Handler) all(w http.ResponseWriter, r *http.Request) {
-	editors, err := h.editorService.All(r.Context())
+	editors, err := h.service.All(r.Context())
 	if err != nil {
 		server.WriteServerError(w, "Editor", err)
 		return
@@ -84,7 +84,7 @@ func (h *Handler) create(w http.ResponseWriter, r *http.Request) {
 
 	editor := &domain.Editor{}
 	payload.Apply(editor)
-	if err := h.editorService.Create(r.Context(), editor); err != nil {
+	if err := h.service.Create(r.Context(), editor); err != nil {
 		server.WriteServerError(w, "Editor", err)
 		return
 	}
@@ -107,7 +107,7 @@ func (h *Handler) get(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	editor, err := h.editorService.Get(r.Context(), slug)
+	editor, err := h.service.Get(r.Context(), slug)
 	if err != nil {
 		server.WriteServerError(w, "Editor", err)
 		return
@@ -131,7 +131,7 @@ func (h *Handler) update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if _, err := h.editorService.Edit(r.Context(), editor, &diff); err != nil {
+	if _, err := h.service.Edit(r.Context(), editor, &diff); err != nil {
 		server.WriteServerError(w, "Editor", err)
 		return
 	}
@@ -147,7 +147,7 @@ func (h *Handler) delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.editorService.Delete(r.Context(), editor); err != nil {
+	if err := h.service.Delete(r.Context(), editor); err != nil {
 		server.WriteServerError(w, "Editor", err)
 		return
 	}

@@ -87,7 +87,7 @@ func (h *Handler) create(w http.ResponseWriter, r *http.Request) {
 // GET /ads/{id} - Get ad
 func (h *Handler) get(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.ParseUint(r.PathValue("id"), 10, 0)
-	if err != nil {
+	if err != nil || id == 0 {
 		server.WritePathError(w, "Invalid ID")
 		return
 	}
@@ -105,7 +105,7 @@ func (h *Handler) get(w http.ResponseWriter, r *http.Request) {
 // PATCH /ads/{id} - Update ad
 func (h *Handler) update(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.ParseUint(r.PathValue("id"), 10, 0)
-	if err != nil {
+	if err != nil || id == 0 {
 		server.WritePathError(w, "Invalid ID")
 		return
 	}
@@ -126,7 +126,7 @@ func (h *Handler) update(w http.ResponseWriter, r *http.Request) {
 // DELETE /ads/{id} - Delete ad
 func (h *Handler) delete(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.ParseUint(r.PathValue("id"), 10, 0)
-	if err != nil {
+	if err != nil || id == 0 {
 		http.Error(w, "Invalid ID", http.StatusBadRequest)
 		return
 	}

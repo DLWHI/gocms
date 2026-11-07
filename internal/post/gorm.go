@@ -364,6 +364,7 @@ func (r *RecordTranslation) ToDomain() *domain.Post {
 	res.CreatedAt = r.Post.CreatedAt.Unix()
 	res.Views = r.Post.Views
 	res.Preview = r.Post.Preview
+	res.CreatedBy = r.Post.CreatedBy
 	res.Media = r.Media
 	res.MediaType = r.MediaType
 	res.MediaSource = r.MediaSource
@@ -379,6 +380,11 @@ func ToRecord(data *domain.Post) *RecordTranslation {
 	if data.PublishedAt != nil {
 		ts := time.Unix(*data.PublishedAt, 0).UTC()
 		res.Post.PublishedAt = &ts
+	}
+
+	if data.Author != "" {
+		author := data.Author
+		res.Post.Author = &author
 	}
 
 	// To make json.Marshall convert no categories to empty array
@@ -400,8 +406,7 @@ func ToRecord(data *domain.Post) *RecordTranslation {
 	res.Media = data.Media
 	res.MediaType = data.MediaType
 	res.MediaSource = data.MediaSource
+	res.Post.CreatedBy = data.CreatedBy
 
-	author := data.Author
-	res.Post.Author = &author
 	return &res
 }

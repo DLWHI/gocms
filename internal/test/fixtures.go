@@ -54,13 +54,13 @@ func (f *Fixtures) ApplyFixtures(ctx context.Context, e *Environment) error {
 		return err
 	}
 
-	for _, u := range f.Users {
-		record := user.ToRecord(&u)
+	for _, usr := range f.Users {
+		record := user.ToRecord(&usr)
 		record.Password = hash
 		if err := db.WithContext(ctx).Save(record).Error; err != nil {
 			return err
 		}
-		task, err := ms.UsersIndex.AddDocumentsWithContext(ctx, &u, nil)
+		task, err := ms.UsersIndex.AddDocumentsWithContext(ctx, &usr, nil)
 		if err != nil {
 			return err
 		}
@@ -69,8 +69,8 @@ func (f *Fixtures) ApplyFixtures(ctx context.Context, e *Environment) error {
 		}
 	}
 
-	for _, l := range f.Languages {
-		if err := e.DB.WithContext(ctx).Save(&l).Error; err != nil {
+	for _, language := range f.Languages {
+		if err := e.DB.WithContext(ctx).Save(&language).Error; err != nil {
 			return err
 		}
 	}
@@ -79,14 +79,14 @@ func (f *Fixtures) ApplyFixtures(ctx context.Context, e *Environment) error {
 		return err
 	}
 
-	for _, c := range f.Categories {
-		record := category.ToRecord(&c)
+	for _, ctg := range f.Categories {
+		record := category.ToRecord(&ctg)
 		if err := db.WithContext(ctx).Save(record).Error; err != nil {
 			return err
 		}
 
-		c.ID = fmt.Sprintf("%s-%s", c.Slug, c.Language)
-		task, err := ms.CategoriesIndex.AddDocumentsWithContext(ctx, &c, nil)
+		ctg.ID = fmt.Sprintf("%s-%s", ctg.Slug, ctg.Language)
+		task, err := ms.CategoriesIndex.AddDocumentsWithContext(ctx, &ctg, nil)
 		if err != nil {
 			return err
 		}
@@ -95,14 +95,14 @@ func (f *Fixtures) ApplyFixtures(ctx context.Context, e *Environment) error {
 		}
 	}
 
-	for _, e := range f.Editors {
-		record := editor.ToRecord(&e)
+	for _, ed := range f.Editors {
+		record := editor.ToRecord(&ed)
 		if err := db.WithContext(ctx).Save(record).Error; err != nil {
 			return err
 		}
 
-		e.ID = fmt.Sprintf("%s-%s", e.Slug, e.Language)
-		task, err := ms.EditorsIndex.AddDocumentsWithContext(ctx, &e, nil)
+		ed.ID = fmt.Sprintf("%s-%s", ed.Slug, ed.Language)
+		task, err := ms.EditorsIndex.AddDocumentsWithContext(ctx, &ed, nil)
 		if err != nil {
 			return err
 		}
@@ -111,14 +111,14 @@ func (f *Fixtures) ApplyFixtures(ctx context.Context, e *Environment) error {
 		}
 	}
 
-	for _, p := range f.Posts {
-		record := post.ToRecord(&p)
+	for _, pt := range f.Posts {
+		record := post.ToRecord(&pt)
 		if err := db.WithContext(ctx).Save(record).Error; err != nil {
 			return err
 		}
 
-		p.ID = fmt.Sprintf("%d-%s", p.PostID, p.Language)
-		task, err := ms.EditorsIndex.AddDocumentsWithContext(ctx, &e, nil)
+		pt.ID = fmt.Sprintf("%d-%s", pt.PostID, pt.Language)
+		task, err := ms.PostsIndex.AddDocumentsWithContext(ctx, &pt, nil)
 		if err != nil {
 			return err
 		}
@@ -127,13 +127,13 @@ func (f *Fixtures) ApplyFixtures(ctx context.Context, e *Environment) error {
 		}
 	}
 
-	for _, a := range f.Ads {
-		record := advertisement.ToRecord(&a)
+	for _, ad := range f.Ads {
+		record := advertisement.ToRecord(&ad)
 		if err := db.WithContext(ctx).Save(record).Error; err != nil {
 			return err
 		}
 
-		task, err := ms.EditorsIndex.AddDocumentsWithContext(ctx, &e, nil)
+		task, err := ms.AdsIndex.AddDocumentsWithContext(ctx, &ad, nil)
 		if err != nil {
 			return err
 		}

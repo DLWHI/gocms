@@ -4,19 +4,18 @@ import (
 	"context"
 	"gocms/internal/domain"
 	"gocms/internal/search"
-	"time"
 )
 
 type SearchParams struct {
 	search.Params
-	Categories        []string   `json:"categories,omitempty"`
-	ExcludeCategories []string   `json:"exclude_categories,omitempty"`
-	Authors           []string   `json:"authors,omitempty"`
-	CreatedAfter      *time.Time `json:"created_after,omitempty"`
-	CreatedBefore     *time.Time `json:"created_before,omitempty"`
-	PublishedAfter    *time.Time `json:"published_after,omitempty"`
-	PublishedBefore   *time.Time `json:"published_before,omitempty"`
-	Published         *bool      `json:"published,omitempty"`
+	Categories        []string `json:"categories,omitempty"`
+	ExcludeCategories []string `json:"exclude_categories,omitempty"`
+	Authors           []string `json:"authors,omitempty"`
+	CreatedAfter      *int64   `json:"created_after,omitempty"`
+	CreatedBefore     *int64   `json:"created_before,omitempty"`
+	PublishedAfter    *int64   `json:"published_after,omitempty"`
+	PublishedBefore   *int64   `json:"published_before,omitempty"`
+	Published         *bool    `json:"published,omitempty"`
 }
 
 type SearchResult = search.Result[domain.Post]

@@ -61,17 +61,17 @@ func (*MeilisearchEngine) buildFilter(params *SearchParams, language string) str
 	}
 
 	if params.CreatedAfter != nil {
-		clauses = append(clauses, fmt.Sprintf("created_at >= %d", params.CreatedAfter.Unix()))
+		clauses = append(clauses, fmt.Sprintf("created_at >= %d", *params.CreatedAfter))
 	}
 	if params.CreatedBefore != nil {
-		clauses = append(clauses, fmt.Sprintf("created_at <= %d", params.CreatedBefore.Unix()))
+		clauses = append(clauses, fmt.Sprintf("created_at <= %d", *params.CreatedBefore))
 	}
 
 	if params.PublishedAfter != nil {
-		clauses = append(clauses, fmt.Sprintf("published_at >= %d", params.PublishedAfter.Unix()))
+		clauses = append(clauses, fmt.Sprintf("published_at >= %d", *params.PublishedAfter))
 	}
 	if params.PublishedBefore != nil {
-		clauses = append(clauses, fmt.Sprintf("published_at <= %d", params.PublishedBefore.Unix()))
+		clauses = append(clauses, fmt.Sprintf("published_at <= %d", *params.PublishedBefore))
 	}
 
 	if params.Published != nil {
@@ -101,11 +101,11 @@ func (*MeilisearchEngine) buildSort(params *SearchParams) []string {
 
 func (r *MeilisearchEngine) Index(ctx context.Context, id uint, group ...domain.Post) error {
 	index := r.search.Client.Index(r.search.Config.Uid)
-	for _, post := range group {
-		if post.PostID != id {
+	for i := range group {
+		if group[i].PostID != id {
 			return fmt.Errorf("%w: group item not from provided post id", domain.ErrInval)
 		}
-		post.ID = fmt.Sprintf("%d-%s", post.PostID, post.Language)
+		group[i].ID = fmt.Sprintf("%d-%s", group[i].PostID, group[i].Language)
 	}
 
 	task, err := index.AddDocumentsWithContext(ctx, group, nil)

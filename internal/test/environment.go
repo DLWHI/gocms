@@ -226,7 +226,7 @@ func (e *Environment) Clear(ctx context.Context) error {
 		if !ok {
 			return fmt.Errorf("%w: entity %T does not hold table name behind itself", domain.ErrInval, entity)
 		}
-		if err := e.DB.Exec("ALTER TABLE ? AUTO_INCREMENT = 1;", table.TableName()).Error; err != nil {
+		if err := e.DB.Exec("ALTER TABLE ? AUTO_INCREMENT = 1", gorm.Expr(table.TableName())).Error; err != nil {
 			return err
 		}
 	}

@@ -471,7 +471,19 @@
           },
           "expect": {
             "status": 201,
-            "body": "empty"
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.username",
+                "op": "eq",
+                "value": "newuser"
+              },
+              {
+                "path": "$.location",
+                "op": "eq",
+                "value": "/cms/users/newuser"
+              }
+            ]
           }
         }
       ]
@@ -499,7 +511,19 @@
           },
           "expect": {
             "status": 201,
-            "body": "empty"
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.username",
+                "op": "eq",
+                "value": "newuser"
+              },
+              {
+                "path": "$.location",
+                "op": "eq",
+                "value": "/cms/users/newuser"
+              }
+            ]
           }
         }
       ]
@@ -533,7 +557,19 @@
           },
           "expect": {
             "status": 201,
-            "body": "empty"
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.username",
+                "op": "eq",
+                "value": "newuser"
+              },
+              {
+                "path": "$.location",
+                "op": "eq",
+                "value": "/cms/users/newuser"
+              }
+            ]
           }
         }
       ],
@@ -765,7 +801,19 @@
           },
           "expect": {
             "status": 201,
-            "body": "empty"
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.username",
+                "op": "eq",
+                "value": "newuser"
+              },
+              {
+                "path": "$.location",
+                "op": "eq",
+                "value": "/cms/users/newuser"
+              }
+            ]
           }
         },
         {
@@ -828,7 +876,19 @@
           },
           "expect": {
             "status": 201,
-            "body": "empty",
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.username",
+                "op": "eq",
+                "value": "newuser"
+              },
+              {
+                "path": "$.location",
+                "op": "eq",
+                "value": "/cms/users/newuser"
+              }
+            ],
             "external_checks": [
               {
                 "check": "login",
@@ -863,7 +923,19 @@
           },
           "expect": {
             "status": 201,
-            "body": "empty"
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.username",
+                "op": "eq",
+                "value": "newuser"
+              },
+              {
+                "path": "$.location",
+                "op": "eq",
+                "value": "/cms/users/newuser"
+              }
+            ]
           }
         },
         {
@@ -919,7 +991,19 @@
           },
           "expect": {
             "status": 201,
-            "body": "empty"
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.username",
+                "op": "eq",
+                "value": "newuser"
+              },
+              {
+                "path": "$.location",
+                "op": "eq",
+                "value": "/cms/users/newuser"
+              }
+            ]
           }
         },
         {
@@ -971,7 +1055,19 @@
           },
           "expect": {
             "status": 201,
-            "body": "empty"
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.username",
+                "op": "eq",
+                "value": "newuser"
+              },
+              {
+                "path": "$.location",
+                "op": "eq",
+                "value": "/cms/users/newuser"
+              }
+            ]
           }
         },
         {
@@ -1026,7 +1122,19 @@
           },
           "expect": {
             "status": 201,
-            "body": "empty"
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.username",
+                "op": "eq",
+                "value": "newuser"
+              },
+              {
+                "path": "$.location",
+                "op": "eq",
+                "value": "/cms/users/newuser"
+              }
+            ]
           }
         },
         {
@@ -1080,7 +1188,19 @@
           },
           "expect": {
             "status": 201,
-            "body": "empty"
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.username",
+                "op": "eq",
+                "value": "newuser"
+              },
+              {
+                "path": "$.location",
+                "op": "eq",
+                "value": "/cms/users/newuser"
+              }
+            ]
           }
         },
         {
@@ -1130,7 +1250,19 @@
           },
           "expect": {
             "status": 201,
-            "body": "empty"
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.username",
+                "op": "eq",
+                "value": "newuser"
+              },
+              {
+                "path": "$.location",
+                "op": "eq",
+                "value": "/cms/users/newuser"
+              }
+            ]
           }
         }
       ]
@@ -1157,7 +1289,19 @@
           },
           "expect": {
             "status": 201,
-            "body": "empty"
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.username",
+                "op": "eq",
+                "value": "newuser"
+              },
+              {
+                "path": "$.location",
+                "op": "eq",
+                "value": "/cms/users/newuser"
+              }
+            ]
           }
         },
         {
@@ -1205,7 +1349,19 @@
           },
           "expect": {
             "status": 201,
-            "body": "empty"
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.username",
+                "op": "eq",
+                "value": "newuser"
+              },
+              {
+                "path": "$.location",
+                "op": "eq",
+                "value": "/cms/users/newuser"
+              }
+            ]
           }
         },
         {
@@ -1253,7 +1409,19 @@
           },
           "expect": {
             "status": 201,
-            "body": "empty"
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.username",
+                "op": "eq",
+                "value": "a"
+              },
+              {
+                "path": "$.location",
+                "op": "eq",
+                "value": "/cms/users/a"
+              }
+            ]
           }
         }
       ]
@@ -1285,7 +1453,19 @@
           },
           "expect": {
             "status": 201,
-            "body": "empty"
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.username",
+                "op": "eq",
+                "value": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+              },
+              {
+                "path": "$.location",
+                "op": "eq",
+                "value": "/cms/users/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+              }
+            ]
           }
         }
       ]
@@ -1312,7 +1492,19 @@
           },
           "expect": {
             "status": 201,
-            "body": "empty"
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.username",
+                "op": "eq",
+                "value": "1new-user_2"
+              },
+              {
+                "path": "$.location",
+                "op": "eq",
+                "value": "/cms/users/1new-user_2"
+              }
+            ]
           }
         }
       ]
@@ -1345,7 +1537,19 @@
           },
           "expect": {
             "status": 201,
-            "body": "empty"
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.username",
+                "op": "eq",
+                "value": "newuser"
+              },
+              {
+                "path": "$.location",
+                "op": "eq",
+                "value": "/cms/users/newuser"
+              }
+            ]
           }
         },
         {
@@ -2006,7 +2210,19 @@
           },
           "expect": {
             "status": 201,
-            "body": "empty",
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.username",
+                "op": "eq",
+                "value": "newuser"
+              },
+              {
+                "path": "$.location",
+                "op": "eq",
+                "value": "/cms/users/newuser"
+              }
+            ],
             "external_checks": [
               {
                 "check": "login",
@@ -2041,7 +2257,19 @@
           },
           "expect": {
             "status": 201,
-            "body": "empty",
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.username",
+                "op": "eq",
+                "value": "newuser"
+              },
+              {
+                "path": "$.location",
+                "op": "eq",
+                "value": "/cms/users/newuser"
+              }
+            ],
             "external_checks": [
               {
                 "check": "login",
@@ -2076,7 +2304,19 @@
           },
           "expect": {
             "status": 201,
-            "body": "empty",
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.username",
+                "op": "eq",
+                "value": "newuser"
+              },
+              {
+                "path": "$.location",
+                "op": "eq",
+                "value": "/cms/users/newuser"
+              }
+            ],
             "external_checks": [
               {
                 "check": "login",
@@ -2111,7 +2351,19 @@
           },
           "expect": {
             "status": 201,
-            "body": "empty",
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.username",
+                "op": "eq",
+                "value": "newuser"
+              },
+              {
+                "path": "$.location",
+                "op": "eq",
+                "value": "/cms/users/newuser"
+              }
+            ],
             "external_checks": [
               {
                 "check": "login",
@@ -2146,7 +2398,19 @@
           },
           "expect": {
             "status": 201,
-            "body": "empty",
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.username",
+                "op": "eq",
+                "value": "newuser"
+              },
+              {
+                "path": "$.location",
+                "op": "eq",
+                "value": "/cms/users/newuser"
+              }
+            ],
             "external_checks": [
               {
                 "check": "login",
@@ -2181,7 +2445,19 @@
           },
           "expect": {
             "status": 201,
-            "body": "empty",
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.username",
+                "op": "eq",
+                "value": "newuser"
+              },
+              {
+                "path": "$.location",
+                "op": "eq",
+                "value": "/cms/users/newuser"
+              }
+            ],
             "external_checks": [
               {
                 "check": "login",
@@ -2216,7 +2492,19 @@
           },
           "expect": {
             "status": 201,
-            "body": "empty",
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.username",
+                "op": "eq",
+                "value": "newuser"
+              },
+              {
+                "path": "$.location",
+                "op": "eq",
+                "value": "/cms/users/newuser"
+              }
+            ],
             "external_checks": [
               {
                 "check": "login",
@@ -2251,7 +2539,19 @@
           },
           "expect": {
             "status": 201,
-            "body": "empty",
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.username",
+                "op": "eq",
+                "value": "newuser"
+              },
+              {
+                "path": "$.location",
+                "op": "eq",
+                "value": "/cms/users/newuser"
+              }
+            ],
             "external_checks": [
               {
                 "check": "login",
@@ -2286,7 +2586,19 @@
           },
           "expect": {
             "status": 201,
-            "body": "empty",
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.username",
+                "op": "eq",
+                "value": "newuser"
+              },
+              {
+                "path": "$.location",
+                "op": "eq",
+                "value": "/cms/users/newuser"
+              }
+            ],
             "external_checks": [
               {
                 "check": "login",
@@ -2382,7 +2694,19 @@
           },
           "expect": {
             "status": 201,
-            "body": "empty"
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.username",
+                "op": "eq",
+                "value": "newuser"
+              },
+              {
+                "path": "$.location",
+                "op": "eq",
+                "value": "/cms/users/newuser"
+              }
+            ]
           }
         }
       ]
@@ -2446,7 +2770,19 @@
           },
           "expect": {
             "status": 201,
-            "body": "empty"
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.username",
+                "op": "eq",
+                "value": "newuser"
+              },
+              {
+                "path": "$.location",
+                "op": "eq",
+                "value": "/cms/users/newuser"
+              }
+            ]
           }
         }
       ]
@@ -2680,7 +3016,19 @@
           },
           "expect": {
             "status": 201,
-            "body": "empty",
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.username",
+                "op": "eq",
+                "value": "newuser"
+              },
+              {
+                "path": "$.location",
+                "op": "eq",
+                "value": "/cms/users/newuser"
+              }
+            ],
             "external_checks": [
               {
                 "check": "login",
@@ -2944,7 +3292,19 @@
           },
           "expect": {
             "status": 201,
-            "body": "empty"
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.username",
+                "op": "eq",
+                "value": "newuser"
+              },
+              {
+                "path": "$.location",
+                "op": "eq",
+                "value": "/cms/users/newuser"
+              }
+            ]
           }
         }
       ]
@@ -2996,7 +3356,19 @@
           },
           "expect": {
             "status": 201,
-            "body": "empty"
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.username",
+                "op": "eq",
+                "value": "newuser"
+              },
+              {
+                "path": "$.location",
+                "op": "eq",
+                "value": "/cms/users/newuser"
+              }
+            ]
           }
         }
       ]
@@ -3185,7 +3557,19 @@
           },
           "expect": {
             "status": 201,
-            "body": "empty"
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.username",
+                "op": "eq",
+                "value": "newuser"
+              },
+              {
+                "path": "$.location",
+                "op": "eq",
+                "value": "/cms/users/newuser"
+              }
+            ]
           }
         },
         {
@@ -3401,7 +3785,19 @@
           },
           "expect": {
             "status": 201,
-            "body": "empty"
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.username",
+                "op": "eq",
+                "value": "newuser"
+              },
+              {
+                "path": "$.location",
+                "op": "eq",
+                "value": "/cms/users/newuser"
+              }
+            ]
           }
         }
       ]
@@ -3428,7 +3824,19 @@
           },
           "expect": {
             "status": 201,
-            "body": "empty"
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.username",
+                "op": "eq",
+                "value": "newuser"
+              },
+              {
+                "path": "$.location",
+                "op": "eq",
+                "value": "/cms/users/newuser"
+              }
+            ]
           }
         }
       ]
@@ -3455,7 +3863,19 @@
           },
           "expect": {
             "status": 201,
-            "body": "empty"
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.username",
+                "op": "eq",
+                "value": "newuser"
+              },
+              {
+                "path": "$.location",
+                "op": "eq",
+                "value": "/cms/users/newuser"
+              }
+            ]
           }
         }
       ]
@@ -3564,7 +3984,19 @@
           },
           "expect": {
             "status": 201,
-            "body": "empty"
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.username",
+                "op": "eq",
+                "value": "newuser"
+              },
+              {
+                "path": "$.location",
+                "op": "eq",
+                "value": "/cms/users/newuser"
+              }
+            ]
           }
         }
       ]
@@ -3750,7 +4182,19 @@
           },
           "expect": {
             "status": 201,
-            "body": "empty"
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.username",
+                "op": "eq",
+                "value": "newuser"
+              },
+              {
+                "path": "$.location",
+                "op": "eq",
+                "value": "/cms/users/newuser"
+              }
+            ]
           }
         },
         {
@@ -3808,7 +4252,19 @@
           },
           "expect": {
             "status": 201,
-            "body": "empty"
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.username",
+                "op": "eq",
+                "value": "newuser"
+              },
+              {
+                "path": "$.location",
+                "op": "eq",
+                "value": "/cms/users/newuser"
+              }
+            ]
           }
         },
         {
@@ -3925,7 +4381,19 @@
           },
           "expect": {
             "status": 201,
-            "body": "empty"
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.username",
+                "op": "eq",
+                "value": "newuser"
+              },
+              {
+                "path": "$.location",
+                "op": "eq",
+                "value": "/cms/users/newuser"
+              }
+            ]
           }
         },
         {
@@ -3970,7 +4438,19 @@
           },
           "expect": {
             "status": 201,
-            "body": "empty"
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.username",
+                "op": "eq",
+                "value": "newuser"
+              },
+              {
+                "path": "$.location",
+                "op": "eq",
+                "value": "/cms/users/newuser"
+              }
+            ]
           }
         },
         {
@@ -9098,7 +9578,19 @@
           },
           "expect": {
             "status": 201,
-            "body": "empty"
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.username",
+                "op": "eq",
+                "value": "newuser"
+              },
+              {
+                "path": "$.location",
+                "op": "eq",
+                "value": "/cms/users/newuser"
+              }
+            ]
           }
         },
         {
@@ -18262,7 +18754,19 @@
           },
           "expect": {
             "status": 201,
-            "body": "empty"
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.username",
+                "op": "eq",
+                "value": "newuser"
+              },
+              {
+                "path": "$.location",
+                "op": "eq",
+                "value": "/cms/users/newuser"
+              }
+            ]
           }
         }
       ]
@@ -18311,7 +18815,19 @@
           },
           "expect": {
             "status": 201,
-            "body": "empty"
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.username",
+                "op": "eq",
+                "value": "newuser"
+              },
+              {
+                "path": "$.location",
+                "op": "eq",
+                "value": "/cms/users/newuser"
+              }
+            ]
           }
         },
         {
@@ -18438,7 +18954,19 @@
           },
           "expect": {
             "status": 201,
-            "body": "empty"
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.username",
+                "op": "eq",
+                "value": "newuser"
+              },
+              {
+                "path": "$.location",
+                "op": "eq",
+                "value": "/cms/users/newuser"
+              }
+            ]
           }
         },
         {
@@ -18579,7 +19107,19 @@
           },
           "expect": {
             "status": 201,
-            "body": "empty"
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.username",
+                "op": "eq",
+                "value": "newuser"
+              },
+              {
+                "path": "$.location",
+                "op": "eq",
+                "value": "/cms/users/newuser"
+              }
+            ]
           }
         },
         {
@@ -18882,7 +19422,19 @@
           },
           "expect": {
             "status": 201,
-            "body": "empty"
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.username",
+                "op": "eq",
+                "value": "newuser"
+              },
+              {
+                "path": "$.location",
+                "op": "eq",
+                "value": "/cms/users/newuser"
+              }
+            ]
           }
         },
         {
@@ -19010,7 +19562,19 @@
           },
           "expect": {
             "status": 201,
-            "body": "empty"
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.username",
+                "op": "eq",
+                "value": "newuser"
+              },
+              {
+                "path": "$.location",
+                "op": "eq",
+                "value": "/cms/users/newuser"
+              }
+            ]
           }
         }
       ]
@@ -19907,7 +20471,19 @@
           },
           "expect": {
             "status": 201,
-            "body": "empty"
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.username",
+                "op": "eq",
+                "value": "newuser"
+              },
+              {
+                "path": "$.location",
+                "op": "eq",
+                "value": "/cms/users/newuser"
+              }
+            ]
           }
         }
       ]
@@ -20042,7 +20618,19 @@
           },
           "expect": {
             "status": 201,
-            "body": "empty"
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.username",
+                "op": "eq",
+                "value": "newuser"
+              },
+              {
+                "path": "$.location",
+                "op": "eq",
+                "value": "/cms/users/newuser"
+              }
+            ]
           }
         },
         {

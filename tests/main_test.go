@@ -55,7 +55,7 @@ func run(m *testing.M) error {
 			EditorsSearchIndexName,
 			AdsSearchIndexName,
 		),
-		Lang:     App.Langs.Consumer,
+		Langs:    App.Langs.Consumer,
 		Password: App.PasswordService,
 		Router:   App.Router,
 		Redis:    App.Redis,
@@ -330,6 +330,59 @@ func TestPosts(t *testing.T) {
 		}
 		if err := Env.Clear(ctx); err != nil {
 			logger.Error("Test.Posts", "Failed to clear environment", err)
+			t.FailNow()
+		}
+	}
+}
+
+func TestAdvertisements(t *testing.T) {
+	ran := 0
+	succeed := 0
+	defer func() {
+		logger.Info("Test.Advertisements", fmt.Sprintf("Finished running editor tests. Ran = %d tests. Passed = %d. Failed = %d", ran, succeed, ran-succeed))
+	}()
+
+	ctx, cancel := signal.NotifyContext(t.Context(), os.Interrupt, syscall.SIGTERM)
+	defer cancel()
+	logger.Info("Test.Advertisements", "Loading test data")
+	data, err := test.LoadDataFromFile("./test_cases/advertisements.json", "1")
+	if err != nil {
+		logger.Error("Test.Advertisements", "Failed to load test data", err)
+		t.FailNow()
+	}
+	Env.TestData = data
+
+	for _, testcase := range data.Cases {
+		if matched, err := regexp.MatchString(Filter, testcase.ID); err != nil || !matched {
+			if err != nil {
+				logger.Warn("Test.Advertisements", "Failed to apply filter", err)
+			}
+			continue
+		}
+
+		if err = data.Fixtures.ApplyFixtures(ctx, Env); err != nil {
+			logger.Error("Test.Advertisements", "Failed to apply fixtures", err)
+			t.FailNow()
+		}
+
+		logger.Info("Test.Advertisements", fmt.Sprintf("Running test: %s", testcase.ID))
+		var result *test.Result
+		ran++
+		for _, step := range testcase.Steps {
+			result = step.Perform(ctx, data, Env)
+			if result != nil {
+				failMessage := fmt.Sprintf("Test %s failed", testcase.ID)
+				logger.Error("Test.Advertisements", failMessage, result.Reason, "case", testcase, "step", step, "response_code", result.ResponseStatus, "message", result.Message)
+				t.Fail()
+				break
+			}
+		}
+		if result == nil {
+			succeed++
+			logger.Info("Test.Advertisements", fmt.Sprintf("Test %s passed", testcase.ID))
+		}
+		if err := Env.Clear(ctx); err != nil {
+			logger.Error("Test.Advertisements", "Failed to clear environment", err)
 			t.FailNow()
 		}
 	}

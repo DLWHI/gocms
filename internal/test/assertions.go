@@ -202,7 +202,7 @@ func (a *Assertion) opLenEq(values []JSONValue) error {
 			return fmt.Errorf("Invalid length value in assertions, got %v, type %T", a.Value, a.Value)
 		}
 		if expected != len(arr) {
-			return fmt.Errorf("Assertion failed: expected len(%d) == %d", len(values), expected)
+			return fmt.Errorf("Assertion failed: expected length to be %d, got %d", expected, len(arr))
 		}
 	}
 	return nil
@@ -221,7 +221,7 @@ func (a *Assertion) opLenLt(values []JSONValue) error {
 			return fmt.Errorf("Invalid length value in assertions, got %v, type %T", a.Value, a.Value)
 		}
 		if len(arr) >= expected {
-			return fmt.Errorf("Assertion failed: expected len(%d) < %d", len(values), expected)
+			return fmt.Errorf("Assertion failed: expected length to be less than %d, got %d", expected, len(arr))
 		}
 	}
 	return nil
@@ -240,7 +240,7 @@ func (a *Assertion) opLenGt(values []JSONValue) error {
 			return fmt.Errorf("Invalid length value in assertions, got %v, type %T", a.Value, a.Value)
 		}
 		if len(arr) <= expected {
-			return fmt.Errorf("Assertion failed: expected len(%d) > %d", len(values), expected)
+			return fmt.Errorf("Assertion failed: expected length to be greater than %d, got %d", expected, len(arr))
 		}
 	}
 	return nil
@@ -259,7 +259,7 @@ func (a *Assertion) opLenLte(values []JSONValue) error {
 			return fmt.Errorf("Invalid length value in assertions, got %v, type %T", a.Value, a.Value)
 		}
 		if len(arr) > expected {
-			return fmt.Errorf("Assertion failed: expected len(%d) <= %d", len(values), expected)
+			return fmt.Errorf("Assertion failed: expected length to be less than or equal to %d, got %d", expected, len(arr))
 		}
 	}
 	return nil
@@ -278,7 +278,7 @@ func (a *Assertion) opLenGte(values []JSONValue) error {
 			return fmt.Errorf("Invalid length value in assertions, got %v, type %T", a.Value, a.Value)
 		}
 		if len(arr) < expected {
-			return fmt.Errorf("Assertion failed: expected len(%d) >= %d", len(values), expected)
+			return fmt.Errorf("Assertion failed: expected length to be greater than or equal to %d, got %d", expected, len(arr))
 		}
 	}
 	return nil

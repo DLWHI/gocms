@@ -103,8 +103,9 @@ func (r *GORMRepository) GetGroup(ctx context.Context, group string) ([]domain.A
 	var ads []Record
 
 	res := r.db.WithContext(ctx).
-		Where("advertisements.group = ?", group).
+		Where("group = ?", group).
 		Where("(expires_at IS NULL OR expires_at > now())").
+		Order("priority ASC").
 		Find(&ads)
 	if res.Error != nil {
 		return nil, res.Error

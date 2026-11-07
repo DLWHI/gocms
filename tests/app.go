@@ -119,10 +119,10 @@ func (app *Container) Init(ctx context.Context) error {
 	router := NewRouter(langs.Service, auth.SessionRepo)
 
 	router.AddAuthRoutes(auth.Handler)
-	// router.AddPostRoutes(posts.Handler)
+	router.AddPostRoutes(posts.Handler)
 	router.AddUserRoutes(users.Handler)
 	router.AddCategoryRoutes(categories.Handler)
-	// router.AddAdsRoutes(ads.Handler)
+	router.AddAdsRoutes(ads.Handler)
 	router.AddEditorRoutes(editors.Handler)
 	router.AddLangRoutes(langs.Handler)
 	router.AddStorageRoutes(storageHandler)

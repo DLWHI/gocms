@@ -7,7 +7,7 @@ import (
 	"golang.org/x/sys/unix"
 )
 
-func (s *Manager) GetInfo() (Info, error) {
+func (s *Service) GetInfo() (Info, error) {
 	var stat unix.Statfs_t
 	if err := unix.Statfs(s.root, &stat); err != nil {
 		return Info{}, err

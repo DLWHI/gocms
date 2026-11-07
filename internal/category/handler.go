@@ -18,18 +18,18 @@ import (
 // ------------------------------------------------------------------
 
 type Handler struct {
-	Search          http.Handler
-	All             http.Handler
-	Create          http.Handler
-	Get             http.Handler
-	Update          http.Handler
-	Delete          http.Handler
-	categoryService *Service
+	Search  http.Handler
+	All     http.Handler
+	Create  http.Handler
+	Get     http.Handler
+	Update  http.Handler
+	Delete  http.Handler
+	service *Service
 }
 
-func NewHandler(s *Service) *Handler {
+func NewHandler(service *Service) *Handler {
 	var hndl Handler
-	hndl.categoryService = s
+	hndl.service = service
 	hndl.Search = http.HandlerFunc(hndl.search)
 	hndl.All = http.HandlerFunc(hndl.all)
 	hndl.Create = http.HandlerFunc(hndl.create)
@@ -48,7 +48,7 @@ func (h *Handler) search(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	categories, err := h.categoryService.Search(r.Context(), &filters)
+	categories, err := h.service.Search(r.Context(), &filters)
 	if err != nil {
 		server.WriteServerError(w, "Category", err)
 		return
@@ -60,7 +60,7 @@ func (h *Handler) search(w http.ResponseWriter, r *http.Request) {
 
 // GET /categories/{lang} - Get all categories
 func (h *Handler) all(w http.ResponseWriter, r *http.Request) {
-	categories, err := h.categoryService.All(r.Context())
+	categories, err := h.service.All(r.Context())
 	if err != nil {
 		server.WriteServerError(w, "Category", err)
 		return
@@ -84,7 +84,7 @@ func (h *Handler) create(w http.ResponseWriter, r *http.Request) {
 
 	category := &domain.Category{}
 	payload.Apply(category)
-	if err := h.categoryService.Create(r.Context(), category); err != nil {
+	if err := h.service.Create(r.Context(), category); err != nil {
 		server.WriteServerError(w, "Category", err)
 		return
 	}
@@ -107,7 +107,7 @@ func (h *Handler) get(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	category, err := h.categoryService.Get(r.Context(), slug)
+	category, err := h.service.Get(r.Context(), slug)
 	if err != nil {
 		server.WriteServerError(w, "Category", err)
 		return
@@ -131,7 +131,7 @@ func (h *Handler) update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if _, err := h.categoryService.Edit(r.Context(), slug, &diff); err != nil {
+	if _, err := h.service.Edit(r.Context(), slug, &diff); err != nil {
 		server.WriteServerError(w, "Category", err)
 		return
 	}
@@ -147,7 +147,7 @@ func (h *Handler) delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := h.categoryService.Delete(r.Context(), slug)
+	err := h.service.Delete(r.Context(), slug)
 	if err != nil {
 		server.WriteServerError(w, "Category", err)
 		return

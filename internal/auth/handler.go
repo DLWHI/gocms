@@ -22,12 +22,12 @@ type Handler struct {
 	Profile      http.Handler
 	Permissions  http.Handler
 	ChangePasswd http.Handler
-	userService  *SessionService
+	sessions     *SessionService
 }
 
-func NewHandler(s *SessionService) *Handler {
+func NewHandler(service *SessionService) *Handler {
 	var hndl Handler
-	hndl.userService = s
+	hndl.sessions = service
 	hndl.Login = http.HandlerFunc(hndl.login)
 	hndl.Logout = http.HandlerFunc(hndl.logout)
 	hndl.Profile = http.HandlerFunc(hndl.profile)
@@ -48,7 +48,7 @@ func (h *Handler) login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token, err := h.userService.Login(r.Context(), payload.Username, payload.Passwd)
+	token, err := h.sessions.Login(r.Context(), payload.Username, payload.Passwd)
 	if err != nil {
 		server.WriteServerError(w, "Auth", err)
 		return
@@ -64,7 +64,7 @@ func (h *Handler) login(w http.ResponseWriter, r *http.Request) {
 
 // POST /logout - Log out
 func (h *Handler) logout(w http.ResponseWriter, r *http.Request) {
-	if err := h.userService.Logout(r.Context()); err != nil {
+	if err := h.sessions.Logout(r.Context()); err != nil {
 		server.WriteServerError(w, "Auth", err)
 		return
 	}
@@ -73,7 +73,7 @@ func (h *Handler) logout(w http.ResponseWriter, r *http.Request) {
 
 // GET /profile - Get current user/Validate session
 func (h *Handler) profile(w http.ResponseWriter, r *http.Request) {
-	user, err := h.userService.CurrentUser(r.Context())
+	user, err := h.sessions.CurrentUser(r.Context())
 	if err != nil {
 		server.WriteServerError(w, "User", err)
 		return
@@ -109,7 +109,7 @@ func (h *Handler) changePasswd(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.userService.ChangePasswd(r.Context(), payload.OldPasswd, payload.NewPaswd); err != nil {
+	if err := h.sessions.ChangePasswd(r.Context(), payload.OldPasswd, payload.NewPaswd); err != nil {
 		server.WriteServerError(w, "User", err)
 		return
 	}

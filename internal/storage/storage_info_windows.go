@@ -7,7 +7,7 @@ import (
 	"golang.org/x/sys/windows"
 )
 
-func (s *Manager) GetInfo() (Info, error) {
+func (s *Service) GetInfo() (Info, error) {
 	var freeBytesAvailable, totalNumberOfBytes, totalNumberOfFreeBytes uint64
 
 	pathPtr, err := windows.UTF16PtrFromString(s.root)

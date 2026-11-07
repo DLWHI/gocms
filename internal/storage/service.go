@@ -16,18 +16,18 @@ import (
 	"gocms/internal/logger"
 )
 
-type Manager struct {
+type Service struct {
 	root   string
 	wMutex sync.Mutex
 }
 
-func NewManager(rootPath string) *Manager {
-	return &Manager{
+func NewManager(rootPath string) *Service {
+	return &Service{
 		root: filepath.Clean(rootPath),
 	}
 }
 
-func (s *Manager) safePath(path string) (string, string, error) {
+func (s *Service) safePath(path string) (string, string, error) {
 	cleaned := filepath.Clean(path)
 
 	fullPath := filepath.Join(s.root, cleaned)
@@ -39,7 +39,7 @@ func (s *Manager) safePath(path string) (string, string, error) {
 	return fullPath, cleaned, nil
 }
 
-func (s *Manager) writeTemp(dir string, content io.Reader) (string, error) {
+func (s *Service) writeTemp(dir string, content io.Reader) (string, error) {
 	tmpFile, err := os.CreateTemp(dir, ".tmp-*")
 	if err != nil {
 		return "", err
@@ -57,7 +57,7 @@ func (s *Manager) writeTemp(dir string, content io.Reader) (string, error) {
 	return tmpFile.Name(), nil
 }
 
-func (s *Manager) syncDir(dir string) error {
+func (s *Service) syncDir(dir string) error {
 	dirFD, err := os.Open(dir)
 	if err != nil {
 		return err
@@ -70,7 +70,7 @@ func (s *Manager) syncDir(dir string) error {
 	return err
 }
 
-func (s *Manager) detectWithMIMEType(path string) (ItemType, error) {
+func (s *Service) detectWithMIMEType(path string) (ItemType, error) {
 	mimeType, err := s.MimeTypeOf(path)
 	if err != nil {
 		return TypeFile, err
@@ -85,7 +85,7 @@ func (s *Manager) detectWithMIMEType(path string) (ItemType, error) {
 	}
 }
 
-func (s *Manager) GetFiles(path string) ([]Item, error) {
+func (s *Service) GetFiles(path string) ([]Item, error) {
 	fullPath, rel, err := s.safePath(path)
 	if err != nil {
 		logger.Error("Storage.Manager", "Failed to list files.", err)
@@ -132,7 +132,7 @@ func (s *Manager) GetFiles(path string) ([]Item, error) {
 	return fileList, nil
 }
 
-func (s *Manager) GetTree(path string) ([]Item, error) {
+func (s *Service) GetTree(path string) ([]Item, error) {
 	fullPath, rel, err := s.safePath(path)
 	if err != nil {
 		logger.Error("Storage.Manager", "Failed to build the file tree.", err)
@@ -184,7 +184,7 @@ func (s *Manager) GetTree(path string) ([]Item, error) {
 	return fileList, nil
 }
 
-func (s *Manager) Create(path string) error {
+func (s *Service) Create(path string) error {
 	fullPath, _, err := s.safePath(path)
 	if err != nil {
 		logger.Error("Storage.Manager", "Failed to create a file.", err)
@@ -208,7 +208,7 @@ func (s *Manager) Create(path string) error {
 	return nil
 }
 
-func (s *Manager) CreateDir(path string) error {
+func (s *Service) CreateDir(path string) error {
 	fullPath, _, err := s.safePath(path)
 	if err != nil {
 		logger.Error("Storage.Manager", "Failed to create a directory.", err)
@@ -223,7 +223,7 @@ func (s *Manager) CreateDir(path string) error {
 	return nil
 }
 
-func (s *Manager) Save(path string, content io.Reader) error {
+func (s *Service) Save(path string, content io.Reader) error {
 	fullPath, _, err := s.safePath(path)
 	if err != nil {
 		logger.Error("Storage.Manager", "Failed to save a file.", err)
@@ -255,7 +255,7 @@ func (s *Manager) Save(path string, content io.Reader) error {
 	return nil
 }
 
-func (s *Manager) Read(path string) (io.ReadCloser, string, error) {
+func (s *Service) Read(path string) (io.ReadCloser, string, error) {
 	fullPath, _, err := s.safePath(path)
 	if err != nil {
 		logger.Error("Storage.Manager", "Failed to read a file.", err)
@@ -293,7 +293,7 @@ func (s *Manager) Read(path string) (io.ReadCloser, string, error) {
 	return dst, mime, nil
 }
 
-func (s *Manager) TypeOf(path string) (ItemType, error) {
+func (s *Service) TypeOf(path string) (ItemType, error) {
 	fullPath, _, err := s.safePath(path)
 	if err != nil {
 		logger.Error("Storage.Manager", "Failed to determine file type.", err)
@@ -315,7 +315,7 @@ func (s *Manager) TypeOf(path string) (ItemType, error) {
 	}
 }
 
-func (s *Manager) MimeTypeOf(path string) (string, error) {
+func (s *Service) MimeTypeOf(path string) (string, error) {
 	fullPath, _, err := s.safePath(path)
 	if err != nil {
 		logger.Error("Storage.Manager", "Failed to detect file mime.", err)
@@ -343,7 +343,7 @@ func (s *Manager) MimeTypeOf(path string) (string, error) {
 	return http.DetectContentType(buffer[:n]), nil
 }
 
-func (s *Manager) Exists(path string) bool {
+func (s *Service) Exists(path string) bool {
 	fullPath, _, err := s.safePath(path)
 	if err != nil {
 		logger.Error("Storage.Manager", "Failed to check whether a file exists.", err)
@@ -357,7 +357,7 @@ func (s *Manager) Exists(path string) bool {
 	return false
 }
 
-func (s *Manager) Delete(path string, recursive bool) error {
+func (s *Service) Delete(path string, recursive bool) error {
 	fullPath, _, err := s.safePath(path)
 	if err != nil {
 		logger.Error("Storage.Manager", "Failed to delete a file.", err)

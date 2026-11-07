@@ -18,18 +18,18 @@ import (
 // PUT /storage/folders/{path...} - Create a folder
 // ------------------------------------------------------------------
 type Handler struct {
-	Tree        http.Handler
-	Get         http.Handler
-	Upload      http.Handler
-	Delete      http.Handler
-	Folder      http.Handler
-	Preview     http.Handler
-	fileService *Manager
+	Tree    http.Handler
+	Get     http.Handler
+	Upload  http.Handler
+	Delete  http.Handler
+	Folder  http.Handler
+	Preview http.Handler
+	service *Service
 }
 
-func NewHandler(s *Manager) *Handler {
+func NewHandler(service *Service) *Handler {
 	var hndl Handler
-	hndl.fileService = s
+	hndl.service = service
 	hndl.Tree = http.HandlerFunc(hndl.tree)
 	hndl.Get = http.HandlerFunc(hndl.get)
 	hndl.Upload = http.HandlerFunc(hndl.upload)
@@ -52,13 +52,13 @@ func (h *Handler) tree(w http.ResponseWriter, r *http.Request) {
 		Info  Info   `json:"info"`
 	}
 
-	response.Files, err = h.fileService.GetFiles(path)
+	response.Files, err = h.service.GetFiles(path)
 	if err != nil {
 		server.WriteServerError(w, "Path", err)
 		return
 	}
 
-	response.Info, err = h.fileService.GetInfo()
+	response.Info, err = h.service.GetInfo()
 	if err != nil {
 		server.WriteServerError(w, "Storage", err)
 		return
@@ -76,7 +76,7 @@ func (h *Handler) get(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	file_out, mime, err := h.fileService.Read(path)
+	file_out, mime, err := h.service.Read(path)
 	if err != nil {
 		server.WriteServerError(w, "File", err)
 		return
@@ -114,7 +114,7 @@ func (h *Handler) preview(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	file, _, err := h.fileService.Read(path)
+	file, _, err := h.service.Read(path)
 	if err != nil {
 		server.WriteServerError(w, "File", err)
 		return
@@ -140,13 +140,13 @@ func (h *Handler) upload(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = h.fileService.Create(path)
+	err = h.service.Create(path)
 	if err != nil {
 		http.Error(w, "Path does not exist or file already created", http.StatusBadRequest)
 		return
 	}
 
-	if err := h.fileService.Save(path, r.Body); err != nil {
+	if err := h.service.Save(path, r.Body); err != nil {
 		server.WriteServerError(w, "File", err)
 		return
 	}
@@ -169,7 +169,7 @@ func (h *Handler) delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = h.fileService.Delete(path, recursive)
+	err = h.service.Delete(path, recursive)
 	if err != nil {
 		server.WriteServerError(w, "Path", err)
 		return
@@ -185,7 +185,7 @@ func (h *Handler) folder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = h.fileService.CreateDir(path)
+	err = h.service.CreateDir(path)
 	if err != nil {
 		server.WriteServerError(w, "Folder", err)
 		return

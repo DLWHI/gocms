@@ -29,12 +29,12 @@ type Handler struct {
 	ResetPassword     http.Handler
 	UpdatePermissions http.Handler
 	Suspend           http.Handler
-	userService       *Service
+	service           *Service
 }
 
-func NewHandler(s *Service) *Handler {
+func NewHandler(service *Service) *Handler {
 	var hndl Handler
-	hndl.userService = s
+	hndl.service = service
 	hndl.Create = http.HandlerFunc(hndl.create)
 	hndl.Search = http.HandlerFunc(hndl.search)
 	hndl.All = http.HandlerFunc(hndl.all)
@@ -62,7 +62,7 @@ func (h *Handler) create(w http.ResponseWriter, r *http.Request) {
 
 	user := &domain.User{Username: payload.Username}
 	payload.Apply(user)
-	if err := h.userService.Create(r.Context(), user, payload.Password); err != nil {
+	if err := h.service.Create(r.Context(), user, payload.Password); err != nil {
 		server.WriteServerError(w, "User", err)
 		return
 	}
@@ -79,7 +79,7 @@ func (h *Handler) create(w http.ResponseWriter, r *http.Request) {
 
 // GET /users - Get all users
 func (h *Handler) all(w http.ResponseWriter, r *http.Request) {
-	users, err := h.userService.AllActive(r.Context())
+	users, err := h.service.AllActive(r.Context())
 	if err != nil {
 		server.WriteServerError(w, "User", err)
 		return
@@ -100,7 +100,7 @@ func (h *Handler) search(w http.ResponseWriter, r *http.Request) {
 		server.WriteDecodeError(w, err)
 		return
 	}
-	users, err := h.userService.Search(r.Context(), &filters)
+	users, err := h.service.Search(r.Context(), &filters)
 	if err != nil {
 		server.WriteServerError(w, "User", err)
 		return
@@ -119,7 +119,7 @@ func (h *Handler) get(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := h.userService.Get(r.Context(), username)
+	user, err := h.service.Get(r.Context(), username)
 	if err != nil {
 		server.WriteServerError(w, "User", err)
 		return
@@ -145,7 +145,7 @@ func (h *Handler) changeEmail(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.userService.ChangeEmail(r.Context(), username, &domain.UserDiff{Email: payload.Email}); err != nil {
+	if err := h.service.ChangeEmail(r.Context(), username, &domain.UserDiff{Email: payload.Email}); err != nil {
 		server.WriteServerError(w, "User", err)
 		return
 	}
@@ -172,7 +172,7 @@ func (h *Handler) resetPassword(w http.ResponseWriter, r *http.Request) {
 	}
 	defer clear(payload.Password)
 
-	if err := h.userService.OverridePassword(r.Context(), username, payload.Password); err != nil {
+	if err := h.service.OverridePassword(r.Context(), username, payload.Password); err != nil {
 		server.WriteServerError(w, "User", err)
 		return
 	}
@@ -196,7 +196,7 @@ func (h *Handler) updatePermissions(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.userService.ChangePermissions(r.Context(), username, &domain.UserDiff{Permissions: payload.Permissions}); err != nil {
+	if err := h.service.ChangePermissions(r.Context(), username, &domain.UserDiff{Permissions: payload.Permissions}); err != nil {
 		server.WriteServerError(w, "User", err)
 		return
 	}
@@ -212,7 +212,7 @@ func (h *Handler) suspend(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.userService.Suspend(r.Context(), username); err != nil {
+	if err := h.service.Suspend(r.Context(), username); err != nil {
 		server.WriteServerError(w, "User", err)
 		return
 	}

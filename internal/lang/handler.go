@@ -18,9 +18,9 @@ type Handler struct {
 	service *LocalService
 }
 
-func NewHandler(s *LocalService) *Handler {
+func NewHandler(service *LocalService) *Handler {
 	var hndl Handler
-	hndl.service = s
+	hndl.service = service
 	hndl.Get = http.HandlerFunc(hndl.get)
 	hndl.Create = http.HandlerFunc(hndl.create)
 	hndl.Delete = http.HandlerFunc(hndl.delete)

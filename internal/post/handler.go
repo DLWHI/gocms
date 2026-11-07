@@ -25,12 +25,12 @@ type Handler struct {
 	Update      http.Handler
 	UpdateViews http.Handler
 	Delete      http.Handler
-	postService *Service
+	service     *Service
 }
 
-func NewHandler(s *Service) *Handler {
+func NewHandler(service *Service) *Handler {
 	var hndl Handler
-	hndl.postService = s
+	hndl.service = service
 	hndl.Create = http.HandlerFunc(hndl.create)
 	hndl.Search = http.HandlerFunc(hndl.search)
 	hndl.Get = http.HandlerFunc(hndl.get)
@@ -51,7 +51,7 @@ func (h *Handler) create(w http.ResponseWriter, r *http.Request) {
 
 	post := &domain.Post{}
 	payload.Apply(post)
-	if err := h.postService.Create(r.Context(), post); err != nil {
+	if err := h.service.Create(r.Context(), post); err != nil {
 		server.WriteServerError(w, "Post", err)
 		return
 	}
@@ -75,7 +75,7 @@ func (h *Handler) search(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	posts, err := h.postService.Search(r.Context(), &filters)
+	posts, err := h.service.Search(r.Context(), &filters)
 	if err != nil {
 		server.WriteServerError(w, "Post", err)
 		return
@@ -93,7 +93,7 @@ func (h *Handler) get(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	post, err := h.postService.Get(r.Context(), uint(id))
+	post, err := h.service.Get(r.Context(), uint(id))
 	if err != nil {
 		server.WriteServerError(w, "Post", err)
 		return
@@ -117,7 +117,7 @@ func (h *Handler) update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.postService.Edit(r.Context(), uint(id), &post); err != nil {
+	if err := h.service.Edit(r.Context(), uint(id), &post); err != nil {
 		server.WriteServerError(w, "Post", err)
 		return
 	}
@@ -141,7 +141,7 @@ func (h *Handler) updateViews(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.postService.SetViews(r.Context(), uint(id), *payload.Views); err != nil {
+	if err := h.service.SetViews(r.Context(), uint(id), *payload.Views); err != nil {
 		server.WriteServerError(w, "Post", err)
 		return
 	}
@@ -157,7 +157,7 @@ func (h *Handler) delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.postService.Delete(r.Context(), uint(id)); err != nil {
+	if err := h.service.Delete(r.Context(), uint(id)); err != nil {
 		server.WriteServerError(w, "Post", err)
 		return
 	}

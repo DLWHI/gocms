@@ -19,18 +19,18 @@ import (
 // ------------------------------------------------------------------
 
 type Handler struct {
-	Search    http.Handler
-	Create    http.Handler
-	Get       http.Handler
-	Update    http.Handler
-	Delete    http.Handler
-	Groups    http.Handler
-	adService *Service
+	Search  http.Handler
+	Create  http.Handler
+	Get     http.Handler
+	Update  http.Handler
+	Delete  http.Handler
+	Groups  http.Handler
+	service *Service
 }
 
-func NewHandler(s *Service) *Handler {
+func NewHandler(service *Service) *Handler {
 	var hndl Handler
-	hndl.adService = s
+	hndl.service = service
 	hndl.Search = http.HandlerFunc(hndl.ads)
 	hndl.Create = http.HandlerFunc(hndl.create)
 	hndl.Get = http.HandlerFunc(hndl.get)
@@ -49,7 +49,7 @@ func (h *Handler) ads(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ads, err := h.adService.Search(r.Context(), &filters)
+	ads, err := h.service.Search(r.Context(), &filters)
 	if err != nil {
 		server.WriteServerError(w, "Advertisement", err)
 		return
@@ -69,7 +69,7 @@ func (h *Handler) create(w http.ResponseWriter, r *http.Request) {
 
 	ad := &domain.Advertisement{}
 	payload.Apply(ad)
-	if err := h.adService.Create(r.Context(), ad); err != nil {
+	if err := h.service.Create(r.Context(), ad); err != nil {
 		server.WriteServerError(w, "Advertisement", err)
 		return
 	}
@@ -92,7 +92,7 @@ func (h *Handler) get(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ads, err := h.adService.Get(r.Context(), uint(id))
+	ads, err := h.service.Get(r.Context(), uint(id))
 	if err != nil {
 		server.WriteServerError(w, "Advertisement", err)
 		return
@@ -115,7 +115,7 @@ func (h *Handler) update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err = h.adService.Update(r.Context(), uint(id), &ad); err != nil {
+	if err = h.service.Update(r.Context(), uint(id), &ad); err != nil {
 		server.WriteServerError(w, "Advertisement", err)
 		return
 	}
@@ -131,7 +131,7 @@ func (h *Handler) delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.adService.Delete(r.Context(), uint(id)); err != nil {
+	if err := h.service.Delete(r.Context(), uint(id)); err != nil {
 		server.WriteServerError(w, "Advertisement", err)
 		return
 	}
@@ -141,7 +141,7 @@ func (h *Handler) delete(w http.ResponseWriter, r *http.Request) {
 
 // GET /ads/groups - Get ad groups
 func (h *Handler) groups(w http.ResponseWriter, r *http.Request) {
-	groups, err := h.adService.AllGroups(r.Context())
+	groups, err := h.service.AllGroups(r.Context())
 	if err != nil {
 		server.WriteServerError(w, "Advertisement", err)
 		return
@@ -159,7 +159,7 @@ func (h *Handler) getGroup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ads, err := h.adService.GetGroup(r.Context(), group)
+	ads, err := h.service.GetGroup(r.Context(), group)
 	if err != nil {
 		server.WriteServerError(w, "Advertisement", err)
 		return

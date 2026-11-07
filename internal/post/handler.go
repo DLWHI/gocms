@@ -61,8 +61,8 @@ func (h *Handler) create(w http.ResponseWriter, r *http.Request) {
 		"location": fmt.Sprintf("/cms/posts/%s/%d", post.Language, post.PostID),
 	}
 
-	w.WriteHeader(http.StatusCreated)
 	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
 	_ = json.NewEncoder(w).Encode(&res)
 }
 

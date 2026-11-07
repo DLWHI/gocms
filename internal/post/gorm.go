@@ -102,8 +102,10 @@ func (r *GORMRepository) Update(ctx context.Context, id uint, language string, d
 				return domain.ErrRetry
 			}
 
-			if err := tx.Model(diff).Association("Categories").Replace(&diff.Categories); err != nil {
-				return err
+			if diff.Categories != nil {
+				if err := tx.Model(diff).Association("Categories").Replace(&diff.Categories); err != nil {
+					return err
+				}
 			}
 
 			if version.Translation == 0 {

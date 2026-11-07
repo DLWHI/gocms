@@ -120,7 +120,7 @@ func (h *Handler) update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
+	w.WriteHeader(http.StatusNoContent)
 }
 
 // DELETE /ads/{id} - Delete ad
@@ -136,7 +136,7 @@ func (h *Handler) delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
+	w.WriteHeader(http.StatusNoContent)
 }
 
 // GET /ads/groups - Get ad groups

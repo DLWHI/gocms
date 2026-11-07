@@ -254,7 +254,7 @@ func NewAdsModule(
 	redisRepo := advertisement.NewRedisRepository(flowRepo, redis, 12*time.Hour, keys)
 	searchEngine := advertisement.NewMeilisearchEngine(search, AdsSearchIndexName)
 	consume := advertisement.NewEventConsumer(gormRepo, searchEngine)
-	service := advertisement.NewService(redisRepo, searchEngine)
+	service := advertisement.NewService(redisRepo, searchEngine, creds)
 	handler := advertisement.NewHandler(service)
 	return &AdsModule{
 		Consumer:          consume,

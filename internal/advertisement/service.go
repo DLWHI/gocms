@@ -18,10 +18,11 @@ type Service struct {
 	auth auth.Service
 }
 
-func NewService(repo Repository, se SearchEngine) *Service {
+func NewService(repo Repository, se SearchEngine, auth auth.Service) *Service {
 	return &Service{
 		repo: repo,
 		se:   se,
+		auth: auth,
 	}
 }
 

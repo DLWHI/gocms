@@ -41,6 +41,10 @@ type Environment struct {
 	TestData *Data
 }
 
+type TableEntity interface {
+	TableName() string
+}
+
 func (d *Data) GetConstant(constant string) (string, error) {
 	if value, ok := d.Constants[constant]; ok {
 		return fmt.Sprintf("%v", value), nil
@@ -206,9 +210,23 @@ func (e *Environment) Clear(ctx context.Context) error {
 		&advertisement.Record{},
 		&outbox.Message{},
 	}
+	incrementables := []any{
+		&post.Record{},
+		&advertisement.Record{},
+	}
 
 	for _, entity := range entites {
 		if err := e.DB.Unscoped().Where("1 = 1").Delete(entity).Error; err != nil {
+			return err
+		}
+	}
+
+	for _, entity := range incrementables {
+		table, ok := entity.(TableEntity)
+		if !ok {
+			return fmt.Errorf("%w: entity %T does not hold table behind itself", domain.ErrInval, entity)
+		}
+		if err := e.DB.Exec("ALTER TABLE ? AUTO_INCREMENT = 1;", table.TableName()).Error; err != nil {
 			return err
 		}
 	}

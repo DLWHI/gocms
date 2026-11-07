@@ -278,11 +278,7 @@ func (s *Service) Read(path string) (io.ReadCloser, string, error) {
 		return nil, "", err
 	}
 
-	mime, err := http.DetectContentType(buffer[:n]), nil
-	if err != nil {
-		logger.Error("Storage.Manager", "Failed to read a file.", err)
-		return nil, "", err
-	}
+	mime := http.DetectContentType(buffer[:n])
 
 	_, err = dst.Seek(0, io.SeekStart)
 	if err != nil {

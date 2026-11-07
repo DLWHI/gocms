@@ -28,7 +28,7 @@ func NewService(repo Repository, se SearchEngine, auth auth.Service, passwords p
 }
 
 func (s *Service) Create(ctx context.Context, user *domain.User, password password.Password) error {
-	if !s.auth.Authorize(ctx, domain.ActionCreate, domain.EntityName(&domain.User{})) {
+	if !s.auth.Authorize(ctx, domain.EntityName(&domain.User{}), domain.ActionCreate) {
 		return domain.ErrPerm
 	}
 	if !s.auth.IsSubsetOf(ctx, user.Permissions) {

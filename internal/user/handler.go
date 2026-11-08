@@ -68,7 +68,7 @@ func (h *Handler) create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	res := map[string]any{
-		"slug":     user.Username,
+		"username": user.Username,
 		"location": fmt.Sprintf("/cms/users/%s", user.Username),
 	}
 

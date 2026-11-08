@@ -79,7 +79,7 @@ func (*MeilisearchEngine) buildSort(params *SearchParams) []string {
 }
 
 func (r *MeilisearchEngine) Index(ctx context.Context, ad *domain.Advertisement) error {
-	index := r.search.Client.Index(r.search.Config.PrimaryKey)
+	index := r.search.Client.Index(r.search.Config.Uid)
 	task, err := index.AddDocumentsWithContext(ctx, ad, nil)
 	if err != nil {
 		return err
@@ -134,8 +134,13 @@ func (r *MeilisearchEngine) Search(ctx context.Context, params *SearchParams) (*
 
 	res, err := index.SearchWithContext(ctx, params.Query, req)
 	if err != nil {
-		if errors.Is(err, meilisearch.ErrInvalidRequestMethod) {
-			return nil, domain.ErrInval
+		var meiliErr *meilisearch.Error
+		if errors.As(err, &meiliErr) {
+			if meiliErr.StatusCode == http.StatusBadRequest &&
+				(meiliErr.MeilisearchApiError.Code == "invalid_search_filter" ||
+					meiliErr.MeilisearchApiError.Code == "invalid_search_sort") {
+				return nil, fmt.Errorf("%w: %v", domain.ErrInval, meiliErr.Error())
+			}
 		}
 		return nil, err
 	}

@@ -32,9 +32,6 @@ func (s *Service) authorize(ctx context.Context, action string, id uint) error {
 		return domain.ErrPerm
 	}
 
-	if !s.auth.Authorize(ctx, domain.EntityName(&domain.Post{}), action) {
-		return domain.ErrPerm
-	}
 	creator, err := s.repo.GetCreator(ctx, id)
 	if err != nil {
 		if !errors.Is(err, domain.ErrNotFound) {
@@ -42,7 +39,7 @@ func (s *Service) authorize(ctx context.Context, action string, id uint) error {
 		}
 		return err
 	}
-	if creator != initiator {
+	if creator != initiator && !s.auth.Authorize(ctx, domain.EntityName(&domain.Post{}), action) {
 		return domain.ErrPerm
 	}
 	return nil
@@ -50,7 +47,7 @@ func (s *Service) authorize(ctx context.Context, action string, id uint) error {
 
 func (s *Service) Create(ctx context.Context, post *domain.Post) error {
 	if !s.auth.Authorize(ctx, domain.EntityName(&domain.Post{}), domain.ActionCreate) {
-		return domain.ErrCred
+		return domain.ErrPerm
 	}
 
 	creator, ok := ctx.Value("username").(string)
@@ -110,7 +107,11 @@ func (s *Service) Create(ctx context.Context, post *domain.Post) error {
 	}
 
 	if post.MediaType != "" && !storage.IsMediaType(post.MediaType) {
-		return fmt.Errorf("%w: MediaType is unknown value", err)
+		return fmt.Errorf("%w: MediaType is unknown value", domain.ErrInval)
+	}
+
+	if post.PublishedAt != nil && *post.PublishedAt < 0 {
+		return fmt.Errorf("%w: PublishedAt must be non-negative", domain.ErrInval)
 	}
 
 	if err := s.repo.Create(ctx, post); err != nil {
@@ -180,7 +181,11 @@ func (s *Service) Edit(ctx context.Context, id uint, diff *domain.PostDiff) erro
 	}
 
 	if diff.MediaType != nil && !storage.IsItemType(*diff.MediaType) {
-		return fmt.Errorf("%w: MediaType is unknown value", err)
+		return fmt.Errorf("%w: MediaType is unknown value", domain.ErrInval)
+	}
+
+	if diff.PublishedAt != nil && *diff.PublishedAt < 0 {
+		return fmt.Errorf("%w: PublishedAt must be non-negative", domain.ErrInval)
 	}
 
 	for i := range diff.Categories {
@@ -207,7 +212,9 @@ func (s *Service) SetViews(ctx context.Context, id uint, value uint) error {
 	}
 
 	if err := s.repo.SetViews(ctx, id, value); err != nil {
-		logger.Error("Post.Service", "Failed to update post view count", err)
+		if !errors.Is(err, domain.ErrNotFound) {
+			logger.Error("Post.Service", "Failed to update post view count", err)
+		}
 		return err
 	}
 
@@ -217,7 +224,9 @@ func (s *Service) SetViews(ctx context.Context, id uint, value uint) error {
 func (s *Service) CommitViews(ctx context.Context, id uint, value uint) (uint, error) {
 	views, err := s.repo.IncrementViews(ctx, id, value)
 	if err != nil {
-		logger.Error("Post.Service", "Failed to retrieve post view count", err)
+		if !errors.Is(err, domain.ErrNotFound) {
+			logger.Error("Post.Service", "Failed to commit post view count", err)
+		}
 		return 0, err
 	}
 
@@ -259,7 +268,9 @@ func (s *Service) Search(ctx context.Context, filters *SearchParams) (*SearchRes
 
 	posts, err := s.se.Search(ctx, language, filters)
 	if err != nil {
-		logger.Error("Post.Service", "Failed to search posts", err)
+		if !errors.Is(err, domain.ErrInval) {
+			logger.Error("Post.Service", "Failed to search posts", err)
+		}
 		return nil, err
 	}
 	return posts, nil
@@ -273,7 +284,9 @@ func (s *Service) Get(ctx context.Context, id uint) (*domain.Post, error) {
 
 	post, err := s.repo.Get(ctx, id, language)
 	if err != nil {
-		logger.Error("Post.Service", "Failed to retrieve post", err)
+		if !errors.Is(err, domain.ErrNotFound) {
+			logger.Error("Post.Service", "Failed to retrieve post", err)
+		}
 		return nil, err
 	}
 
@@ -288,7 +301,9 @@ func (s *Service) GetPublished(ctx context.Context, id uint, slug string) (*doma
 
 	post, err := s.repo.Get(ctx, id, language)
 	if err != nil {
-		logger.Error("Post.Service", "Failed to retrieve post translation", err)
+		if !errors.Is(err, domain.ErrNotFound) {
+			logger.Error("Post.Service", "Failed to retrieve post", err)
+		}
 		return nil, err
 	}
 	if post.Slug != slug {

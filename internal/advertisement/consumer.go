@@ -39,6 +39,7 @@ func (s *EventConsumer) SyncSearch(ctx context.Context, data []byte) error {
 		}
 
 		if err := s.se.Index(ctx, ad); err != nil {
+			logger.Error("Advertisement.Consumer", "Failed to add advertisement to index", err, "payload", payload)
 			return err
 		}
 		return nil

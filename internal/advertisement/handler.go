@@ -165,6 +165,10 @@ func (h *Handler) getGroup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	res := map[string][]domain.Advertisement{
+		group: ads,
+	}
+
 	w.Header().Set("Content-Type", "application/json")
-	_ = json.NewEncoder(w).Encode(&ads)
+	_ = json.NewEncoder(w).Encode(&res)
 }

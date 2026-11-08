@@ -13,20 +13,20 @@ type Post struct {
 	ID          string   `json:"id"`
 	PostID      uint     `json:"post_id"`
 	Title       string   `json:"title"`
-	Description string   `json:"description,omitempty"`
-	Content     string   `json:"content,omitempty"`
+	Description string   `json:"description"`
+	Content     string   `json:"content"`
 	Slug        string   `json:"slug"`
-	Keywords    string   `json:"keywords,omitempty"`
+	Keywords    string   `json:"keywords"`
 	Lang        string   `json:"lang"`
-	CreatedAt   int64    `json:"created_at,omitempty"`
+	CreatedAt   int64    `json:"created_at"`
 	PublishedAt *int64   `json:"published_at"`
 	Views       uint     `json:"views"`
 	Preview     string   `json:"preview"`
-	Media       string   `json:"media,omitempty"`
-	MediaSource string   `json:"media_source,omitempty"`
-	MediaType   string   `json:"media_type,omitempty"`
-	Author      string   `json:"author,omitempty"`
-	CreatedBy   string   `json:"created_by,omitempty"`
+	Media       string   `json:"media"`
+	MediaSource string   `json:"media_source"`
+	MediaType   string   `json:"media_type"`
+	Author      string   `json:"author"`
+	CreatedBy   string   `json:"created_by"`
 	Categories  []string `json:"categories"`
 }
 

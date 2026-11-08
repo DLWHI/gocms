@@ -140,7 +140,7 @@ func (ms *MeilisearchEngine) Search(ctx context.Context, language string, params
 			if meiliErr.StatusCode == http.StatusBadRequest &&
 				(meiliErr.MeilisearchApiError.Code == "invalid_search_filter" ||
 					meiliErr.MeilisearchApiError.Code == "invalid_search_sort") {
-				return nil, domain.ErrInval
+				return nil, fmt.Errorf("%w: %v", domain.ErrInval, meiliErr.Error())
 			}
 		}
 		return nil, err

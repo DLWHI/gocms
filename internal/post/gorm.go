@@ -31,10 +31,10 @@ type Record struct {
 }
 
 type RecordTranslation struct {
-	Title       string `gorm:"not null"`
-	Description string `gorm:"not null"`
-	Keywords    string `gorm:"not null"`
-	Markdown    string ``
+	Title       string ``
+	Description string ``
+	Keywords    string ``
+	Content     string ``
 	Media       string ``
 	MediaSource string ``
 	MediaType   string ``
@@ -63,16 +63,17 @@ func NewGORMRepository(db *gorm.DB) *GORMRepository {
 
 func (r *GORMRepository) Create(ctx context.Context, post *domain.Post) error {
 	record := ToRecord(post)
-	return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+	err := r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		if err := tx.Create(record).Error; err != nil {
 			return err
 		}
+		post.PostID = record.Post.ID
 		if err := r.writeMessage(tx, domain.ActionCreate, post.PostID); err != nil {
 			return err
 		}
-		post.PostID = record.Post.ID
 		return nil
 	})
+	return database.MapError(err)
 }
 
 func (r *GORMRepository) Update(ctx context.Context, id uint, language string, diff *domain.PostDiff) error {
@@ -85,8 +86,8 @@ func (r *GORMRepository) Update(ctx context.Context, id uint, language string, d
 			}
 			err := tx.Table("posts AS p").
 				Select("p.version as post, pt.version as translation").
-				Joins("INNER JOIN post_translations AS pt ON pt.post_id = p.id").
-				Where("p.id = ? AND pt.lang = ?", id, language).
+				Joins("LEFT JOIN post_translations AS pt ON pt.post_id = p.id AND pt.lang = ?", language).
+				Where("p.id = ? ", id).
 				Take(&version).Error
 			if err != nil {
 				return err
@@ -103,7 +104,7 @@ func (r *GORMRepository) Update(ctx context.Context, id uint, language string, d
 			}
 
 			if diff.Categories != nil {
-				if err := tx.Model(diff).Association("Categories").Replace(&diff.Categories); err != nil {
+				if err := tx.Model(diff).Association("Categories").Replace(diff.Categories); err != nil {
 					return err
 				}
 			}
@@ -206,10 +207,11 @@ func (r *GORMRepository) Get(ctx context.Context, id uint, language string) (*do
 
 	result := r.db.WithContext(ctx).Model(&RecordTranslation{}).
 		Preload("Post").
+		Preload("Post.Categories").
 		Where("post_id = ? AND lang = ?", id, language).
 		Take(&post)
 	if result.Error != nil {
-		return nil, result.Error
+		return nil, database.MapError(result.Error)
 	}
 
 	return post.ToDomain(), nil
@@ -219,8 +221,8 @@ func (r *GORMRepository) GetTranslations(ctx context.Context, id uint) ([]domain
 	var posts []RecordTranslation
 
 	result := r.db.WithContext(ctx).Model(&RecordTranslation{}).
-		Preload("Categories").
 		Preload("Post").
+		Preload("Post.Categories").
 		Where("post_id = ?", id).
 		Find(&posts)
 	if result.Error != nil {
@@ -244,7 +246,7 @@ func (r *GORMRepository) GetViews(ctx context.Context, id uint) (uint, error) {
 		Where("id = ?", id).
 		Take(&views)
 	if result.Error != nil {
-		return 0, result.Error
+		return 0, database.MapError(result.Error)
 	}
 
 	return views, nil
@@ -258,7 +260,7 @@ func (r *GORMRepository) GetCreator(ctx context.Context, id uint) (string, error
 		Where("id = ?", id).
 		Take(&creator)
 	if result.Error != nil {
-		return "", result.Error
+		return "", database.MapError(result.Error)
 	}
 
 	return creator, nil
@@ -327,8 +329,13 @@ func (*GORMRepository) patch(diff *domain.PostDiff) (RecordPatch, TranslationPat
 		translation["version"] = gorm.Expr("version + 1")
 	}
 
+	if diff.PublishedAt != nil {
+		record["published_at"] = time.Unix(*diff.PublishedAt, 0)
+	} else {
+		record["published_at"] = nil
+	}
+
 	record["author"] = diff.Author
-	record["published_at"] = diff.PublishedAt
 	record["version"] = gorm.Expr("version + 1")
 
 	return record, translation
@@ -363,13 +370,14 @@ func (r *RecordTranslation) ToDomain() *domain.Post {
 	res.Slug = r.Post.Slug
 	res.Keywords = r.Keywords
 	res.Lang = r.Lang
-	res.CreatedAt = r.Post.CreatedAt.Unix()
 	res.Views = r.Post.Views
 	res.Preview = r.Post.Preview
+	res.CreatedAt = r.Post.CreatedAt.Unix()
 	res.CreatedBy = r.Post.CreatedBy
 	res.Media = r.Media
 	res.MediaType = r.MediaType
 	res.MediaSource = r.MediaSource
+	res.Content = r.Content
 	if r.Post.Author != nil {
 		res.Author = *r.Post.Author
 	}
@@ -408,7 +416,8 @@ func ToRecord(data *domain.Post) *RecordTranslation {
 	res.Media = data.Media
 	res.MediaType = data.MediaType
 	res.MediaSource = data.MediaSource
+	res.Post.CreatedAt = time.Unix(data.CreatedAt, 0)
 	res.Post.CreatedBy = data.CreatedBy
-
+	res.Content = data.Content
 	return &res
 }

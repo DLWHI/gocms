@@ -26,7 +26,7 @@ func NewMeilisearchEngine(client meilisearch.ServiceManager, index string) *Meil
 			},
 			Settings: meilisearch.Settings{
 				SearchableAttributes: []string{"title", "description", "keywords", "post_id"},
-				FilterableAttributes: []string{"language", "author", "created_at", "created_by", "published_at", "categories"},
+				FilterableAttributes: []string{"post_id", "lang", "author", "created_at", "created_by", "published_at", "categories"},
 				SortableAttributes:   []string{"post_id", "title", "author", "created_at", "published_at", "created_by", "views"},
 			},
 		},
@@ -168,7 +168,7 @@ func (r *MeilisearchEngine) Search(ctx context.Context, language string, params 
 			if meiliErr.StatusCode == http.StatusBadRequest &&
 				(meiliErr.MeilisearchApiError.Code == "invalid_search_filter" ||
 					meiliErr.MeilisearchApiError.Code == "invalid_search_sort") {
-				return nil, domain.ErrInval
+				return nil, fmt.Errorf("%w: %v", domain.ErrInval, meiliErr.Error())
 			}
 		}
 		return nil, err

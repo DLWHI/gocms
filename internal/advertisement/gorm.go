@@ -185,7 +185,12 @@ func (*GORMRepository) patch(diff *domain.AdvertisementDiff) map[string]interfac
 		record["banner"] = *diff.Banner
 	}
 
-	record["expires_at"] = diff.ExpiresAt
+	if diff.ExpiresAt != nil {
+		record["expires_at"] = time.Unix(*diff.ExpiresAt, 0)
+	} else {
+		record["expires_at"] = nil
+	}
+
 	record["version"] = gorm.Expr("version + 1")
 
 	return record

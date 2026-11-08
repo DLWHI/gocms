@@ -2,6 +2,7 @@ package advertisement
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"gocms/internal/auth"
 	"gocms/internal/domain"
@@ -9,7 +10,6 @@ import (
 	"gocms/internal/search"
 	"net/url"
 	"strings"
-	"unicode"
 )
 
 type Service struct {
@@ -44,22 +44,9 @@ func isValidURL(str string) bool {
 	return true
 }
 
-func (s *Service) sanitize(ad *domain.Advertisement) error {
-	ad.Group = strings.TrimSpace(strings.ToLower(ad.Group))
-	if strings.IndexFunc(ad.Group, unicode.IsSpace) >= 0 {
-		return fmt.Errorf("%w: no spaces allowed in group", domain.ErrInval)
-	}
-
-	if !isValidURL(ad.URL) {
-		return fmt.Errorf("%w: URL is not valid", domain.ErrInval)
-	}
-
-	return nil
-}
-
 func (s *Service) Create(ctx context.Context, ad *domain.Advertisement) error {
 	if !s.auth.Authorize(ctx, domain.EntityName(&domain.Advertisement{}), domain.ActionCreate) {
-		return domain.ErrCred
+		return domain.ErrPerm
 	}
 
 	name, err := domain.NormalizeName(ad.Name)
@@ -67,7 +54,7 @@ func (s *Service) Create(ctx context.Context, ad *domain.Advertisement) error {
 		return err
 	}
 	if name == "" {
-		return fmt.Errorf("%w: name cannot be empty", err)
+		return fmt.Errorf("%w: name cannot be empty", domain.ErrInval)
 	}
 	ad.Name = name
 
@@ -91,6 +78,10 @@ func (s *Service) Create(ctx context.Context, ad *domain.Advertisement) error {
 		return err
 	}
 	ad.Banner = banner
+
+	if ad.ExpiresAt != nil && *ad.ExpiresAt < 0 {
+		return fmt.Errorf("%w: ExpiresAt must be non-negative", domain.ErrInval)
+	}
 
 	if err := s.repo.Create(ctx, ad); err != nil {
 		logger.Error("Ads.Service", "Failed to create advertisement", err)
@@ -142,8 +133,15 @@ func (s *Service) Update(ctx context.Context, id uint, diff *domain.Advertisemen
 		}
 		diff.Banner = &banner
 	}
+
+	if diff.ExpiresAt != nil && *diff.ExpiresAt < 0 {
+		return fmt.Errorf("%w: ExpiresAt must be non-negative", domain.ErrInval)
+	}
+
 	if err := s.repo.Update(ctx, id, diff); err != nil {
-		logger.Error("Ads.Service", "Failed to update advertisement", err)
+		if !errors.Is(err, domain.ErrNotFound) {
+			logger.Error("Ads.Service", "Failed to update advertisement", err)
+		}
 		return err
 	}
 
@@ -153,7 +151,9 @@ func (s *Service) Update(ctx context.Context, id uint, diff *domain.Advertisemen
 func (s *Service) Get(ctx context.Context, id uint) (*domain.Advertisement, error) {
 	ad, err := s.repo.Get(ctx, id)
 	if err != nil {
-		logger.Error("Ads.Service", "Failed to retrieve advertisement", err)
+		if !errors.Is(err, domain.ErrNotFound) {
+			logger.Error("Ads.Service", "Failed to retrieve advertisement", err)
+		}
 		return nil, err
 	}
 
@@ -194,11 +194,13 @@ func (s *Service) Search(ctx context.Context, filters *SearchParams) (*SearchRes
 
 func (s *Service) Delete(ctx context.Context, id uint) error {
 	if !s.auth.Authorize(ctx, domain.EntityName(&domain.Advertisement{}), domain.ActionDelete) {
-		return domain.ErrCred
+		return domain.ErrPerm
 	}
 
 	if err := s.repo.Delete(ctx, id); err != nil {
-		logger.Error("Ads.Service", "Failed to delete advertisement", err)
+		if !errors.Is(err, domain.ErrNotFound) {
+			logger.Error("Ads.Service", "Failed to delete advertisement", err)
+		}
 		return err
 	}
 

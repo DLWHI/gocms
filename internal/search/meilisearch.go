@@ -38,57 +38,57 @@ func NewMeilisearchConnection(host string, port string, apiKey string) meilisear
 	return client
 }
 
-func (d *MeilisearchIndex) Create(ctx context.Context) error {
-	task, err := d.Client.CreateIndexWithContext(ctx, &d.Config)
+func (s *MeilisearchIndex) Create(ctx context.Context) error {
+	task, err := s.Client.CreateIndexWithContext(ctx, &s.Config)
 	if err != nil {
 		return err
 	}
-	if err := d.WaitForTask(ctx, task); err != nil {
+	if err := s.WaitForTask(ctx, task); err != nil {
 		return err
 	}
 
-	err = d.Configure(ctx)
+	err = s.Configure(ctx)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (d *MeilisearchIndex) Configure(ctx context.Context) error {
-	task, err := d.Client.Index(d.Config.Uid).UpdateSettingsWithContext(ctx, &d.Settings)
+func (s *MeilisearchIndex) Configure(ctx context.Context) error {
+	task, err := s.Client.Index(s.Config.Uid).UpdateSettingsWithContext(ctx, &s.Settings)
 	if err != nil {
 		return err
 	}
-	if err := d.WaitForTask(ctx, task); err != nil {
+	if err := s.WaitForTask(ctx, task); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (d *MeilisearchIndex) Wipe(ctx context.Context) error {
-	task, err := d.Client.Index(d.Config.Uid).DeleteAllDocumentsWithContext(ctx, nil)
+func (s *MeilisearchIndex) Wipe(ctx context.Context) error {
+	task, err := s.Client.Index(s.Config.Uid).DeleteAllDocumentsWithContext(ctx, nil)
 	if err != nil {
 		return err
 	}
-	if err := d.WaitForTask(ctx, task); err != nil {
+	if err := s.WaitForTask(ctx, task); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (d *MeilisearchIndex) Destroy(ctx context.Context) error {
-	task, err := d.Client.DeleteIndexWithContext(ctx, d.Config.Uid)
+func (s *MeilisearchIndex) Destroy(ctx context.Context) error {
+	task, err := s.Client.DeleteIndexWithContext(ctx, s.Config.Uid)
 	if err != nil {
 		return err
 	}
-	if err := d.WaitForTask(ctx, task); err != nil {
+	if err := s.WaitForTask(ctx, task); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (d *MeilisearchIndex) WaitForTask(ctx context.Context, info *meilisearch.TaskInfo) error {
-	task, err := d.Client.TaskManager().WaitForTaskWithContext(ctx, info.TaskUID, 100*time.Millisecond)
+func (s *MeilisearchIndex) WaitForTask(ctx context.Context, info *meilisearch.TaskInfo) error {
+	task, err := s.Client.TaskManager().WaitForTaskWithContext(ctx, info.TaskUID, 100*time.Millisecond)
 	if err != nil {
 		return err
 	}

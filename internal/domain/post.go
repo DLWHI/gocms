@@ -18,31 +18,31 @@ type Post struct {
 	Slug        string   `json:"slug"`
 	Keywords    string   `json:"keywords"`
 	Lang        string   `json:"lang"`
-	CreatedAt   int64    `json:"created_at"`
+	CreatedAt   int64    `json:"created_at,omitempty"`
 	PublishedAt *int64   `json:"published_at"`
 	Views       uint     `json:"views"`
 	Preview     string   `json:"preview"`
 	Media       string   `json:"media"`
 	MediaSource string   `json:"media_source"`
 	MediaType   string   `json:"media_type"`
-	Author      string   `json:"author"`
-	CreatedBy   string   `json:"created_by"`
+	Author      *string  `json:"author"`
+	CreatedBy   string   `json:"created_by,omitempty"`
 	Categories  []string `json:"categories"`
 }
 
 type PostDiff struct {
-	Title       *string  `json:"title"`
-	Description *string  `json:"description"`
-	Content     *string  `json:"content"`
-	Slug        *string  `json:"slug"`
-	Keywords    *string  `json:"keywords"`
-	PublishedAt *int64   `json:"published_at"`
-	Preview     *string  `json:"preview"`
-	Media       *string  `json:"media"`
-	MediaSource *string  `json:"media_source"`
-	MediaType   *string  `json:"media_type"`
-	Author      *string  `json:"author"`
-	Categories  []string `json:"categories"`
+	Title       *string   `json:"title"`
+	Description *string   `json:"description"`
+	Content     *string   `json:"content"`
+	Slug        *string   `json:"slug"`
+	Keywords    *string   `json:"keywords"`
+	PublishedAt *int64    `json:"published_at"`
+	Preview     *string   `json:"preview"`
+	Media       *string   `json:"media"`
+	MediaSource *string   `json:"media_source"`
+	MediaType   *string   `json:"media_type"`
+	Author      *string   `json:"author"`
+	Categories  *[]string `json:"categories"`
 }
 
 type PostEventInfo struct {
@@ -88,9 +88,9 @@ func (u *PostDiff) Apply(target *Post) {
 		target.MediaType = *u.MediaType
 	}
 	if u.Author != nil {
-		target.Author = *u.Author
+		target.Author = u.Author
 	}
 	if u.Categories != nil {
-		target.Categories = u.Categories
+		target.Categories = *u.Categories
 	}
 }

@@ -21,8 +21,9 @@ type SearchParams struct {
 type SearchResult = search.Result[domain.Post]
 
 type SearchEngine interface {
-	Index(ctx context.Context, id uint, group ...domain.Post) error
+	Index(ctx context.Context, group ...domain.Post) error
 	Get(ctx context.Context, id uint, language string) (*domain.Post, error)
-	Search(ctx context.Context, language string, post *SearchParams) (*SearchResult, error)
+	Search(ctx context.Context, params *SearchParams) (*SearchResult, error)
+	SearchLang(ctx context.Context, language string, params *SearchParams) (*SearchResult, error)
 	Delete(ctx context.Context, id uint) error
 }

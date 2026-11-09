@@ -54,7 +54,7 @@ func NormalizeURL(value string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("%w: %v", ErrInval, err)
 	}
-	if u.Scheme != "http" && u.Scheme != "https" {
+	if u.Scheme != "http" && u.Scheme != "https" && u.Scheme != "" {
 		return "", fmt.Errorf("%w: unsupported URL scheme", ErrInval)
 	}
 	return u.String(), nil

@@ -10,6 +10,7 @@ import (
 	"gocms/internal/logger"
 	"gocms/internal/search"
 	"gocms/internal/storage"
+	"time"
 )
 
 type Service struct {
@@ -55,6 +56,7 @@ func (s *Service) Create(ctx context.Context, post *domain.Post) error {
 		return domain.ErrPerm
 	}
 	post.CreatedBy = creator
+	post.CreatedAt = time.Now().Unix() // gorm does not fill non-pointer
 
 	language, err := lang.ResolveLang(ctx)
 	if err != nil {
@@ -98,16 +100,8 @@ func (s *Service) Create(ctx context.Context, post *domain.Post) error {
 	}
 	post.MediaSource = source
 
-	for i := range post.Categories {
-		slug, err := domain.NormalizeSlug(post.Categories[i])
-		if err != nil {
-			return err
-		}
-		post.Categories[i] = slug
-	}
-
 	if post.MediaType != "" && !storage.IsMediaType(post.MediaType) {
-		return fmt.Errorf("%w: MediaType is unknown value", domain.ErrInval)
+		return fmt.Errorf("%w: MediaType has unknown value", domain.ErrInval)
 	}
 
 	if post.PublishedAt != nil && *post.PublishedAt < 0 {
@@ -115,7 +109,9 @@ func (s *Service) Create(ctx context.Context, post *domain.Post) error {
 	}
 
 	if err := s.repo.Create(ctx, post); err != nil {
-		logger.Error("Post.Service", "Failed to create post", err)
+		if !errors.Is(err, domain.ErrInval) {
+			logger.Error("Post.Service", "Failed to create post", err)
+		}
 		return err
 	}
 
@@ -180,20 +176,12 @@ func (s *Service) Edit(ctx context.Context, id uint, diff *domain.PostDiff) erro
 		diff.MediaSource = &source
 	}
 
-	if diff.MediaType != nil && !storage.IsItemType(*diff.MediaType) {
-		return fmt.Errorf("%w: MediaType is unknown value", domain.ErrInval)
+	if diff.MediaType != nil && *diff.MediaType != "" && !storage.IsItemType(*diff.MediaType) {
+		return fmt.Errorf("%w: MediaType has unknown value", domain.ErrInval)
 	}
 
 	if diff.PublishedAt != nil && *diff.PublishedAt < 0 {
 		return fmt.Errorf("%w: PublishedAt must be non-negative", domain.ErrInval)
-	}
-
-	for i := range diff.Categories {
-		slug, err := domain.NormalizeSlug(diff.Categories[i])
-		if err != nil {
-			return err
-		}
-		diff.Categories[i] = slug
 	}
 
 	if err := s.repo.Update(ctx, id, language, diff); err != nil {
@@ -234,31 +222,6 @@ func (s *Service) CommitViews(ctx context.Context, id uint, value uint) (uint, e
 }
 
 func (s *Service) Search(ctx context.Context, filters *SearchParams) (*SearchResult, error) {
-	_, ok := ctx.Value(auth.UsernameContextKey).(string)
-	if !ok {
-		filters.Select = []string{
-			"post_id",
-			"title",
-			"language",
-			"published_at",
-			"created_at",
-			"views",
-			"author",
-			"created_by",
-			"categories",
-		}
-	} else {
-		filters.Select = []string{
-			"post_id",
-			"title",
-			"description",
-			"language",
-			"published_at",
-			"views",
-			"categories",
-		}
-	}
-
 	search.ClampParams(&filters.Params)
 
 	language, err := lang.ResolveLang(ctx)
@@ -266,7 +229,7 @@ func (s *Service) Search(ctx context.Context, filters *SearchParams) (*SearchRes
 		return nil, err
 	}
 
-	posts, err := s.se.Search(ctx, language, filters)
+	posts, err := s.se.SearchLang(ctx, language, filters)
 	if err != nil {
 		if !errors.Is(err, domain.ErrInval) {
 			logger.Error("Post.Service", "Failed to search posts", err)

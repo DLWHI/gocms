@@ -342,11 +342,11 @@ func IsSorted(values []JSONValue, desc bool) error {
 	last := values[0]
 	for i := 1; i < len(values); i++ {
 		if desc {
-			if err := Gt(last, values[i]); err != nil {
+			if err := Gte(last, values[i]); err != nil {
 				return fmt.Errorf("Assertion failed: expected sorted descending array")
 			}
 		} else {
-			if err := Lt(last, values[i]); err != nil {
+			if err := Lte(last, values[i]); err != nil {
 				return fmt.Errorf("Assertion failed: expected sorted ascending array")
 			}
 		}

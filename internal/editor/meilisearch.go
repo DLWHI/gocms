@@ -33,8 +33,8 @@ func NewMeilisearchEngine(client meilisearch.ServiceManager, index string) *Meil
 	}
 }
 
-func (*MeilisearchEngine) buildFilter(params *SearchParams, language string) string {
-	clauses := []string{fmt.Sprintf("lang = %q", language)}
+func (*MeilisearchEngine) buildFilter(params *SearchParams) string {
+	clauses := []string{}
 
 	if params.Deleted != nil {
 		if *params.Deleted {
@@ -68,6 +68,14 @@ func (*MeilisearchEngine) buildSort(params *SearchParams) []string {
 	}
 
 	return sortParams
+}
+
+func (*MeilisearchEngine) wrapLang(clauses string, language string) string {
+	if clauses == "" {
+		return fmt.Sprintf("lang = %q", language)
+	} else {
+		return clauses + fmt.Sprintf("AND lang = %q", language)
+	}
 }
 
 func (ms *MeilisearchEngine) Index(ctx context.Context, slug string, group ...domain.Editor) error {
@@ -120,20 +128,33 @@ func (ms *MeilisearchEngine) Delete(ctx context.Context, slug string) error {
 	return err
 }
 
-func (ms *MeilisearchEngine) Search(ctx context.Context, language string, params *SearchParams) (*SearchResult, error) {
-	var results SearchResult
+func (r *MeilisearchEngine) Search(ctx context.Context, params *SearchParams) (*SearchResult, error) {
 	req := &meilisearch.SearchRequest{
 		HitsPerPage:          &params.Count,
 		Page:                 params.Page,
-		Filter:               ms.buildFilter(params, language),
-		Sort:                 ms.buildSort(params),
+		Filter:               r.buildFilter(params),
+		Sort:                 r.buildSort(params),
 		AttributesToRetrieve: params.Select,
 	}
-	index := ms.search.Client.Index(ms.search.Config.Uid)
+	return r.perform(ctx, strings.TrimSpace(params.Query), req)
+}
 
-	params.Query = strings.TrimSpace(params.Query)
+func (r *MeilisearchEngine) SearchLang(ctx context.Context, language string, params *SearchParams) (*SearchResult, error) {
+	req := &meilisearch.SearchRequest{
+		HitsPerPage:          &params.Count,
+		Page:                 params.Page,
+		Filter:               r.wrapLang(r.buildFilter(params), language),
+		Sort:                 r.buildSort(params),
+		AttributesToRetrieve: params.Select,
+	}
+	return r.perform(ctx, strings.TrimSpace(params.Query), req)
+}
 
-	res, err := index.SearchWithContext(ctx, params.Query, req)
+func (r *MeilisearchEngine) perform(ctx context.Context, query string, req *meilisearch.SearchRequest) (*SearchResult, error) {
+	var results SearchResult
+	index := r.search.Client.Index(r.search.Config.Uid)
+
+	res, err := index.SearchWithContext(ctx, query, req)
 	if err != nil {
 		var meiliErr *meilisearch.Error
 		if errors.As(err, &meiliErr) {

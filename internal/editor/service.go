@@ -154,7 +154,7 @@ func (s *Service) Search(ctx context.Context, filters *SearchParams) (*SearchRes
 		"deleted_at",
 	}
 
-	editors, err := s.se.Search(ctx, language, filters)
+	editors, err := s.se.SearchLang(ctx, language, filters)
 	if err != nil {
 		if !errors.Is(err, domain.ErrInval) {
 			logger.Error("Editor.Service", "Failed to search editor profiles", err)

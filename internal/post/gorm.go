@@ -18,10 +18,10 @@ import (
 type Record struct {
 	ID          uint              `gorm:"primaryKey;autoIncrement"`
 	Slug        string            `gorm:"size:128"`
-	CreatedAt   time.Time         `gorm:"default:current_timestamp"`
+	CreatedAt   time.Time         `gorm:"default:CURRENT_TIMESTAMP"`
 	PublishedAt *time.Time        ``
 	Views       uint              `gorm:"not null;default:0"`
-	Preview     string            ``
+	Preview     string            `gorm:"default:''"`
 	Author      *string           `gorm:"size:128;"`
 	Editor      editor.Record     `gorm:"foreignKey:Author;references:Slug;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 	CreatedBy   string            `gorm:"size:64;"`
@@ -31,13 +31,13 @@ type Record struct {
 }
 
 type RecordTranslation struct {
-	Title       string ``
-	Description string ``
-	Keywords    string ``
-	Content     string ``
-	Media       string ``
-	MediaSource string ``
-	MediaType   string ``
+	Title       string `gorm:"default:''"`
+	Description string `gorm:"default:''"`
+	Keywords    string `gorm:"default:''"`
+	Content     string `gorm:"default:''"`
+	Media       string `gorm:"default:''"`
+	MediaSource string `gorm:"default:''"`
+	MediaType   string `gorm:"default:''"`
 	Lang        string `gorm:"size:2;primaryKey"`
 	PostID      uint   `gorm:"primaryKey"`
 	Post        Record `gorm:"foreignKey:PostID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
@@ -64,7 +64,7 @@ func NewGORMRepository(db *gorm.DB) *GORMRepository {
 func (r *GORMRepository) Create(ctx context.Context, post *domain.Post) error {
 	record := ToRecord(post)
 	err := r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		if err := tx.Create(record).Error; err != nil {
+		if err := tx.Omit("Post.Categories.*").Create(record).Error; err != nil {
 			return err
 		}
 		post.PostID = record.Post.ID
@@ -104,7 +104,11 @@ func (r *GORMRepository) Update(ctx context.Context, id uint, language string, d
 			}
 
 			if diff.Categories != nil {
-				if err := tx.Model(diff).Association("Categories").Replace(diff.Categories); err != nil {
+				categories := make([]category.Record, 0, len(*diff.Categories))
+				for _, slug := range *diff.Categories {
+					categories = append(categories, category.Record{Slug: slug})
+				}
+				if err := tx.Model(&Record{ID: id}).Omit("Categories.*").Association("Categories").Replace(categories); err != nil {
 					return err
 				}
 			}
@@ -307,22 +311,25 @@ func (*GORMRepository) patch(diff *domain.PostDiff) (RecordPatch, TranslationPat
 	}
 
 	if diff.Title != nil {
-		translation["title"] = diff.Title
+		translation["title"] = *diff.Title
 	}
 	if diff.Description != nil {
-		translation["description"] = diff.Description
+		translation["description"] = *diff.Description
 	}
 	if diff.Keywords != nil {
-		translation["keywords"] = diff.Keywords
+		translation["keywords"] = *diff.Keywords
+	}
+	if diff.Content != nil {
+		translation["content"] = *diff.Content
 	}
 	if diff.Media != nil {
-		translation["media"] = diff.Media
+		translation["media"] = *diff.Media
 	}
 	if diff.MediaSource != nil {
-		translation["media_source"] = diff.MediaSource
+		translation["media_source"] = *diff.MediaSource
 	}
 	if diff.MediaType != nil {
-		translation["media_type"] = diff.MediaType
+		translation["media_type"] = *diff.MediaType
 	}
 
 	if len(translation) > 0 {
@@ -378,9 +385,7 @@ func (r *RecordTranslation) ToDomain() *domain.Post {
 	res.MediaType = r.MediaType
 	res.MediaSource = r.MediaSource
 	res.Content = r.Content
-	if r.Post.Author != nil {
-		res.Author = *r.Post.Author
-	}
+	res.Author = r.Post.Author
 
 	return &res
 }
@@ -390,11 +395,6 @@ func ToRecord(data *domain.Post) *RecordTranslation {
 	if data.PublishedAt != nil {
 		ts := time.Unix(*data.PublishedAt, 0).UTC()
 		res.Post.PublishedAt = &ts
-	}
-
-	if data.Author != "" {
-		author := data.Author
-		res.Post.Author = &author
 	}
 
 	// To make json.Marshall convert no categories to empty array
@@ -413,6 +413,7 @@ func ToRecord(data *domain.Post) *RecordTranslation {
 	res.Post.Slug = data.Slug
 	res.Post.Views = data.Views
 	res.Post.Preview = data.Preview
+	res.Post.Author = data.Author
 	res.Media = data.Media
 	res.MediaType = data.MediaType
 	res.MediaSource = data.MediaSource

@@ -54,11 +54,11 @@ func (*MeilisearchEngine) buildFilter(params *SearchParams) string {
 	}
 
 	if len(params.Groups) > 0 {
-		for i := range params.Groups {
-			params.Groups[i] = fmt.Sprintf("%q", params.Groups[i])
+		groups := make([]string, 0, len(params.Groups))
+		for _, group := range params.Groups {
+			groups = append(groups, strconv.Quote(group))
 		}
-		groupClauses := fmt.Sprintf("group IN [%s]", strings.Join(params.Groups, ", "))
-		clauses = append(clauses, groupClauses)
+		clauses = append(clauses, fmt.Sprintf("group IN [%s]", strings.Join(groups, ", ")))
 	}
 
 	return strings.Join(clauses, " AND ")
@@ -78,22 +78,22 @@ func (*MeilisearchEngine) buildSort(params *SearchParams) []string {
 	return sortParams
 }
 
-func (r *MeilisearchEngine) Index(ctx context.Context, ad *domain.Advertisement) error {
-	index := r.search.Client.Index(r.search.Config.Uid)
+func (ms *MeilisearchEngine) Index(ctx context.Context, ad *domain.Advertisement) error {
+	index := ms.search.Client.Index(ms.search.Config.Uid)
 	task, err := index.AddDocumentsWithContext(ctx, ad, nil)
 	if err != nil {
 		return err
 	}
-	if err := r.search.WaitForTask(ctx, task); err != nil {
+	if err := ms.search.WaitForTask(ctx, task); err != nil {
 		return err
 	}
 	return err
 }
 
-func (r *MeilisearchEngine) Get(ctx context.Context, id uint) (*domain.Advertisement, error) {
+func (ms *MeilisearchEngine) Get(ctx context.Context, id uint) (*domain.Advertisement, error) {
 	var ad domain.Advertisement
 	docID := strconv.FormatUint(uint64(id), 10)
-	err := r.search.Client.Index(r.search.Config.Uid).GetDocumentWithContext(ctx, docID, nil, &ad)
+	err := ms.search.Client.Index(ms.search.Config.Uid).GetDocumentWithContext(ctx, docID, nil, &ad)
 	if err != nil {
 		var meiliErr *meilisearch.Error
 		if errors.As(err, &meiliErr) {
@@ -106,29 +106,29 @@ func (r *MeilisearchEngine) Get(ctx context.Context, id uint) (*domain.Advertise
 	return &ad, nil
 }
 
-func (r *MeilisearchEngine) Delete(ctx context.Context, id uint) error {
+func (ms *MeilisearchEngine) Delete(ctx context.Context, id uint) error {
 	docID := strconv.FormatUint(uint64(id), 10)
-	index := r.search.Client.Index(r.search.Config.Uid)
+	index := ms.search.Client.Index(ms.search.Config.Uid)
 	task, err := index.DeleteDocumentWithContext(ctx, docID, nil)
 	if err != nil {
 		return err
 	}
-	if err := r.search.WaitForTask(ctx, task); err != nil {
+	if err := ms.search.WaitForTask(ctx, task); err != nil {
 		return err
 	}
 	return err
 }
 
-func (r *MeilisearchEngine) Search(ctx context.Context, params *SearchParams) (*SearchResult, error) {
+func (ms *MeilisearchEngine) Search(ctx context.Context, params *SearchParams) (*SearchResult, error) {
 	var results SearchResult
 	req := &meilisearch.SearchRequest{
 		HitsPerPage:          &params.Count,
 		Page:                 params.Page,
-		Filter:               r.buildFilter(params),
-		Sort:                 r.buildSort(params),
+		Filter:               ms.buildFilter(params),
+		Sort:                 ms.buildSort(params),
 		AttributesToRetrieve: params.Select,
 	}
-	index := r.search.Client.Index(r.search.Config.Uid)
+	index := ms.search.Client.Index(ms.search.Config.Uid)
 
 	params.Query = strings.TrimSpace(params.Query)
 
@@ -154,16 +154,16 @@ func (r *MeilisearchEngine) Search(ctx context.Context, params *SearchParams) (*
 	return &results, nil
 }
 
-func (r *MeilisearchEngine) Create(ctx context.Context) error {
-	return r.search.Create(ctx)
+func (ms *MeilisearchEngine) Create(ctx context.Context) error {
+	return ms.search.Create(ctx)
 }
 
-func (r *MeilisearchEngine) Wipe(ctx context.Context) error {
-	return r.search.Wipe(ctx)
+func (ms *MeilisearchEngine) Wipe(ctx context.Context) error {
+	return ms.search.Wipe(ctx)
 }
 
-func (r *MeilisearchEngine) Configure(ctx context.Context) error {
-	return r.search.Configure(ctx)
+func (ms *MeilisearchEngine) Configure(ctx context.Context) error {
+	return ms.search.Configure(ctx)
 }
 
 func (ms *MeilisearchEngine) Destroy(ctx context.Context) error {

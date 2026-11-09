@@ -71,11 +71,17 @@ func (s *Service) Create(ctx context.Context, ad *domain.Advertisement) error {
 	if err != nil {
 		return err
 	}
+	if url == "" {
+		return fmt.Errorf("%w: Missing url", domain.ErrInval)
+	}
 	ad.URL = url
 
 	banner, err := domain.NormalizeURL(ad.Banner)
 	if err != nil {
 		return err
+	}
+	if banner == "" {
+		return fmt.Errorf("%w: Missing banner image", domain.ErrInval)
 	}
 	ad.Banner = banner
 
@@ -123,6 +129,9 @@ func (s *Service) Update(ctx context.Context, id uint, diff *domain.Advertisemen
 		if err != nil {
 			return err
 		}
+		if url == "" {
+			return fmt.Errorf("%w: Missing url", domain.ErrInval)
+		}
 		diff.URL = &url
 	}
 
@@ -130,6 +139,9 @@ func (s *Service) Update(ctx context.Context, id uint, diff *domain.Advertisemen
 		banner, err := domain.NormalizeURL(*diff.Banner)
 		if err != nil {
 			return err
+		}
+		if banner == "" {
+			return fmt.Errorf("%w: Missing banner image", domain.ErrInval)
 		}
 		diff.Banner = &banner
 	}

@@ -1,6 +1,6 @@
 //go:build linux || darwin
 
-// storage_unix.go
+// storage_info_unix.go
 package storage
 
 import (

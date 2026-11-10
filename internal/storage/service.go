@@ -2,7 +2,6 @@ package storage
 
 import (
 	"errors"
-	"fmt"
 	"io"
 	"io/fs"
 	"net/http"
@@ -10,7 +9,6 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
-	"syscall"
 
 	"gocms/internal/domain"
 	"gocms/internal/logger"
@@ -361,24 +359,14 @@ func (s *Service) Delete(path string, recursive bool) error {
 	}
 
 	if recursive {
-		err = os.RemoveAll(fullPath)
+		err = MapError(os.RemoveAll(fullPath))
 	} else {
-		err = os.Remove(fullPath)
+		err = MapError(os.Remove(fullPath))
 	}
 	if err != nil {
-		var pathErr *os.PathError
-		if errors.As(err, &pathErr) {
-			var errno syscall.Errno
-			if errors.As(pathErr.Err, &errno) {
-				if errno == syscall.ERROR_DIR_NOT_EMPTY || errno == syscall.ENOTEMPTY {
-					return fmt.Errorf("%w: directory not empty", domain.ErrInval)
-				}
-			}
+		if !errors.Is(err, domain.ErrNotFound) && !errors.Is(err, domain.ErrInval) {
+			logger.Error("Storage.Manager", "Failed to delete a file.", err)
 		}
-		if errors.Is(err, os.ErrNotExist) {
-			return domain.ErrNotFound
-		}
-		logger.Error("Storage.Manager", "Failed to delete a file.", err)
 		return err
 	}
 	return nil

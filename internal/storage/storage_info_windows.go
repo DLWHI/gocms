@@ -1,6 +1,6 @@
 //go:build windows
 
-// storage_windows.go
+// storage_info_unix.go
 package storage
 
 import (

@@ -286,7 +286,7 @@ func TestPosts(t *testing.T) {
 	ran := 0
 	succeed := 0
 	defer func() {
-		logger.Info("Test.Posts", fmt.Sprintf("Finished running editor tests. Ran = %d tests. Passed = %d. Failed = %d", ran, succeed, ran-succeed))
+		logger.Info("Test.Posts", fmt.Sprintf("Finished running post tests. Ran = %d tests. Passed = %d. Failed = %d", ran, succeed, ran-succeed))
 	}()
 
 	ctx, cancel := signal.NotifyContext(t.Context(), os.Interrupt, syscall.SIGTERM)
@@ -339,7 +339,7 @@ func TestAdvertisements(t *testing.T) {
 	ran := 0
 	succeed := 0
 	defer func() {
-		logger.Info("Test.Advertisements", fmt.Sprintf("Finished running editor tests. Ran = %d tests. Passed = %d. Failed = %d", ran, succeed, ran-succeed))
+		logger.Info("Test.Advertisements", fmt.Sprintf("Finished running advertisement tests. Ran = %d tests. Passed = %d. Failed = %d", ran, succeed, ran-succeed))
 	}()
 
 	ctx, cancel := signal.NotifyContext(t.Context(), os.Interrupt, syscall.SIGTERM)

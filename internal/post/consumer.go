@@ -50,7 +50,7 @@ func (s *EventConsumer) SyncSearch(ctx context.Context, data []byte) error {
 	return fmt.Errorf("%w: unknown action", domain.ErrInval)
 }
 
-func (s *EventConsumer) ReIndexCategory(ctx context.Context, data []byte) error {
+func (s *EventConsumer) SyncCategories(ctx context.Context, data []byte) error {
 	var payload domain.CategoryEventInfo
 	if err := json.Unmarshal(data, &payload); err != nil {
 		return err
@@ -74,6 +74,7 @@ func (s *EventConsumer) ReIndexCategory(ctx context.Context, data []byte) error 
 			targets, err := s.se.Search(ctx, filters)
 			if err != nil {
 				logger.Error("Post.Consumer", "Failed to retreive posts on category reindex", err, "payload", payload)
+				return err
 			}
 
 			ids := make([]uint, 0, len(targets.Results))
@@ -87,6 +88,7 @@ func (s *EventConsumer) ReIndexCategory(ctx context.Context, data []byte) error 
 			batch, err := s.db.GetBatch(ctx, ids)
 			if err != nil {
 				logger.Error("Post.Consumer", "Failed to retreive post translations on category reindex", err, "payload", payload)
+				return err
 			}
 			if err := s.se.Index(ctx, batch...); err != nil {
 				logger.Error("Post.Consumer", "Failed to insert post translations to search index", err, "payload", payload)

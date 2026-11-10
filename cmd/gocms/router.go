@@ -16,7 +16,7 @@ import (
 
 const (
 	RequestLimit = 4 * 1024          // 4 KiB
-	ContentLimit = 2 * 1024 * 1024   // 2 MiB
+	ContentLimit = 64 * 1024         // 64 KiB
 	FileLimit    = 512 * 1024 * 1024 // 512 MiB
 )
 

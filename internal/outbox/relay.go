@@ -219,7 +219,7 @@ func (d *Relay) Mark(tx *gorm.DB, ids []uint, status Status) error {
 	return nil
 }
 
-func WriteMessage(tx *gorm.DB, action Event, source string, target any) error {
+func WriteMessage(tx *gorm.DB, event Event, source string, target any) error {
 	payload, err := json.Marshal(target)
 	if err != nil {
 		return err
@@ -228,7 +228,7 @@ func WriteMessage(tx *gorm.DB, action Event, source string, target any) error {
 		SpecVersion: "1.0",
 		Source:      source,
 		Time:        time.Now(),
-		Type:        action,
+		Type:        event,
 		Data:        payload,
 	}
 	if err := tx.Create(&message).Error; err != nil {

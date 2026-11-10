@@ -34,7 +34,7 @@ type RecordTranslation struct {
 	Title       string `gorm:"default:''"`
 	Description string `gorm:"default:''"`
 	Keywords    string `gorm:"default:''"`
-	Content     string `gorm:"default:''"`
+	Content     string `gorm:"type:text;default:''"`
 	Media       string `gorm:"default:''"`
 	MediaSource string `gorm:"default:''"`
 	MediaType   string `gorm:"default:''"`

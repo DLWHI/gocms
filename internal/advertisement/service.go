@@ -197,7 +197,9 @@ func (s *Service) Search(ctx context.Context, filters *SearchParams) (*SearchRes
 
 	ads, err := s.se.Search(ctx, filters)
 	if err != nil {
-		logger.Error("Ads.Service", "Failed to search advertisements", err)
+		if !errors.Is(err, domain.ErrInval) {
+			logger.Error("Ads.Service", "Failed to search advertisements", err)
+		}
 		return nil, err
 	}
 

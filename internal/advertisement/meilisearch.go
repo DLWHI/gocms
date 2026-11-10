@@ -56,9 +56,13 @@ func (*MeilisearchEngine) buildFilter(params *SearchParams) string {
 	if len(params.Groups) > 0 {
 		groups := make([]string, 0, len(params.Groups))
 		for _, group := range params.Groups {
-			groups = append(groups, strconv.Quote(group))
+			if group == "" {
+				groups = append(groups, "group IS EMPTY")
+			} else {
+				groups = append(groups, fmt.Sprintf("group = %q", group))
+			}
 		}
-		clauses = append(clauses, fmt.Sprintf("group IN [%s]", strings.Join(groups, ", ")))
+		clauses = append(clauses, strings.Join(groups, " OR "))
 	}
 
 	return strings.Join(clauses, " AND ")

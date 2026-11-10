@@ -63,7 +63,7 @@ func (*MeilisearchEngine) wrapLang(clauses string, language string) string {
 	if clauses == "" {
 		return fmt.Sprintf("lang = %q", language)
 	} else {
-		return clauses + fmt.Sprintf("AND lang = %q", language)
+		return clauses + fmt.Sprintf(" AND lang = %q", language)
 	}
 }
 

@@ -13,6 +13,7 @@ type Repository interface {
 	IncrementViews(ctx context.Context, id uint, value uint) (uint, error)
 	Get(ctx context.Context, id uint, language string) (*domain.Post, error)
 	GetTranslations(ctx context.Context, id uint) ([]domain.Post, error)
+	GetBatch(ctx context.Context, ids []uint) ([]domain.Post, error)
 	GetCreator(ctx context.Context, id uint) (string, error)
 	Delete(ctx context.Context, id uint) error
 }

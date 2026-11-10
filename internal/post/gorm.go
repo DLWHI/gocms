@@ -242,6 +242,27 @@ func (r *GORMRepository) GetTranslations(ctx context.Context, id uint) ([]domain
 	return vals, nil
 }
 
+func (r *GORMRepository) GetBatch(ctx context.Context, ids []uint) ([]domain.Post, error) {
+	var posts []RecordTranslation
+
+	result := r.db.WithContext(ctx).Model(&RecordTranslation{}).
+		Preload("Post").
+		Preload("Post.Categories").
+		Where("post_id IN ?", ids).
+		Find(&posts)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+
+	vals := make([]domain.Post, 0, len(posts))
+
+	for _, post := range posts {
+		vals = append(vals, *post.ToDomain())
+	}
+
+	return vals, nil
+}
+
 func (r *GORMRepository) GetViews(ctx context.Context, id uint) (uint, error) {
 	var views uint
 

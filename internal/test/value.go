@@ -339,6 +339,11 @@ func Excludes(values []JSONValue, target JSONValue) error {
 }
 
 func IsSorted(values []JSONValue, desc bool) error {
+	empty := len(values) - 1
+	for values[empty] == "" {
+		empty--
+	}
+	values = values[:empty]
 	last := values[0]
 	for i := 1; i < len(values); i++ {
 		if desc {

@@ -62,7 +62,7 @@ func (*MeilisearchEngine) buildFilter(params *SearchParams) string {
 				groups = append(groups, fmt.Sprintf("group = %q", group))
 			}
 		}
-		clauses = append(clauses, strings.Join(groups, " OR "))
+		clauses = append(clauses, "("+strings.Join(groups, " OR ")+")")
 	}
 
 	return strings.Join(clauses, " AND ")

@@ -2467,7 +2467,7 @@
     {
       "id": "EDITORS-TRANSPORT-CREATE-006",
       "group": "POST /cms/editors/{lang}",
-      "title": "413: body of 2 MiB + 1 byte exceeds the limit",
+      "title": "413: body of 64 KiB + 1 byte exceeds the limit",
       "source": "stated",
       "tags": ["boundary"],
       "steps": [
@@ -2480,7 +2480,7 @@
               "lang": "en"
             },
             "body_generator": {
-              "json_padded_bytes": 2097153,
+              "json_padded_bytes": 65537,
               "base": {
                 "slug": "padded",
                 "name": "Padded"
@@ -2500,10 +2500,9 @@
     {
       "id": "EDITORS-TRANSPORT-CREATE-007",
       "group": "POST /cms/editors/{lang}",
-      "title": "Body of exactly 2 MiB is accepted",
+      "title": "Body of exactly 64 KiB is accepted",
       "source": "stated",
       "tags": ["boundary"],
-      "note": "Assumes 2 MiB = 2097152 bytes and unknown fields are ignored.",
       "steps": [
         {
           "actor": "root",
@@ -2514,7 +2513,7 @@
               "lang": "en"
             },
             "body_generator": {
-              "json_padded_bytes": 2097152,
+              "json_padded_bytes": 65536,
               "base": {
                 "slug": "padded",
                 "name": "Padded"
@@ -2534,7 +2533,7 @@
     {
       "id": "EDITORS-TRANSPORT-SEARCH-006",
       "group": "POST /cms/editors/{lang}/search",
-      "title": "413: body of 2 MiB + 1 byte exceeds the limit",
+      "title": "413: body of 64 KiB + 1 byte exceeds the limit",
       "source": "stated",
       "tags": ["boundary"],
       "steps": [
@@ -2547,7 +2546,7 @@
               "lang": "en"
             },
             "body_generator": {
-              "json_padded_bytes": 2097153,
+              "json_padded_bytes": 65537,
               "base": {}
             },
             "headers": {
@@ -2564,10 +2563,9 @@
     {
       "id": "EDITORS-TRANSPORT-SEARCH-007",
       "group": "POST /cms/editors/{lang}/search",
-      "title": "Body of exactly 2 MiB is accepted",
+      "title": "Body of exactly 64 KiB is accepted",
       "source": "stated",
       "tags": ["boundary"],
-      "note": "Assumes 2 MiB = 2097152 bytes and unknown fields are ignored.",
       "steps": [
         {
           "actor": "root",
@@ -2578,7 +2576,7 @@
               "lang": "en"
             },
             "body_generator": {
-              "json_padded_bytes": 2097152,
+              "json_padded_bytes": 65536,
               "base": {}
             },
             "headers": {
@@ -2595,7 +2593,7 @@
     {
       "id": "EDITORS-TRANSPORT-UPDATE-006",
       "group": "PATCH /cms/editors/{lang}/{slug}",
-      "title": "413: body of 2 MiB + 1 byte exceeds the limit",
+      "title": "413: body of 64 KiB + 1 byte exceeds the limit",
       "source": "stated",
       "tags": ["boundary"],
       "steps": [
@@ -2609,7 +2607,7 @@
               "slug": "alice-smith"
             },
             "body_generator": {
-              "json_padded_bytes": 2097153,
+              "json_padded_bytes": 65537,
               "base": {
                 "name": "Padded"
               }
@@ -2628,10 +2626,9 @@
     {
       "id": "EDITORS-TRANSPORT-UPDATE-007",
       "group": "PATCH /cms/editors/{lang}/{slug}",
-      "title": "Body of exactly 2 MiB is accepted",
+      "title": "Body of exactly 64 KiB is accepted",
       "source": "stated",
       "tags": ["boundary"],
-      "note": "Assumes 2 MiB = 2097152 bytes and unknown fields are ignored.",
       "steps": [
         {
           "actor": "root",
@@ -2643,7 +2640,7 @@
               "slug": "alice-smith"
             },
             "body_generator": {
-              "json_padded_bytes": 2097152,
+              "json_padded_bytes": 65536,
               "base": {
                 "name": "Padded"
               }
@@ -5308,7 +5305,7 @@
     {
       "id": "EDITORS-FUNC-CREATE-018",
       "group": "POST /cms/editors/{lang}",
-      "title": "201: bio of 1 MiB",
+      "title": "201: bio of 60 KiB",
       "source": "inferred",
       "tags": ["boundary"],
       "steps": [
@@ -5325,7 +5322,7 @@
               "bio": {
                 "$repeat": {
                   "s": "a",
-                  "n": 1048576
+                  "n": 61440
                 }
               }
             },

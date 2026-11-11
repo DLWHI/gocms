@@ -3,6 +3,7 @@
 **/content/
 /storage/
 cmd/**/storage/
+TODO.md
 # Compiled Object files, temporary folders, logs, and bin/
 *.o
 *.obj

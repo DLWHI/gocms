@@ -4780,12 +4780,12 @@
               {
                 "path": "$.slug",
                 "op": "eq",
-                "value": "-mixed_case-slug_"
+                "value": "mixed_case-slug"
               },
               {
                 "path": "$.location",
                 "op": "eq",
-                "value": "/cms/categories/en/-mixed_case-slug_"
+                "value": "/cms/categories/en/mixed_case-slug"
               }
             ]
           }

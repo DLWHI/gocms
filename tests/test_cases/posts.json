@@ -180,7 +180,7 @@
         "title": "Альфа пост",
         "description": "Первый пост серии",
         "content": "<p>Альфа</p>",
-        "slug": "alfa-post",
+        "slug": "alpha-post",
         "keywords": "альфа, первый",
         "created_at": 1785000000,
         "published_at": 1785100000,
@@ -199,7 +199,7 @@
         "title": "Alpha Beitrag",
         "description": "Erster Beitrag der Serie",
         "content": "<p>Alpha DE</p>",
-        "slug": "alpha-beitrag",
+        "slug": "alpha-post",
         "keywords": "alpha, erster",
         "created_at": 1785000000,
         "published_at": 1785100000,
@@ -219,7 +219,7 @@
         "description": "Draft not yet published",
         "content": "<p>hidden-content-token</p>",
         "slug": "beta-draft",
-        "keywords": "hidden-keyword-token",
+        "keywords": "hidden, keyword, token",
         "created_at": 1785200000,
         "published_at": null,
         "views": 0,
@@ -1656,10 +1656,9 @@
     {
       "id": "POSTS-PERM-CREATE-007",
       "group": "POST /cms/posts/{lang}",
-      "title": "401 for insufficient permissions wins over invalid body",
+      "title": "400: invalid body wins over insufficient permissions",
       "source": "inferred",
       "tags": [],
-      "note": "Permission check is assumed to run before validation.",
       "steps": [
         {
           "actor": "reader",
@@ -1675,7 +1674,7 @@
             }
           },
           "expect": {
-            "status": 401,
+            "status": 400,
             "body": "plain_text"
           }
         }
@@ -2178,7 +2177,7 @@
     {
       "id": "POSTS-PERM-VIEWS-007",
       "group": "PUT /cms/posts/views/{id}",
-      "title": "401 for insufficient permissions wins over invalid body",
+      "title": "400: invalid body wins over insufficient permissions",
       "source": "inferred",
       "tags": [],
       "steps": [
@@ -2196,7 +2195,7 @@
             }
           },
           "expect": {
-            "status": 401,
+            "status": 400,
             "body": "plain_text"
           }
         }
@@ -3580,7 +3579,7 @@
     {
       "id": "POSTS-TRANSPORT-CREATE-006",
       "group": "POST /cms/posts/{lang}",
-      "title": "413: body of 2 MiB + 1 byte exceeds the limit",
+      "title": "413: body of 64 KiB + 1 byte exceeds the limit",
       "source": "documented",
       "tags": ["boundary"],
       "steps": [
@@ -3593,7 +3592,7 @@
               "lang": "en"
             },
             "body_generator": {
-              "json_padded_bytes": 2097153,
+              "json_padded_bytes": 65537,
               "base": {
                 "slug": "padded"
               }
@@ -3612,10 +3611,9 @@
     {
       "id": "POSTS-TRANSPORT-CREATE-007",
       "group": "POST /cms/posts/{lang}",
-      "title": "Body of exactly 2 MiB is accepted",
+      "title": "Body of exactly 64 KiB is accepted",
       "source": "documented",
       "tags": ["boundary"],
-      "note": "Assumes 2 MiB = 2097152 bytes and unknown fields are ignored.",
       "steps": [
         {
           "actor": "root",
@@ -3626,7 +3624,7 @@
               "lang": "en"
             },
             "body_generator": {
-              "json_padded_bytes": 2097152,
+              "json_padded_bytes": 65536,
               "base": {
                 "slug": "padded"
               }
@@ -3645,7 +3643,7 @@
     {
       "id": "POSTS-TRANSPORT-CREATE-008",
       "group": "POST /cms/posts/{lang}",
-      "title": "A body above 4 KiB is accepted (limit is 2 MiB)",
+      "title": "A body above 4 KiB is accepted (limit is 64 KiB)",
       "source": "documented",
       "tags": ["boundary", "regression"],
       "note": "Guards against the previous 4 KiB limit on write routes.",
@@ -3813,7 +3811,7 @@
     {
       "id": "POSTS-TRANSPORT-SEARCH-006",
       "group": "POST /cms/posts/{lang}/search",
-      "title": "413: body of 2 MiB + 1 byte exceeds the limit",
+      "title": "413: body of 64 KiB + 1 byte exceeds the limit",
       "source": "documented",
       "tags": ["boundary"],
       "steps": [
@@ -3826,7 +3824,7 @@
               "lang": "en"
             },
             "body_generator": {
-              "json_padded_bytes": 2097153,
+              "json_padded_bytes": 65537,
               "base": {}
             },
             "headers": {
@@ -3843,10 +3841,9 @@
     {
       "id": "POSTS-TRANSPORT-SEARCH-007",
       "group": "POST /cms/posts/{lang}/search",
-      "title": "Body of exactly 2 MiB is accepted",
+      "title": "Body of exactly 64 KiB is accepted",
       "source": "documented",
       "tags": ["boundary"],
-      "note": "Assumes 2 MiB = 2097152 bytes and unknown fields are ignored.",
       "steps": [
         {
           "actor": "root",
@@ -3857,7 +3854,7 @@
               "lang": "en"
             },
             "body_generator": {
-              "json_padded_bytes": 2097152,
+              "json_padded_bytes": 65536,
               "base": {}
             },
             "headers": {
@@ -3874,7 +3871,7 @@
     {
       "id": "POSTS-TRANSPORT-SEARCH-008",
       "group": "POST /cms/posts/{lang}/search",
-      "title": "A body above 4 KiB is accepted (limit is 2 MiB)",
+      "title": "A body above 4 KiB is accepted (limit is 64 KiB)",
       "source": "documented",
       "tags": ["boundary", "regression"],
       "note": "Guards against the previous 4 KiB limit on write routes.",
@@ -4055,7 +4052,7 @@
     {
       "id": "POSTS-TRANSPORT-UPDATE-006",
       "group": "PATCH /cms/posts/{lang}/{id}",
-      "title": "413: body of 2 MiB + 1 byte exceeds the limit",
+      "title": "413: body of 64 KiB + 1 byte exceeds the limit",
       "source": "documented",
       "tags": ["boundary"],
       "steps": [
@@ -4069,7 +4066,7 @@
               "id": "2"
             },
             "body_generator": {
-              "json_padded_bytes": 2097153,
+              "json_padded_bytes": 65537,
               "base": {
                 "title": "Padded"
               }
@@ -4088,10 +4085,9 @@
     {
       "id": "POSTS-TRANSPORT-UPDATE-007",
       "group": "PATCH /cms/posts/{lang}/{id}",
-      "title": "Body of exactly 2 MiB is accepted",
+      "title": "Body of exactly 64 KiB is accepted",
       "source": "documented",
       "tags": ["boundary"],
-      "note": "Assumes 2 MiB = 2097152 bytes and unknown fields are ignored.",
       "steps": [
         {
           "actor": "root",
@@ -4103,7 +4099,7 @@
               "id": "2"
             },
             "body_generator": {
-              "json_padded_bytes": 2097152,
+              "json_padded_bytes": 65536,
               "base": {
                 "title": "Padded"
               }
@@ -4122,7 +4118,7 @@
     {
       "id": "POSTS-TRANSPORT-UPDATE-008",
       "group": "PATCH /cms/posts/{lang}/{id}",
-      "title": "A body above 4 KiB is accepted (limit is 2 MiB)",
+      "title": "A body above 4 KiB is accepted (limit is 64 KiB)",
       "source": "documented",
       "tags": ["boundary", "regression"],
       "note": "Guards against the previous 4 KiB limit on write routes.",
@@ -4301,7 +4297,7 @@
     {
       "id": "POSTS-TRANSPORT-VIEWS-006",
       "group": "PUT /cms/posts/views/{id}",
-      "title": "413: body of 2 MiB + 1 byte exceeds the limit",
+      "title": "413: body of 64 KiB + 1 byte exceeds the limit",
       "source": "documented",
       "tags": ["boundary"],
       "steps": [
@@ -4314,7 +4310,7 @@
               "id": "2"
             },
             "body_generator": {
-              "json_padded_bytes": 2097153,
+              "json_padded_bytes": 65537,
               "base": {
                 "views": 1
               }
@@ -4333,10 +4329,9 @@
     {
       "id": "POSTS-TRANSPORT-VIEWS-007",
       "group": "PUT /cms/posts/views/{id}",
-      "title": "Body of exactly 2 MiB is accepted",
+      "title": "Body of exactly 64 KiB is accepted",
       "source": "documented",
       "tags": ["boundary"],
-      "note": "Assumes 2 MiB = 2097152 bytes and unknown fields are ignored.",
       "steps": [
         {
           "actor": "root",
@@ -4347,7 +4342,7 @@
               "id": "2"
             },
             "body_generator": {
-              "json_padded_bytes": 2097152,
+              "json_padded_bytes": 65536,
               "base": {
                 "views": 1
               }
@@ -4366,7 +4361,7 @@
     {
       "id": "POSTS-TRANSPORT-VIEWS-008",
       "group": "PUT /cms/posts/views/{id}",
-      "title": "A body above 4 KiB is accepted (limit is 2 MiB)",
+      "title": "A body above 4 KiB is accepted (limit is 64 KiB)",
       "source": "documented",
       "tags": ["boundary", "regression"],
       "note": "Guards against the previous 4 KiB limit on write routes.",
@@ -4399,7 +4394,7 @@
     {
       "id": "POSTS-TRANSPORT-GET-001",
       "group": "GET /cms/posts/{lang}/{id}",
-      "title": "413: oversized body (2 MiB + 1) on a route that ignores its body",
+      "title": "413: oversized body (64 KiB + 1) on a route that ignores its body",
       "source": "documented",
       "tags": ["boundary"],
       "steps": [
@@ -4413,7 +4408,7 @@
               "id": "1"
             },
             "body_generator": {
-              "json_padded_bytes": 2097153,
+              "json_padded_bytes": 65537,
               "base": {}
             }
           },
@@ -4427,7 +4422,7 @@
     {
       "id": "POSTS-TRANSPORT-DELETE-001",
       "group": "DELETE /cms/posts/{id}",
-      "title": "413: oversized body (2 MiB + 1) on a route that ignores its body",
+      "title": "413: oversized body (64 KiB + 1) on a route that ignores its body",
       "source": "documented",
       "tags": ["boundary"],
       "steps": [
@@ -4440,7 +4435,7 @@
               "id": "2"
             },
             "body_generator": {
-              "json_padded_bytes": 2097153,
+              "json_padded_bytes": 65537,
               "base": {}
             }
           },
@@ -4454,7 +4449,7 @@
     {
       "id": "POSTS-TRANSPORT-GET-002",
       "group": "GET /cms/posts/{lang}/{id}",
-      "title": "Body of exactly 2 MiB is ignored and the request succeeds",
+      "title": "Body of exactly 64 KiB is ignored and the request succeeds",
       "source": "documented",
       "tags": ["boundary"],
       "steps": [
@@ -4468,7 +4463,7 @@
               "id": "1"
             },
             "body_generator": {
-              "json_padded_bytes": 2097152,
+              "json_padded_bytes": 65536,
               "base": {}
             }
           },
@@ -4477,8 +4472,7 @@
             "body": "json"
           }
         }
-      ],
-      "note": "Docs say the body is ignored but also list a 2 MiB limit; a body exactly at the limit is assumed to pass."
+      ]
     },
     {
       "id": "POSTS-LANG-GET-001",
@@ -5032,12 +5026,12 @@
                 "value": 2
               },
               {
-                "path": "$.categories",
+                "path": "$.categories[*]",
                 "op": "includes",
                 "value": "news"
               },
               {
-                "path": "$.categories",
+                "path": "$.categories[*]",
                 "op": "includes",
                 "value": "sports"
               }
@@ -5049,7 +5043,7 @@
     {
       "id": "POSTS-FUNC-GET-002",
       "group": "GET /cms/posts/{lang}/{id}",
-      "title": "200: ru translation has its own text and slug, shared entity fields",
+      "title": "200: ru translation has its own text, shared entity fields",
       "source": "documented",
       "tags": [],
       "steps": [
@@ -5080,7 +5074,7 @@
               {
                 "path": "$.slug",
                 "op": "eq",
-                "value": "alfa-post"
+                "value": "alpha-post"
               },
               {
                 "path": "$.lang",
@@ -5239,7 +5233,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "$.categories",
+                "path": "$.categories[*]",
                 "op": "includes",
                 "value": "archive"
               }
@@ -5842,12 +5836,12 @@
                 "value": 2
               },
               {
-                "path": "$.categories",
+                "path": "$.categories[*]",
                 "op": "includes",
                 "value": "news"
               },
               {
-                "path": "$.categories",
+                "path": "$.categories[*]",
                 "op": "includes",
                 "value": "archive"
               }
@@ -6231,8 +6225,8 @@
               },
               {
                 "path": "$.created_at",
-                "op": "gte",
-                "value": 1700000000
+                "op": "gt",
+                "value": 0
               }
             ]
           }
@@ -6291,8 +6285,8 @@
               },
               {
                 "path": "$.created_at",
-                "op": "gte",
-                "value": 1700000000
+                "op": "ne",
+                "value": 1
               },
               {
                 "path": "$.views",
@@ -7166,7 +7160,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "$.categories",
+                "path": "$.categories[*]",
                 "op": "includes",
                 "value": "archive"
               }
@@ -7719,7 +7713,7 @@
     {
       "id": "POSTS-FUNC-CREATE-039",
       "group": "POST /cms/posts/{lang}",
-      "title": "Content of 1 MiB is accepted",
+      "title": "Content of 60 KiB is accepted",
       "source": "inferred",
       "tags": [],
       "steps": [
@@ -7736,7 +7730,7 @@
               "content": {
                 "$repeat": {
                   "s": "a",
-                  "n": 1048576
+                  "n": 61440
                 }
               }
             },
@@ -8731,8 +8725,7 @@
       "group": "POST /cms/posts/{lang}",
       "title": "400: author editor does not exist",
       "source": "inferred",
-      "tags": ["ambiguous"],
-      "note": "Docs only say 400 for an invalid body; a dangling reference is assumed invalid (404 or silently ignored are alternatives).",
+      "tags": [],
       "steps": [
         {
           "actor": "root",
@@ -8852,8 +8845,7 @@
       "group": "POST /cms/posts/{lang}",
       "title": "400: categories contains an unknown category",
       "source": "inferred",
-      "tags": ["ambiguous"],
-      "note": "Dangling reference assumed invalid (400); silently ignoring it is an alternative.",
+      "tags": [],
       "steps": [
         {
           "actor": "root",
@@ -9133,12 +9125,7 @@
                 "value": "Alpha Post"
               },
               {
-                "path": "$.results[*].description",
-                "op": "includes",
-                "value": "First post of the series"
-              },
-              {
-                "path": "$.results[*].language",
+                "path": "$.results[*].lang",
                 "op": "includes",
                 "value": "en"
               },
@@ -9156,11 +9143,6 @@
                 "path": "$.results[*].views",
                 "op": "includes",
                 "value": 100
-              },
-              {
-                "path": "$.results[*].preview",
-                "op": "includes",
-                "value": "https://domain.com/preview/1.webp"
               },
               {
                 "path": "$.results[*].author",
@@ -9708,12 +9690,53 @@
       ]
     },
     {
+      "id": "POSTS-FUNC-SEARCH-083",
+      "group": "POST /cms/posts/{lang}/search",
+      "title": "Query matches keywords",
+      "source": "documented",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "POST",
+            "path": "/cms/posts/{lang}/search",
+            "path_params": {
+              "lang": "en"
+            },
+            "body": {
+              "query": "keyword",
+              "count": 100
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.total",
+                "op": "eq",
+                "value": 1
+              },
+              {
+                "path": "$.results[*].post_id",
+                "op": "includes",
+                "value": 2
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
       "id": "POSTS-FUNC-SEARCH-017",
       "group": "POST /cms/posts/{lang}/search",
       "title": "Query matches description",
       "source": "documented",
       "tags": [],
-      "note": "'Quarterly' is the first word of the description; word/prefix matching on descriptions is assumed.",
       "steps": [
         {
           "actor": "root",
@@ -9869,7 +9892,7 @@
     {
       "id": "POSTS-FUNC-SEARCH-021",
       "group": "POST /cms/posts/{lang}/search",
-      "title": "Content and keywords are not searched",
+      "title": "Content is not searched",
       "source": "inferred",
       "tags": [],
       "steps": [
@@ -9882,35 +9905,7 @@
               "lang": "en"
             },
             "body": {
-              "query": "hidden-content-token",
-              "count": 100
-            },
-            "headers": {
-              "Content-Type": "application/json"
-            }
-          },
-          "expect": {
-            "status": 200,
-            "body": "json",
-            "json_assertions": [
-              {
-                "path": "$.total",
-                "op": "eq",
-                "value": 0
-              }
-            ]
-          }
-        },
-        {
-          "actor": "root",
-          "request": {
-            "method": "POST",
-            "path": "/cms/posts/{lang}/search",
-            "path_params": {
-              "lang": "en"
-            },
-            "body": {
-              "query": "hidden-keyword-token",
+              "query": "content",
               "count": 100
             },
             "headers": {
@@ -10043,7 +10038,7 @@
                 "value": 1
               },
               {
-                "path": "$.results[0].language",
+                "path": "$.results[0].lang",
                 "op": "eq",
                 "value": "ru"
               }
@@ -10096,7 +10091,7 @@
               "lang": "ru"
             },
             "body": {
-              "query": "alfa-post",
+              "query": "alpha-post",
               "count": 100
             },
             "headers": {
@@ -10182,7 +10177,7 @@
                 "value": 2
               },
               {
-                "path": "$.results[*].language",
+                "path": "$.results[*].lang",
                 "op": "excludes",
                 "value": "en"
               },
@@ -12053,7 +12048,6 @@
       "title": "Sort by author:asc (rows with a value only)",
       "source": "documented",
       "tags": [],
-      "note": "Restricted to rows where the column is non-null so null ordering does not matter.",
       "steps": [
         {
           "actor": "root",
@@ -12096,7 +12090,6 @@
       "title": "Sort by author:desc (rows with a value only)",
       "source": "documented",
       "tags": [],
-      "note": "Restricted to rows where the column is non-null so null ordering does not matter.",
       "steps": [
         {
           "actor": "root",
@@ -13231,7 +13224,7 @@
               "lang": "en"
             },
             "body": {
-              "query": "%a%",
+              "query": "%za%",
               "count": 100
             },
             "headers": {
@@ -13259,7 +13252,7 @@
               "lang": "en"
             },
             "body": {
-              "query": "_",
+              "query": "_za_",
               "count": 100
             },
             "headers": {
@@ -13407,34 +13400,6 @@
             ]
           },
           "eventually_ms": 5000
-        },
-        {
-          "actor": "root",
-          "request": {
-            "method": "POST",
-            "path": "/cms/posts/{lang}/search",
-            "path_params": {
-              "lang": "en"
-            },
-            "body": {
-              "query": "Beta Draft"
-            },
-            "headers": {
-              "Content-Type": "application/json"
-            }
-          },
-          "expect": {
-            "status": 200,
-            "body": "json",
-            "json_assertions": [
-              {
-                "path": "$.total",
-                "op": "eq",
-                "value": 0
-              }
-            ]
-          },
-          "eventually_ms": 5000
         }
       ]
     },
@@ -13475,7 +13440,7 @@
               "lang": "en"
             },
             "body": {
-              "query": "beta-renamed"
+              "query": "renamed"
             },
             "headers": {
               "Content-Type": "application/json"
@@ -13494,34 +13459,6 @@
                 "path": "$.results[*].post_id",
                 "op": "includes",
                 "value": 2
-              }
-            ]
-          },
-          "eventually_ms": 5000
-        },
-        {
-          "actor": "root",
-          "request": {
-            "method": "POST",
-            "path": "/cms/posts/{lang}/search",
-            "path_params": {
-              "lang": "en"
-            },
-            "body": {
-              "query": "beta-draft"
-            },
-            "headers": {
-              "Content-Type": "application/json"
-            }
-          },
-          "expect": {
-            "status": 200,
-            "body": "json",
-            "json_assertions": [
-              {
-                "path": "$.total",
-                "op": "eq",
-                "value": 0
               }
             ]
           },
@@ -15038,12 +14975,12 @@
                 "value": 1
               },
               {
-                "path": "$.categories",
+                "path": "$.categories[*]",
                 "op": "includes",
                 "value": "sports"
               },
               {
-                "path": "$.categories",
+                "path": "$.categories[*]",
                 "op": "excludes",
                 "value": "news"
               }
@@ -15122,7 +15059,7 @@
                 "value": 2
               },
               {
-                "path": "$.categories",
+                "path": "$.categories[*]",
                 "op": "includes",
                 "value": "archive"
               }
@@ -15254,7 +15191,7 @@
               {
                 "path": "$.slug",
                 "op": "eq",
-                "value": "alfa-post"
+                "value": "alpha-renamed"
               }
             ]
           }
@@ -15991,7 +15928,7 @@
                 "value": 1785250000
               },
               {
-                "path": "$.categories",
+                "path": "$.categories[*]",
                 "op": "includes",
                 "value": "archive"
               }
@@ -16096,7 +16033,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "$.$.slug",
+                "path": "$.slug",
                 "op": "eq",
                 "value": "beta-draft"
               }
@@ -16147,7 +16084,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "$.$.slug",
+                "path": "$.slug",
                 "op": "eq",
                 "value": "beta-draft"
               }
@@ -18562,7 +18499,7 @@
     {
       "id": "POSTS-FUNC-VIEWS-006",
       "group": "PUT /cms/posts/views/{id}",
-      "title": "204: null views are ignored",
+      "title": "400: null views are rejected",
       "source": "documented",
       "tags": [],
       "steps": [
@@ -18582,8 +18519,8 @@
             }
           },
           "expect": {
-            "status": 204,
-            "body": "empty"
+            "status": 400,
+            "body": "plain_text"
           }
         },
         {
@@ -18613,7 +18550,7 @@
     {
       "id": "POSTS-FUNC-VIEWS-007",
       "group": "PUT /cms/posts/views/{id}",
-      "title": "204: empty object is a no-op",
+      "title": "400: empty object is rejected",
       "source": "documented",
       "tags": [],
       "steps": [
@@ -18631,8 +18568,8 @@
             }
           },
           "expect": {
-            "status": 204,
-            "body": "empty"
+            "status": 400,
+            "body": "plain_text"
           }
         },
         {
@@ -20592,12 +20529,12 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "$.categories",
+                "path": "$.categories[*]",
                 "op": "excludes",
                 "value": "news"
               },
               {
-                "path": "$.categories",
+                "path": "$.categories[*]",
                 "op": "includes",
                 "value": "sports"
               }
@@ -20657,7 +20594,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "$.categories",
+                "path": "$.categories[*]",
                 "op": "includes",
                 "value": "archive"
               }

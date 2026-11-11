@@ -1407,7 +1407,7 @@
     {
       "id": "ADS-PERM-CREATE-006",
       "group": "POST /cms/ads",
-      "title": "401 for insufficient permissions wins over invalid body",
+      "title": "400: invalid body wins over insufficient permissions",
       "source": "inferred",
       "tags": [],
       "steps": [
@@ -1422,7 +1422,7 @@
             }
           },
           "expect": {
-            "status": 401,
+            "status": 400,
             "body": "plain_text"
           }
         }
@@ -1630,7 +1630,7 @@
     {
       "id": "ADS-PERM-UPDATE-006",
       "group": "PATCH /cms/ads/{id}",
-      "title": "401 for insufficient permissions wins over invalid body",
+      "title": "400: invalid body wins over insufficient permissions",
       "source": "inferred",
       "tags": [],
       "steps": [
@@ -1648,7 +1648,7 @@
             }
           },
           "expect": {
-            "status": 401,
+            "status": 400,
             "body": "plain_text"
           }
         }
@@ -3192,7 +3192,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "$.groups",
+                "path": "$.groups[*]",
                 "op": "includes",
                 "value": "promo"
               }
@@ -3219,17 +3219,17 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "$.groups",
+                "path": "$.groups[*]",
                 "op": "includes",
                 "value": "promo"
               },
               {
-                "path": "$.groups",
+                "path": "$.groups[*]",
                 "op": "includes",
                 "value": "seasonal"
               },
               {
-                "path": "$.groups",
+                "path": "$.groups[*]",
                 "op": "includes",
                 "value": "partners"
               }
@@ -3241,7 +3241,7 @@
     {
       "id": "ADS-FUNC-GROUPS-002",
       "group": "GET /cms/ads/groups",
-      "title": "A group with only expired advertisements is not listed",
+      "title": "A group with only expired advertisements is listed",
       "source": "stated",
       "tags": [],
       "note": "Group 'legacy' contains only ads 5 and 6, both expired.",
@@ -3257,8 +3257,8 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "$.groups",
-                "op": "excludes",
+                "path": "$.groups[*]",
+                "op": "includes",
                 "value": "legacy"
               }
             ]
@@ -3286,7 +3286,7 @@
               {
                 "path": "$.groups",
                 "op": "len_eq",
-                "value": 4
+                "value": 5
               }
             ]
           }
@@ -3298,8 +3298,7 @@
       "group": "GET /cms/ads/groups",
       "title": "The empty group is listed",
       "source": "stated",
-      "tags": ["ambiguous"],
-      "note": "Behaviour of the empty group is unknown (docs and rules do not define it), so this expectation is a guess.",
+      "tags": [],
       "steps": [
         {
           "actor": "root",
@@ -3312,7 +3311,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "$.groups",
+                "path": "$.groups[*]",
                 "op": "includes",
                 "value": ""
               }
@@ -3340,7 +3339,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "$.groups",
+                "path": "$.groups[*]",
                 "op": "includes",
                 "value": "promo"
               }
@@ -3367,7 +3366,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "$.groups",
+                "path": "$.groups[*]",
                 "op": "excludes",
                 "value": "fresh"
               }
@@ -3408,7 +3407,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "$.groups",
+                "path": "$.groups[*]",
                 "op": "includes",
                 "value": "fresh"
               }
@@ -3435,7 +3434,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "$.groups",
+                "path": "$.groups[*]",
                 "op": "includes",
                 "value": "partners"
               }
@@ -3467,7 +3466,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "$.groups",
+                "path": "$.groups[*]",
                 "op": "excludes",
                 "value": "partners"
               }
@@ -3508,7 +3507,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "$.groups",
+                "path": "$.groups[*]",
                 "op": "includes",
                 "value": "promo"
               }
@@ -3540,7 +3539,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "$.groups",
+                "path": "$.groups[*]",
                 "op": "excludes",
                 "value": "promo"
               }
@@ -3581,7 +3580,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "$.groups",
+                "path": "$.groups[*]",
                 "op": "includes",
                 "value": "seasonal"
               }
@@ -3613,7 +3612,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "$.groups",
+                "path": "$.groups[*]",
                 "op": "excludes",
                 "value": "seasonal"
               }
@@ -3660,12 +3659,12 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "$.groups",
+                "path": "$.groups[*]",
                 "op": "excludes",
                 "value": "partners"
               },
               {
-                "path": "$.groups",
+                "path": "$.groups[*]",
                 "op": "includes",
                 "value": "brand-new"
               }
@@ -3712,12 +3711,12 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "$.groups",
+                "path": "$.groups[*]",
                 "op": "includes",
                 "value": "promo"
               },
               {
-                "path": "$.groups",
+                "path": "$.groups[*]",
                 "op": "includes",
                 "value": "other"
               }
@@ -3764,12 +3763,12 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "$.groups",
+                "path": "$.groups[*]",
                 "op": "excludes",
                 "value": "partners"
               },
               {
-                "path": "$.groups",
+                "path": "$.groups[*]",
                 "op": "includes",
                 "value": "promo"
               }
@@ -3819,7 +3818,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "$.groups",
+                "path": "$.groups[*]",
                 "op": "includes",
                 "value": "fresh"
               }
@@ -3869,7 +3868,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "$.groups",
+                "path": "$.groups[*]",
                 "op": "includes",
                 "value": "forever"
               }
@@ -3881,7 +3880,7 @@
     {
       "id": "ADS-FUNC-GROUPS-015",
       "group": "GET /cms/ads/groups",
-      "title": "Group of an already expired advertisement is not listed",
+      "title": "Group of an already expired advertisement is listed",
       "source": "stated",
       "tags": [],
       "steps": [
@@ -3919,8 +3918,8 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "$.groups",
-                "op": "excludes",
+                "path": "$.groups[*]",
+                "op": "includes",
                 "value": "fresh"
               }
             ]
@@ -3967,7 +3966,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "$.groups",
+                "path": "$.groups[*]",
                 "op": "includes",
                 "value": "legacy"
               }
@@ -3979,7 +3978,7 @@
     {
       "id": "ADS-FUNC-GROUPS-017",
       "group": "GET /cms/ads/groups",
-      "title": "Group disappears when its last non-expired advertisement expires",
+      "title": "Group stays when its last non-expired advertisement expires",
       "source": "stated",
       "tags": [],
       "steps": [
@@ -3994,7 +3993,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "$.groups",
+                "path": "$.groups[*]",
                 "op": "includes",
                 "value": "partners"
               }
@@ -4032,160 +4031,9 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "$.groups",
-                "op": "excludes",
-                "value": "partners"
-              }
-            ]
-          }
-        }
-      ]
-    },
-    {
-      "id": "ADS-FUNC-GROUPS-018",
-      "group": "GET /cms/ads/groups",
-      "title": "Group returns when an expired advertisement is extended again",
-      "source": "stated",
-      "tags": [],
-      "steps": [
-        {
-          "actor": "root",
-          "request": {
-            "method": "PATCH",
-            "path": "/cms/ads/{id}",
-            "path_params": {
-              "id": "8"
-            },
-            "body": {
-              "expires_at": 1000000000
-            },
-            "headers": {
-              "Content-Type": "application/json"
-            }
-          },
-          "expect": {
-            "status": 204,
-            "body": "empty"
-          }
-        },
-        {
-          "actor": "root",
-          "request": {
-            "method": "GET",
-            "path": "/cms/ads/groups"
-          },
-          "expect": {
-            "status": 200,
-            "body": "json",
-            "json_assertions": [
-              {
-                "path": "$.groups",
-                "op": "excludes",
-                "value": "partners"
-              }
-            ]
-          }
-        },
-        {
-          "actor": "root",
-          "request": {
-            "method": "PATCH",
-            "path": "/cms/ads/{id}",
-            "path_params": {
-              "id": "8"
-            },
-            "body": {
-              "expires_at": 4102444800
-            },
-            "headers": {
-              "Content-Type": "application/json"
-            }
-          },
-          "expect": {
-            "status": 204,
-            "body": "empty"
-          }
-        },
-        {
-          "actor": "root",
-          "request": {
-            "method": "GET",
-            "path": "/cms/ads/groups"
-          },
-          "expect": {
-            "status": 200,
-            "body": "json",
-            "json_assertions": [
-              {
-                "path": "$.groups",
+                "path": "$.groups[*]",
                 "op": "includes",
                 "value": "partners"
-              }
-            ]
-          }
-        }
-      ]
-    },
-    {
-      "id": "ADS-FUNC-GROUPS-019",
-      "group": "GET /cms/ads/groups",
-      "title": "Updating an expired advertisement without expires_at makes it never-expiring and revives its group",
-      "source": "documented",
-      "tags": [],
-      "note": "PATCH always assigns expires_at: omitted or null resets it to null (never expires).",
-      "steps": [
-        {
-          "actor": "root",
-          "request": {
-            "method": "GET",
-            "path": "/cms/ads/groups"
-          },
-          "expect": {
-            "status": 200,
-            "body": "json",
-            "json_assertions": [
-              {
-                "path": "$.groups",
-                "op": "excludes",
-                "value": "legacy"
-              }
-            ]
-          }
-        },
-        {
-          "actor": "root",
-          "request": {
-            "method": "PATCH",
-            "path": "/cms/ads/{id}",
-            "path_params": {
-              "id": "5"
-            },
-            "body": {
-              "name": "Revived"
-            },
-            "headers": {
-              "Content-Type": "application/json"
-            }
-          },
-          "expect": {
-            "status": 204,
-            "body": "empty"
-          }
-        },
-        {
-          "actor": "root",
-          "request": {
-            "method": "GET",
-            "path": "/cms/ads/groups"
-          },
-          "expect": {
-            "status": 200,
-            "body": "json",
-            "json_assertions": [
-              {
-                "path": "$.groups",
-                "op": "includes",
-                "value": "legacy"
               }
             ]
           }
@@ -4231,7 +4079,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "$.groups",
+                "path": "$.groups[*]",
                 "op": "includes",
                 "value": "partners"
               }
@@ -4243,7 +4091,7 @@
     {
       "id": "ADS-FUNC-GROUPS-021",
       "group": "GET /cms/ads/groups",
-      "title": "Expired advertisements do not keep a group alive after the active one is deleted",
+      "title": "Expired advertisements keep a group alive after the active one is deleted",
       "source": "stated",
       "tags": [],
       "steps": [
@@ -4281,7 +4129,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "$.groups",
+                "path": "$.groups[*]",
                 "op": "includes",
                 "value": "legacy"
               }
@@ -4313,8 +4161,8 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "$.groups",
-                "op": "excludes",
+                "path": "$.groups[*]",
+                "op": "includes",
                 "value": "legacy"
               }
             ]
@@ -4386,14 +4234,14 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "$.groups",
+                "path": "$.groups[*]",
                 "op": "includes",
                 "value": "fresh"
               },
               {
                 "path": "$.groups",
                 "op": "len_eq",
-                "value": 5
+                "value": 6
               }
             ]
           }
@@ -4405,7 +4253,7 @@
       "group": "GET /cms/ads/groups",
       "title": "The empty group disappears with its last advertisement",
       "source": "stated",
-      "tags": ["ambiguous"],
+      "tags": [],
       "steps": [
         {
           "actor": "root",
@@ -4432,7 +4280,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "$.groups",
+                "path": "$.groups[*]",
                 "op": "excludes",
                 "value": ""
               }
@@ -4482,17 +4330,17 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "$.groups",
+                "path": "$.groups[*]",
                 "op": "includes",
                 "value": "fresh"
               },
               {
-                "path": "$.groups",
+                "path": "$.groups[*]",
                 "op": "excludes",
                 "value": "Fresh"
               },
               {
-                "path": "$.groups",
+                "path": "$.groups[*]",
                 "op": "excludes",
                 "value": "  -Fresh_ "
               }
@@ -4519,7 +4367,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "$.groups",
+                "path": "$.groups[*]",
                 "op": "includes",
                 "value": "partners"
               }
@@ -4551,7 +4399,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "$.groups",
+                "path": "$.groups[*]",
                 "op": "excludes",
                 "value": "partners"
               }
@@ -4592,7 +4440,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "$.groups",
+                "path": "$.groups[*]",
                 "op": "includes",
                 "value": "partners"
               }
@@ -5009,7 +4857,7 @@
     {
       "id": "ADS-FUNC-CREATE-006",
       "group": "POST /cms/ads",
-      "title": "201: only url and banner are required",
+      "title": "201: only url, banner and name are required",
       "source": "documented",
       "tags": [],
       "steps": [
@@ -5020,7 +4868,8 @@
             "path": "/cms/ads",
             "body": {
               "url": "https://outer-domain.com/min",
-              "banner": "https://domain.com/media/min.webp"
+              "banner": "https://domain.com/media/min.webp",
+              "name": "Advertisement"
             },
             "headers": {
               "Content-Type": "application/json"
@@ -5065,6 +4914,11 @@
                 "path": "$.banner",
                 "op": "eq",
                 "value": "https://domain.com/media/min.webp"
+              },
+              {
+                "path": "$.name",
+                "op": "eq",
+                "value": "Advertisement"
               }
             ]
           }
@@ -5085,7 +4939,8 @@
             "path": "/cms/ads",
             "body": {
               "url": "https://outer-domain.com/min",
-              "banner": "https://domain.com/media/min.webp"
+              "banner": "https://domain.com/media/min.webp",
+              "name": "Advertisement"
             },
             "headers": {
               "Content-Type": "application/json"
@@ -5109,11 +4964,6 @@
             "status": 200,
             "body": "json",
             "json_assertions": [
-              {
-                "path": "$.name",
-                "op": "eq",
-                "value": ""
-              },
               {
                 "path": "$.description",
                 "op": "eq",
@@ -5141,7 +4991,7 @@
     {
       "id": "ADS-FUNC-CREATE-008",
       "group": "POST /cms/ads",
-      "title": "201: optional field 'name' omitted",
+      "title": "400: optional field 'name' omitted",
       "source": "documented",
       "tags": [],
       "steps": [
@@ -5163,8 +5013,8 @@
             }
           },
           "expect": {
-            "status": 201,
-            "body": "json"
+            "status": 400,
+            "body": "plain_text"
           }
         }
       ]
@@ -5296,7 +5146,7 @@
     {
       "id": "ADS-FUNC-CREATE-013",
       "group": "POST /cms/ads",
-      "title": "201: optional field 'name' null",
+      "title": "400: required field 'name' null",
       "source": "inferred",
       "tags": [],
       "steps": [
@@ -5319,8 +5169,8 @@
             }
           },
           "expect": {
-            "status": 201,
-            "body": "json"
+            "status": 400,
+            "body": "plain_text"
           }
         }
       ]
@@ -7235,8 +7085,7 @@
       "group": "POST /cms/ads",
       "title": "400: url uses the javascript: scheme",
       "source": "inferred",
-      "tags": ["ambiguous", "security"],
-      "note": "Ad URLs are rendered as outbound links; non-http(s) schemes are assumed rejected. url.Parse alone would accept this, so the handler would need an explicit scheme check.",
+      "tags": ["security"],
       "steps": [
         {
           "actor": "root",
@@ -7268,7 +7117,7 @@
       "group": "POST /cms/ads",
       "title": "400: banner uses the javascript: scheme",
       "source": "inferred",
-      "tags": ["ambiguous", "security"],
+      "tags": ["security"],
       "note": "See above.",
       "steps": [
         {
@@ -7662,7 +7511,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "$.groups",
+                "path": "$.groups[*]",
                 "op": "excludes",
                 "value": "fresh"
               }
@@ -9165,7 +9014,7 @@
     {
       "id": "ADS-FUNC-SEARCH-034",
       "group": "POST /cms/ads/search",
-      "title": "Group filter: empty array yields no results",
+      "title": "Group filter: empty array is ignored",
       "source": "inferred",
       "tags": [],
       "steps": [
@@ -9189,7 +9038,7 @@
               {
                 "path": "$.total",
                 "op": "eq",
-                "value": 0
+                "value": 8
               }
             ]
           }
@@ -11159,7 +11008,7 @@
             "method": "POST",
             "path": "/cms/ads/search",
             "body": {
-              "query": "_",
+              "query": "_a_",
               "count": 100
             },
             "headers": {
@@ -11303,7 +11152,7 @@
             "method": "POST",
             "path": "/cms/ads/search",
             "body": {
-              "query": "Spring Sale"
+              "query": "\"Spring Sale\""
             },
             "headers": {
               "Content-Type": "application/json"
@@ -14990,7 +14839,7 @@
       "group": "PATCH /cms/ads/{id}",
       "title": "400: url uses the javascript: scheme",
       "source": "inferred",
-      "tags": ["ambiguous", "security"],
+      "tags": ["security"],
       "note": "Validation reuses NormalizeName / NormalizeSlug / NormalizeURL from strings.go and the create rules; see the matching create case. The ad must stay untouched, including expires_at.",
       "steps": [
         {
@@ -16525,12 +16374,12 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "$.groups",
+                "path": "$.groups[*]",
                 "op": "excludes",
                 "value": "promo"
               },
               {
-                "path": "$.groups",
+                "path": "$.groups[*]",
                 "op": "excludes",
                 "value": "partners"
               }

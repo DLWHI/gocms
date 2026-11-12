@@ -247,7 +247,7 @@ func (s *Service) Get(ctx context.Context, id uint) (*domain.Post, error) {
 
 	post, err := s.repo.Get(ctx, id, language)
 	if err != nil {
-		if !errors.Is(err, domain.ErrNotFound) {
+		if !errors.Is(err, domain.ErrNotFound) && !errors.Is(err, domain.ErrNotTranslated) {
 			logger.Error("Post.Service", "Failed to retrieve post", err)
 		}
 		return nil, err
@@ -256,7 +256,7 @@ func (s *Service) Get(ctx context.Context, id uint) (*domain.Post, error) {
 	return post, nil
 }
 
-func (s *Service) GetPublished(ctx context.Context, id uint, slug string) (*domain.Post, error) {
+func (s *Service) GetPublished(ctx context.Context, id uint) (*domain.Post, error) {
 	language, err := lang.ResolveLang(ctx)
 	if err != nil {
 		return nil, err
@@ -264,17 +264,17 @@ func (s *Service) GetPublished(ctx context.Context, id uint, slug string) (*doma
 
 	post, err := s.repo.Get(ctx, id, language)
 	if err != nil {
-		if !errors.Is(err, domain.ErrNotFound) {
+		if !errors.Is(err, domain.ErrNotFound) && !errors.Is(err, domain.ErrNotTranslated) {
 			logger.Error("Post.Service", "Failed to retrieve post", err)
 		}
 		return nil, err
 	}
-	if post.Slug != slug {
-		return nil, domain.ErrNotFound
-	}
 	if post.PublishedAt == nil {
 		return nil, domain.ErrNotFound
 	}
+
+	post.CreatedAt = 0
+	post.CreatedBy = ""
 
 	return post, nil
 }

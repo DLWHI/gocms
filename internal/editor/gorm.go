@@ -139,10 +139,19 @@ func (r *GORMRepository) GetAny(ctx context.Context, slug string, language strin
 		Where("editor_slug = ? AND lang = ?", slug, language).
 		Take(&record)
 	if result.Error != nil {
-		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-			return nil, domain.ErrNotFound
+		var n int64
+		if err := r.db.WithContext(ctx).
+			Model(&RecordTranslation{}).
+			Unscoped().
+			Where("slug = ?", slug).
+			Limit(1).
+			Count(&n).Error; err != nil {
+			return nil, err
 		}
-		return nil, result.Error
+		if n == 0 {
+			return nil, domain.ErrNotTranslated
+		}
+		return nil, database.MapError(result.Error)
 	}
 
 	return record.ToDomain(), nil

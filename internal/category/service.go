@@ -115,7 +115,7 @@ func (s *Service) Get(ctx context.Context, slug string) (*domain.Category, error
 
 	category, err := s.repo.Get(ctx, slug, language)
 	if err != nil {
-		if !errors.Is(err, domain.ErrNotFound) {
+		if !errors.Is(err, domain.ErrNotFound) && !errors.Is(err, domain.ErrNotTranslated) {
 			logger.Error("Category.Service", "Failed to retrieve category", err)
 		}
 		return nil, err

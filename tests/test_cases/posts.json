@@ -5276,7 +5276,7 @@
     {
       "id": "POSTS-FUNC-GET-007",
       "group": "GET /cms/posts/{lang}/{id}",
-      "title": "404: post exists but not in this language",
+      "title": "406: post exists but not in this language",
       "source": "documented",
       "tags": [],
       "steps": [
@@ -5291,7 +5291,7 @@
             }
           },
           "expect": {
-            "status": 404,
+            "status": 406,
             "body": "plain_text"
           }
         }
@@ -5300,7 +5300,7 @@
     {
       "id": "POSTS-FUNC-GET-008",
       "group": "GET /cms/posts/{lang}/{id}",
-      "title": "404: post exists only in another language",
+      "title": "406: post exists only in another language",
       "source": "documented",
       "tags": [],
       "steps": [
@@ -5315,7 +5315,7 @@
             }
           },
           "expect": {
-            "status": 404,
+            "status": 406,
             "body": "plain_text"
           }
         }

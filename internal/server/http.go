@@ -54,6 +54,8 @@ func WriteServerError(w http.ResponseWriter, entity string, err error) {
 		http.Error(w, "Update data outdated, retry request", http.StatusConflict)
 	} else if errors.Is(err, domain.ErrNotFound) {
 		http.Error(w, fmt.Sprintf("%s not found", entity), http.StatusNotFound)
+	} else if errors.Is(err, domain.ErrNotTranslated) {
+		http.Error(w, fmt.Sprintf("%s not found", entity), http.StatusNotAcceptable)
 	} else {
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 	}

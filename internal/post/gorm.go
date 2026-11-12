@@ -215,6 +215,17 @@ func (r *GORMRepository) Get(ctx context.Context, id uint, language string) (*do
 		Where("post_id = ? AND lang = ?", id, language).
 		Take(&post)
 	if result.Error != nil {
+		var n int64
+		if err := r.db.WithContext(ctx).
+			Model(&Record{}).
+			Where("id = ?", id).
+			Limit(1).
+			Count(&n).Error; err != nil {
+			return nil, err
+		}
+		if n == 0 {
+			return nil, domain.ErrNotTranslated
+		}
 		return nil, database.MapError(result.Error)
 	}
 

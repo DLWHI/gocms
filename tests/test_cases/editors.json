@@ -2767,7 +2767,6 @@
       "title": "400: malformed language code 'eng'",
       "source": "documented",
       "tags": [],
-      "note": "Docs give 400 for an 'invalid' language and the general rule gives 406 for an 'unsupported' one. Assumed: wrong format (not ISO 639-1) -> 400, valid format absent from the CMS language record -> 406.",
       "steps": [
         {
           "actor": "root",
@@ -3959,7 +3958,7 @@
     {
       "id": "EDITORS-FUNC-GET-005",
       "group": "GET /cms/editors/{lang}/{slug}",
-      "title": "404: slug exists but not in this language",
+      "title": "406: slug exists but not in this language",
       "source": "documented",
       "tags": [],
       "steps": [
@@ -3974,7 +3973,7 @@
             }
           },
           "expect": {
-            "status": 404,
+            "status": 406,
             "body": "plain_text"
           }
         }
@@ -3983,7 +3982,7 @@
     {
       "id": "EDITORS-FUNC-GET-006",
       "group": "GET /cms/editors/{lang}/{slug}",
-      "title": "404: slug exists only in another language",
+      "title": "406: slug exists only in another language",
       "source": "documented",
       "tags": [],
       "steps": [
@@ -3998,7 +3997,7 @@
             }
           },
           "expect": {
-            "status": 404,
+            "status": 406,
             "body": "plain_text"
           }
         }

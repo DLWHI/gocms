@@ -115,7 +115,7 @@ func (s *Service) Get(ctx context.Context, slug string) (*domain.Editor, error) 
 
 	editor, err := s.repo.GetAny(ctx, slug, language)
 	if err != nil {
-		if !errors.Is(err, domain.ErrNotFound) {
+		if !errors.Is(err, domain.ErrNotFound) && !errors.Is(err, domain.ErrNotTranslated) {
 			logger.Error("Editor.Service", "Failed to retrieve editor profile", err)
 		}
 		return nil, err

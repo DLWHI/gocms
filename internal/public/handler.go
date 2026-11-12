@@ -16,15 +16,15 @@ import (
 )
 
 // ------------------------------------------------------------------
-// POST /posts - Get/search published posts
-// GET /posts/{id}?slug={slug} - Get published post by id
+// GET /languages - Get supported languages
 //
-// GET /categories - Get all categories
-// GET /languages - Get all languages
+// POST /posts - Get/search published posts
+// GET /posts/{id} - Get published post
+//
+// GET /categories - Get all not hidden categories
 //
 // GET /editors - Get all editors
 // GET /editors/{username} - Get editor
-// GET /editors/{username}/bio - Read editor bio
 //
 // GET /advertisements - Get ad groups
 // GET /partners - Get partners group
@@ -104,20 +104,15 @@ func (h *Handler) postsSearch(w http.ResponseWriter, r *http.Request) {
 
 // GET /posts/{id} - Get published post by id
 func (h *Handler) postsGet(w http.ResponseWriter, r *http.Request) {
-	slug := r.URL.Query().Get("slug")
-	if slug == "" {
-		http.Error(w, "Invalid slug", http.StatusBadRequest)
-		return
-	}
-
 	id, err := strconv.ParseUint(r.PathValue("id"), 10, 64)
 	if err != nil || id == 0 {
-		http.Error(w, "Invalid ID", http.StatusBadRequest)
+		server.WritePathError(w, "Invalid ID")
 		return
 	}
+
 	ctx := r.Context()
 
-	post, err := h.posts.GetPublished(ctx, uint(id), slug)
+	post, err := h.posts.GetPublished(ctx, uint(id))
 	if err != nil {
 		server.WriteServerError(w, "Post", err)
 		return
@@ -129,13 +124,16 @@ func (h *Handler) postsGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	post.CreatedAt = 0
+	if err := h.views.Increment(ctx, uint(id)); err != nil {
+		server.WriteServerError(w, "Post", err)
+		return
+	}
 
 	w.Header().Set("Content-Type", "application/json")
 	_ = json.NewEncoder(w).Encode(&post)
 }
 
-// GET /categories - Get all categories
+// GET /categories - Get all not hidden categories
 func (h *Handler) categoriesAll(w http.ResponseWriter, r *http.Request) {
 	categories, err := h.categories.AllNotHidden(r.Context())
 	if err != nil {
@@ -143,28 +141,38 @@ func (h *Handler) categoriesAll(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	res := map[string][]domain.Category{
+		"categories": categories,
+	}
+
 	w.Header().Set("Content-Type", "application/json")
-	_ = json.NewEncoder(w).Encode(&categories)
+	_ = json.NewEncoder(w).Encode(res)
 }
 
-// GET /languages - Get all languages
+// GET /languages - Get supported languages
 func (h *Handler) languagesAll(w http.ResponseWriter, r *http.Request) {
-	languages := h.languages.GetSupported()
+	res := map[string][]lang.Language{
+		"languages": h.languages.GetSupported(),
+	}
 
 	w.Header().Set("Content-Type", "application/json")
-	_ = json.NewEncoder(w).Encode(&languages)
+	_ = json.NewEncoder(w).Encode(res)
 }
 
 // GET /editors - Get all editors
 func (h *Handler) editorsAll(w http.ResponseWriter, r *http.Request) {
-	res, err := h.editors.All(r.Context())
+	editors, err := h.editors.All(r.Context())
 	if err != nil {
 		server.WriteServerError(w, "Editor", err)
 		return
 	}
 
+	res := map[string][]domain.Editor{
+		"editors": editors,
+	}
+
 	w.Header().Set("Content-Type", "application/json")
-	_ = json.NewEncoder(w).Encode(&res)
+	_ = json.NewEncoder(w).Encode(res)
 }
 
 // GET /editors/{username} - Get editor
@@ -197,10 +205,7 @@ func (h *Handler) adsGet(w http.ResponseWriter, r *http.Request) {
 	}
 	for _, val := range values {
 		for _, part := range strings.Split(val, ",") {
-			trimmed := strings.TrimSpace(part)
-			if trimmed != "" {
-				groups = append(groups, trimmed)
-			}
+			groups = append(groups, part)
 		}
 	}
 
@@ -226,6 +231,13 @@ func (h *Handler) partners(w http.ResponseWriter, r *http.Request) {
 		server.WriteServerError(w, "Advertisement", err)
 		return
 	}
+
+	res := map[string][]domain.Advertisement{
+		"partners": ads,
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	_ = json.NewEncoder(w).Encode(res)
 
 	w.Header().Set("Content-Type", "application/json")
 	_ = json.NewEncoder(w).Encode(&ads)

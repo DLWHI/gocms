@@ -26,7 +26,7 @@ var restore = redis.NewScript(`
 `)
 
 type PostViewCounterService interface {
-	Read(ctx context.Context, id uint) error
+	Increment(ctx context.Context, id uint) error
 	Get(ctx context.Context, id uint) (uint, error)
 }
 
@@ -101,7 +101,7 @@ func (c *RedisCounter) Stop(ctx context.Context) error {
 	return nil
 }
 
-func (c *RedisCounter) Read(ctx context.Context, id uint) error {
+func (c *RedisCounter) Increment(ctx context.Context, id uint) error {
 	key := fmt.Sprintf("cms:analytics:views:%d", id)
 	if _, err := c.rdb.Incr(ctx, key).Result(); err != nil {
 		logger.Error("PostViewCounter.Service", "Failed to increment cached post views", err)

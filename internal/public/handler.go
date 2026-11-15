@@ -43,12 +43,12 @@ type Handler struct {
 	posts         *post.Service
 	editors       *editor.Service
 	categories    *category.Service
-	languages     *lang.LocalService
+	languages     lang.Service
 	ads           *advertisement.Service
 	views         analytics.PostViewCounterService
 }
 
-func NewHandler(ps *post.Service, es *editor.Service, cs *category.Service, ls *lang.LocalService, as *advertisement.Service, vc analytics.PostViewCounterService) *Handler {
+func NewHandler(ps *post.Service, es *editor.Service, cs *category.Service, ls lang.Service, as *advertisement.Service, vc analytics.PostViewCounterService) *Handler {
 	var hndl Handler
 	hndl.posts = ps
 	hndl.editors = es

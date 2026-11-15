@@ -112,7 +112,7 @@ func (app *Container) Init(ctx context.Context, cfg Config) error {
 		posts.Service,
 		editors.Service,
 		categories.Service,
-		langs.Consumer,
+		langs.Service,
 		ads.Service,
 		views,
 	)

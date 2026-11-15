@@ -387,3 +387,56 @@ func TestAdvertisements(t *testing.T) {
 		}
 	}
 }
+
+func TestPublic(t *testing.T) {
+	ran := 0
+	succeed := 0
+	defer func() {
+		logger.Info("Test.Public", fmt.Sprintf("Finished running public routes tests. Ran = %d tests. Passed = %d. Failed = %d", ran, succeed, ran-succeed))
+	}()
+
+	ctx, cancel := signal.NotifyContext(t.Context(), os.Interrupt, syscall.SIGTERM)
+	defer cancel()
+	logger.Info("Test.Public", "Loading test data")
+	data, err := test.LoadDataFromFile("./test_cases/public.json", "1")
+	if err != nil {
+		logger.Error("Test.Public", "Failed to load test data", err)
+		t.FailNow()
+	}
+	Env.TestData = data
+
+	for _, testcase := range data.Cases {
+		if matched, err := regexp.MatchString(Filter, testcase.ID); err != nil || !matched {
+			if err != nil {
+				logger.Warn("Test.Public", "Failed to apply filter", err)
+			}
+			continue
+		}
+
+		if err = data.Fixtures.ApplyFixtures(ctx, Env); err != nil {
+			logger.Error("Test.Public", "Failed to apply fixtures", err)
+			t.FailNow()
+		}
+
+		logger.Info("Test.Public", fmt.Sprintf("Running test: %s", testcase.ID))
+		var result *test.Result
+		ran++
+		for _, step := range testcase.Steps {
+			result = step.Perform(ctx, data, Env)
+			if result != nil {
+				failMessage := fmt.Sprintf("Test %s failed", testcase.ID)
+				logger.Error("Test.Public", failMessage, result.Reason, "case", testcase, "step", step, "response_code", result.ResponseStatus, "message", result.Message)
+				t.Fail()
+				break
+			}
+		}
+		if result == nil {
+			succeed++
+			logger.Info("Test.Public", fmt.Sprintf("Test %s passed", testcase.ID))
+		}
+		if err := Env.Clear(ctx); err != nil {
+			logger.Error("Test.Public", "Failed to clear environment", err)
+			t.FailNow()
+		}
+	}
+}

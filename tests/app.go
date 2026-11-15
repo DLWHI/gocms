@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"gocms/internal/advertisement"
+	"gocms/internal/analytics"
 	"gocms/internal/category"
 	"gocms/internal/domain"
 	"gocms/internal/editor"
@@ -13,6 +14,7 @@ import (
 	"gocms/internal/outbox"
 	"gocms/internal/password"
 	"gocms/internal/post"
+	"gocms/internal/public"
 	"gocms/internal/search"
 	"gocms/internal/user"
 	"log/slog"
@@ -103,16 +105,16 @@ func (app *Container) Init(ctx context.Context) error {
 		return err
 	}
 
-	// views := analytics.NewRedisCounter(redis, posts.Service)
+	views := analytics.NewRedisCounter(redis, posts.Service)
 
-	// publicHandler := public.NewHandler(
-	// 	posts.Service,
-	// 	editors.Service,
-	// 	categories.Service,
-	// 	langs.Service,
-	// 	ads.Service,
-	// 	views,
-	// )
+	publicHandler := public.NewHandler(
+		posts.Service,
+		editors.Service,
+		categories.Service,
+		langs.Service,
+		ads.Service,
+		views,
+	)
 
 	storageHandler := DefaultStorageHandler()
 
@@ -126,7 +128,7 @@ func (app *Container) Init(ctx context.Context) error {
 	router.AddEditorRoutes(editors.Handler)
 	router.AddLangRoutes(langs.Handler)
 	router.AddStorageRoutes(storageHandler)
-	// router.AddPublicoutes(publicHandler)
+	router.AddPublicoutes(publicHandler)
 
 	dispatcher := outbox.NewDirectPublisher()
 	relay := outbox.NewRelay(db, dispatcher)
@@ -147,7 +149,7 @@ func (app *Container) Init(ctx context.Context) error {
 	app.MessageRelay = relay
 	app.Router = router
 
-	// app.ViewsCounter = views
+	app.ViewsCounter = views
 	app.OutboxRunner = relay
 
 	DestroyIndexes(ctx, app.Meilisearch)

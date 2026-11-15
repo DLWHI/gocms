@@ -7,6 +7,7 @@ import (
 	"gocms/internal/editor"
 	"gocms/internal/lang"
 	"gocms/internal/post"
+	"gocms/internal/public"
 	"gocms/internal/server"
 	"gocms/internal/storage"
 	"gocms/internal/user"
@@ -134,20 +135,20 @@ func (r *Router) AddCategoryRoutes(handler *category.Handler) {
 	r.mux.Handle("DELETE /cms/categories/{slug}", m(handler.Delete))
 }
 
-func (router *Router) AddAdsRoutes(handler *advertisement.Handler) {
+func (r *Router) AddAdsRoutes(handler *advertisement.Handler) {
 	limiter := server.NewRequestLimiter(RequestLimit)
 	m := server.ChainMiddleware(
 		limiter.Wrap,
-		router.auth,
+		r.auth,
 		server.RequireJSON,
 	)
 
-	router.mux.Handle("GET /cms/ads/{id}", m(handler.Get))
-	router.mux.Handle("GET /cms/ads/groups", m(handler.Groups))
-	router.mux.Handle("POST /cms/ads", m(handler.Create))
-	router.mux.Handle("POST /cms/ads/search", m(handler.Search))
-	router.mux.Handle("PATCH /cms/ads/{id}", m(handler.Update))
-	router.mux.Handle("DELETE /cms/ads/{id}", m(handler.Delete))
+	r.mux.Handle("GET /cms/ads/{id}", m(handler.Get))
+	r.mux.Handle("GET /cms/ads/groups", m(handler.Groups))
+	r.mux.Handle("POST /cms/ads", m(handler.Create))
+	r.mux.Handle("POST /cms/ads/search", m(handler.Search))
+	r.mux.Handle("PATCH /cms/ads/{id}", m(handler.Update))
+	r.mux.Handle("DELETE /cms/ads/{id}", m(handler.Delete))
 }
 
 func (r *Router) AddStorageRoutes(handler *storage.Handler) {
@@ -170,20 +171,20 @@ func (r *Router) AddStorageRoutes(handler *storage.Handler) {
 	r.mux.Handle("DELETE /storage/media/{path...}", m(handler.Delete))
 }
 
-// func (router *Router) AddPublicoutes(handler *public.Handler) {
-// 	limiter := server.NewRequestLimiter(RequestLimit)
-// 	m := server.ChainMiddleware(
-// 		limiter.Wrap,
-// 		server.RequireJSON,
-// 		language.Middleware,
-// 	)
+func (r *Router) AddPublicoutes(handler *public.Handler) {
+	limiter := server.NewRequestLimiter(RequestLimit)
+	m := server.ChainMiddleware(
+		limiter.Wrap,
+		server.RequireJSON,
+		r.lang,
+	)
 
-// 	router.mux.Handle("GET /public/languages", limiter.Wrap(handler.LanguagesAll))
-// 	router.mux.Handle("POST /public/posts", m(handler.PostSearch))
-// 	router.mux.Handle("GET /public/posts/{id}", m(handler.PostGet))
-// 	router.mux.Handle("GET /public/categories", m(handler.CategoriesAll))
-// 	router.mux.Handle("GET /public/editors", m(handler.EditorAll))
-// 	router.mux.Handle("GET /public/editors/{username}", m(handler.EditorGet))
-// 	router.mux.Handle("GET /public/advertisements", m(handler.Ads))
-// 	router.mux.Handle("GET /cms/partners", m(handler.Partners))
-// }
+	r.mux.Handle("GET /public/languages", limiter.Wrap(handler.LanguagesAll))
+	r.mux.Handle("POST /public/posts", m(handler.PostSearch))
+	r.mux.Handle("GET /public/posts/{id}", m(handler.PostGet))
+	r.mux.Handle("GET /public/categories", m(handler.CategoriesAll))
+	r.mux.Handle("GET /public/editors", m(handler.EditorAll))
+	r.mux.Handle("GET /public/editors/{username}", m(handler.EditorGet))
+	r.mux.Handle("GET /public/advertisements", m(handler.Ads))
+	r.mux.Handle("GET /cms/partners", m(handler.Partners))
+}

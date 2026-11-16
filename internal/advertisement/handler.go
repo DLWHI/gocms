@@ -20,12 +20,6 @@ import (
 // ------------------------------------------------------------------
 
 type Handler struct {
-	Search  http.Handler
-	Create  http.Handler
-	Get     http.Handler
-	Update  http.Handler
-	Delete  http.Handler
-	Groups  http.Handler
 	service *Service
 	limiter server.Middleware
 	auth    server.Middleware

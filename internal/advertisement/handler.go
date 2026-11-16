@@ -3,6 +3,7 @@ package advertisement
 import (
 	"encoding/json"
 	"fmt"
+	"gocms/internal/auth"
 	"gocms/internal/domain"
 	"gocms/internal/server"
 	"net/http"
@@ -26,18 +27,36 @@ type Handler struct {
 	Delete  http.Handler
 	Groups  http.Handler
 	service *Service
+	limiter server.Middleware
+	auth    server.Middleware
 }
 
-func NewHandler(service *Service) *Handler {
+func NewHandler(service *Service, sessions auth.SessionRepository) *Handler {
 	var hndl Handler
 	hndl.service = service
-	hndl.Search = http.HandlerFunc(hndl.ads)
-	hndl.Create = http.HandlerFunc(hndl.create)
-	hndl.Get = http.HandlerFunc(hndl.get)
-	hndl.Update = http.HandlerFunc(hndl.update)
-	hndl.Delete = http.HandlerFunc(hndl.delete)
-	hndl.Groups = http.HandlerFunc(hndl.groups)
+	hndl.limiter = server.NewRequestLimiter(4 * 1024).Wrap // 4 KiB
+	hndl.auth = auth.NewSessionMiddleware(sessions).Wrap
 	return &hndl
+}
+
+func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
+	mw := server.ChainMiddleware(
+		h.limiter,
+		h.auth,
+	)
+	search := http.HandlerFunc(h.ads)
+	create := http.HandlerFunc(h.create)
+	get := http.HandlerFunc(h.get)
+	update := http.HandlerFunc(h.update)
+	delete := http.HandlerFunc(h.delete)
+	groups := http.HandlerFunc(h.groups)
+
+	mux.Handle("GET /ads/{id}", mw(get))
+	mux.Handle("GET /ads/groups", mw(groups))
+	mux.Handle("POST /ads", mw(create))
+	mux.Handle("POST /ads/search", mw(search))
+	mux.Handle("PATCH /ads/{id}", mw(update))
+	mux.Handle("DELETE /ads/{id}", mw(delete))
 }
 
 // POST /ads/search - Get/search ads

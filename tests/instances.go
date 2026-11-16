@@ -3,6 +3,7 @@ package tests
 import (
 	"context"
 	"fmt"
+	"gocms/internal/auth"
 	"gocms/internal/cache"
 	"gocms/internal/database"
 	"gocms/internal/search"
@@ -53,7 +54,7 @@ func MeilisearchClient(app *Container) (meilisearch.ServiceManager, error) {
 	return client, nil
 }
 
-func DefaultStorageHandler() *storage.Handler {
+func DefaultStorageHandler(sessions auth.SessionRepository) *storage.Handler {
 	service := storage.NewManager("./storage")
-	return storage.NewHandler(service)
+	return storage.NewHandler(service, sessions)
 }

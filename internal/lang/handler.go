@@ -2,6 +2,7 @@ package lang
 
 import (
 	"encoding/json"
+	"gocms/internal/auth"
 	"gocms/internal/server"
 	"net/http"
 )
@@ -12,19 +13,31 @@ import (
 // DELETE /languages/{code} - Delete languages
 // ------------------------------------------------------------------
 type Handler struct {
-	Get     http.Handler
-	Create  http.Handler
-	Delete  http.Handler
 	service *LocalService
+	limiter server.Middleware
+	auth    server.Middleware
 }
 
-func NewHandler(service *LocalService) *Handler {
+func NewHandler(service *LocalService, sessions auth.SessionRepository) *Handler {
 	var hndl Handler
 	hndl.service = service
-	hndl.Get = http.HandlerFunc(hndl.get)
-	hndl.Create = http.HandlerFunc(hndl.create)
-	hndl.Delete = http.HandlerFunc(hndl.delete)
+	hndl.limiter = server.NewRequestLimiter(4 * 1024).Wrap // 4 KiB
+	hndl.auth = auth.NewSessionMiddleware(sessions).Wrap
 	return &hndl
+}
+
+func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
+	mw := server.ChainMiddleware(
+		h.limiter,
+		h.auth,
+	)
+	get := http.HandlerFunc(h.get)
+	create := http.HandlerFunc(h.create)
+	delete := http.HandlerFunc(h.delete)
+
+	mux.Handle("GET /languages", mw(get))
+	mux.Handle("POST /languages", mw(create))
+	mux.Handle("DELETE /languages/{code}", mw(delete))
 }
 
 // POST /languages - Add language

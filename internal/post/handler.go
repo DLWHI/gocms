@@ -3,7 +3,9 @@ package post
 import (
 	"encoding/json"
 	"fmt"
+	"gocms/internal/auth"
 	"gocms/internal/domain"
+	"gocms/internal/lang"
 	"gocms/internal/server"
 	"net/http"
 	"strconv"
@@ -19,25 +21,40 @@ import (
 // ------------------------------------------------------------------
 
 type Handler struct {
-	Create      http.Handler
-	Search      http.Handler
-	Get         http.Handler
-	Update      http.Handler
-	UpdateViews http.Handler
-	Delete      http.Handler
-	service     *Service
+	service *Service
+	limiter server.Middleware
+	langs   server.Middleware
+	auth    server.Middleware
 }
 
-func NewHandler(service *Service) *Handler {
+func NewHandler(service *Service, sessions auth.SessionRepository, langs lang.Service) *Handler {
 	var hndl Handler
 	hndl.service = service
-	hndl.Create = http.HandlerFunc(hndl.create)
-	hndl.Search = http.HandlerFunc(hndl.search)
-	hndl.Get = http.HandlerFunc(hndl.get)
-	hndl.Update = http.HandlerFunc(hndl.update)
-	hndl.UpdateViews = http.HandlerFunc(hndl.updateViews)
-	hndl.Delete = http.HandlerFunc(hndl.delete)
+	hndl.limiter = server.NewRequestLimiter(64 * 1024).Wrap // 64 KiB
+	hndl.langs = lang.NewPathMiddleware(langs).Wrap
+	hndl.auth = auth.NewSessionMiddleware(sessions).Wrap
 	return &hndl
+}
+
+func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
+	mw := server.ChainMiddleware(
+		h.limiter,
+		h.auth,
+		h.langs,
+	)
+	create := http.HandlerFunc(h.create)
+	search := http.HandlerFunc(h.search)
+	get := http.HandlerFunc(h.get)
+	update := http.HandlerFunc(h.update)
+	updateViews := http.HandlerFunc(h.updateViews)
+	delete := http.HandlerFunc(h.delete)
+
+	mux.Handle("GET /posts/{lang}/{id}", mw(get))
+	mux.Handle("POST /posts/{lang}", mw(create))
+	mux.Handle("POST /posts/{lang}/search", mw(search))
+	mux.Handle("PATCH /posts/{lang}/{id}", mw(update))
+	mux.Handle("PUT /posts/views/{id}", mw(updateViews))
+	mux.Handle("DELETE /posts/{id}", mw(delete))
 }
 
 // POST /posts/{lang} - Create post translation

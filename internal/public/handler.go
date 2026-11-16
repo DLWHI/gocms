@@ -31,40 +31,48 @@ import (
 // ------------------------------------------------------------------
 
 type Handler struct {
-	PostSearch    http.Handler
-	PostGet       http.Handler
-	CategoriesAll http.Handler
-	LanguagesAll  http.Handler
-	EditorAll     http.Handler
-	EditorGet     http.Handler
-	EditorBio     http.Handler
-	Ads           http.Handler
-	Partners      http.Handler
-	posts         *post.Service
-	editors       *editor.Service
-	categories    *category.Service
-	languages     lang.Service
-	ads           *advertisement.Service
-	views         analytics.PostViewCounterService
+	posts      *post.Service
+	editors    *editor.Service
+	categories *category.Service
+	languages  lang.Service
+	ads        *advertisement.Service
+	views      analytics.PostViewCounterService
+	langs      server.Middleware
+	limiter    server.Middleware
 }
 
 func NewHandler(ps *post.Service, es *editor.Service, cs *category.Service, ls lang.Service, as *advertisement.Service, vc analytics.PostViewCounterService) *Handler {
 	var hndl Handler
+	hndl.limiter = server.NewRequestLimiter(4 * 1024).Wrap // 4 KiB
+	hndl.langs = lang.NewHeaderMiddleware(ls).Wrap         // 4 KiB
 	hndl.posts = ps
 	hndl.editors = es
 	hndl.categories = cs
 	hndl.languages = ls
 	hndl.ads = as
 	hndl.views = vc
-	hndl.PostSearch = http.HandlerFunc(hndl.postsSearch)
-	hndl.PostGet = http.HandlerFunc(hndl.postsGet)
-	hndl.CategoriesAll = http.HandlerFunc(hndl.categoriesAll)
-	hndl.LanguagesAll = http.HandlerFunc(hndl.languagesAll)
-	hndl.EditorAll = http.HandlerFunc(hndl.editorsAll)
-	hndl.EditorGet = http.HandlerFunc(hndl.editorsGet)
-	hndl.Ads = http.HandlerFunc(hndl.adsGet)
-	hndl.Partners = http.HandlerFunc(hndl.partners)
 	return &hndl
+}
+
+func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
+	languagesAll := http.HandlerFunc(h.languagesAll)
+	postSearch := http.HandlerFunc(h.postsSearch)
+	postGet := http.HandlerFunc(h.postsGet)
+	categoriesAll := http.HandlerFunc(h.categoriesAll)
+	editorAll := http.HandlerFunc(h.editorsAll)
+	editorGet := http.HandlerFunc(h.editorsGet)
+	adsGet := http.HandlerFunc(h.adsGet)
+	partners := http.HandlerFunc(h.partners)
+
+	// TODO image
+	mux.Handle("GET /languages", h.limiter(languagesAll))
+	mux.Handle("POST /posts", h.limiter(h.langs(postSearch)))
+	mux.Handle("GET /posts/{id}", h.limiter(h.langs(postGet)))
+	mux.Handle("GET /categories", h.limiter(h.langs(categoriesAll)))
+	mux.Handle("GET /editors", h.limiter(h.langs(editorAll)))
+	mux.Handle("GET /editors/{username}", h.limiter(h.langs(editorGet)))
+	mux.Handle("GET /advertisements", h.limiter(h.langs(adsGet)))
+	mux.Handle("GET /partners", h.limiter(h.langs(partners)))
 }
 
 // POST /posts - Get/search published posts

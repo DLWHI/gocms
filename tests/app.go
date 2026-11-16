@@ -8,7 +8,6 @@ import (
 	"gocms/internal/category"
 	"gocms/internal/domain"
 	"gocms/internal/editor"
-	"gocms/internal/flow"
 	"gocms/internal/lang"
 	"gocms/internal/logger"
 	"gocms/internal/outbox"
@@ -16,9 +15,10 @@ import (
 	"gocms/internal/post"
 	"gocms/internal/public"
 	"gocms/internal/search"
+	"gocms/internal/server"
 	"gocms/internal/user"
 	"log/slog"
-	"sync"
+	"net/http"
 	"time"
 
 	"github.com/meilisearch/meilisearch-go"
@@ -27,12 +27,12 @@ import (
 )
 
 type Container struct {
-	group  sync.WaitGroup
 	Logger *slog.Logger
 
 	DB          *gorm.DB
 	Redis       *redis.Client
 	Meilisearch meilisearch.ServiceManager
+	Passwords   password.Service
 
 	Categories *CategoryModule
 	Users      *UserModule
@@ -42,12 +42,9 @@ type Container struct {
 	Langs      *LangModule
 	Auth       *AuthModule
 
-	PasswordService password.Service
-	MessageRelay    outbox.MessageRepository
-	Router          *Router
-
-	ViewsCounter flow.Runner
-	OutboxRunner flow.Runner
+	Router       http.Handler
+	ViewsCounter analytics.PostViewCounterService
+	MessageRelay *outbox.Relay
 
 	Subscriptions []*outbox.Subscription
 }
@@ -69,99 +66,40 @@ func (app *Container) Init(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("Failed to connect to meilisearch: %w", err)
 	}
-
-	if err := SoftMigrate(db); err != nil {
-		return err
-	}
-
 	passwords := password.NewBCryptService(12, 8)
-
-	auth, err := NewAuthModule(db, redis, passwords)
-	if err != nil {
-		return err
-	}
-	langs, err := NewLangModule(ctx, db, auth.Service)
-	if err != nil {
-		return err
-	}
-	categories, err := NewCategoryModule(db, search, redis, auth.Service)
-	if err != nil {
-		return err
-	}
-	users, err := NewUserModule(db, search, redis, auth.Service, passwords)
-	if err != nil {
-		return err
-	}
-	posts, err := NewPostModule(db, search, redis, auth.Service)
-	if err != nil {
-		return err
-	}
-	ads, err := NewAdsModule(db, search, redis, auth.Service)
-	if err != nil {
-		return err
-	}
-	editors, err := NewEditorModule(db, search, redis, auth.Service)
-	if err != nil {
-		return err
-	}
-
-	views := analytics.NewRedisCounter(redis, posts.Service)
-
-	publicHandler := public.NewHandler(
-		posts.Service,
-		editors.Service,
-		categories.Service,
-		langs.Service,
-		ads.Service,
-		views,
-	)
-
-	storageHandler := DefaultStorageHandler()
-
-	router := NewRouter(langs.Service, auth.SessionRepo)
-
-	router.AddAuthRoutes(auth.Handler)
-	router.AddPostRoutes(posts.Handler)
-	router.AddUserRoutes(users.Handler)
-	router.AddCategoryRoutes(categories.Handler)
-	router.AddAdsRoutes(ads.Handler)
-	router.AddEditorRoutes(editors.Handler)
-	router.AddLangRoutes(langs.Handler)
-	router.AddStorageRoutes(storageHandler)
-	router.AddPublicoutes(publicHandler)
-
-	dispatcher := outbox.NewDirectPublisher()
-	relay := outbox.NewRelay(db, dispatcher)
 
 	app.DB = db
 	app.Redis = redis
 	app.Meilisearch = search
+	app.Passwords = passwords
 
-	app.Categories = categories
-	app.Users = users
-	app.Posts = posts
-	app.Ads = ads
-	app.Editors = editors
-	app.Langs = langs
-	app.Auth = auth
-
-	app.PasswordService = passwords
-	app.MessageRelay = relay
-	app.Router = router
-
-	app.ViewsCounter = views
-	app.OutboxRunner = relay
-
-	DestroyIndexes(ctx, app.Meilisearch)
-	if err := CreateIndexes(ctx, app.Meilisearch); err != nil {
+	if err := softMigrate(db); err != nil {
 		return err
 	}
-	app.WireEvents(dispatcher)
+
+	if err := app.wireModules(ctx); err != nil {
+		return err
+	}
+
+	views := analytics.NewRedisCounter(app.Redis, app.Posts.Service)
+	app.ViewsCounter = views
+
+	app.wireRoutes(views)
+
+	dispatcher := outbox.NewDirectPublisher()
+	relay := outbox.NewRelay(db, dispatcher)
+	app.MessageRelay = relay
+
+	destroyIndexes(ctx, app.Meilisearch)
+	if err := createIndexes(ctx, app.Meilisearch); err != nil {
+		return err
+	}
+	app.wireEvents(dispatcher)
 
 	return nil
 }
 
-func (app *Container) WireEvents(dispatcher outbox.Publisher) {
+func (app *Container) wireEvents(dispatcher outbox.Publisher) {
 	app.Subscriptions = make([]*outbox.Subscription, 0, 6)
 	app.Subscriptions = append(app.Subscriptions, dispatcher.Subscribe(domain.PostEvent, app.Posts.Consumer.SyncSearch))
 	app.Subscriptions = append(app.Subscriptions, dispatcher.Subscribe(domain.UserEvent, app.Users.Consumer.SyncSearch))
@@ -173,6 +111,124 @@ func (app *Container) WireEvents(dispatcher outbox.Publisher) {
 	app.Subscriptions = append(app.Subscriptions, dispatcher.Subscribe(lang.Event, app.Langs.Consumer.Reload))
 }
 
+func (app *Container) wireModules(ctx context.Context) error {
+	auths, err := NewAuthModule(app.DB, app.Redis, app.Passwords)
+	if err != nil {
+		return err
+	}
+	langs, err := NewLangModule(
+		ctx,
+		app.DB,
+		auths.Service,
+		auths.SessionRepo,
+	)
+	if err != nil {
+		return err
+	}
+	categories, err := NewCategoryModule(
+		app.DB,
+		app.Meilisearch,
+		app.Redis,
+		langs.Service,
+		auths.Service,
+		auths.SessionRepo,
+	)
+	if err != nil {
+		return err
+	}
+	users, err := NewUserModule(
+		app.DB,
+		app.Meilisearch,
+		app.Redis,
+		auths.Service,
+		app.Passwords,
+		auths.SessionRepo,
+	)
+	if err != nil {
+		return err
+	}
+	posts, err := NewPostModule(
+		app.DB,
+		app.Meilisearch,
+		app.Redis,
+		langs.Service,
+		auths.Service,
+		auths.SessionRepo,
+	)
+	if err != nil {
+		return err
+	}
+	ads, err := NewAdsModule(
+		app.DB,
+		app.Meilisearch,
+		app.Redis,
+		auths.Service,
+		auths.SessionRepo,
+	)
+	if err != nil {
+		return err
+	}
+	editors, err := NewEditorModule(
+		app.DB,
+		app.Meilisearch,
+		app.Redis,
+		langs.Service,
+		auths.Service,
+		auths.SessionRepo,
+	)
+	if err != nil {
+		return err
+	}
+
+	app.Categories = categories
+	app.Users = users
+	app.Posts = posts
+	app.Ads = ads
+	app.Editors = editors
+	app.Langs = langs
+	app.Auth = auths
+	return nil
+}
+
+func (app *Container) wireRoutes(vc analytics.PostViewCounterService) {
+	publicHandler := public.NewHandler(
+		app.Posts.Service,
+		app.Editors.Service,
+		app.Categories.Service,
+		app.Langs.Service,
+		app.Ads.Service,
+		vc,
+	)
+
+	storageHandler := DefaultStorageHandler(app.Auth.SessionRepo)
+
+	mw := server.ChainMiddleware(
+		server.CORS,
+		server.RequireJSON,
+	)
+	cmsRouter := http.NewServeMux()
+	storageRouter := http.NewServeMux()
+	publicRouter := http.NewServeMux()
+
+	app.Categories.Handler.RegisterRoutes(cmsRouter)
+	app.Users.Handler.RegisterRoutes(cmsRouter)
+	app.Posts.Handler.RegisterRoutes(cmsRouter)
+	app.Ads.Handler.RegisterRoutes(cmsRouter)
+	app.Editors.Handler.RegisterRoutes(cmsRouter)
+	app.Langs.Handler.RegisterRoutes(cmsRouter)
+	app.Auth.Handler.RegisterRoutes(cmsRouter)
+
+	publicHandler.RegisterRoutes(publicRouter)
+	storageHandler.RegisterRoutes(storageRouter)
+
+	router := http.NewServeMux()
+	router.Handle("/cms/", http.StripPrefix("/cms", cmsRouter))
+	router.Handle("/storage/", http.StripPrefix("/storage", storageRouter))
+	router.Handle("/public/", http.StripPrefix("/public", publicRouter))
+
+	app.Router = mw(router)
+}
+
 func (app *Container) TearDown() {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*30)
 	defer cancel()
@@ -181,11 +237,11 @@ func (app *Container) TearDown() {
 		sub.Unsubscribe()
 	}
 
-	if err := DropAll(app.DB); err != nil {
+	if err := dropAll(app.DB); err != nil {
 		logger.Error("Wipe", "Failed to drop table records", err)
 	}
 
-	if err := DestroyIndexes(ctx, app.Meilisearch); err != nil {
+	if err := destroyIndexes(ctx, app.Meilisearch); err != nil {
 		logger.Error("Wipe", "Failed to delete search indexes", err)
 	}
 
@@ -204,7 +260,7 @@ func (app *Container) TearDown() {
 	}
 }
 
-func SoftMigrate(db *gorm.DB) error {
+func softMigrate(db *gorm.DB) error {
 
 	err := db.AutoMigrate(
 		&advertisement.Record{},
@@ -230,7 +286,7 @@ func SoftMigrate(db *gorm.DB) error {
 	return nil
 }
 
-func CreateIndexes(ctx context.Context, client meilisearch.ServiceManager) error {
+func createIndexes(ctx context.Context, client meilisearch.ServiceManager) error {
 	indexes := []search.ConfigurableIndex{
 		user.NewMeilisearchEngine(client, UsersSearchIndexName),
 		category.NewMeilisearchEngine(client, CategoriesSearchIndexName),
@@ -248,7 +304,7 @@ func CreateIndexes(ctx context.Context, client meilisearch.ServiceManager) error
 	return nil
 }
 
-func DropAll(db *gorm.DB) error {
+func dropAll(db *gorm.DB) error {
 	err := db.Migrator().DropTable("post_categories")
 	if err != nil {
 		return err
@@ -270,7 +326,7 @@ func DropAll(db *gorm.DB) error {
 	return nil
 }
 
-func DestroyIndexes(ctx context.Context, client meilisearch.ServiceManager) error {
+func destroyIndexes(ctx context.Context, client meilisearch.ServiceManager) error {
 	indexes := []search.ConfigurableIndex{
 		user.NewMeilisearchEngine(client, UsersSearchIndexName),
 		category.NewMeilisearchEngine(client, CategoriesSearchIndexName),

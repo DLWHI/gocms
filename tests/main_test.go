@@ -16,7 +16,7 @@ import (
 const (
 	ConfigAddress = ""
 	ConfigPort    = "8080"
-	Filter        = ""
+	Filter        = "PUBLIC-FUNC-LOCALES-009"
 )
 
 var (
@@ -56,7 +56,7 @@ func run(m *testing.M) error {
 			AdsSearchIndexName,
 		),
 		Langs:    App.Langs.Consumer,
-		Password: App.PasswordService,
+		Password: App.Passwords,
 		Router:   App.Router,
 		Redis:    App.Redis,
 		Outbox:   App.MessageRelay,

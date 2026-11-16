@@ -3,6 +3,7 @@ package user
 import (
 	"encoding/json"
 	"fmt"
+	"gocms/internal/auth"
 	"gocms/internal/domain"
 	"gocms/internal/password"
 	"gocms/internal/server"
@@ -21,29 +22,41 @@ import (
 // ------------------------------------------------------------------
 
 type Handler struct {
-	Create            http.Handler
-	Search            http.Handler
-	All               http.Handler
-	Get               http.Handler
-	ChangeEmail       http.Handler
-	ResetPassword     http.Handler
-	UpdatePermissions http.Handler
-	Suspend           http.Handler
-	service           *Service
+	service *Service
+	limiter server.Middleware
+	auth    server.Middleware
 }
 
-func NewHandler(service *Service) *Handler {
+func NewHandler(service *Service, sessions auth.SessionRepository) *Handler {
 	var hndl Handler
 	hndl.service = service
-	hndl.Create = http.HandlerFunc(hndl.create)
-	hndl.Search = http.HandlerFunc(hndl.search)
-	hndl.All = http.HandlerFunc(hndl.all)
-	hndl.Get = http.HandlerFunc(hndl.get)
-	hndl.Suspend = http.HandlerFunc(hndl.suspend)
-	hndl.ChangeEmail = http.HandlerFunc(hndl.changeEmail)
-	hndl.ResetPassword = http.HandlerFunc(hndl.resetPassword)
-	hndl.UpdatePermissions = http.HandlerFunc(hndl.updatePermissions)
+	hndl.limiter = server.NewRequestLimiter(4 * 1024).Wrap // 4 KiB
+	hndl.auth = auth.NewSessionMiddleware(sessions).Wrap
 	return &hndl
+}
+
+func (h *Handler) RegisterRoutes(r *http.ServeMux) {
+	mw := server.ChainMiddleware(
+		h.limiter,
+		h.auth,
+	)
+	all := http.HandlerFunc(h.all)
+	get := http.HandlerFunc(h.get)
+	create := http.HandlerFunc(h.create)
+	search := http.HandlerFunc(h.search)
+	suspend := http.HandlerFunc(h.suspend)
+	changeEmail := http.HandlerFunc(h.changeEmail)
+	resetPassword := http.HandlerFunc(h.resetPassword)
+	updatePermissions := http.HandlerFunc(h.updatePermissions)
+
+	r.Handle("GET /users", mw(all))
+	r.Handle("GET /users/{username}", mw(get))
+	r.Handle("POST /users", mw(create))
+	r.Handle("POST /users/search", mw(search))
+	r.Handle("PATCH /users/{username}/email", mw(changeEmail))
+	r.Handle("PATCH /users/{username}/password", mw(resetPassword))
+	r.Handle("PATCH /users/{username}/permissions", mw(updatePermissions))
+	r.Handle("DELETE /users/{username}", mw(suspend))
 }
 
 // POST /users - Register new user

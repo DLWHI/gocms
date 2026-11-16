@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"gocms/internal/auth"
 	"gocms/internal/cache"
 	"gocms/internal/database"
 	"gocms/internal/search"
@@ -58,7 +59,7 @@ func MeilisearchClient(app *Container) (meilisearch.ServiceManager, error) {
 	return client, nil
 }
 
-func DefaultStorageHandler(cfg Config) *storage.Handler {
+func DefaultStorageHandler(cfg Config, sessions auth.SessionRepository) *storage.Handler {
 	path := os.Getenv("IMAGE_STORAGE_PATH")
 	if cfg.Storage != "" {
 		path = cfg.Storage
@@ -66,5 +67,5 @@ func DefaultStorageHandler(cfg Config) *storage.Handler {
 		path = "./storage"
 	}
 	service := storage.NewManager(path)
-	return storage.NewHandler(service)
+	return storage.NewHandler(service, sessions)
 }

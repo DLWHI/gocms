@@ -2,6 +2,7 @@ package storage
 
 import (
 	"encoding/json"
+	"gocms/internal/auth"
 	"gocms/internal/server"
 	"io"
 	"net/http"
@@ -18,25 +19,37 @@ import (
 // PUT /storage/folders/{path...} - Create a folder
 // ------------------------------------------------------------------
 type Handler struct {
-	Tree    http.Handler
-	Get     http.Handler
-	Upload  http.Handler
-	Delete  http.Handler
-	Folder  http.Handler
-	Preview http.Handler
 	service *Service
+	limiter server.Middleware
+	auth    server.Middleware
 }
 
-func NewHandler(service *Service) *Handler {
+func NewHandler(service *Service, sessions auth.SessionRepository) *Handler {
 	var hndl Handler
 	hndl.service = service
-	hndl.Tree = http.HandlerFunc(hndl.tree)
-	hndl.Get = http.HandlerFunc(hndl.get)
-	hndl.Upload = http.HandlerFunc(hndl.upload)
-	hndl.Delete = http.HandlerFunc(hndl.delete)
-	hndl.Folder = http.HandlerFunc(hndl.folder)
-	hndl.Preview = http.HandlerFunc(hndl.preview)
+	hndl.limiter = server.NewRequestLimiter(512 * 1024 * 1024).Wrap // 512 MiB
+	hndl.auth = auth.NewSessionMiddleware(sessions).Wrap
 	return &hndl
+}
+
+func (h *Handler) RegisterRoutes(r *http.ServeMux) {
+	mw := server.ChainMiddleware(
+		h.limiter,
+		h.auth,
+	)
+	tree := http.HandlerFunc(h.tree)
+	get := http.HandlerFunc(h.get)
+	upload := http.HandlerFunc(h.upload)
+	delete := http.HandlerFunc(h.delete)
+	folder := http.HandlerFunc(h.folder)
+	preview := http.HandlerFunc(h.preview)
+
+	r.Handle("GET /tree/{path...}", mw(tree))
+	r.Handle("GET /media/{path...}", h.limiter(get))
+	r.Handle("GET /preview/{path...}", h.limiter(preview))
+	r.Handle("PUT /media/{path...}", mw(upload))
+	r.Handle("PUT /folders/{path...}", mw(folder))
+	r.Handle("DELETE /media/{path...}", mw(delete))
 }
 
 // GET /storage/tree/{path...} - Get storage

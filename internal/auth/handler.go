@@ -17,23 +17,32 @@ import (
 // ------------------------------------------------------------------
 
 type Handler struct {
-	Login        http.Handler
-	Logout       http.Handler
-	Profile      http.Handler
-	Permissions  http.Handler
-	ChangePasswd http.Handler
-	sessions     *SessionService
+	sessions *SessionService
+	auth     server.Middleware
+	limiter  server.Middleware
 }
 
-func NewHandler(service *SessionService) *Handler {
+func NewHandler(svc *SessionService, sessions SessionRepository) *Handler {
 	var hndl Handler
-	hndl.sessions = service
-	hndl.Login = http.HandlerFunc(hndl.login)
-	hndl.Logout = http.HandlerFunc(hndl.logout)
-	hndl.Profile = http.HandlerFunc(hndl.profile)
-	hndl.Permissions = http.HandlerFunc(hndl.perms)
-	hndl.ChangePasswd = http.HandlerFunc(hndl.changePasswd)
+	hndl.sessions = svc
+	hndl.limiter = server.NewRequestLimiter(4 * 1024).Wrap // 4 KiB
+	hndl.auth = NewSessionMiddleware(sessions).Wrap
+
 	return &hndl
+}
+
+func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
+	login := http.HandlerFunc(h.login)
+	logout := http.HandlerFunc(h.logout)
+	profile := http.HandlerFunc(h.profile)
+	permissions := http.HandlerFunc(h.perms)
+	changePasswd := http.HandlerFunc(h.changePasswd)
+
+	mux.Handle("GET /profile", h.limiter(h.auth(profile)))
+	mux.Handle("GET /permissions", h.limiter(h.auth(permissions)))
+	mux.Handle("POST /login", h.limiter(login))
+	mux.Handle("POST /logout", h.limiter(h.auth(logout)))
+	mux.Handle("PATCH /passwd", h.limiter(h.auth(changePasswd)))
 }
 
 // POST /login - Login

@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type Record struct {
@@ -103,8 +104,9 @@ func (r *GORMRepository) GetGroup(ctx context.Context, group string) ([]domain.A
 	var ads []Record
 
 	res := r.db.WithContext(ctx).
-		Where("group = ?", group).
-		Where("(expires_at IS NULL OR expires_at > now())").
+		Model(&Record{}).
+		Where(clause.Eq{Column: clause.Column{Name: "group"}, Value: group}).
+		Where("expires_at IS NULL OR expires_at > CURRENT_TIMESTAMP").
 		Order("priority ASC").
 		Find(&ads)
 	if res.Error != nil {

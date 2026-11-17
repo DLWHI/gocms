@@ -13,6 +13,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 )
 
 // ------------------------------------------------------------------
@@ -40,6 +41,8 @@ type Handler struct {
 	langs      server.Middleware
 	limiter    server.Middleware
 }
+
+// type
 
 func NewHandler(ps *post.Service, es *editor.Service, cs *category.Service, ls lang.Service, as *advertisement.Service, vc analytics.PostViewCounterService) *Handler {
 	var hndl Handler
@@ -71,8 +74,8 @@ func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
 	mux.Handle("GET /categories", h.limiter(h.langs(categoriesAll)))
 	mux.Handle("GET /editors", h.limiter(h.langs(editorAll)))
 	mux.Handle("GET /editors/{username}", h.limiter(h.langs(editorGet)))
-	mux.Handle("GET /advertisements", h.limiter(h.langs(adsGet)))
-	mux.Handle("GET /partners", h.limiter(h.langs(partners)))
+	mux.Handle("GET /advertisements", h.limiter(adsGet))
+	mux.Handle("GET /partners", h.limiter(partners))
 }
 
 // POST /posts - Get/search published posts
@@ -98,6 +101,16 @@ func (h *Handler) postsSearch(w http.ResponseWriter, r *http.Request) {
 		"preview",
 		"author",
 		"categories",
+	}
+	now := time.Now().Unix()
+	if params.PublishedBefore == nil && params.PublishedAfter == nil {
+		params.PublishedBefore = &now
+	}
+	if params.PublishedBefore != nil && *params.PublishedBefore > now {
+		params.PublishedBefore = &now
+	}
+	if params.PublishedAfter != nil && *params.PublishedAfter > now {
+		params.PublishedAfter = &now
 	}
 
 	res, err := h.posts.Search(r.Context(), &params)

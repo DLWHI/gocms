@@ -98,6 +98,12 @@
         "navbar": true
       },
       {
+        "slug": "news",
+        "lang": "de",
+        "name": "Nachrichten",
+        "hidden": false,
+        "navbar": true
+      },{
         "slug": "sports",
         "lang": "en",
         "name": "Sports",
@@ -363,7 +369,7 @@
   "cases": [
     {
       "id": "PUBLIC-FUNC-LOCALES-001",
-      "group": "GET /public/locales",
+      "group": "GET /public/languages",
       "title": "200: lists configured locales without any headers",
       "source": "documented",
       "tags": [],
@@ -372,44 +378,44 @@
           "actor": "anonymous",
           "request": {
             "method": "GET",
-            "path": "/public/locales"
+            "path": "/public/languages"
           },
           "expect": {
             "status": 200,
             "body": "json",
             "json_assertions": [
               {
-                "path": "languages",
+                "path": "$.languages",
                 "op": "len_eq",
                 "value": 3
               },
               {
-                "path": "languages[*].code",
+                "path": "$.languages[*].code",
                 "op": "includes",
                 "value": "en"
               },
               {
-                "path": "languages[*].code",
+                "path": "$.languages[*].code",
                 "op": "includes",
                 "value": "de"
               },
               {
-                "path": "languages[*].code",
+                "path": "$.languages[*].code",
                 "op": "includes",
                 "value": "ru"
               },
               {
-                "path": "languages[*].name",
+                "path": "$.languages[*].name",
                 "op": "includes",
                 "value": "English"
               },
               {
-                "path": "languages[*].name",
+                "path": "$.languages[*].name",
                 "op": "includes",
                 "value": "Deutsch"
               },
               {
-                "path": "languages[*].name",
+                "path": "$.languages[*].name",
                 "op": "includes",
                 "value": "Русский"
               }
@@ -420,7 +426,7 @@
     },
     {
       "id": "PUBLIC-FUNC-LOCALES-002",
-      "group": "GET /public/locales",
+      "group": "GET /public/languages",
       "title": "Request body is ignored",
       "source": "documented",
       "tags": [],
@@ -429,7 +435,7 @@
           "actor": "anonymous",
           "request": {
             "method": "GET",
-            "path": "/public/locales",
+            "path": "/public/languages",
             "body_raw": "{not json"
           },
           "expect": {
@@ -437,7 +443,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "languages",
+                "path": "$.languages",
                 "op": "len_eq",
                 "value": 3
               }
@@ -448,7 +454,7 @@
     },
     {
       "id": "PUBLIC-FUNC-LOCALES-003",
-      "group": "GET /public/locales",
+      "group": "GET /public/languages",
       "title": "Works with an authenticated session as well",
       "source": "inferred",
       "tags": [],
@@ -457,14 +463,14 @@
           "actor": "root",
           "request": {
             "method": "GET",
-            "path": "/public/locales"
+            "path": "/public/languages"
           },
           "expect": {
             "status": 200,
             "body": "json",
             "json_assertions": [
               {
-                "path": "languages",
+                "path": "$.languages",
                 "op": "len_eq",
                 "value": 3
               }
@@ -475,7 +481,7 @@
     },
     {
       "id": "PUBLIC-FUNC-LOCALES-004",
-      "group": "GET /public/locales",
+      "group": "GET /public/languages",
       "title": "A garbage Authorization header is ignored",
       "source": "inferred",
       "tags": ["ambiguous"],
@@ -485,14 +491,14 @@
           "actor": "garbage_session",
           "request": {
             "method": "GET",
-            "path": "/public/locales"
+            "path": "/public/languages"
           },
           "expect": {
             "status": 200,
             "body": "json",
             "json_assertions": [
               {
-                "path": "languages",
+                "path": "$.languages",
                 "op": "len_eq",
                 "value": 3
               }
@@ -503,7 +509,7 @@
     },
     {
       "id": "PUBLIC-FUNC-LOCALES-005",
-      "group": "GET /public/locales",
+      "group": "GET /public/languages",
       "title": "Accept-Language header is not required and not used",
       "source": "inferred",
       "tags": ["ambiguous"],
@@ -513,7 +519,7 @@
           "actor": "anonymous",
           "request": {
             "method": "GET",
-            "path": "/public/locales",
+            "path": "/public/languages",
             "headers": {
               "Accept-Language": "fr"
             }
@@ -523,7 +529,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "languages",
+                "path": "$.languages",
                 "op": "len_eq",
                 "value": 3
               }
@@ -534,7 +540,7 @@
     },
     {
       "id": "PUBLIC-FUNC-LOCALES-006",
-      "group": "GET /public/locales",
+      "group": "GET /public/languages",
       "title": "413: oversized body (4 KiB + 1) on a route that ignores its body",
       "source": "documented",
       "tags": ["ambiguous", "boundary"],
@@ -544,7 +550,7 @@
           "actor": "anonymous",
           "request": {
             "method": "GET",
-            "path": "/public/locales",
+            "path": "/public/languages",
             "body_generator": {
               "json_padded_bytes": 4097,
               "base": {}
@@ -559,7 +565,7 @@
     },
     {
       "id": "PUBLIC-FUNC-LOCALES-007",
-      "group": "GET /public/locales",
+      "group": "GET /public/languages",
       "title": "Body of exactly 4096 bytes is accepted",
       "source": "documented",
       "tags": ["ambiguous", "boundary"],
@@ -568,7 +574,7 @@
           "actor": "anonymous",
           "request": {
             "method": "GET",
-            "path": "/public/locales",
+            "path": "/public/languages",
             "body_generator": {
               "json_padded_bytes": 4096,
               "base": {}
@@ -584,7 +590,7 @@
     },
     {
       "id": "PUBLIC-FUNC-LOCALES-008",
-      "group": "GET /public/locales",
+      "group": "GET /public/languages",
       "title": "A newly created language is listed",
       "source": "documented",
       "tags": ["cache"],
@@ -593,14 +599,14 @@
           "actor": "anonymous",
           "request": {
             "method": "GET",
-            "path": "/public/locales"
+            "path": "/public/languages"
           },
           "expect": {
             "status": 200,
             "body": "json",
             "json_assertions": [
               {
-                "path": "languages",
+                "path": "$.languages",
                 "op": "len_eq",
                 "value": 3
               }
@@ -629,24 +635,24 @@
           "actor": "anonymous",
           "request": {
             "method": "GET",
-            "path": "/public/locales"
+            "path": "/public/languages"
           },
           "expect": {
             "status": 200,
             "body": "json",
             "json_assertions": [
               {
-                "path": "languages",
+                "path": "$.languages",
                 "op": "len_eq",
                 "value": 4
               },
               {
-                "path": "languages[*].code",
+                "path": "$.languages[*].code",
                 "op": "includes",
                 "value": "fr"
               },
               {
-                "path": "languages[*].name",
+                "path": "$.languages[*].name",
                 "op": "includes",
                 "value": "Français"
               }
@@ -657,7 +663,7 @@
     },
     {
       "id": "PUBLIC-FUNC-LOCALES-009",
-      "group": "GET /public/locales",
+      "group": "GET /public/languages",
       "title": "A deleted language disappears and its content becomes unavailable",
       "source": "documented",
       "tags": ["cache"],
@@ -680,19 +686,19 @@
           "actor": "anonymous",
           "request": {
             "method": "GET",
-            "path": "/public/locales"
+            "path": "/public/languages"
           },
           "expect": {
             "status": 200,
             "body": "json",
             "json_assertions": [
               {
-                "path": "languages",
+                "path": "$.languages",
                 "op": "len_eq",
                 "value": 2
               },
               {
-                "path": "languages[*].code",
+                "path": "$.languages[*].code",
                 "op": "excludes",
                 "value": "ru"
               }
@@ -750,7 +756,7 @@
     },
     {
       "id": "PUBLIC-FUNC-LOCALES-010",
-      "group": "GET /public/locales",
+      "group": "GET /public/languages",
       "title": "A language that is created again restores its content",
       "source": "documented",
       "tags": ["cache"],
@@ -792,14 +798,14 @@
           "actor": "anonymous",
           "request": {
             "method": "GET",
-            "path": "/public/locales"
+            "path": "/public/languages"
           },
           "expect": {
             "status": 200,
             "body": "json",
             "json_assertions": [
               {
-                "path": "languages[*].code",
+                "path": "$.languages[*].code",
                 "op": "includes",
                 "value": "ru"
               }
@@ -820,7 +826,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "categories",
+                "path": "$.categories",
                 "op": "len_eq",
                 "value": 2
               }
@@ -844,7 +850,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "title",
+                "path": "$.title",
                 "op": "eq",
                 "value": "Альфа пост"
               }
@@ -855,7 +861,7 @@
     },
     {
       "id": "PUBLIC-FUNC-LOCALES-011",
-      "group": "GET /public/locales",
+      "group": "GET /public/languages",
       "title": "A freshly created language is accepted by Accept-Language",
       "source": "documented",
       "tags": ["cache"],
@@ -906,7 +912,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "categories",
+                "path": "$.categories",
                 "op": "len_eq",
                 "value": 0
               }
@@ -927,7 +933,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "editors",
+                "path": "$.editors",
                 "op": "len_eq",
                 "value": 0
               }
@@ -950,7 +956,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "total",
+                "path": "$.total",
                 "op": "eq",
                 "value": 0
               }
@@ -1029,10 +1035,9 @@
     {
       "id": "PUBLIC-LANG-EDITORS-004",
       "group": "GET /public/editors",
-      "title": "406: malformed locale 'eng'",
+      "title": "200: Accept-Language not in ISO-639-1 format ('eng')",
       "source": "inferred",
-      "tags": ["ambiguous"],
-      "note": "Docs only list 400 for a missing locale and 406 for an unsupported one; a malformed value is treated as unsupported.",
+      "tags": [],
       "steps": [
         {
           "actor": "anonymous",
@@ -1044,8 +1049,8 @@
             }
           },
           "expect": {
-            "status": 406,
-            "body": "plain_text"
+            "status": 200,
+            "body": "json"
           }
         }
       ]
@@ -1053,10 +1058,9 @@
     {
       "id": "PUBLIC-LANG-EDITORS-005",
       "group": "GET /public/editors",
-      "title": "406: malformed locale 'e1'",
+      "title": "400: malformed Accept-Language 'e1'",
       "source": "inferred",
-      "tags": ["ambiguous"],
-      "note": "Docs only list 400 for a missing locale and 406 for an unsupported one; a malformed value is treated as unsupported.",
+      "tags": [],
       "steps": [
         {
           "actor": "anonymous",
@@ -1068,7 +1072,7 @@
             }
           },
           "expect": {
-            "status": 406,
+            "status": 400,
             "body": "plain_text"
           }
         }
@@ -1077,10 +1081,9 @@
     {
       "id": "PUBLIC-LANG-EDITORS-006",
       "group": "GET /public/editors",
-      "title": "406: malformed locale '!!'",
+      "title": "400: malformed Accept-Language '!!'",
       "source": "inferred",
-      "tags": ["ambiguous"],
-      "note": "Docs only list 400 for a missing locale and 406 for an unsupported one; a malformed value is treated as unsupported.",
+      "tags": [],
       "steps": [
         {
           "actor": "anonymous",
@@ -1092,7 +1095,7 @@
             }
           },
           "expect": {
-            "status": 406,
+            "status": 400,
             "body": "plain_text"
           }
         }
@@ -1176,10 +1179,9 @@
     {
       "id": "PUBLIC-LANG-SEARCH-004",
       "group": "POST /public/posts",
-      "title": "406: malformed locale 'eng'",
+      "title": "200: Accept-Language not in ISO-639-1 format ('eng')",
       "source": "inferred",
-      "tags": ["ambiguous"],
-      "note": "Docs only list 400 for a missing locale and 406 for an unsupported one; a malformed value is treated as unsupported.",
+      "tags": [],
       "steps": [
         {
           "actor": "anonymous",
@@ -1193,8 +1195,8 @@
             }
           },
           "expect": {
-            "status": 406,
-            "body": "plain_text"
+            "status": 200,
+            "body": "json"
           }
         }
       ]
@@ -1202,10 +1204,9 @@
     {
       "id": "PUBLIC-LANG-SEARCH-005",
       "group": "POST /public/posts",
-      "title": "406: malformed locale 'e1'",
+      "title": "400: malformed Accept-Language 'e1'",
       "source": "inferred",
       "tags": ["ambiguous"],
-      "note": "Docs only list 400 for a missing locale and 406 for an unsupported one; a malformed value is treated as unsupported.",
       "steps": [
         {
           "actor": "anonymous",
@@ -1219,7 +1220,7 @@
             }
           },
           "expect": {
-            "status": 406,
+            "status": 400,
             "body": "plain_text"
           }
         }
@@ -1228,10 +1229,9 @@
     {
       "id": "PUBLIC-LANG-SEARCH-006",
       "group": "POST /public/posts",
-      "title": "406: malformed locale '!!'",
+      "title": "400: malformed Accept-Language '!!'",
       "source": "inferred",
       "tags": ["ambiguous"],
-      "note": "Docs only list 400 for a missing locale and 406 for an unsupported one; a malformed value is treated as unsupported.",
       "steps": [
         {
           "actor": "anonymous",
@@ -1245,7 +1245,7 @@
             }
           },
           "expect": {
-            "status": 406,
+            "status": 400,
             "body": "plain_text"
           }
         }
@@ -1330,10 +1330,9 @@
     {
       "id": "PUBLIC-LANG-POST-004",
       "group": "GET /public/posts/{id}",
-      "title": "406: malformed locale 'eng'",
+      "title": "200: Accept-Language not in ISO-639-1 format ('eng')",
       "source": "inferred",
-      "tags": ["ambiguous"],
-      "note": "Docs only list 400 for a missing locale and 406 for an unsupported one; a malformed value is treated as unsupported.",
+      "tags": [],
       "steps": [
         {
           "actor": "anonymous",
@@ -1348,8 +1347,8 @@
             }
           },
           "expect": {
-            "status": 406,
-            "body": "plain_text"
+            "status": 200,
+            "body": "json"
           }
         }
       ]
@@ -1357,10 +1356,9 @@
     {
       "id": "PUBLIC-LANG-POST-005",
       "group": "GET /public/posts/{id}",
-      "title": "406: malformed locale 'e1'",
+      "title": "400: malformed Accept-Language 'e1'",
       "source": "inferred",
-      "tags": ["ambiguous"],
-      "note": "Docs only list 400 for a missing locale and 406 for an unsupported one; a malformed value is treated as unsupported.",
+      "tags": [],
       "steps": [
         {
           "actor": "anonymous",
@@ -1375,7 +1373,7 @@
             }
           },
           "expect": {
-            "status": 406,
+            "status": 400,
             "body": "plain_text"
           }
         }
@@ -1384,10 +1382,9 @@
     {
       "id": "PUBLIC-LANG-POST-006",
       "group": "GET /public/posts/{id}",
-      "title": "406: malformed locale '!!'",
+      "title": "400: malformed Accept-Language '!!'",
       "source": "inferred",
-      "tags": ["ambiguous"],
-      "note": "Docs only list 400 for a missing locale and 406 for an unsupported one; a malformed value is treated as unsupported.",
+      "tags": [],
       "steps": [
         {
           "actor": "anonymous",
@@ -1402,7 +1399,7 @@
             }
           },
           "expect": {
-            "status": 406,
+            "status": 400,
             "body": "plain_text"
           }
         }
@@ -1436,7 +1433,7 @@
       "group": "GET /public/editors/{username}",
       "title": "400: Accept-Language header empty",
       "source": "inferred",
-      "tags": ["ambiguous"],
+      "tags": [],
       "note": "An empty value is assumed to be the same as a missing locale.",
       "steps": [
         {
@@ -1487,10 +1484,9 @@
     {
       "id": "PUBLIC-LANG-EDITOR-004",
       "group": "GET /public/editors/{username}",
-      "title": "406: malformed locale 'eng'",
+      "title": "200: Accept-Language not in ISO-639-1 format ('eng')",
       "source": "inferred",
-      "tags": ["ambiguous"],
-      "note": "Docs only list 400 for a missing locale and 406 for an unsupported one; a malformed value is treated as unsupported.",
+      "tags": [],
       "steps": [
         {
           "actor": "anonymous",
@@ -1505,8 +1501,8 @@
             }
           },
           "expect": {
-            "status": 406,
-            "body": "plain_text"
+            "status": 200,
+            "body": "json"
           }
         }
       ]
@@ -1514,10 +1510,9 @@
     {
       "id": "PUBLIC-LANG-EDITOR-005",
       "group": "GET /public/editors/{username}",
-      "title": "406: malformed locale 'e1'",
+      "title": "400: malformed Accept-Language 'e1'",
       "source": "inferred",
-      "tags": ["ambiguous"],
-      "note": "Docs only list 400 for a missing locale and 406 for an unsupported one; a malformed value is treated as unsupported.",
+      "tags": [],
       "steps": [
         {
           "actor": "anonymous",
@@ -1532,7 +1527,7 @@
             }
           },
           "expect": {
-            "status": 406,
+            "status": 400,
             "body": "plain_text"
           }
         }
@@ -1541,10 +1536,9 @@
     {
       "id": "PUBLIC-LANG-EDITOR-006",
       "group": "GET /public/editors/{username}",
-      "title": "406: malformed locale '!!'",
+      "title": "400: malformed Accept-Language '!!'",
       "source": "inferred",
-      "tags": ["ambiguous"],
-      "note": "Docs only list 400 for a missing locale and 406 for an unsupported one; a malformed value is treated as unsupported.",
+      "tags": [],
       "steps": [
         {
           "actor": "anonymous",
@@ -1559,7 +1553,7 @@
             }
           },
           "expect": {
-            "status": 406,
+            "status": 400,
             "body": "plain_text"
           }
         }
@@ -1590,7 +1584,7 @@
       "group": "GET /public/categories",
       "title": "400: Accept-Language header empty",
       "source": "inferred",
-      "tags": ["ambiguous"],
+      "tags": [],
       "note": "An empty value is assumed to be the same as a missing locale.",
       "steps": [
         {
@@ -1635,10 +1629,9 @@
     {
       "id": "PUBLIC-LANG-CATEGORIES-004",
       "group": "GET /public/categories",
-      "title": "406: malformed locale 'eng'",
+      "title": "200: Accept-Language not in ISO-639-1 format ('eng')",
       "source": "inferred",
-      "tags": ["ambiguous"],
-      "note": "Docs only list 400 for a missing locale and 406 for an unsupported one; a malformed value is treated as unsupported.",
+      "tags": [],
       "steps": [
         {
           "actor": "anonymous",
@@ -1650,8 +1643,8 @@
             }
           },
           "expect": {
-            "status": 406,
-            "body": "plain_text"
+            "status": 200,
+            "body": "json"
           }
         }
       ]
@@ -1659,10 +1652,9 @@
     {
       "id": "PUBLIC-LANG-CATEGORIES-005",
       "group": "GET /public/categories",
-      "title": "406: malformed locale 'e1'",
+      "title": "400: malformed Accept-Language 'e1'",
       "source": "inferred",
-      "tags": ["ambiguous"],
-      "note": "Docs only list 400 for a missing locale and 406 for an unsupported one; a malformed value is treated as unsupported.",
+      "tags": [],
       "steps": [
         {
           "actor": "anonymous",
@@ -1674,7 +1666,7 @@
             }
           },
           "expect": {
-            "status": 406,
+            "status": 400,
             "body": "plain_text"
           }
         }
@@ -1683,10 +1675,9 @@
     {
       "id": "PUBLIC-LANG-CATEGORIES-006",
       "group": "GET /public/categories",
-      "title": "406: malformed locale '!!'",
+      "title": "400: malformed Accept-Language '!!'",
       "source": "inferred",
-      "tags": ["ambiguous"],
-      "note": "Docs only list 400 for a missing locale and 406 for an unsupported one; a malformed value is treated as unsupported.",
+      "tags": [],
       "steps": [
         {
           "actor": "anonymous",
@@ -1698,7 +1689,7 @@
             }
           },
           "expect": {
-            "status": 406,
+            "status": 400,
             "body": "plain_text"
           }
         }
@@ -1709,7 +1700,7 @@
       "group": "POST /public/posts",
       "title": "406 wins over a malformed body",
       "source": "inferred",
-      "tags": ["ambiguous"],
+      "tags": [],
       "note": "Locale validation is assumed to run before body parsing.",
       "steps": [
         {
@@ -1735,7 +1726,7 @@
       "group": "GET /public/posts/{id}",
       "title": "406 wins over 404 for an unknown post id",
       "source": "inferred",
-      "tags": ["ambiguous"],
+      "tags": [],
       "note": "Locale validation is assumed to run before the post lookup.",
       "steps": [
         {
@@ -1789,8 +1780,7 @@
       "group": "GET /public/categories",
       "title": "Accept-Language 'en-US'",
       "source": "inferred",
-      "tags": ["ambiguous"],
-      "note": "A region subtag is assumed to be ignored (matches 'en'). Docs describe a single language code only.",
+      "tags": [],
       "steps": [
         {
           "actor": "anonymous",
@@ -1806,12 +1796,12 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "categories[*].locale",
+                "path": "$.categories[*].lang",
                 "op": "includes",
                 "value": "en"
               },
               {
-                "path": "categories[*].locale",
+                "path": "$.categories[*].lang",
                 "op": "excludes",
                 "value": "ru"
               }
@@ -1842,12 +1832,12 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "categories[*].locale",
+                "path": "$.categories[*].lang",
                 "op": "includes",
                 "value": "en"
               },
               {
-                "path": "categories[*].locale",
+                "path": "$.categories[*].lang",
                 "op": "excludes",
                 "value": "ru"
               }
@@ -1878,12 +1868,12 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "categories[*].locale",
+                "path": "$.categories[*].lang",
                 "op": "includes",
                 "value": "en"
               },
               {
-                "path": "categories[*].locale",
+                "path": "$.categories[*].lang",
                 "op": "excludes",
                 "value": "ru"
               }
@@ -1898,7 +1888,6 @@
       "title": "Accept-Language 'fr, de;q=0.8'",
       "source": "inferred",
       "tags": ["ambiguous"],
-      "note": "A list is assumed to fall back to the first supported language. Docs describe a single language code only.",
       "steps": [
         {
           "actor": "anonymous",
@@ -1914,12 +1903,12 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "categories[*].locale",
+                "path": "$.categories[*].lang",
                 "op": "includes",
                 "value": "de"
               },
               {
-                "path": "categories[*].locale",
+                "path": "$.categories[*].lang",
                 "op": "excludes",
                 "value": "en"
               }
@@ -1978,7 +1967,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "total",
+                "path": "$.total",
                 "op": "eq",
                 "value": 3
               }
@@ -2010,17 +1999,17 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "results",
+                "path": "$.results",
                 "op": "len_eq",
                 "value": 1
               },
               {
-                "path": "total",
+                "path": "$.total",
                 "op": "eq",
                 "value": 3
               },
               {
-                "path": "last_page",
+                "path": "$.last_page",
                 "op": "eq",
                 "value": 3
               }
@@ -2063,12 +2052,12 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "results",
+                "path": "$.results",
                 "op": "len_eq",
                 "value": 1
               },
               {
-                "path": "total",
+                "path": "$.total",
                 "op": "eq",
                 "value": 3
               }
@@ -2102,22 +2091,22 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "total",
+                "path": "$.total",
                 "op": "eq",
                 "value": 3
               },
               {
-                "path": "results[*].post_id",
+                "path": "$.results[*].post_id",
                 "op": "includes",
                 "value": 1
               },
               {
-                "path": "results[*].post_id",
+                "path": "$.results[*].post_id",
                 "op": "includes",
                 "value": 3
               },
               {
-                "path": "results[*].post_id",
+                "path": "$.results[*].post_id",
                 "op": "includes",
                 "value": 5
               }
@@ -2151,7 +2140,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "total",
+                "path": "$.total",
                 "op": "eq",
                 "value": 3
               }
@@ -2186,7 +2175,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "total",
+                "path": "$.total",
                 "op": "eq",
                 "value": 3
               }
@@ -2221,32 +2210,32 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "total",
+                "path": "$.total",
                 "op": "eq",
                 "value": 3
               },
               {
-                "path": "results[*].post_id",
+                "path": "$.results[*].post_id",
                 "op": "includes",
                 "value": 1
               },
               {
-                "path": "results[*].post_id",
+                "path": "$.results[*].post_id",
                 "op": "includes",
                 "value": 3
               },
               {
-                "path": "results[*].post_id",
+                "path": "$.results[*].post_id",
                 "op": "includes",
                 "value": 5
               },
               {
-                "path": "results[*].post_id",
+                "path": "$.results[*].post_id",
                 "op": "excludes",
                 "value": 2
               },
               {
-                "path": "results[*].post_id",
+                "path": "$.results[*].post_id",
                 "op": "excludes",
                 "value": 4
               }
@@ -2280,52 +2269,52 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "results[*].post_id",
+                "path": "$.results[*].post_id",
                 "op": "includes",
                 "value": 1
               },
               {
-                "path": "results[*].title",
+                "path": "$.results[*].title",
                 "op": "includes",
                 "value": "Alpha Post"
               },
               {
-                "path": "results[*].description",
+                "path": "$.results[*].description",
                 "op": "includes",
                 "value": "First post of the series"
               },
               {
-                "path": "results[*].slug",
+                "path": "$.results[*].slug",
                 "op": "includes",
                 "value": "alpha-post"
               },
               {
-                "path": "results[*].locale",
+                "path": "$.results[*].lang",
                 "op": "includes",
                 "value": "en"
               },
               {
-                "path": "results[*].published_at",
+                "path": "$.results[*].published_at",
                 "op": "includes",
                 "value": 1600000000
               },
               {
-                "path": "results[*].views",
+                "path": "$.results[*].views",
                 "op": "includes",
                 "value": 100
               },
               {
-                "path": "results[*].preview",
+                "path": "$.results[*].preview",
                 "op": "includes",
                 "value": "https://example.com/preview/1.jpg"
               },
               {
-                "path": "results[*].author",
+                "path": "$.results[*].author",
                 "op": "includes",
                 "value": "alice"
               },
               {
-                "path": "results[0].categories",
+                "path": "$.results[0].categories",
                 "op": "not_null"
               }
             ]
@@ -2359,23 +2348,23 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "results[0].markdown",
+                "path": "$.results[0].markdown",
                 "op": "is_null"
               },
               {
-                "path": "results[0].content",
+                "path": "$.results[0].content",
                 "op": "is_null"
               },
               {
-                "path": "results[0].keywords",
+                "path": "$.results[0].keywords",
                 "op": "is_null"
               },
               {
-                "path": "results[0].created_by",
+                "path": "$.results[0].created_by",
                 "op": "is_null"
               },
               {
-                "path": "results[0].created_at",
+                "path": "$.results[0].created_at",
                 "op": "is_null"
               }
             ]
@@ -2412,7 +2401,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "total",
+                "path": "$.total",
                 "op": "eq",
                 "value": 3
               }
@@ -2449,7 +2438,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "total",
+                "path": "$.total",
                 "op": "eq",
                 "value": 3
               }
@@ -2483,12 +2472,12 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "results",
+                "path": "$.results",
                 "op": "len_eq",
                 "value": 0
               },
               {
-                "path": "total",
+                "path": "$.total",
                 "op": "eq",
                 "value": 0
               }
@@ -2522,22 +2511,22 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "total",
+                "path": "$.total",
                 "op": "eq",
                 "value": 2
               },
               {
-                "path": "results[*].locale",
+                "path": "$.results[*].lang",
                 "op": "excludes",
                 "value": "en"
               },
               {
-                "path": "results[*].post_id",
+                "path": "$.results[*].post_id",
                 "op": "includes",
                 "value": 1
               },
               {
-                "path": "results[*].post_id",
+                "path": "$.results[*].post_id",
                 "op": "includes",
                 "value": 4
               }
@@ -2571,17 +2560,17 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "results",
+                "path": "$.results",
                 "op": "len_eq",
                 "value": 3
               },
               {
-                "path": "total",
+                "path": "$.total",
                 "op": "eq",
                 "value": 3
               },
               {
-                "path": "last_page",
+                "path": "$.last_page",
                 "op": "eq",
                 "value": 1
               }
@@ -2617,27 +2606,27 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "results",
+                "path": "$.results",
                 "op": "len_eq",
                 "value": 2
               },
               {
-                "path": "total",
+                "path": "$.total",
                 "op": "eq",
                 "value": 3
               },
               {
-                "path": "last_page",
+                "path": "$.last_page",
                 "op": "eq",
                 "value": 2
               },
               {
-                "path": "results[*].post_id",
+                "path": "$.results[*].post_id",
                 "op": "includes",
                 "value": 1
               },
               {
-                "path": "results[*].post_id",
+                "path": "$.results[*].post_id",
                 "op": "includes",
                 "value": 3
               }
@@ -2673,12 +2662,12 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "results",
+                "path": "$.results",
                 "op": "len_eq",
                 "value": 1
               },
               {
-                "path": "results[*].post_id",
+                "path": "$.results[*].post_id",
                 "op": "includes",
                 "value": 5
               }
@@ -2714,12 +2703,12 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "results",
+                "path": "$.results",
                 "op": "len_eq",
                 "value": 0
               },
               {
-                "path": "total",
+                "path": "$.total",
                 "op": "eq",
                 "value": 3
               }
@@ -2753,7 +2742,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "results",
+                "path": "$.results",
                 "op": "len_eq",
                 "value": 3
               }
@@ -2787,17 +2776,17 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "results",
+                "path": "$.results",
                 "op": "len_lte",
                 "value": 100
               },
               {
-                "path": "results",
+                "path": "$.results",
                 "op": "len_eq",
                 "value": 3
               },
               {
-                "path": "last_page",
+                "path": "$.last_page",
                 "op": "eq",
                 "value": 1
               }
@@ -2831,12 +2820,12 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "results",
+                "path": "$.results",
                 "op": "len_eq",
                 "value": 1
               },
               {
-                "path": "last_page",
+                "path": "$.last_page",
                 "op": "eq",
                 "value": 3
               }
@@ -2870,7 +2859,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "results",
+                "path": "$.results",
                 "op": "len_eq",
                 "value": 1
               }
@@ -2906,17 +2895,17 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "results",
+                "path": "$.results",
                 "op": "len_eq",
                 "value": 2
               },
               {
-                "path": "results[*].post_id",
+                "path": "$.results[*].post_id",
                 "op": "includes",
                 "value": 1
               },
               {
-                "path": "results[*].post_id",
+                "path": "$.results[*].post_id",
                 "op": "includes",
                 "value": 3
               }
@@ -2952,17 +2941,17 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "results",
+                "path": "$.results",
                 "op": "len_eq",
                 "value": 2
               },
               {
-                "path": "results[*].post_id",
+                "path": "$.results[*].post_id",
                 "op": "includes",
                 "value": 1
               },
               {
-                "path": "results[*].post_id",
+                "path": "$.results[*].post_id",
                 "op": "includes",
                 "value": 3
               }
@@ -2997,12 +2986,12 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "total",
+                "path": "$.total",
                 "op": "eq",
                 "value": 1
               },
               {
-                "path": "results[*].post_id",
+                "path": "$.results[*].post_id",
                 "op": "includes",
                 "value": 5
               }
@@ -3037,12 +3026,12 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "total",
+                "path": "$.total",
                 "op": "eq",
                 "value": 1
               },
               {
-                "path": "results[*].post_id",
+                "path": "$.results[*].post_id",
                 "op": "includes",
                 "value": 1
               }
@@ -3068,12 +3057,12 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "total",
+                "path": "$.total",
                 "op": "eq",
                 "value": 1
               },
               {
-                "path": "results[*].post_id",
+                "path": "$.results[*].post_id",
                 "op": "includes",
                 "value": 1
               }
@@ -3099,7 +3088,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "total",
+                "path": "$.total",
                 "op": "eq",
                 "value": 0
               }
@@ -3134,12 +3123,12 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "total",
+                "path": "$.total",
                 "op": "eq",
                 "value": 1
               },
               {
-                "path": "results[*].post_id",
+                "path": "$.results[*].post_id",
                 "op": "includes",
                 "value": 3
               }
@@ -3175,12 +3164,12 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "total",
+                "path": "$.total",
                 "op": "eq",
                 "value": 1
               },
               {
-                "path": "results[*].post_id",
+                "path": "$.results[*].post_id",
                 "op": "includes",
                 "value": 5
               }
@@ -3216,12 +3205,12 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "total",
+                "path": "$.total",
                 "op": "eq",
                 "value": 1
               },
               {
-                "path": "results[*].post_id",
+                "path": "$.results[*].post_id",
                 "op": "includes",
                 "value": 5
               }
@@ -3256,7 +3245,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "total",
+                "path": "$.total",
                 "op": "eq",
                 "value": 0
               }
@@ -3291,7 +3280,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "total",
+                "path": "$.total",
                 "op": "eq",
                 "value": 0
               }
@@ -3317,7 +3306,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "total",
+                "path": "$.total",
                 "op": "eq",
                 "value": 0
               }
@@ -3343,7 +3332,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "total",
+                "path": "$.total",
                 "op": "eq",
                 "value": 0
               }
@@ -3369,7 +3358,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "total",
+                "path": "$.total",
                 "op": "eq",
                 "value": 0
               }
@@ -3404,12 +3393,12 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "total",
+                "path": "$.total",
                 "op": "eq",
                 "value": 1
               },
               {
-                "path": "results[*].post_id",
+                "path": "$.results[*].post_id",
                 "op": "includes",
                 "value": 1
               }
@@ -3445,7 +3434,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "total",
+                "path": "$.total",
                 "op": "eq",
                 "value": 0
               }
@@ -3481,12 +3470,12 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "total",
+                "path": "$.total",
                 "op": "eq",
                 "value": 1
               },
               {
-                "path": "results[*].post_id",
+                "path": "$.results[*].post_id",
                 "op": "includes",
                 "value": 5
               }
@@ -3521,12 +3510,12 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "total",
+                "path": "$.total",
                 "op": "eq",
                 "value": 1
               },
               {
-                "path": "results[*].post_id",
+                "path": "$.results[*].post_id",
                 "op": "includes",
                 "value": 3
               }
@@ -3562,12 +3551,12 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "results",
+                "path": "$.results",
                 "op": "len_eq",
                 "value": 0
               },
               {
-                "path": "total",
+                "path": "$.total",
                 "op": "eq",
                 "value": 0
               }
@@ -3602,7 +3591,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "total",
+                "path": "$.total",
                 "op": "eq",
                 "value": 3
               }
@@ -3637,17 +3626,17 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "total",
+                "path": "$.total",
                 "op": "eq",
                 "value": 2
               },
               {
-                "path": "results[*].post_id",
+                "path": "$.results[*].post_id",
                 "op": "includes",
                 "value": 1
               },
               {
-                "path": "results[*].post_id",
+                "path": "$.results[*].post_id",
                 "op": "includes",
                 "value": 5
               }
@@ -3682,12 +3671,12 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "total",
+                "path": "$.total",
                 "op": "eq",
                 "value": 1
               },
               {
-                "path": "results[*].post_id",
+                "path": "$.results[*].post_id",
                 "op": "includes",
                 "value": 3
               }
@@ -3723,17 +3712,17 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "total",
+                "path": "$.total",
                 "op": "eq",
                 "value": 2
               },
               {
-                "path": "results[*].post_id",
+                "path": "$.results[*].post_id",
                 "op": "includes",
                 "value": 1
               },
               {
-                "path": "results[*].post_id",
+                "path": "$.results[*].post_id",
                 "op": "includes",
                 "value": 3
               }
@@ -3769,7 +3758,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "total",
+                "path": "$.total",
                 "op": "eq",
                 "value": 0
               }
@@ -3806,7 +3795,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "total",
+                "path": "$.total",
                 "op": "eq",
                 "value": 3
               }
@@ -3843,7 +3832,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "total",
+                "path": "$.total",
                 "op": "eq",
                 "value": 3
               }
@@ -3878,12 +3867,12 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "total",
+                "path": "$.total",
                 "op": "eq",
                 "value": 1
               },
               {
-                "path": "results[*].post_id",
+                "path": "$.results[*].post_id",
                 "op": "includes",
                 "value": 1
               }
@@ -3918,12 +3907,12 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "total",
+                "path": "$.total",
                 "op": "eq",
                 "value": 1
               },
               {
-                "path": "results[*].post_id",
+                "path": "$.results[*].post_id",
                 "op": "includes",
                 "value": 3
               }
@@ -3958,17 +3947,17 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "total",
+                "path": "$.total",
                 "op": "eq",
                 "value": 2
               },
               {
-                "path": "results[*].post_id",
+                "path": "$.results[*].post_id",
                 "op": "includes",
                 "value": 1
               },
               {
-                "path": "results[*].post_id",
+                "path": "$.results[*].post_id",
                 "op": "includes",
                 "value": 5
               }
@@ -4004,12 +3993,12 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "total",
+                "path": "$.total",
                 "op": "eq",
                 "value": 1
               },
               {
-                "path": "results[*].post_id",
+                "path": "$.results[*].post_id",
                 "op": "includes",
                 "value": 5
               }
@@ -4044,7 +4033,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "total",
+                "path": "$.total",
                 "op": "eq",
                 "value": 3
               }
@@ -4080,12 +4069,12 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "total",
+                "path": "$.total",
                 "op": "eq",
                 "value": 1
               },
               {
-                "path": "results[*].post_id",
+                "path": "$.results[*].post_id",
                 "op": "includes",
                 "value": 1
               }
@@ -4120,12 +4109,12 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "total",
+                "path": "$.total",
                 "op": "eq",
                 "value": 1
               },
               {
-                "path": "results[*].post_id",
+                "path": "$.results[*].post_id",
                 "op": "includes",
                 "value": 3
               }
@@ -4161,17 +4150,17 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "total",
+                "path": "$.total",
                 "op": "eq",
                 "value": 2
               },
               {
-                "path": "results[*].post_id",
+                "path": "$.results[*].post_id",
                 "op": "includes",
                 "value": 1
               },
               {
-                "path": "results[*].post_id",
+                "path": "$.results[*].post_id",
                 "op": "includes",
                 "value": 3
               }
@@ -4206,7 +4195,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "total",
+                "path": "$.total",
                 "op": "eq",
                 "value": 0
               }
@@ -4242,17 +4231,17 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "total",
+                "path": "$.total",
                 "op": "eq",
                 "value": 2
               },
               {
-                "path": "results[*].post_id",
+                "path": "$.results[*].post_id",
                 "op": "includes",
                 "value": 1
               },
               {
-                "path": "results[*].post_id",
+                "path": "$.results[*].post_id",
                 "op": "includes",
                 "value": 4
               }
@@ -4288,7 +4277,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "results[0].author",
+                "path": "$.results[0].author",
                 "op": "eq",
                 "value": "dave"
               }
@@ -4324,7 +4313,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "results[0].categories",
+                "path": "$.results[0].categories",
                 "op": "includes",
                 "value": "archive"
               }
@@ -4359,22 +4348,22 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "total",
+                "path": "$.total",
                 "op": "eq",
                 "value": 3
               },
               {
-                "path": "results[*].post_id",
+                "path": "$.results[*].post_id",
                 "op": "includes",
                 "value": 1
               },
               {
-                "path": "results[*].post_id",
+                "path": "$.results[*].post_id",
                 "op": "includes",
                 "value": 3
               },
               {
-                "path": "results[*].post_id",
+                "path": "$.results[*].post_id",
                 "op": "includes",
                 "value": 5
               }
@@ -4410,7 +4399,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "total",
+                "path": "$.total",
                 "op": "eq",
                 "value": 0
               }
@@ -4445,7 +4434,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "total",
+                "path": "$.total",
                 "op": "eq",
                 "value": 3
               }
@@ -4480,17 +4469,17 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "total",
+                "path": "$.total",
                 "op": "eq",
                 "value": 2
               },
               {
-                "path": "results[*].post_id",
+                "path": "$.results[*].post_id",
                 "op": "includes",
                 "value": 3
               },
               {
-                "path": "results[*].post_id",
+                "path": "$.results[*].post_id",
                 "op": "includes",
                 "value": 5
               }
@@ -4525,12 +4514,12 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "total",
+                "path": "$.total",
                 "op": "eq",
                 "value": 1
               },
               {
-                "path": "results[*].post_id",
+                "path": "$.results[*].post_id",
                 "op": "includes",
                 "value": 1
               }
@@ -4566,17 +4555,17 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "total",
+                "path": "$.total",
                 "op": "eq",
                 "value": 2
               },
               {
-                "path": "results[*].post_id",
+                "path": "$.results[*].post_id",
                 "op": "includes",
                 "value": 1
               },
               {
-                "path": "results[*].post_id",
+                "path": "$.results[*].post_id",
                 "op": "includes",
                 "value": 3
               }
@@ -4611,7 +4600,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "total",
+                "path": "$.total",
                 "op": "eq",
                 "value": 0
               }
@@ -4648,7 +4637,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "total",
+                "path": "$.total",
                 "op": "eq",
                 "value": 0
               }
@@ -4684,7 +4673,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "total",
+                "path": "$.total",
                 "op": "eq",
                 "value": 3
               }
@@ -4722,17 +4711,17 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "total",
+                "path": "$.total",
                 "op": "eq",
                 "value": 2
               },
               {
-                "path": "results[*].post_id",
+                "path": "$.results[*].post_id",
                 "op": "includes",
                 "value": 1
               },
               {
-                "path": "results[*].post_id",
+                "path": "$.results[*].post_id",
                 "op": "includes",
                 "value": 5
               }
@@ -4767,12 +4756,12 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "results",
+                "path": "$.results",
                 "op": "len_eq",
                 "value": 3
               },
               {
-                "path": "results[*].post_id",
+                "path": "$.results[*].post_id",
                 "op": "sorted_asc"
               }
             ]
@@ -4806,12 +4795,12 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "results",
+                "path": "$.results",
                 "op": "len_eq",
                 "value": 3
               },
               {
-                "path": "results[*].post_id",
+                "path": "$.results[*].post_id",
                 "op": "sorted_desc"
               }
             ]
@@ -4845,12 +4834,12 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "results",
+                "path": "$.results",
                 "op": "len_eq",
                 "value": 3
               },
               {
-                "path": "results[*].title",
+                "path": "$.results[*].title",
                 "op": "sorted_asc"
               }
             ]
@@ -4884,12 +4873,12 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "results",
+                "path": "$.results",
                 "op": "len_eq",
                 "value": 3
               },
               {
-                "path": "results[*].title",
+                "path": "$.results[*].title",
                 "op": "sorted_desc"
               }
             ]
@@ -4923,12 +4912,12 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "results",
+                "path": "$.results",
                 "op": "len_eq",
                 "value": 3
               },
               {
-                "path": "results[*].author",
+                "path": "$.results[*].author",
                 "op": "sorted_asc"
               }
             ]
@@ -4962,12 +4951,12 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "results",
+                "path": "$.results",
                 "op": "len_eq",
                 "value": 3
               },
               {
-                "path": "results[*].author",
+                "path": "$.results[*].author",
                 "op": "sorted_desc"
               }
             ]
@@ -5001,12 +4990,12 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "results",
+                "path": "$.results",
                 "op": "len_eq",
                 "value": 3
               },
               {
-                "path": "results[*].published_at",
+                "path": "$.results[*].published_at",
                 "op": "sorted_asc"
               }
             ]
@@ -5040,12 +5029,12 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "results",
+                "path": "$.results",
                 "op": "len_eq",
                 "value": 3
               },
               {
-                "path": "results[*].published_at",
+                "path": "$.results[*].published_at",
                 "op": "sorted_desc"
               }
             ]
@@ -5079,12 +5068,12 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "results",
+                "path": "$.results",
                 "op": "len_eq",
                 "value": 3
               },
               {
-                "path": "results[*].views",
+                "path": "$.results[*].views",
                 "op": "sorted_asc"
               }
             ]
@@ -5118,12 +5107,12 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "results",
+                "path": "$.results",
                 "op": "len_eq",
                 "value": 3
               },
               {
-                "path": "results[*].views",
+                "path": "$.results[*].views",
                 "op": "sorted_desc"
               }
             ]
@@ -5158,12 +5147,12 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "results",
+                "path": "$.results",
                 "op": "len_eq",
                 "value": 1
               },
               {
-                "path": "results[0].post_id",
+                "path": "$.results[0].post_id",
                 "op": "eq",
                 "value": 1
               }
@@ -5199,12 +5188,12 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "results",
+                "path": "$.results",
                 "op": "len_eq",
                 "value": 1
               },
               {
-                "path": "results[0].post_id",
+                "path": "$.results[0].post_id",
                 "op": "eq",
                 "value": 5
               }
@@ -5240,12 +5229,12 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "results",
+                "path": "$.results",
                 "op": "len_eq",
                 "value": 1
               },
               {
-                "path": "results[0].post_id",
+                "path": "$.results[0].post_id",
                 "op": "eq",
                 "value": 1
               }
@@ -5281,12 +5270,12 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "results",
+                "path": "$.results",
                 "op": "len_eq",
                 "value": 1
               },
               {
-                "path": "results[0].post_id",
+                "path": "$.results[0].post_id",
                 "op": "eq",
                 "value": 5
               }
@@ -5322,12 +5311,12 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "results",
+                "path": "$.results",
                 "op": "len_eq",
                 "value": 1
               },
               {
-                "path": "results[0].post_id",
+                "path": "$.results[0].post_id",
                 "op": "eq",
                 "value": 5
               }
@@ -5362,7 +5351,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "total",
+                "path": "$.total",
                 "op": "eq",
                 "value": 3
               }
@@ -6101,7 +6090,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "total",
+                "path": "$.total",
                 "op": "eq",
                 "value": 0
               }
@@ -6137,7 +6126,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "total",
+                "path": "$.total",
                 "op": "eq",
                 "value": 0
               }
@@ -6163,7 +6152,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "total",
+                "path": "$.total",
                 "op": "eq",
                 "value": 0
               }
@@ -6200,7 +6189,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "total",
+                "path": "$.total",
                 "op": "eq",
                 "value": 0
               }
@@ -6400,8 +6389,7 @@
       "group": "POST /public/posts",
       "title": "Scheduled post (published_at in the future) is not returned yet",
       "source": "inferred",
-      "tags": ["ambiguous", "assumes_sequential_id"],
-      "note": "'Published' is assumed to mean published_at is set and not in the future. If any non-null published_at counts, totals would be 1 and 4. Assumes ids are allocated sequentially, so the first post created after the fixtures (max id 5) gets id 6.",
+      "tags": ["assumes_sequential_id"],
       "steps": [
         {
           "actor": "root",
@@ -6444,7 +6432,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "total",
+                "path": "$.total",
                 "op": "eq",
                 "value": 0
               }
@@ -6470,7 +6458,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "total",
+                "path": "$.total",
                 "op": "eq",
                 "value": 3
               }
@@ -6485,8 +6473,7 @@
       "group": "POST /public/posts",
       "title": "A newly published post appears",
       "source": "documented",
-      "tags": ["ambiguous", "assumes_sequential_id", "cache"],
-      "note": "Assumes ids are allocated sequentially, so the first post created after the fixtures (max id 5) gets id 6.",
+      "tags": ["cache"],
       "steps": [
         {
           "actor": "anonymous",
@@ -6506,7 +6493,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "total",
+                "path": "$.total",
                 "op": "eq",
                 "value": 3
               }
@@ -6556,22 +6543,22 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "total",
+                "path": "$.total",
                 "op": "eq",
                 "value": 1
               },
               {
-                "path": "results[0].title",
+                "path": "$.results[0].title",
                 "op": "eq",
                 "value": "Fresh Post"
               },
               {
-                "path": "results[0].author",
+                "path": "$.results[0].author",
                 "op": "eq",
                 "value": "alice"
               },
               {
-                "path": "results[0].locale",
+                "path": "$.results[0].lang",
                 "op": "eq",
                 "value": "en"
               }
@@ -6597,7 +6584,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "total",
+                "path": "$.total",
                 "op": "eq",
                 "value": 4
               }
@@ -6654,7 +6641,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "total",
+                "path": "$.total",
                 "op": "eq",
                 "value": 0
               }
@@ -6680,7 +6667,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "total",
+                "path": "$.total",
                 "op": "eq",
                 "value": 3
               }
@@ -6716,7 +6703,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "total",
+                "path": "$.total",
                 "op": "eq",
                 "value": 0
               }
@@ -6763,12 +6750,12 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "total",
+                "path": "$.total",
                 "op": "eq",
                 "value": 1
               },
               {
-                "path": "results[*].post_id",
+                "path": "$.results[*].post_id",
                 "op": "includes",
                 "value": 2
               }
@@ -6825,12 +6812,12 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "total",
+                "path": "$.total",
                 "op": "eq",
                 "value": 2
               },
               {
-                "path": "results[*].post_id",
+                "path": "$.results[*].post_id",
                 "op": "excludes",
                 "value": 1
               }
@@ -6856,12 +6843,12 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "total",
+                "path": "$.total",
                 "op": "eq",
                 "value": 1
               },
               {
-                "path": "results[*].post_id",
+                "path": "$.results[*].post_id",
                 "op": "excludes",
                 "value": 1
               }
@@ -6910,12 +6897,12 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "total",
+                "path": "$.total",
                 "op": "eq",
                 "value": 2
               },
               {
-                "path": "results[*].post_id",
+                "path": "$.results[*].post_id",
                 "op": "excludes",
                 "value": 1
               }
@@ -6941,12 +6928,12 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "total",
+                "path": "$.total",
                 "op": "eq",
                 "value": 1
               },
               {
-                "path": "results[*].post_id",
+                "path": "$.results[*].post_id",
                 "op": "excludes",
                 "value": 1
               }
@@ -7006,12 +6993,12 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "total",
+                "path": "$.total",
                 "op": "eq",
                 "value": 1
               },
               {
-                "path": "results[*].post_id",
+                "path": "$.results[*].post_id",
                 "op": "includes",
                 "value": 5
               }
@@ -7038,7 +7025,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "total",
+                "path": "$.total",
                 "op": "eq",
                 "value": 0
               }
@@ -7099,12 +7086,12 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "total",
+                "path": "$.total",
                 "op": "eq",
                 "value": 1
               },
               {
-                "path": "results[*].post_id",
+                "path": "$.results[*].post_id",
                 "op": "includes",
                 "value": 5
               }
@@ -7131,7 +7118,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "total",
+                "path": "$.total",
                 "op": "eq",
                 "value": 0
               }
@@ -7187,12 +7174,12 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "results[0].post_id",
+                "path": "$.results[0].post_id",
                 "op": "eq",
                 "value": 5
               },
               {
-                "path": "results[0].views",
+                "path": "$.results[0].views",
                 "op": "eq",
                 "value": 5000
               }
@@ -7251,17 +7238,17 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "total",
+                "path": "$.total",
                 "op": "eq",
                 "value": 2
               },
               {
-                "path": "results[*].post_id",
+                "path": "$.results[*].post_id",
                 "op": "includes",
                 "value": 1
               },
               {
-                "path": "results[*].post_id",
+                "path": "$.results[*].post_id",
                 "op": "includes",
                 "value": 5
               }
@@ -7295,82 +7282,82 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "post_id",
+                "path": "$.post_id",
                 "op": "eq",
                 "value": 1
               },
               {
-                "path": "title",
+                "path": "$.title",
                 "op": "eq",
                 "value": "Alpha Post"
               },
               {
-                "path": "description",
+                "path": "$.description",
                 "op": "eq",
                 "value": "First post of the series"
               },
               {
-                "path": "slug",
+                "path": "$.slug",
                 "op": "eq",
                 "value": "alpha-post"
               },
               {
-                "path": "keywords",
+                "path": "$.keywords",
                 "op": "eq",
                 "value": "alpha, first"
               },
               {
-                "path": "locale",
+                "path": "$.lang",
                 "op": "eq",
                 "value": "en"
               },
               {
-                "path": "published_at",
+                "path": "$.published_at",
                 "op": "eq",
                 "value": 1600000000
               },
               {
-                "path": "views",
+                "path": "$.views",
                 "op": "eq",
                 "value": 100
               },
               {
-                "path": "preview",
+                "path": "$.preview",
                 "op": "eq",
                 "value": "https://example.com/preview/1.jpg"
               },
               {
-                "path": "media",
+                "path": "$.media",
                 "op": "eq",
                 "value": "https://example.com/media/1.jpg"
               },
               {
-                "path": "media_source",
+                "path": "$.media_source",
                 "op": "eq",
                 "value": "https://example.com/source/1.jpg"
               },
               {
-                "path": "media_type",
+                "path": "$.media_type",
                 "op": "eq",
                 "value": "image"
               },
               {
-                "path": "author",
+                "path": "$.author",
                 "op": "eq",
                 "value": "alice"
               },
               {
-                "path": "categories",
+                "path": "$.categories",
                 "op": "len_eq",
                 "value": 2
               },
               {
-                "path": "categories",
+                "path": "$.categories",
                 "op": "includes",
                 "value": "news"
               },
               {
-                "path": "categories",
+                "path": "$.categories",
                 "op": "includes",
                 "value": "sports"
               }
@@ -7403,37 +7390,37 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "post_id",
+                "path": "$.post_id",
                 "op": "eq",
                 "value": 1
               },
               {
-                "path": "title",
+                "path": "$.title",
                 "op": "eq",
                 "value": "Альфа пост"
               },
               {
-                "path": "slug",
+                "path": "$.slug",
                 "op": "eq",
                 "value": "alfa-post"
               },
               {
-                "path": "locale",
+                "path": "$.lang",
                 "op": "eq",
                 "value": "ru"
               },
               {
-                "path": "description",
+                "path": "$.description",
                 "op": "eq",
                 "value": "Первый пост серии"
               },
               {
-                "path": "published_at",
+                "path": "$.published_at",
                 "op": "eq",
                 "value": 1600000000
               },
               {
-                "path": "author",
+                "path": "$.author",
                 "op": "eq",
                 "value": "alice"
               }
@@ -7467,7 +7454,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "markdown",
+                "path": "$.markdown",
                 "op": "eq",
                 "value": "# Alpha\n\nFirst paragraph"
               }
@@ -7500,19 +7487,19 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "content",
+                "path": "$.content",
                 "op": "is_null"
               },
               {
-                "path": "created_by",
+                "path": "$.created_by",
                 "op": "is_null"
               },
               {
-                "path": "created_at",
+                "path": "$.created_at",
                 "op": "is_null"
               },
               {
-                "path": "language",
+                "path": "$.language",
                 "op": "is_null"
               }
             ]
@@ -7545,17 +7532,17 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "media",
+                "path": "$.media",
                 "op": "eq",
                 "value": ""
               },
               {
-                "path": "media_type",
+                "path": "$.media_type",
                 "op": "eq",
                 "value": ""
               },
               {
-                "path": "author",
+                "path": "$.author",
                 "op": "eq",
                 "value": "alice"
               }
@@ -7588,12 +7575,12 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "media_type",
+                "path": "$.media_type",
                 "op": "eq",
                 "value": "video"
               },
               {
-                "path": "media",
+                "path": "$.media",
                 "op": "eq",
                 "value": "https://example.com/media/3.mp4"
               }
@@ -7627,7 +7614,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "categories",
+                "path": "$.categories",
                 "op": "includes",
                 "value": "archive"
               }
@@ -7660,7 +7647,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "author",
+                "path": "$.author",
                 "op": "eq",
                 "value": "dave"
               }
@@ -7694,7 +7681,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "post_id",
+                "path": "$.post_id",
                 "op": "eq",
                 "value": 1
               }
@@ -7727,7 +7714,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "post_id",
+                "path": "$.post_id",
                 "op": "eq",
                 "value": 1
               }
@@ -7761,7 +7748,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "post_id",
+                "path": "$.post_id",
                 "op": "eq",
                 "value": 1
               }
@@ -7919,7 +7906,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "views",
+                "path": "$.views",
                 "op": "eq",
                 "value": 100
               }
@@ -7943,7 +7930,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "views",
+                "path": "$.views",
                 "op": "eq",
                 "value": 100
               }
@@ -8004,7 +7991,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "post_id",
+                "path": "$.post_id",
                 "op": "eq",
                 "value": 1
               }
@@ -8313,12 +8300,12 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "title",
+                "path": "$.title",
                 "op": "eq",
                 "value": "Beta Draft"
               },
               {
-                "path": "published_at",
+                "path": "$.published_at",
                 "op": "eq",
                 "value": 1600000000
               }
@@ -8352,7 +8339,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "post_id",
+                "path": "$.post_id",
                 "op": "eq",
                 "value": 1
               }
@@ -8518,7 +8505,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "title",
+                "path": "$.title",
                 "op": "eq",
                 "value": "Alpha Post"
               }
@@ -8566,12 +8553,12 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "title",
+                "path": "$.title",
                 "op": "eq",
                 "value": "Alpha v2"
               },
               {
-                "path": "categories",
+                "path": "$.categories",
                 "op": "len_eq",
                 "value": 1
               }
@@ -8647,12 +8634,12 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "title",
+                "path": "$.title",
                 "op": "eq",
                 "value": "Alpha Beitrag"
               },
               {
-                "path": "locale",
+                "path": "$.lang",
                 "op": "eq",
                 "value": "de"
               }
@@ -8683,27 +8670,27 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "categories",
+                "path": "$.categories",
                 "op": "len_eq",
                 "value": 2
               },
               {
-                "path": "categories[*].slug",
+                "path": "$.categories[*].slug",
                 "op": "includes",
                 "value": "news"
               },
               {
-                "path": "categories[*].slug",
+                "path": "$.categories[*].slug",
                 "op": "includes",
                 "value": "sports"
               },
               {
-                "path": "categories[*].slug",
+                "path": "$.categories[*].slug",
                 "op": "excludes",
                 "value": "archive"
               },
               {
-                "path": "categories[*].name",
+                "path": "$.categories[*].name",
                 "op": "includes",
                 "value": "News"
               }
@@ -8733,12 +8720,12 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "categories[*].hidden",
+                "path": "$.categories[*].hidden",
                 "op": "excludes",
                 "value": true
               },
               {
-                "path": "categories[*].slug",
+                "path": "$.categories[*].slug",
                 "op": "excludes",
                 "value": "archive"
               }
@@ -8768,32 +8755,32 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "categories[*].name",
+                "path": "$.categories[*].name",
                 "op": "includes",
                 "value": "News"
               },
               {
-                "path": "categories[*].slug",
+                "path": "$.categories[*].slug",
                 "op": "includes",
                 "value": "news"
               },
               {
-                "path": "categories[*].locale",
+                "path": "$.categories[*].lang",
                 "op": "includes",
                 "value": "en"
               },
               {
-                "path": "categories[*].hidden",
+                "path": "$.categories[*].hidden",
                 "op": "includes",
                 "value": false
               },
               {
-                "path": "categories[*].navbar",
+                "path": "$.categories[*].navbar",
                 "op": "includes",
                 "value": true
               },
               {
-                "path": "categories[*].navbar",
+                "path": "$.categories[*].navbar",
                 "op": "includes",
                 "value": false
               }
@@ -8823,27 +8810,27 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "categories",
+                "path": "$.categories",
                 "op": "len_eq",
                 "value": 2
               },
               {
-                "path": "categories[*].slug",
+                "path": "$.categories[*].slug",
                 "op": "includes",
                 "value": "news"
               },
               {
-                "path": "categories[*].slug",
+                "path": "$.categories[*].slug",
                 "op": "includes",
                 "value": "culture"
               },
               {
-                "path": "categories[*].locale",
+                "path": "$.categories[*].lang",
                 "op": "excludes",
                 "value": "en"
               },
               {
-                "path": "categories[*].name",
+                "path": "$.categories[*].name",
                 "op": "includes",
                 "value": "Новости"
               }
@@ -8874,7 +8861,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "categories",
+                "path": "$.categories",
                 "op": "len_eq",
                 "value": 0
               }
@@ -8904,7 +8891,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "categories",
+                "path": "$.categories",
                 "op": "len_eq",
                 "value": 2
               }
@@ -8934,7 +8921,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "categories",
+                "path": "$.categories",
                 "op": "len_eq",
                 "value": 2
               }
@@ -8965,7 +8952,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "categories",
+                "path": "$.categories",
                 "op": "len_eq",
                 "value": 2
               }
@@ -8996,7 +8983,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "categories",
+                "path": "$.categories",
                 "op": "len_eq",
                 "value": 2
               }
@@ -9054,7 +9041,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "categories[*].slug",
+                "path": "$.categories[*].slug",
                 "op": "includes",
                 "value": "sports"
               }
@@ -9096,12 +9083,12 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "categories[*].slug",
+                "path": "$.categories[*].slug",
                 "op": "excludes",
                 "value": "sports"
               },
               {
-                "path": "categories",
+                "path": "$.categories",
                 "op": "len_eq",
                 "value": 1
               }
@@ -9132,7 +9119,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "categories[*].slug",
+                "path": "$.categories[*].slug",
                 "op": "excludes",
                 "value": "archive"
               }
@@ -9174,12 +9161,12 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "categories[*].slug",
+                "path": "$.categories[*].slug",
                 "op": "includes",
                 "value": "archive"
               },
               {
-                "path": "categories",
+                "path": "$.categories",
                 "op": "len_eq",
                 "value": 3
               }
@@ -9231,12 +9218,12 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "categories[*].slug",
+                "path": "$.categories[*].slug",
                 "op": "includes",
                 "value": "tech"
               },
               {
-                "path": "categories",
+                "path": "$.categories",
                 "op": "len_eq",
                 "value": 3
               }
@@ -9289,12 +9276,12 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "categories[*].slug",
+                "path": "$.categories[*].slug",
                 "op": "excludes",
                 "value": "secret"
               },
               {
-                "path": "categories",
+                "path": "$.categories",
                 "op": "len_eq",
                 "value": 2
               }
@@ -9339,7 +9326,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "categories[*].slug",
+                "path": "$.categories[*].slug",
                 "op": "excludes",
                 "value": "news"
               }
@@ -9361,12 +9348,12 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "categories[*].slug",
+                "path": "$.categories[*].slug",
                 "op": "excludes",
                 "value": "news"
               },
               {
-                "path": "categories",
+                "path": "$.categories",
                 "op": "len_eq",
                 "value": 1
               }
@@ -9418,12 +9405,12 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "categories[*].name",
+                "path": "$.categories[*].name",
                 "op": "includes",
                 "value": "Headlines"
               },
               {
-                "path": "categories[*].name",
+                "path": "$.categories[*].name",
                 "op": "excludes",
                 "value": "News"
               }
@@ -9476,7 +9463,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "categories[*].navbar",
+                "path": "$.categories[*].navbar",
                 "op": "excludes",
                 "value": true
               }
@@ -9507,27 +9494,27 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "editors",
+                "path": "$.editors",
                 "op": "len_eq",
                 "value": 2
               },
               {
-                "path": "editors[*].username",
+                "path": "$.editors[*].username",
                 "op": "includes",
                 "value": "alice"
               },
               {
-                "path": "editors[*].username",
+                "path": "$.editors[*].username",
                 "op": "includes",
                 "value": "bobby"
               },
               {
-                "path": "editors[*].username",
+                "path": "$.editors[*].username",
                 "op": "excludes",
                 "value": "dave"
               },
               {
-                "path": "editors[*].name",
+                "path": "$.editors[*].name",
                 "op": "includes",
                 "value": "Alice Smith"
               }
@@ -9557,27 +9544,27 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "editors[*].name",
+                "path": "$.editors[*].name",
                 "op": "includes",
                 "value": "Bobby Brown"
               },
               {
-                "path": "editors[*].username",
+                "path": "$.editors[*].username",
                 "op": "includes",
                 "value": "bobby"
               },
               {
-                "path": "editors[*].email",
+                "path": "$.editors[*].email",
                 "op": "includes",
                 "value": "bobby@example.com"
               },
               {
-                "path": "editors[*].email",
+                "path": "$.editors[*].email",
                 "op": "includes",
                 "value": "alice@example.com"
               },
               {
-                "path": "editors[*].locale",
+                "path": "$.editors[*].lang",
                 "op": "includes",
                 "value": "en"
               }
@@ -9608,7 +9595,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "editors[0].bio",
+                "path": "$.editors[0].bio",
                 "op": "is_null"
               }
             ]
@@ -9638,12 +9625,12 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "editors[*].username",
+                "path": "$.editors[*].username",
                 "op": "excludes",
                 "value": "dave"
               },
               {
-                "path": "editors[*].name",
+                "path": "$.editors[*].name",
                 "op": "excludes",
                 "value": "Dave Old"
               }
@@ -9673,32 +9660,32 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "editors",
+                "path": "$.editors",
                 "op": "len_eq",
                 "value": 2
               },
               {
-                "path": "editors[*].username",
+                "path": "$.editors[*].username",
                 "op": "includes",
                 "value": "alice"
               },
               {
-                "path": "editors[*].username",
+                "path": "$.editors[*].username",
                 "op": "includes",
                 "value": "carol"
               },
               {
-                "path": "editors[*].username",
+                "path": "$.editors[*].username",
                 "op": "excludes",
                 "value": "bobby"
               },
               {
-                "path": "editors[*].locale",
+                "path": "$.editors[*].lang",
                 "op": "excludes",
                 "value": "en"
               },
               {
-                "path": "editors[*].name",
+                "path": "$.editors[*].name",
                 "op": "includes",
                 "value": "Алиса Смит"
               }
@@ -9728,7 +9715,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "editors",
+                "path": "$.editors",
                 "op": "len_eq",
                 "value": 0
               }
@@ -9758,7 +9745,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "editors",
+                "path": "$.editors",
                 "op": "len_eq",
                 "value": 2
               }
@@ -9788,7 +9775,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "editors",
+                "path": "$.editors",
                 "op": "len_eq",
                 "value": 2
               }
@@ -9819,7 +9806,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "editors",
+                "path": "$.editors",
                 "op": "len_eq",
                 "value": 2
               }
@@ -9850,7 +9837,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "editors",
+                "path": "$.editors",
                 "op": "len_eq",
                 "value": 2
               }
@@ -9922,12 +9909,12 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "editors[*].username",
+                "path": "$.editors[*].username",
                 "op": "excludes",
                 "value": "bobby"
               },
               {
-                "path": "editors",
+                "path": "$.editors",
                 "op": "len_eq",
                 "value": 1
               }
@@ -9981,22 +9968,22 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "editors",
+                "path": "$.editors",
                 "op": "len_eq",
                 "value": 1
               },
               {
-                "path": "editors[0].username",
+                "path": "$.editors[0].username",
                 "op": "eq",
                 "value": "alice"
               },
               {
-                "path": "editors[0].name",
+                "path": "$.editors[0].name",
                 "op": "eq",
                 "value": "Alice DE"
               },
               {
-                "path": "editors[0].email",
+                "path": "$.editors[0].email",
                 "op": "eq",
                 "value": "alice@example.com"
               }
@@ -10048,12 +10035,12 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "editors[*].name",
+                "path": "$.editors[*].name",
                 "op": "includes",
                 "value": "Alice Renamed"
               },
               {
-                "path": "editors[*].name",
+                "path": "$.editors[*].name",
                 "op": "excludes",
                 "value": "Alice Smith"
               }
@@ -10087,27 +10074,27 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "name",
+                "path": "$.name",
                 "op": "eq",
                 "value": "Alice Smith"
               },
               {
-                "path": "bio",
+                "path": "$.bio",
                 "op": "eq",
                 "value": "Senior **editor**"
               },
               {
-                "path": "username",
+                "path": "$.username",
                 "op": "eq",
                 "value": "alice"
               },
               {
-                "path": "email",
+                "path": "$.email",
                 "op": "eq",
                 "value": "alice@example.com"
               },
               {
-                "path": "locale",
+                "path": "$.lang",
                 "op": "eq",
                 "value": "en"
               }
@@ -10140,27 +10127,27 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "name",
+                "path": "$.name",
                 "op": "eq",
                 "value": "Алиса Смит"
               },
               {
-                "path": "bio",
+                "path": "$.bio",
                 "op": "eq",
                 "value": "Старший **редактор**"
               },
               {
-                "path": "username",
+                "path": "$.username",
                 "op": "eq",
                 "value": "alice"
               },
               {
-                "path": "email",
+                "path": "$.email",
                 "op": "eq",
                 "value": "alice@example.com"
               },
               {
-                "path": "locale",
+                "path": "$.lang",
                 "op": "eq",
                 "value": "ru"
               }
@@ -10193,7 +10180,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "name",
+                "path": "$.name",
                 "op": "eq",
                 "value": "Bobby Brown"
               }
@@ -10217,12 +10204,12 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "name",
+                "path": "$.name",
                 "op": "eq",
                 "value": "Кэрол Уайт"
               },
               {
-                "path": "email",
+                "path": "$.email",
                 "op": "eq",
                 "value": "carol@example.com"
               }
@@ -10369,7 +10356,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "username",
+                "path": "$.username",
                 "op": "eq",
                 "value": "alice"
               }
@@ -10402,7 +10389,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "username",
+                "path": "$.username",
                 "op": "eq",
                 "value": "alice"
               }
@@ -10682,12 +10669,12 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "name",
+                "path": "$.name",
                 "op": "eq",
                 "value": "Alice New"
               },
               {
-                "path": "bio",
+                "path": "$.bio",
                 "op": "eq",
                 "value": "New bio"
               }
@@ -10712,7 +10699,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "name",
+                "path": "$.name",
                 "op": "eq",
                 "value": "Алиса Смит"
               }
@@ -10746,7 +10733,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "name",
+                "path": "$.name",
                 "op": "eq",
                 "value": "Bobby Brown"
               }
@@ -10850,12 +10837,12 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "name",
+                "path": "$.name",
                 "op": "eq",
                 "value": "Бобби Браун"
               },
               {
-                "path": "email",
+                "path": "$.email",
                 "op": "eq",
                 "value": "bobby@example.com"
               }
@@ -10883,22 +10870,22 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "partners",
+                "path": "$.partners",
                 "op": "len_eq",
                 "value": 2
               },
               {
-                "path": "partners[*].name",
+                "path": "$.partners[*].name",
                 "op": "includes",
                 "value": "Partner One"
               },
               {
-                "path": "partners[*].name",
+                "path": "$.partners[*].name",
                 "op": "includes",
                 "value": "Partner Two"
               },
               {
-                "path": "partners[*].group",
+                "path": "$.partners[*].group",
                 "op": "excludes",
                 "value": "sidebar"
               }
@@ -10925,17 +10912,17 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "partners",
+                "path": "$.partners",
                 "op": "len_eq",
                 "value": 2
               },
               {
-                "path": "sidebar",
+                "path": "$.sidebar",
                 "op": "len_eq",
                 "value": 2
               },
               {
-                "path": "footer",
+                "path": "$.footer",
                 "op": "is_null"
               }
             ]
@@ -10961,22 +10948,22 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "partners",
+                "path": "$.partners",
                 "op": "len_eq",
                 "value": 2
               },
               {
-                "path": "sidebar",
+                "path": "$.sidebar",
                 "op": "len_eq",
                 "value": 2
               },
               {
-                "path": "footer",
+                "path": "$.footer",
                 "op": "len_eq",
                 "value": 1
               },
               {
-                "path": "footer[0].name",
+                "path": "$.footer[0].name",
                 "op": "eq",
                 "value": "Footer Ad"
               }
@@ -11003,17 +10990,17 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "partners",
+                "path": "$.partners",
                 "op": "len_eq",
                 "value": 2
               },
               {
-                "path": "footer",
+                "path": "$.footer",
                 "op": "len_eq",
                 "value": 1
               },
               {
-                "path": "sidebar",
+                "path": "$.sidebar",
                 "op": "is_null"
               }
             ]
@@ -11040,17 +11027,17 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "partners",
+                "path": "$.partners",
                 "op": "len_eq",
                 "value": 2
               },
               {
-                "path": "sidebar",
+                "path": "$.sidebar",
                 "op": "len_eq",
                 "value": 2
               },
               {
-                "path": "footer",
+                "path": "$.footer",
                 "op": "len_eq",
                 "value": 1
               }
@@ -11077,27 +11064,27 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "partners[0].name",
+                "path": "$.partners[0].name",
                 "op": "eq",
                 "value": "Partner One"
               },
               {
-                "path": "partners[0].url",
+                "path": "$.partners[0].url",
                 "op": "eq",
                 "value": "https://partner-one.example.com"
               },
               {
-                "path": "partners[0].priority",
+                "path": "$.partners[0].priority",
                 "op": "eq",
                 "value": 1
               },
               {
-                "path": "partners[0].group",
+                "path": "$.partners[0].group",
                 "op": "eq",
                 "value": "partners"
               },
               {
-                "path": "partners[0].banner",
+                "path": "$.partners[0].banner",
                 "op": "eq",
                 "value": "https://example.com/banners/partner-one.jpg"
               }
@@ -11125,15 +11112,15 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "partners[0].id",
+                "path": "$.partners[0].id",
                 "op": "is_null"
               },
               {
-                "path": "partners[0].description",
+                "path": "$.partners[0].description",
                 "op": "is_null"
               },
               {
-                "path": "partners[0].expires_at",
+                "path": "$.partners[0].expires_at",
                 "op": "is_null"
               }
             ]
@@ -11159,12 +11146,12 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "partners[*].name",
+                "path": "$.partners[*].name",
                 "op": "excludes",
                 "value": "Partner Old"
               },
               {
-                "path": "partners",
+                "path": "$.partners",
                 "op": "len_eq",
                 "value": 2
               }
@@ -11191,7 +11178,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "partners[*].name",
+                "path": "$.partners[*].name",
                 "op": "includes",
                 "value": "Partner Two"
               }
@@ -11218,7 +11205,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "legacy",
+                "path": "$.legacy",
                 "op": "len_eq",
                 "value": 0
               }
@@ -11245,7 +11232,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "ghost-group",
+                "path": "$.ghost-group",
                 "op": "len_eq",
                 "value": 0
               }
@@ -11272,12 +11259,12 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "partners",
+                "path": "$.partners",
                 "op": "len_eq",
                 "value": 2
               },
               {
-                "path": "ghost-group",
+                "path": "$.ghost-group",
                 "op": "len_eq",
                 "value": 0
               }
@@ -11305,25 +11292,25 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "sidebar[*].priority",
+                "path": "$.sidebar[*].priority",
                 "op": "sorted_asc"
               },
               {
-                "path": "sidebar[0].name",
+                "path": "$.sidebar[0].name",
                 "op": "eq",
                 "value": "Sidebar A"
               },
               {
-                "path": "sidebar[1].name",
+                "path": "$.sidebar[1].name",
                 "op": "eq",
                 "value": "Sidebar B"
               },
               {
-                "path": "partners[*].priority",
+                "path": "$.partners[*].priority",
                 "op": "sorted_asc"
               },
               {
-                "path": "partners[0].name",
+                "path": "$.partners[0].name",
                 "op": "eq",
                 "value": "Partner One"
               }
@@ -11412,7 +11399,7 @@
                 "value": 1
               },
               {
-                "path": "partners",
+                "path": "$.partners",
                 "op": "len_eq",
                 "value": 2
               }
@@ -11440,7 +11427,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "partners",
+                "path": "$.partners",
                 "op": "len_eq",
                 "value": 2
               }
@@ -11467,7 +11454,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "partners",
+                "path": "$.partners",
                 "op": "len_eq",
                 "value": 2
               }
@@ -11494,7 +11481,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "partners",
+                "path": "$.partners",
                 "op": "len_eq",
                 "value": 2
               }
@@ -11522,7 +11509,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "partners",
+                "path": "$.partners",
                 "op": "len_eq",
                 "value": 2
               }
@@ -11550,7 +11537,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "partners",
+                "path": "$.partners",
                 "op": "len_eq",
                 "value": 2
               }
@@ -11920,12 +11907,12 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "partners",
+                "path": "$.partners",
                 "op": "len_eq",
                 "value": 1
               },
               {
-                "path": "partners[*].name",
+                "path": "$.partners[*].name",
                 "op": "excludes",
                 "value": "Partner One"
               }
@@ -11974,12 +11961,12 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "partners",
+                "path": "$.partners",
                 "op": "len_eq",
                 "value": 1
               },
               {
-                "path": "partners[*].name",
+                "path": "$.partners[*].name",
                 "op": "excludes",
                 "value": "Partner One"
               }
@@ -12028,17 +12015,17 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "partners",
+                "path": "$.partners",
                 "op": "len_eq",
                 "value": 3
               },
               {
-                "path": "partners[*].name",
+                "path": "$.partners[*].name",
                 "op": "includes",
                 "value": "Partner Old"
               },
               {
-                "path": "partners[0].name",
+                "path": "$.partners[0].name",
                 "op": "eq",
                 "value": "Partner Old"
               }
@@ -12089,17 +12076,17 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "sidebar",
+                "path": "$.sidebar",
                 "op": "len_eq",
                 "value": 3
               },
               {
-                "path": "sidebar[0].name",
+                "path": "$.sidebar[0].name",
                 "op": "eq",
                 "value": "Sidebar Zero"
               },
               {
-                "path": "sidebar[*].priority",
+                "path": "$.sidebar[*].priority",
                 "op": "sorted_asc"
               }
             ]
@@ -12147,17 +12134,17 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "sidebar",
+                "path": "$.sidebar",
                 "op": "len_eq",
                 "value": 1
               },
               {
-                "path": "footer",
+                "path": "$.footer",
                 "op": "len_eq",
                 "value": 2
               },
               {
-                "path": "footer[*].name",
+                "path": "$.footer[*].name",
                 "op": "includes",
                 "value": "Sidebar A"
               }
@@ -12185,7 +12172,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "brand-new",
+                "path": "$.brand-new",
                 "op": "len_eq",
                 "value": 0
               }
@@ -12224,7 +12211,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "brand-new",
+                "path": "$.brand-new",
                 "op": "len_eq",
                 "value": 1
               }
@@ -12252,22 +12239,22 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "partners",
+                "path": "$.partners",
                 "op": "len_eq",
                 "value": 2
               },
               {
-                "path": "partners[*].name",
+                "path": "$.partners[*].name",
                 "op": "includes",
                 "value": "Partner One"
               },
               {
-                "path": "partners[*].name",
+                "path": "$.partners[*].name",
                 "op": "includes",
                 "value": "Partner Two"
               },
               {
-                "path": "partners[*].group",
+                "path": "$.partners[*].group",
                 "op": "excludes",
                 "value": "sidebar"
               }
@@ -12294,27 +12281,27 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "partners[0].name",
+                "path": "$.partners[0].name",
                 "op": "eq",
                 "value": "Partner One"
               },
               {
-                "path": "partners[0].url",
+                "path": "$.partners[0].url",
                 "op": "eq",
                 "value": "https://partner-one.example.com"
               },
               {
-                "path": "partners[0].priority",
+                "path": "$.partners[0].priority",
                 "op": "eq",
                 "value": 1
               },
               {
-                "path": "partners[0].group",
+                "path": "$.partners[0].group",
                 "op": "eq",
                 "value": "partners"
               },
               {
-                "path": "partners[0].banner",
+                "path": "$.partners[0].banner",
                 "op": "eq",
                 "value": "https://example.com/banners/partner-one.jpg"
               }
@@ -12341,12 +12328,12 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "partners[*].name",
+                "path": "$.partners[*].name",
                 "op": "excludes",
                 "value": "Sidebar A"
               },
               {
-                "path": "partners[*].name",
+                "path": "$.partners[*].name",
                 "op": "excludes",
                 "value": "Footer Ad"
               },
@@ -12379,16 +12366,16 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "partners[*].priority",
+                "path": "$.partners[*].priority",
                 "op": "sorted_asc"
               },
               {
-                "path": "partners[0].name",
+                "path": "$.partners[0].name",
                 "op": "eq",
                 "value": "Partner One"
               },
               {
-                "path": "partners[1].name",
+                "path": "$.partners[1].name",
                 "op": "eq",
                 "value": "Partner Two"
               }
@@ -12416,12 +12403,12 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "partners[*].name",
+                "path": "$.partners[*].name",
                 "op": "excludes",
                 "value": "Partner Old"
               },
               {
-                "path": "partners",
+                "path": "$.partners",
                 "op": "len_eq",
                 "value": 2
               }
@@ -12448,7 +12435,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "partners[*].name",
+                "path": "$.partners[*].name",
                 "op": "includes",
                 "value": "Partner Two"
               }
@@ -12475,15 +12462,15 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "partners[0].id",
+                "path": "$.partners[0].id",
                 "op": "is_null"
               },
               {
-                "path": "partners[0].description",
+                "path": "$.partners[0].description",
                 "op": "is_null"
               },
               {
-                "path": "partners[0].expires_at",
+                "path": "$.partners[0].expires_at",
                 "op": "is_null"
               }
             ]
@@ -12509,12 +12496,12 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "partners",
+                "path": "$.partners",
                 "op": "len_eq",
                 "value": 2
               },
               {
-                "path": "partners[0].name",
+                "path": "$.partners[0].name",
                 "op": "eq",
                 "value": "Partner One"
               }
@@ -12532,12 +12519,12 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "partners",
+                "path": "$.partners",
                 "op": "len_eq",
                 "value": 2
               },
               {
-                "path": "partners[0].name",
+                "path": "$.partners[0].name",
                 "op": "eq",
                 "value": "Partner One"
               }
@@ -12565,7 +12552,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "partners",
+                "path": "$.partners",
                 "op": "len_eq",
                 "value": 2
               }
@@ -12592,7 +12579,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "partners",
+                "path": "$.partners",
                 "op": "len_eq",
                 "value": 2
               }
@@ -12620,7 +12607,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "partners",
+                "path": "$.partners",
                 "op": "len_eq",
                 "value": 2
               }
@@ -12648,7 +12635,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "partners",
+                "path": "$.partners",
                 "op": "len_eq",
                 "value": 2
               }
@@ -12676,7 +12663,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "partners",
+                "path": "$.partners",
                 "op": "len_eq",
                 "value": 2
               },
@@ -12762,7 +12749,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "partners",
+                "path": "$.partners",
                 "op": "len_eq",
                 "value": 0
               }
@@ -12804,12 +12791,12 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "partners",
+                "path": "$.partners",
                 "op": "len_eq",
                 "value": 1
               },
               {
-                "path": "partners[*].name",
+                "path": "$.partners[*].name",
                 "op": "excludes",
                 "value": "Partner One"
               }
@@ -12858,12 +12845,12 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "partners",
+                "path": "$.partners",
                 "op": "len_eq",
                 "value": 1
               },
               {
-                "path": "partners[*].name",
+                "path": "$.partners[*].name",
                 "op": "excludes",
                 "value": "Partner Two"
               }
@@ -12913,12 +12900,12 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "partners",
+                "path": "$.partners",
                 "op": "len_eq",
                 "value": 3
               },
               {
-                "path": "partners[0].name",
+                "path": "$.partners[0].name",
                 "op": "eq",
                 "value": "Partner Zero"
               }
@@ -12967,12 +12954,12 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "partners",
+                "path": "$.partners",
                 "op": "len_eq",
                 "value": 1
               },
               {
-                "path": "partners[*].name",
+                "path": "$.partners[*].name",
                 "op": "excludes",
                 "value": "Partner One"
               }

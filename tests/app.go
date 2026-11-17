@@ -15,7 +15,6 @@ import (
 	"gocms/internal/post"
 	"gocms/internal/public"
 	"gocms/internal/search"
-	"gocms/internal/server"
 	"gocms/internal/user"
 	"log/slog"
 	"net/http"
@@ -202,10 +201,6 @@ func (app *Container) wireRoutes(vc analytics.PostViewCounterService) {
 
 	storageHandler := DefaultStorageHandler(app.Auth.SessionRepo)
 
-	mw := server.ChainMiddleware(
-		server.CORS,
-		server.RequireJSON,
-	)
 	cmsRouter := http.NewServeMux()
 	storageRouter := http.NewServeMux()
 	publicRouter := http.NewServeMux()
@@ -226,7 +221,7 @@ func (app *Container) wireRoutes(vc analytics.PostViewCounterService) {
 	router.Handle("/storage/", http.StripPrefix("/storage", storageRouter))
 	router.Handle("/public/", http.StripPrefix("/public", publicRouter))
 
-	app.Router = mw(router)
+	app.Router = router
 }
 
 func (app *Container) TearDown() {

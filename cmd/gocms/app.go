@@ -201,10 +201,6 @@ func (app *Container) wireRoutes(cfg Config, vc analytics.PostViewCounterService
 
 	storageHandler := DefaultStorageHandler(cfg, app.Auth.SessionRepo)
 
-	mw := server.ChainMiddleware(
-		server.CORS,
-		server.RequireJSON,
-	)
 	cmsRouter := http.NewServeMux()
 	storageRouter := http.NewServeMux()
 	publicRouter := http.NewServeMux()
@@ -225,7 +221,7 @@ func (app *Container) wireRoutes(cfg Config, vc analytics.PostViewCounterService
 	router.Handle("/storage/", http.StripPrefix("/storage", storageRouter))
 	router.Handle("/public/", http.StripPrefix("/public", publicRouter))
 
-	app.Server = server.NewHttpRunner(cfg.Address, cfg.Port, mw(router))
+	app.Server = server.NewHttpRunner(cfg.Address, cfg.Port, server.CORS(router))
 }
 
 func (app *Container) TearDown() {

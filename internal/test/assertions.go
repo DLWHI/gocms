@@ -193,16 +193,25 @@ func (a *Assertion) opLenEq(values []JSONValue) error {
 		return fmt.Errorf("Assertion failed: expected at least 1 value, got nothing")
 	}
 	for _, value := range values {
-		arr, ok := value.([]any)
-		if !ok {
-			return fmt.Errorf("Assertion failed: expected array, got %T", arr)
-		}
-		expected, ok := ToLen(a.Value)
-		if !ok {
-			return fmt.Errorf("Invalid length value in assertions, got %v, type %T", a.Value, a.Value)
-		}
-		if expected != len(arr) {
-			return fmt.Errorf("Assertion failed: expected length to be %d, got %d", expected, len(arr))
+		switch l := value.(type) {
+		case []any:
+			expected, ok := ToLen(a.Value)
+			if !ok {
+				return fmt.Errorf("Invalid length value in assertions, got %v, type %T", a.Value, a.Value)
+			}
+			if expected != len(l) {
+				return fmt.Errorf("Assertion failed: expected length to be %d, got %d", expected, len(l))
+			}
+		case map[string]any:
+			expected, ok := ToLen(a.Value)
+			if !ok {
+				return fmt.Errorf("Invalid length value in assertions, got %v, type %T", a.Value, a.Value)
+			}
+			if expected != len(l) {
+				return fmt.Errorf("Assertion failed: expected length to be %d, got %d", expected, len(l))
+			}
+		default:
+			return fmt.Errorf("Assertion failed: expected array, got %T", value)
 		}
 	}
 	return nil

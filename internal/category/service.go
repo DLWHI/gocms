@@ -153,7 +153,7 @@ func (s *Service) AllNotHidden(ctx context.Context) ([]domain.Category, error) {
 
 	i := 0
 	for _, category := range categories {
-		if category.Hidden {
+		if !category.Hidden {
 			categories[i] = category
 			i++
 		}

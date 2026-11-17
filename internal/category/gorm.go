@@ -183,9 +183,6 @@ func (r *GORMRepository) GetAll(ctx context.Context, language string) ([]domain.
 		Find(&categories)
 
 	if result.Error != nil {
-		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-			return nil, domain.ErrNotFound
-		}
 		return nil, result.Error
 	}
 

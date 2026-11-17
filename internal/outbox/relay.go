@@ -206,6 +206,9 @@ func (d *Relay) Stop(ctx context.Context) error {
 }
 
 func (d *Relay) Mark(tx *gorm.DB, ids []uint, status Status) error {
+	if len(ids) == 0 {
+		return nil
+	}
 	result := tx.Model(&Message{}).
 		Where("id IN ?", ids).
 		Updates(map[string]interface{}{

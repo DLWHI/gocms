@@ -13,7 +13,6 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
-	"time"
 )
 
 // ------------------------------------------------------------------
@@ -80,47 +79,21 @@ func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
 
 // POST /posts - Get/search published posts
 func (h *Handler) postsSearch(w http.ResponseWriter, r *http.Request) {
-	var params post.SearchParams
+	var params PostSearchParams
 
 	if err := json.NewDecoder(r.Body).Decode(&params); err != nil {
 		http.Error(w, "Invalid JSON payload", http.StatusBadRequest)
 		return
 	}
-	trueVal := true
-	params.Published = &trueVal
-	params.CreatedAfter = nil
-	params.CreatedBefore = nil
-	params.Select = []string{
-		"post_id",
-		"title",
-		"description",
-		"slug",
-		"lang",
-		"published_at",
-		"views",
-		"preview",
-		"author",
-		"categories",
-	}
-	now := time.Now().Unix()
-	if params.PublishedBefore == nil && params.PublishedAfter == nil {
-		params.PublishedBefore = &now
-	}
-	if params.PublishedBefore != nil && *params.PublishedBefore > now {
-		params.PublishedBefore = &now
-	}
-	if params.PublishedAfter != nil && *params.PublishedAfter > now {
-		params.PublishedAfter = &now
-	}
 
-	res, err := h.posts.Search(r.Context(), &params)
+	posts, err := h.posts.Search(r.Context(), params.ToPrivateParams())
 	if err != nil {
 		server.WriteServerError(w, "Post", err)
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	_ = json.NewEncoder(w).Encode(&res)
+	_ = json.NewEncoder(w).Encode(ToPublicResults(posts))
 }
 
 // GET /posts/{id} - Get published post by id

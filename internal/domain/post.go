@@ -30,10 +30,32 @@ type Post struct {
 	Categories  []string `json:"categories"`
 }
 
-type PostPreview struct {
+type PostMeta struct {
+	PostID      uint     `json:"post_id"`
+	Title       string   `json:"title"`
+	Slug        string   `json:"slug"`
+	Keywords    string   `json:"keywords"`
+	Lang        string   `json:"lang"`
+	CreatedAt   int64    `json:"created_at,omitempty"`
+	PublishedAt *int64   `json:"published_at"`
+	Views       uint     `json:"views"`
+	Preview     string   `json:"preview"`
+	Author      *string  `json:"author"`
+	CreatedBy   string   `json:"created_by,omitempty"`
+	Categories  []string `json:"categories"`
 }
 
-type PostInfo struct {
+type PostPreview struct {
+	PostID      uint     `json:"post_id"`
+	Title       string   `json:"title"`
+	Description string   `json:"description"`
+	Slug        string   `json:"slug"`
+	Lang        string   `json:"lang"`
+	PublishedAt *int64   `json:"published_at"`
+	Views       uint     `json:"views"`
+	Preview     string   `json:"preview"`
+	Author      *string  `json:"author"`
+	Categories  []string `json:"categories"`
 }
 
 type PostDiff struct {
@@ -62,6 +84,38 @@ func NormalizeKeywords(value string) (string, error) {
 		parts[i] = html.EscapeString(strings.TrimSpace(parts[i]))
 	}
 	return strings.Join(parts, ", "), nil
+}
+
+func (p *Post) ToMeta() *PostMeta {
+	return &PostMeta{
+		PostID:      p.PostID,
+		Title:       p.Title,
+		Slug:        p.Slug,
+		Keywords:    p.Keywords,
+		Lang:        p.Lang,
+		CreatedAt:   p.CreatedAt,
+		PublishedAt: p.PublishedAt,
+		Views:       p.Views,
+		Preview:     p.Preview,
+		Author:      p.Author,
+		CreatedBy:   p.CreatedBy,
+		Categories:  p.Categories,
+	}
+}
+
+func (p *Post) ToPreview() *PostPreview {
+	return &PostPreview{
+		PostID:      p.PostID,
+		Title:       p.Title,
+		Slug:        p.Slug,
+		Description: p.Description,
+		Lang:        p.Lang,
+		PublishedAt: p.PublishedAt,
+		Views:       p.Views,
+		Preview:     p.Preview,
+		Author:      p.Author,
+		Categories:  p.Categories,
+	}
 }
 
 func (u *PostDiff) Apply(target *Post) {

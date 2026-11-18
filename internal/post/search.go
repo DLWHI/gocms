@@ -11,6 +11,7 @@ type SearchParams struct {
 	Categories        []string `json:"categories,omitempty"`
 	ExcludeCategories []string `json:"exclude_categories,omitempty"`
 	Authors           []string `json:"authors,omitempty"`
+	CreatedBy         *string  `json:"created_by,omitempty"`
 	CreatedAfter      *int64   `json:"created_after,omitempty"`
 	CreatedBefore     *int64   `json:"created_before,omitempty"`
 	PublishedAfter    *int64   `json:"published_after,omitempty"`
@@ -26,4 +27,18 @@ type SearchEngine interface {
 	Search(ctx context.Context, params *SearchParams) (*SearchResult, error)
 	SearchLang(ctx context.Context, language string, params *SearchParams) (*SearchResult, error)
 	Delete(ctx context.Context, id uint) error
+}
+
+func ToMetaResults(posts *SearchResult) *search.Result[domain.PostMeta] {
+	res := search.Result[domain.PostMeta]{
+		Results:  make([]domain.PostMeta, 0, len(posts.Results)),
+		LastPage: posts.LastPage,
+		Total:    posts.Total,
+	}
+
+	for _, post := range posts.Results {
+		res.Results = append(res.Results, *post.ToMeta())
+	}
+
+	return &res
 }

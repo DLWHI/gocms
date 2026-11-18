@@ -141,7 +141,7 @@ func (r *GORMRepository) Get(ctx context.Context, slug string, language string) 
 			Count(&n).Error; err != nil {
 			return nil, err
 		}
-		if n == 0 {
+		if n > 0 {
 			return nil, domain.ErrNotTranslated
 		}
 		return nil, database.MapError(result.Error)

@@ -47,7 +47,7 @@ type Handler struct {
 func NewHandler(ps *post.Service, es *editor.Service, cs *category.Service, ls lang.Service, as *advertisement.Service, vc analytics.PostViewCounterService) *Handler {
 	var hndl Handler
 	hndl.limiter = server.NewRequestLimiter(4 * 1024).Wrap // 4 KiB
-	hndl.langs = lang.NewHeaderMiddleware(ls).Wrap         // 4 KiB
+	hndl.langs = lang.NewHeaderMiddleware(ls).Wrap
 	hndl.posts = ps
 	hndl.editors = es
 	hndl.categories = cs
@@ -69,7 +69,7 @@ func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
 
 	// TODO image
 	mux.Handle("GET /languages", h.limiter(languagesAll))
-	mux.Handle("POST /posts", h.limiter(h.langs(postSearch)))
+	mux.Handle("POST /posts", h.limiter(server.RequireJSON(h.langs(postSearch))))
 	mux.Handle("GET /posts/{id}", h.limiter(h.langs(postGet)))
 	mux.Handle("GET /categories", h.limiter(h.langs(categoriesAll)))
 	mux.Handle("GET /editors", h.limiter(h.langs(editorAll)))
@@ -95,7 +95,7 @@ func (h *Handler) postsSearch(w http.ResponseWriter, r *http.Request) {
 		"title",
 		"description",
 		"slug",
-		"language",
+		"lang",
 		"published_at",
 		"views",
 		"preview",
@@ -204,7 +204,7 @@ func (h *Handler) editorsGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	editor, err := h.editors.Get(r.Context(), username)
+	editor, err := h.editors.GetActive(r.Context(), username)
 	if err != nil {
 		server.WriteServerError(w, "Editor", err)
 		return
@@ -233,12 +233,12 @@ func (h *Handler) adsGet(w http.ResponseWriter, r *http.Request) {
 	advertisements := make(map[string][]domain.Advertisement, len(groups))
 
 	for _, group := range groups {
-		ads, err := h.ads.GetGroup(r.Context(), group)
+		normalized, ads, err := h.ads.GetGroup(r.Context(), group)
 		if err != nil {
 			server.WriteServerError(w, "Advertisement", err)
 			return
 		}
-		advertisements[group] = ads
+		advertisements[normalized] = ads
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -247,7 +247,7 @@ func (h *Handler) adsGet(w http.ResponseWriter, r *http.Request) {
 
 // GET /partners - Get partners group
 func (h *Handler) partners(w http.ResponseWriter, r *http.Request) {
-	ads, err := h.ads.GetGroup(r.Context(), "partners")
+	_, ads, err := h.ads.GetGroup(r.Context(), "partners")
 	if err != nil {
 		server.WriteServerError(w, "Advertisement", err)
 		return

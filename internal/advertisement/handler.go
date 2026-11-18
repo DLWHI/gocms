@@ -177,14 +177,14 @@ func (h *Handler) getGroup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ads, err := h.service.GetGroup(r.Context(), group)
+	normalized, ads, err := h.service.GetGroup(r.Context(), group)
 	if err != nil {
 		server.WriteServerError(w, "Advertisement", err)
 		return
 	}
 
 	res := map[string][]domain.Advertisement{
-		group: ads,
+		normalized: ads,
 	}
 
 	w.Header().Set("Content-Type", "application/json")

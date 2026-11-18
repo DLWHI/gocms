@@ -124,6 +124,32 @@ func (s *Service) Get(ctx context.Context, slug string) (*domain.Editor, error) 
 	return editor, nil
 }
 
+func (s *Service) GetActive(ctx context.Context, slug string) (*domain.Editor, error) {
+	language, err := lang.ResolveLang(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	slug, err = domain.NormalizeSlug(slug)
+	if err != nil {
+		return nil, err
+	}
+
+	editor, err := s.repo.GetAny(ctx, slug, language)
+	if err != nil {
+		if !errors.Is(err, domain.ErrNotFound) && !errors.Is(err, domain.ErrNotTranslated) {
+			logger.Error("Editor.Service", "Failed to retrieve editor profile", err)
+		}
+		return nil, err
+	}
+
+	if editor.DeletedAt != nil {
+		return nil, domain.ErrNotFound
+	}
+
+	return editor, nil
+}
+
 func (s *Service) All(ctx context.Context) ([]domain.Editor, error) {
 	language, err := lang.ResolveLang(ctx)
 	if err != nil {

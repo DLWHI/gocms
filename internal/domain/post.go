@@ -30,6 +30,12 @@ type Post struct {
 	Categories  []string `json:"categories"`
 }
 
+type PostPreview struct {
+}
+
+type PostInfo struct {
+}
+
 type PostDiff struct {
 	Title       *string   `json:"title"`
 	Description *string   `json:"description"`

@@ -141,14 +141,14 @@ func (r *GORMRepository) GetAny(ctx context.Context, slug string, language strin
 	if result.Error != nil {
 		var n int64
 		if err := r.db.WithContext(ctx).
-			Model(&RecordTranslation{}).
+			Model(&Record{}).
 			Unscoped().
 			Where("slug = ?", slug).
 			Limit(1).
 			Count(&n).Error; err != nil {
 			return nil, err
 		}
-		if n == 0 {
+		if n > 0 {
 			return nil, domain.ErrNotTranslated
 		}
 		return nil, database.MapError(result.Error)

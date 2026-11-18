@@ -269,7 +269,7 @@ func (s *Service) GetPublished(ctx context.Context, id uint) (*domain.Post, erro
 		}
 		return nil, err
 	}
-	if post.PublishedAt == nil {
+	if post.PublishedAt == nil || *post.PublishedAt > time.Now().Unix() {
 		return nil, domain.ErrNotFound
 	}
 

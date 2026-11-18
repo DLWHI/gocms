@@ -172,19 +172,19 @@ func (s *Service) Get(ctx context.Context, id uint) (*domain.Advertisement, erro
 	return ad, nil
 }
 
-func (s *Service) GetGroup(ctx context.Context, group string) ([]domain.Advertisement, error) {
+func (s *Service) GetGroup(ctx context.Context, group string) (string, []domain.Advertisement, error) {
 	group, err := domain.NormalizeSlug(group)
 	if err != nil {
-		return nil, err
+		return "", nil, err
 	}
 
 	ads, err := s.repo.GetGroup(ctx, group)
 	if err != nil {
 		logger.Error("Ads.Service", "Failed to retrieve advertisements", err)
-		return nil, err
+		return "", nil, err
 	}
 
-	return ads, nil
+	return group, ads, nil
 }
 
 func (s *Service) AllGroups(ctx context.Context) ([]string, error) {

@@ -63,20 +63,23 @@ func (m *HeaderMiddleware) Wrap(next http.Handler) http.Handler {
 			http.Error(w, "Please specify Accept-Language", http.StatusBadRequest)
 			return
 		}
-		code := ""
-		for i := range tags {
+		var i int
+		var selected string
+		for i = 0; i < len(tags) && selected == ""; i++ {
 			base, confidence := tags[i].Base()
 			if confidence == language.No {
 				continue
 			}
-			code = base.String()
+			code := base.String()
 			if !m.svc.IsSupported(code) {
 				continue
 			}
 			ctx = context.WithValue(ctx, ContextKey, code)
+			selected = code
 		}
-		if code == "" {
-			http.Error(w, "Please specify Accept-Language", http.StatusNotAcceptable)
+		if i == len(tags) && selected == "" {
+			http.Error(w, "Please specify supported Accept-Language", http.StatusNotAcceptable)
+			return
 		}
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})

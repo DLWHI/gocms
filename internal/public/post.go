@@ -34,7 +34,16 @@ func (p *PostSearchParams) ToPrivateParams() *post.SearchParams {
 		"categories",
 	}
 
+	res.Count = p.Count
+	res.SortBy = p.SortBy
+	res.Query = p.Query
+	res.Page = p.Page
+	res.Categories = p.Categories
+	res.Authors = p.Authors
+	res.PublishedAfter = p.PublishedAfter
+	res.PublishedBefore = p.PublishedBefore
 	now := time.Now().Unix()
+
 	if p.PublishedBefore == nil && p.PublishedAfter == nil {
 		res.PublishedBefore = &now
 	}
@@ -44,15 +53,6 @@ func (p *PostSearchParams) ToPrivateParams() *post.SearchParams {
 	if p.PublishedAfter != nil && *p.PublishedAfter > now {
 		res.PublishedAfter = &now
 	}
-
-	res.Count = p.Count
-	res.SortBy = p.SortBy
-	res.Query = p.Query
-	res.Page = p.Page
-	res.Categories = p.Categories
-	res.Authors = p.Authors
-	res.PublishedAfter = p.PublishedAfter
-	res.PublishedBefore = p.PublishedBefore
 	return &res
 }
 

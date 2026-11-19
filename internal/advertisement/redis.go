@@ -37,7 +37,7 @@ func (r *RedisRepository) Create(ctx context.Context, ad *domain.Advertisement) 
 		return err
 	}
 	if ad.Group != "" {
-		r.invalidate(ctx, r.keys.List(groupsList), r.keys.Key(ad.Group))
+		r.invalidate(ctx, r.keys.List(groupsList), r.keys.KeyWithSuffix(ad.Group, "group"))
 	}
 	return nil
 }

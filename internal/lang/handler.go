@@ -29,8 +29,8 @@ func NewHandler(service *LocalService, sessions auth.SessionRepository) *Handler
 func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
 	mw := server.ChainMiddleware(
 		h.limiter,
-		server.RequireJSON,
 		h.auth,
+		server.RequireJSON,
 	)
 	get := http.HandlerFunc(h.get)
 	create := http.HandlerFunc(h.create)

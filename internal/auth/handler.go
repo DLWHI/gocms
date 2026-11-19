@@ -34,8 +34,8 @@ func NewHandler(svc *SessionService, sessions SessionRepository) *Handler {
 func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
 	mw := server.ChainMiddleware(
 		h.limiter,
-		server.RequireJSON,
 		h.auth,
+		server.RequireJSON,
 	)
 	login := http.HandlerFunc(h.login)
 	logout := http.HandlerFunc(h.logout)

@@ -38,8 +38,8 @@ func NewHandler(service *Service, sessions auth.SessionRepository, langs lang.Se
 func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
 	mw := server.ChainMiddleware(
 		h.limiter,
-		server.RequireJSON,
 		h.auth,
+		server.RequireJSON,
 		h.langs,
 	)
 	search := http.HandlerFunc(h.search)

@@ -115,7 +115,7 @@ func (ms *MeilisearchEngine) Index(ctx context.Context, group ...domain.Post) er
 		docs = append(docs, *ToSearchDoc(&post))
 	}
 
-	task, err := index.AddDocumentsWithContext(ctx, group, nil)
+	task, err := index.AddDocumentsWithContext(ctx, docs, nil)
 	if err != nil {
 		return err
 	}

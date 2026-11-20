@@ -88,7 +88,7 @@ func (ms *MeilisearchEngine) Index(ctx context.Context, slug string, group ...do
 		docs = append(docs, *ToSearchDoc(&editor))
 	}
 
-	task, err := index.AddDocumentsWithContext(ctx, group, nil)
+	task, err := index.AddDocumentsWithContext(ctx, docs, nil)
 	if err != nil {
 		return err
 	}

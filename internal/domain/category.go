@@ -5,7 +5,6 @@ const (
 )
 
 type Category struct {
-	ID     string `json:"id,omitempty"`
 	Slug   string `json:"slug"`
 	Hidden bool   `json:"hidden"`
 	Navbar bool   `json:"navbar"`

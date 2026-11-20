@@ -110,8 +110,9 @@ func (*MeilisearchEngine) wrapLang(clauses string, language string) string {
 
 func (ms *MeilisearchEngine) Index(ctx context.Context, group ...domain.Post) error {
 	index := ms.search.Client.Index(ms.search.Config.Uid)
-	for i := range group {
-		group[i].ID = fmt.Sprintf("%d-%s", group[i].PostID, group[i].Lang)
+	docs := make([]SearchDoc, 0, len(group))
+	for _, post := range group {
+		docs = append(docs, *ToSearchDoc(&post))
 	}
 
 	task, err := index.AddDocumentsWithContext(ctx, group, nil)

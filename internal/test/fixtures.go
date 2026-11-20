@@ -2,7 +2,6 @@ package test
 
 import (
 	"context"
-	"fmt"
 	"gocms/internal/advertisement"
 	"gocms/internal/category"
 	"gocms/internal/domain"
@@ -85,8 +84,7 @@ func (f *Fixtures) ApplyFixtures(ctx context.Context, e *Environment) error {
 			return err
 		}
 
-		ctg.ID = fmt.Sprintf("%s-%s", ctg.Slug, ctg.Lang)
-		task, err := ms.CategoriesIndex.AddDocumentsWithContext(ctx, &ctg, nil)
+		task, err := ms.CategoriesIndex.AddDocumentsWithContext(ctx, category.ToSearchDoc(&ctg), nil)
 		if err != nil {
 			return err
 		}
@@ -116,8 +114,7 @@ func (f *Fixtures) ApplyFixtures(ctx context.Context, e *Environment) error {
 			return err
 		}
 
-		pt.ID = fmt.Sprintf("%d-%s", pt.PostID, pt.Lang)
-		task, err := ms.PostsIndex.AddDocumentsWithContext(ctx, &pt, nil)
+		task, err := ms.PostsIndex.AddDocumentsWithContext(ctx, post.ToSearchDoc(&pt), nil)
 		if err != nil {
 			return err
 		}

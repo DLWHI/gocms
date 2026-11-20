@@ -69,12 +69,12 @@ func (*MeilisearchEngine) wrapLang(clauses string, language string) string {
 
 func (ms *MeilisearchEngine) Index(ctx context.Context, slug string, group ...domain.Category) error {
 	index := ms.search.Client.Index(ms.search.Config.Uid)
-
-	for i := range group {
-		if group[i].Slug != slug {
+	docs := make([]SearchDoc, 0, len(group))
+	for _, category := range group {
+		if category.Slug != slug {
 			return fmt.Errorf("%w: group item not from provided category slug", domain.ErrInval)
 		}
-		group[i].ID = fmt.Sprintf("%s-%s", slug, group[i].Lang)
+		docs = append(docs, *ToSearchDoc(&category))
 	}
 
 	task, err := index.AddDocumentsWithContext(ctx, group, nil)

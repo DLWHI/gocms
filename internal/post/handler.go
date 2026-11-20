@@ -100,7 +100,7 @@ func (h *Handler) search(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	_ = json.NewEncoder(w).Encode(ToMetaResults(posts))
+	_ = json.NewEncoder(w).Encode(posts)
 }
 
 // GET /posts/{lang}/{id} - Get post by id

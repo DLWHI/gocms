@@ -98,7 +98,7 @@ func (h *Handler) postsSearch(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	_ = json.NewEncoder(w).Encode(ToPublicResults(posts))
+	_ = json.NewEncoder(w).Encode(posts)
 }
 
 // GET /posts/{id} - Get published post by id

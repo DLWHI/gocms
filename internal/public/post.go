@@ -1,7 +1,6 @@
 package public
 
 import (
-	"gocms/internal/domain"
 	"gocms/internal/post"
 	"gocms/internal/search"
 	"time"
@@ -15,7 +14,7 @@ type PostSearchParams struct {
 	PublishedBefore *int64   `json:"published_before,omitempty"`
 }
 
-type PostSearchResult = search.Result[domain.PostPreview]
+type PostSearchResult = search.Result[post.SearchDoc]
 
 func (p *PostSearchParams) ToPrivateParams() *post.SearchParams {
 	var res post.SearchParams
@@ -53,19 +52,5 @@ func (p *PostSearchParams) ToPrivateParams() *post.SearchParams {
 	if p.PublishedAfter != nil && *p.PublishedAfter > now {
 		res.PublishedAfter = &now
 	}
-	return &res
-}
-
-func ToPublicResults(posts *post.SearchResult) *PostSearchResult {
-	res := PostSearchResult{
-		Results:  make([]domain.PostPreview, 0, len(posts.Results)),
-		LastPage: posts.LastPage,
-		Total:    posts.Total,
-	}
-
-	for _, post := range posts.Results {
-		res.Results = append(res.Results, *post.ToPreview())
-	}
-
 	return &res
 }

@@ -224,6 +224,21 @@ func (s *Service) CommitViews(ctx context.Context, id uint, value uint) (uint, e
 func (s *Service) Search(ctx context.Context, filters *SearchParams) (*SearchResult, error) {
 	search.ClampParams(&filters.Params)
 
+	if filters.Select == nil {
+		filters.Select = []string{
+			"post_id",
+			"title",
+			"slug",
+			"lang",
+			"created_at",
+			"published_at",
+			"views",
+			"created_by",
+			"author",
+			"categories",
+		}
+	}
+
 	language, err := lang.ResolveLang(ctx)
 	if err != nil {
 		return nil, err

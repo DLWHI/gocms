@@ -2,9 +2,26 @@ package post
 
 import (
 	"context"
+	"fmt"
 	"gocms/internal/domain"
 	"gocms/internal/search"
 )
+
+type SearchDoc struct {
+	ID          string   `json:"id"`
+	PostID      uint     `json:"post_id"`
+	Title       string   `json:"title"`
+	Description string   `json:"description"`
+	Slug        string   `json:"slug"`
+	Lang        string   `json:"lang"`
+	CreatedAt   int64    `json:"created_at,omitempty"`
+	PublishedAt *int64   `json:"published_at"`
+	Views       uint     `json:"views"`
+	Preview     string   `json:"preview"`
+	Author      *string  `json:"author"`
+	CreatedBy   string   `json:"created_by,omitempty"`
+	Categories  []string `json:"categories"`
+}
 
 type SearchParams struct {
 	search.Params
@@ -19,7 +36,7 @@ type SearchParams struct {
 	Published         *bool    `json:"published,omitempty"`
 }
 
-type SearchResult = search.Result[domain.Post]
+type SearchResult = search.Result[SearchDoc]
 
 type SearchEngine interface {
 	Index(ctx context.Context, group ...domain.Post) error
@@ -29,16 +46,30 @@ type SearchEngine interface {
 	Delete(ctx context.Context, id uint) error
 }
 
-func ToMetaResults(posts *SearchResult) *search.Result[domain.PostMeta] {
-	res := search.Result[domain.PostMeta]{
-		Results:  make([]domain.PostMeta, 0, len(posts.Results)),
-		LastPage: posts.LastPage,
-		Total:    posts.Total,
+func ToSearchDoc(data *domain.Post) *SearchDoc {
+	res := SearchDoc{
+		ID:          fmt.Sprintf("%d-%s", data.PostID, data.Lang),
+		PostID:      data.PostID,
+		Title:       data.Title,
+		Description: data.Description,
+		Slug:        data.Slug,
+		Lang:        data.Lang,
+		CreatedAt:   data.CreatedAt,
+		PublishedAt: new(int64),
+		Views:       data.Views,
+		Preview:     data.Preview,
+		Author:      new(string),
+		CreatedBy:   data.CreatedBy,
+		Categories:  make([]string, len(data.Categories)),
 	}
-
-	for _, post := range posts.Results {
-		res.Results = append(res.Results, *post.ToMeta())
+	if data.PublishedAt != nil {
+		t := *data.PublishedAt
+		res.PublishedAt = &t
 	}
-
+	if data.Author != nil {
+		a := *data.Author
+		res.Author = &a
+	}
+	copy(res.Categories, data.Categories)
 	return &res
 }

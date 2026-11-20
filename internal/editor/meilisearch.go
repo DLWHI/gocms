@@ -12,15 +12,6 @@ import (
 	"github.com/meilisearch/meilisearch-go"
 )
 
-type SearchDoc struct {
-	ID        string `json:"id,omitempty"`
-	Slug      string `json:"slug"`
-	Name      string `json:"name"`
-	Lang      string `json:"lang"`
-	DeletedAt *int64 `json:"deleted_at,omitempty"`
-	Owner     string `json:"owner"`
-}
-
 type MeilisearchEngine struct {
 	search search.MeilisearchIndex
 }
@@ -199,34 +190,4 @@ func (ms *MeilisearchEngine) Configure(ctx context.Context) error {
 
 func (ms *MeilisearchEngine) Destroy(ctx context.Context) error {
 	return ms.search.Destroy(ctx)
-}
-
-func (d *SearchDoc) ToDomain() *domain.Editor {
-	res := domain.Editor{
-		Slug:  d.Slug,
-		Bio:   "",
-		Name:  d.Name,
-		Lang:  d.Lang,
-		Owner: d.Owner,
-	}
-	if d.DeletedAt != nil {
-		t := *d.DeletedAt
-		res.DeletedAt = &t
-	}
-	return &res
-}
-
-func ToSearchDoc(data *domain.Editor) *SearchDoc {
-	res := SearchDoc{
-		ID:    fmt.Sprintf("%s-%s", data.Slug, data.Lang),
-		Slug:  data.Slug,
-		Name:  data.Name,
-		Lang:  data.Lang,
-		Owner: data.Owner,
-	}
-	if data.DeletedAt != nil {
-		t := *data.DeletedAt
-		res.DeletedAt = &t
-	}
-	return &res
 }

@@ -276,8 +276,7 @@ func (rd *RecordTranslation) ToDomain() *domain.Editor {
 	res.Slug = rd.Editor.Slug
 	res.Name = rd.Name
 	res.Lang = rd.Lang
-	bio := rd.Bio
-	res.Bio = &bio
+	res.Bio = rd.Bio
 	return &res
 }
 
@@ -296,8 +295,6 @@ func ToRecord(data *domain.Editor) *RecordTranslation {
 	res.Editor.Owner = data.Owner
 	res.Lang = data.Lang
 	res.Name = data.Name
-	if data.Bio != nil {
-		res.Bio = *data.Bio
-	}
+	res.Bio = data.Bio
 	return &res
 }

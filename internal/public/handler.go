@@ -2,6 +2,7 @@ package public
 
 import (
 	"encoding/json"
+	"fmt"
 	"gocms/internal/advertisement"
 	"gocms/internal/analytics"
 	"gocms/internal/category"
@@ -82,7 +83,11 @@ func (h *Handler) postsSearch(w http.ResponseWriter, r *http.Request) {
 	var params PostSearchParams
 
 	if err := json.NewDecoder(r.Body).Decode(&params); err != nil {
-		http.Error(w, "Invalid JSON payload", http.StatusBadRequest)
+		server.WriteDecodeError(w, err)
+		return
+	}
+	if strings.HasPrefix(params.SortBy, "created_at") || strings.HasPrefix(params.SortBy, "created_by") {
+		server.WriteServerError(w, "Params", fmt.Errorf("%w: non-sortable column", domain.ErrInval))
 		return
 	}
 
@@ -173,7 +178,7 @@ func (h *Handler) editorsAll(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) editorsGet(w http.ResponseWriter, r *http.Request) {
 	username := r.PathValue("username")
 	if username == "" {
-		http.Error(w, "Unknown editor", http.StatusBadRequest)
+		server.WritePathError(w, "Invalid ID")
 		return
 	}
 

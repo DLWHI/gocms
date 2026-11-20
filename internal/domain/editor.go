@@ -5,13 +5,12 @@ const (
 )
 
 type Editor struct {
-	ID        string  `json:"id,omitempty"`
-	Slug      string  `json:"slug"`
-	Bio       *string `json:"bio,omitempty"`
-	Name      string  `json:"name"`
-	Lang      string  `json:"lang"`
-	DeletedAt *int64  `json:"deleted_at,omitempty"`
-	Owner     string  `json:"owner"`
+	Slug      string `json:"slug"`
+	Bio       string `json:"bio"`
+	Name      string `json:"name"`
+	Lang      string `json:"lang"`
+	DeletedAt *int64 `json:"deleted_at,omitempty"`
+	Owner     string `json:"owner"`
 }
 
 type EditorDiff struct {
@@ -31,7 +30,7 @@ func (u *EditorDiff) Apply(target *Editor) {
 		target.Slug = *u.Slug
 	}
 	if u.Bio != nil {
-		target.Bio = u.Bio
+		target.Bio = *u.Bio
 	}
 	if u.Name != nil {
 		target.Name = *u.Name

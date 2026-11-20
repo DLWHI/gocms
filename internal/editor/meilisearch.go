@@ -12,6 +12,15 @@ import (
 	"github.com/meilisearch/meilisearch-go"
 )
 
+type SearchDoc struct {
+	ID        string `json:"id,omitempty"`
+	Slug      string `json:"slug"`
+	Name      string `json:"name"`
+	Lang      string `json:"lang"`
+	DeletedAt *int64 `json:"deleted_at,omitempty"`
+	Owner     string `json:"owner"`
+}
+
 type MeilisearchEngine struct {
 	search search.MeilisearchIndex
 }
@@ -80,12 +89,12 @@ func (*MeilisearchEngine) wrapLang(clauses string, language string) string {
 
 func (ms *MeilisearchEngine) Index(ctx context.Context, slug string, group ...domain.Editor) error {
 	index := ms.search.Client.Index(ms.search.Config.Uid)
-
-	for i := range group {
-		if group[i].Slug != slug {
+	docs := make([]SearchDoc, 0, len(group))
+	for _, editor := range group {
+		if editor.Slug != slug {
 			return fmt.Errorf("%w: group item not from provided category slug", domain.ErrInval)
 		}
-		group[i].ID = fmt.Sprintf("%s-%s", slug, group[i].Lang)
+		docs = append(docs, *ToSearchDoc(&editor))
 	}
 
 	task, err := index.AddDocumentsWithContext(ctx, group, nil)
@@ -190,4 +199,28 @@ func (ms *MeilisearchEngine) Configure(ctx context.Context) error {
 
 func (ms *MeilisearchEngine) Destroy(ctx context.Context) error {
 	return ms.search.Destroy(ctx)
+}
+
+func (d *SearchDoc) ToDomain() *domain.Editor {
+	t := *d.DeletedAt
+	return &domain.Editor{
+		Slug:      d.Slug,
+		Bio:       "",
+		Name:      d.Name,
+		Lang:      d.Lang,
+		DeletedAt: &t,
+		Owner:     d.Owner,
+	}
+}
+
+func ToSearchDoc(data *domain.Editor) *SearchDoc {
+	t := *data.DeletedAt
+	return &SearchDoc{
+		ID:        fmt.Sprintf("%s-%s", data.Slug, data.Lang),
+		Slug:      data.Slug,
+		Name:      data.Name,
+		Lang:      data.Lang,
+		DeletedAt: &t,
+		Owner:     data.Owner,
+	}
 }

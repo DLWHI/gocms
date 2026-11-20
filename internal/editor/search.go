@@ -14,7 +14,7 @@ type SearchParams struct {
 	DeletedBefore *int64 `json:"deleted_before"`
 }
 
-type SearchResult = search.Result[domain.Editor]
+type SearchResult = search.Result[SearchDoc]
 
 type SearchEngine interface {
 	Index(ctx context.Context, slug string, group ...domain.Editor) error

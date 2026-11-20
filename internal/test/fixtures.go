@@ -101,8 +101,7 @@ func (f *Fixtures) ApplyFixtures(ctx context.Context, e *Environment) error {
 			return err
 		}
 
-		ed.ID = fmt.Sprintf("%s-%s", ed.Slug, ed.Lang)
-		task, err := ms.EditorsIndex.AddDocumentsWithContext(ctx, &ed, nil)
+		task, err := ms.EditorsIndex.AddDocumentsWithContext(ctx, editor.ToSearchDoc(&ed), nil)
 		if err != nil {
 			return err
 		}

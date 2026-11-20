@@ -185,6 +185,7 @@ func (r *GORMRepository) GetAll(ctx context.Context, language string) ([]domain.
 	result := r.db.WithContext(ctx).
 		Model(&RecordTranslation{}).
 		InnerJoins("Editor").
+		Omit("Editor.deleted_at").
 		Where("lang = ? AND Editor.deleted_at IS NULL", language).
 		Find(&editors)
 	if result.Error != nil {

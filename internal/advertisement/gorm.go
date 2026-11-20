@@ -105,6 +105,7 @@ func (r *GORMRepository) GetGroup(ctx context.Context, group string) ([]domain.A
 
 	res := r.db.WithContext(ctx).
 		Model(&Record{}).
+		Omit("expires_at").
 		Where(clause.Eq{Column: clause.Column{Name: "group"}, Value: group}).
 		Where("expires_at IS NULL OR expires_at > CURRENT_TIMESTAMP").
 		Order("priority ASC").

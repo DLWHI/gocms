@@ -202,25 +202,31 @@ func (ms *MeilisearchEngine) Destroy(ctx context.Context) error {
 }
 
 func (d *SearchDoc) ToDomain() *domain.Editor {
-	t := *d.DeletedAt
-	return &domain.Editor{
-		Slug:      d.Slug,
-		Bio:       "",
-		Name:      d.Name,
-		Lang:      d.Lang,
-		DeletedAt: &t,
-		Owner:     d.Owner,
+	res := domain.Editor{
+		Slug:  d.Slug,
+		Bio:   "",
+		Name:  d.Name,
+		Lang:  d.Lang,
+		Owner: d.Owner,
 	}
+	if d.DeletedAt != nil {
+		t := *d.DeletedAt
+		res.DeletedAt = &t
+	}
+	return &res
 }
 
 func ToSearchDoc(data *domain.Editor) *SearchDoc {
-	t := *data.DeletedAt
-	return &SearchDoc{
-		ID:        fmt.Sprintf("%s-%s", data.Slug, data.Lang),
-		Slug:      data.Slug,
-		Name:      data.Name,
-		Lang:      data.Lang,
-		DeletedAt: &t,
-		Owner:     data.Owner,
+	res := SearchDoc{
+		ID:    fmt.Sprintf("%s-%s", data.Slug, data.Lang),
+		Slug:  data.Slug,
+		Name:  data.Name,
+		Lang:  data.Lang,
+		Owner: data.Owner,
 	}
+	if data.DeletedAt != nil {
+		t := *data.DeletedAt
+		res.DeletedAt = &t
+	}
+	return &res
 }

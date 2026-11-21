@@ -29,7 +29,7 @@ type SearchParams struct {
 	Categories        []string `json:"categories,omitempty"`
 	ExcludeCategories []string `json:"exclude_categories,omitempty"`
 	Authors           []string `json:"authors,omitempty"`
-	CreatedBy         *string  `json:"created_by,omitempty"`
+	CreatedBy         []string `json:"created_by,omitempty"`
 	CreatedAfter      *int64   `json:"created_after,omitempty"`
 	CreatedBefore     *int64   `json:"created_before,omitempty"`
 	PublishedAfter    *int64   `json:"published_after,omitempty"`
@@ -57,10 +57,8 @@ func ToSearchDoc(data *domain.Post) *SearchDoc {
 		Keywords:    data.Keywords,
 		Lang:        data.Lang,
 		CreatedAt:   data.CreatedAt,
-		PublishedAt: new(int64),
 		Views:       data.Views,
 		Preview:     data.Preview,
-		Author:      new(string),
 		CreatedBy:   data.CreatedBy,
 		Categories:  make([]string, len(data.Categories)),
 	}

@@ -61,18 +61,19 @@ func (*MeilisearchEngine) buildFilter(params *SearchParams) string {
 		clauses = append(clauses, fmt.Sprintf("author IN [%s]", strings.Join(authors, ", ")))
 	}
 
+	if len(params.CreatedBy) > 0 {
+		creators := make([]string, 0, len(params.CreatedBy))
+		for _, creator := range params.CreatedBy {
+			creators = append(creators, strconv.Quote(creator))
+		}
+		clauses = append(clauses, fmt.Sprintf("created_by IN [%s]", strings.Join(creators, ", ")))
+	}
+
 	if params.CreatedAfter != nil {
 		clauses = append(clauses, fmt.Sprintf("created_at >= %d", *params.CreatedAfter))
 	}
 	if params.CreatedBefore != nil {
 		clauses = append(clauses, fmt.Sprintf("created_at <= %d", *params.CreatedBefore))
-	}
-
-	if params.PublishedAfter != nil {
-		clauses = append(clauses, fmt.Sprintf("published_at >= %d", *params.PublishedAfter))
-	}
-	if params.PublishedBefore != nil {
-		clauses = append(clauses, fmt.Sprintf("published_at <= %d", *params.PublishedBefore))
 	}
 
 	if params.Published != nil {
@@ -81,6 +82,13 @@ func (*MeilisearchEngine) buildFilter(params *SearchParams) string {
 		} else {
 			clauses = append(clauses, "published_at IS NULL")
 		}
+	}
+
+	if params.PublishedAfter != nil {
+		clauses = append(clauses, fmt.Sprintf("published_at >= %d", *params.PublishedAfter))
+	}
+	if params.PublishedBefore != nil {
+		clauses = append(clauses, fmt.Sprintf("published_at <= %d", *params.PublishedBefore))
 	}
 
 	return strings.Join(clauses, " AND ")

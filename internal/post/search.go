@@ -12,6 +12,7 @@ type SearchDoc struct {
 	PostID      uint     `json:"post_id"`
 	Title       string   `json:"title"`
 	Description string   `json:"description"`
+	Keywords    string   `json:"keywords,omitempty"`
 	Slug        string   `json:"slug"`
 	Lang        string   `json:"lang"`
 	CreatedAt   int64    `json:"created_at,omitempty"`
@@ -53,6 +54,7 @@ func ToSearchDoc(data *domain.Post) *SearchDoc {
 		Title:       data.Title,
 		Description: data.Description,
 		Slug:        data.Slug,
+		Keywords:    data.Keywords,
 		Lang:        data.Lang,
 		CreatedAt:   data.CreatedAt,
 		PublishedAt: new(int64),

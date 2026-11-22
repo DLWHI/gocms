@@ -84,15 +84,9 @@ func (s *SessionService) Logout(ctx context.Context) error {
 }
 
 func (s *SessionService) CurrentUser(ctx context.Context) (*domain.User, error) {
-	session, ok := ctx.Value(SessionContextIDKey).(string)
+	username, ok := ctx.Value(UsernameContextKey).(string)
 	if !ok {
-		return nil, domain.ErrExpired
-	}
-
-	username, _, err := s.sessions.Validate(ctx, session)
-	if err != nil {
-		logger.Error("Auth.Service", "Failed to retrieve the current user", err)
-		return nil, err
+		return nil, domain.ErrCred
 	}
 
 	user, err := s.users.Get(ctx, username)

@@ -43,9 +43,9 @@ func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
 		server.RequireJSON,
 		h.langs,
 	)
+	get := http.HandlerFunc(h.get)
 	create := http.HandlerFunc(h.create)
 	search := http.HandlerFunc(h.search)
-	get := http.HandlerFunc(h.get)
 	update := http.HandlerFunc(h.update)
 	updateViews := http.HandlerFunc(h.updateViews)
 	delete := http.HandlerFunc(h.delete)
@@ -56,6 +56,24 @@ func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
 	mux.Handle("PATCH /posts/{lang}/{id}", mw(update))
 	mux.Handle("PUT /posts/views/{id}", mw(updateViews))
 	mux.Handle("DELETE /posts/{id}", mw(delete))
+}
+
+// GET /posts/{lang}/{id} - Get post by id
+func (h *Handler) get(w http.ResponseWriter, r *http.Request) {
+	id, err := strconv.ParseUint(r.PathValue("id"), 10, 64)
+	if err != nil || id == 0 {
+		server.WritePathError(w, "Invalid ID")
+		return
+	}
+
+	post, err := h.service.Get(r.Context(), uint(id))
+	if err != nil {
+		server.WriteServerError(w, "Post", err)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	_ = json.NewEncoder(w).Encode(post)
 }
 
 // POST /posts/{lang} - Create post translation
@@ -103,24 +121,6 @@ func (h *Handler) search(w http.ResponseWriter, r *http.Request) {
 	_ = json.NewEncoder(w).Encode(posts)
 }
 
-// GET /posts/{lang}/{id} - Get post by id
-func (h *Handler) get(w http.ResponseWriter, r *http.Request) {
-	id, err := strconv.ParseUint(r.PathValue("id"), 10, 64)
-	if err != nil || id == 0 {
-		server.WritePathError(w, "Invalid ID")
-		return
-	}
-
-	post, err := h.service.Get(r.Context(), uint(id))
-	if err != nil {
-		server.WriteServerError(w, "Post", err)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	_ = json.NewEncoder(w).Encode(post)
-}
-
 // PATCH /posts/{lang}/{id} - Update post translation
 func (h *Handler) update(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.ParseUint(r.PathValue("id"), 10, 64)
@@ -143,7 +143,7 @@ func (h *Handler) update(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
-// PATCH /posts/{id}/views - Override posts views
+// PUT /posts/views/{id} - Override posts views
 func (h *Handler) updateViews(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.ParseUint(r.PathValue("id"), 10, 64)
 	if err != nil || id == 0 {

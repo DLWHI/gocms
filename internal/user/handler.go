@@ -11,10 +11,10 @@ import (
 )
 
 // ------------------------------------------------------------------
-// POST /users - Register new user
-// POST /users/search - Search users
 // GET /users - Get all users
 // GET /users/{username} - Get user
+// POST /users - Register new user
+// POST /users/search - Search users
 // PATCH /users/{username}/email - Update user's email
 // PATCH /users/{username}/password - Reset user password
 // PATCH /users/{username}/permissions - Update user's permissions
@@ -60,6 +60,40 @@ func (h *Handler) RegisterRoutes(r *http.ServeMux) {
 	r.Handle("DELETE /users/{username}", mw(suspend))
 }
 
+// GET /users - Get all users
+func (h *Handler) all(w http.ResponseWriter, r *http.Request) {
+	users, err := h.service.AllActive(r.Context())
+	if err != nil {
+		server.WriteServerError(w, "User", err)
+		return
+	}
+
+	res := map[string][]domain.User{
+		"users": users,
+	}
+	w.Header().Set("Content-Type", "application/json")
+	_ = json.NewEncoder(w).Encode(&res)
+}
+
+// GET /users/{username} - Get user
+func (h *Handler) get(w http.ResponseWriter, r *http.Request) {
+	username := r.PathValue("username")
+
+	if username == "" {
+		server.WritePathError(w, "Missing username")
+		return
+	}
+
+	user, err := h.service.Get(r.Context(), username)
+	if err != nil {
+		server.WriteServerError(w, "User", err)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	_ = json.NewEncoder(w).Encode(user)
+}
+
 // POST /users - Register new user
 func (h *Handler) create(w http.ResponseWriter, r *http.Request) {
 	var payload struct {
@@ -91,21 +125,6 @@ func (h *Handler) create(w http.ResponseWriter, r *http.Request) {
 	_ = json.NewEncoder(w).Encode(&res)
 }
 
-// GET /users - Get all users
-func (h *Handler) all(w http.ResponseWriter, r *http.Request) {
-	users, err := h.service.AllActive(r.Context())
-	if err != nil {
-		server.WriteServerError(w, "User", err)
-		return
-	}
-
-	res := map[string][]domain.User{
-		"users": users,
-	}
-	w.Header().Set("Content-Type", "application/json")
-	_ = json.NewEncoder(w).Encode(&res)
-}
-
 // POST /users/search - Search users
 func (h *Handler) search(w http.ResponseWriter, r *http.Request) {
 	var filters SearchParams
@@ -122,25 +141,6 @@ func (h *Handler) search(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	_ = json.NewEncoder(w).Encode(&users)
-}
-
-// GET /users/{username} - Get user
-func (h *Handler) get(w http.ResponseWriter, r *http.Request) {
-	username := r.PathValue("username")
-
-	if username == "" {
-		server.WritePathError(w, "Missing username")
-		return
-	}
-
-	user, err := h.service.Get(r.Context(), username)
-	if err != nil {
-		server.WriteServerError(w, "User", err)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	_ = json.NewEncoder(w).Encode(user)
 }
 
 // PATCH /users/{username}/email - Update user's email

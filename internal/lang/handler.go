@@ -41,6 +41,16 @@ func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
 	mux.Handle("DELETE /languages/{code}", mw(delete))
 }
 
+// GET /languages - Get all languages
+func (h *Handler) get(w http.ResponseWriter, r *http.Request) {
+	res := map[string][]Language{
+		"languages": h.service.GetSupported(),
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	_ = json.NewEncoder(w).Encode(res)
+}
+
 // POST /languages - Add language
 func (h *Handler) create(w http.ResponseWriter, r *http.Request) {
 	var payload Language
@@ -55,16 +65,6 @@ func (h *Handler) create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusCreated)
-}
-
-// GET /languages - Get all languages
-func (h *Handler) get(w http.ResponseWriter, r *http.Request) {
-	res := map[string][]Language{
-		"languages": h.service.GetSupported(),
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	_ = json.NewEncoder(w).Encode(res)
 }
 
 // DELETE /languages/{code} - Delete language

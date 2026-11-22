@@ -2,6 +2,16 @@
 
 These routes cover all required actions to control CMS state, such as administrating users, creating and editing posts, categories and etc.
 
+## Authentication
+
+| Method | Route | Reference |
+| --- | --- | --- |
+| GET | `/cms/profile` | [Get user profile](auth.md#get-cmsprofile) |
+| GET | `/cms/permissions` | [Get list of defined permissions](auth.md#get-cmspermissions) |
+| POST | `/cms/login` | [Authenticate user](auth.md#post-cmslogin) |
+| POST | `/cms/logout` | [Logout from CMS](auth.md#post-cmslogout) |
+| PATCH | `/cms/password` | [Change user's password](auth.md#patch-cmspassword) |
+
 ## User management
 
 | Method | Route | Reference |

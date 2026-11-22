@@ -9,11 +9,11 @@ import (
 )
 
 // ------------------------------------------------------------------
-// POST /login - Login
-// POST /logout - Log out
 // GET /profile - Get current user/Validate session
 // GET /permissions - Get all of current permissions
-// PATCH /password - Update user password
+// POST /login - Login
+// POST /logout - Log out
+// PATCH /passwd - Update user password
 // ------------------------------------------------------------------
 
 type Handler struct {
@@ -37,10 +37,10 @@ func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
 		h.auth,
 		server.RequireJSON,
 	)
-	login := http.HandlerFunc(h.login)
-	logout := http.HandlerFunc(h.logout)
 	profile := http.HandlerFunc(h.profile)
 	permissions := http.HandlerFunc(h.perms)
+	login := http.HandlerFunc(h.login)
+	logout := http.HandlerFunc(h.logout)
 	changePasswd := http.HandlerFunc(h.changePasswd)
 
 	mux.Handle("GET /profile", mw(profile))
@@ -48,6 +48,32 @@ func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
 	mux.Handle("POST /login", h.limiter(server.RequireJSON(login)))
 	mux.Handle("POST /logout", mw(logout))
 	mux.Handle("PATCH /passwd", mw(changePasswd))
+}
+
+// GET /profile - Get current user/Validate session
+func (h *Handler) profile(w http.ResponseWriter, r *http.Request) {
+	user, err := h.sessions.CurrentUser(r.Context())
+	if err != nil {
+		server.WriteServerError(w, "User", err)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	_ = json.NewEncoder(w).Encode(user)
+}
+
+// GET /permissions - Get all of current permissions
+func (h *Handler) perms(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	permissionData := struct {
+		Entities map[string]uint32 `json:"entities"`
+		Actions  map[string]uint32 `json:"actions"`
+	}{
+		Entities: domain.GetEntities(),
+		Actions:  domain.GetActions(),
+	}
+
+	_ = json.NewEncoder(w).Encode(&permissionData)
 }
 
 // POST /login - Login
@@ -85,33 +111,7 @@ func (h *Handler) logout(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
-// GET /profile - Get current user/Validate session
-func (h *Handler) profile(w http.ResponseWriter, r *http.Request) {
-	user, err := h.sessions.CurrentUser(r.Context())
-	if err != nil {
-		server.WriteServerError(w, "User", err)
-		return
-	}
-	w.Header().Set("Content-Type", "application/json")
-	_ = json.NewEncoder(w).Encode(user)
-}
-
-// GET /permissions - Get all of current permissions
-func (h *Handler) perms(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-
-	permissionData := struct {
-		Entities map[string]uint32 `json:"entities"`
-		Actions  map[string]uint32 `json:"actions"`
-	}{
-		Entities: domain.GetEntities(),
-		Actions:  domain.GetActions(),
-	}
-
-	_ = json.NewEncoder(w).Encode(&permissionData)
-}
-
-// PATCH /password - Update user password
+// PATCH /passwd - Update user password
 func (h *Handler) changePasswd(w http.ResponseWriter, r *http.Request) {
 	var payload struct {
 		OldPasswd password.Password `json:"old_password"`

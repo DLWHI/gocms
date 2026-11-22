@@ -13,8 +13,8 @@ import (
 // ------------------------------------------------------------------
 // GET /categories/{lang} - Get all categories
 // GET /categories/{lang}/{slug} - Get category
-// POST /categories/{lang}/search - Get/search categories
 // POST /categories/{lang} - Create category
+// POST /categories/{lang}/search - Get/search categories
 // PATCH /categories/{lang}/{slug} - Update category
 // DELETE /categories/{slug} - Delete category
 // ------------------------------------------------------------------
@@ -44,10 +44,10 @@ func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
 		server.RequireJSON,
 		h.langs,
 	)
-	search := http.HandlerFunc(h.search)
 	all := http.HandlerFunc(h.all)
-	create := http.HandlerFunc(h.create)
 	get := http.HandlerFunc(h.get)
+	create := http.HandlerFunc(h.create)
+	search := http.HandlerFunc(h.search)
 	update := http.HandlerFunc(h.update)
 	delete := http.HandlerFunc(h.delete)
 
@@ -57,25 +57,6 @@ func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
 	mux.Handle("POST /categories/{lang}/search", mw(search))
 	mux.Handle("PATCH /categories/{lang}/{slug}", mw(update))
 	mux.Handle("DELETE /categories/{slug}", mw(delete))
-}
-
-// POST /categories/{lang}/search - Get/search categories
-func (h *Handler) search(w http.ResponseWriter, r *http.Request) {
-	var filters SearchParams
-
-	if err := json.NewDecoder(r.Body).Decode(&filters); err != nil {
-		server.WriteDecodeError(w, err)
-		return
-	}
-
-	categories, err := h.service.Search(r.Context(), &filters)
-	if err != nil {
-		server.WriteServerError(w, "Category", err)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	_ = json.NewEncoder(w).Encode(categories)
 }
 
 // GET /categories/{lang} - Get all categories
@@ -92,6 +73,24 @@ func (h *Handler) all(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	_ = json.NewEncoder(w).Encode(res)
+}
+
+// GET /categories/{lang}/{slug} - Get category
+func (h *Handler) get(w http.ResponseWriter, r *http.Request) {
+	slug := r.PathValue("slug")
+	if slug == "" {
+		server.WritePathError(w, "Missing slug")
+		return
+	}
+
+	category, err := h.service.Get(r.Context(), slug)
+	if err != nil {
+		server.WriteServerError(w, "Category", err)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	_ = json.NewEncoder(w).Encode(category)
 }
 
 // POST /categories/{lang} - Create category
@@ -119,22 +118,23 @@ func (h *Handler) create(w http.ResponseWriter, r *http.Request) {
 	_ = json.NewEncoder(w).Encode(&res)
 }
 
-// GET /categories/{lang}/{slug} - Get get
-func (h *Handler) get(w http.ResponseWriter, r *http.Request) {
-	slug := r.PathValue("slug")
-	if slug == "" {
-		server.WritePathError(w, "Missing slug")
+// POST /categories/{lang}/search - Get/search categories
+func (h *Handler) search(w http.ResponseWriter, r *http.Request) {
+	var filters SearchParams
+
+	if err := json.NewDecoder(r.Body).Decode(&filters); err != nil {
+		server.WriteDecodeError(w, err)
 		return
 	}
 
-	category, err := h.service.Get(r.Context(), slug)
+	categories, err := h.service.Search(r.Context(), &filters)
 	if err != nil {
 		server.WriteServerError(w, "Category", err)
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	_ = json.NewEncoder(w).Encode(category)
+	_ = json.NewEncoder(w).Encode(categories)
 }
 
 // PATCH /categories/{lang}/{slug} - Update category

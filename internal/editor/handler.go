@@ -12,11 +12,11 @@ import (
 
 // ------------------------------------------------------------------
 // GET /editors/{lang} - Get all editors
-// GET /editors/{lang}/{username} - Get editor
+// GET /editors/{lang}/{slug} - Get editor
 // POST /editors/{lang} - Create editor
 // POST /editors/{lang}/search - Get/search editors
-// PATCH /editors/{lang}/{username} - Update editor
-// DELETE /editors/{username} - Delete editor
+// PATCH /editors/{lang}/{slug} - Update editor
+// DELETE /editors/{slug} - Delete editor
 
 // ------------------------------------------------------------------
 type Handler struct {
@@ -42,10 +42,10 @@ func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
 		server.RequireJSON,
 		h.langs,
 	)
-	search := http.HandlerFunc(h.search)
 	all := http.HandlerFunc(h.all)
-	create := http.HandlerFunc(h.create)
 	get := http.HandlerFunc(h.get)
+	create := http.HandlerFunc(h.create)
+	search := http.HandlerFunc(h.search)
 	update := http.HandlerFunc(h.update)
 	delete := http.HandlerFunc(h.delete)
 
@@ -55,25 +55,6 @@ func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
 	mux.Handle("POST /editors/{lang}/search", mw(search))
 	mux.Handle("PATCH /editors/{lang}/{slug}", mw(update))
 	mux.Handle("DELETE /editors/{slug}", mw(delete))
-}
-
-// POST /editors/search/{lang} - Get/search editors
-func (h *Handler) search(w http.ResponseWriter, r *http.Request) {
-	var filters SearchParams
-
-	if err := json.NewDecoder(r.Body).Decode(&filters); err != nil {
-		server.WriteDecodeError(w, err)
-		return
-	}
-
-	editors, err := h.service.Search(r.Context(), &filters)
-	if err != nil {
-		server.WriteServerError(w, "Editor", err)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	_ = json.NewEncoder(w).Encode(&editors)
 }
 
 // GET /editors/{lang} - Get all editors
@@ -90,6 +71,24 @@ func (h *Handler) all(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	_ = json.NewEncoder(w).Encode(&res)
+}
+
+// GET /editors/{lang}/{slug} - Get editor
+func (h *Handler) get(w http.ResponseWriter, r *http.Request) {
+	slug := r.PathValue("slug")
+	if slug == "" {
+		server.WritePathError(w, "Missing editor slug")
+		return
+	}
+
+	editor, err := h.service.Get(r.Context(), slug)
+	if err != nil {
+		server.WriteServerError(w, "Editor", err)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	_ = json.NewEncoder(w).Encode(editor)
 }
 
 // POST /editors/{lang} - Create editor
@@ -117,22 +116,23 @@ func (h *Handler) create(w http.ResponseWriter, r *http.Request) {
 	_ = json.NewEncoder(w).Encode(&res)
 }
 
-// GET /editors/{lang}/{slug} - Get editor
-func (h *Handler) get(w http.ResponseWriter, r *http.Request) {
-	slug := r.PathValue("slug")
-	if slug == "" {
-		server.WritePathError(w, "Missing editor slug")
+// POST /editors/{lang}/search - Get/search editors
+func (h *Handler) search(w http.ResponseWriter, r *http.Request) {
+	var filters SearchParams
+
+	if err := json.NewDecoder(r.Body).Decode(&filters); err != nil {
+		server.WriteDecodeError(w, err)
 		return
 	}
 
-	editor, err := h.service.Get(r.Context(), slug)
+	editors, err := h.service.Search(r.Context(), &filters)
 	if err != nil {
 		server.WriteServerError(w, "Editor", err)
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	_ = json.NewEncoder(w).Encode(editor)
+	_ = json.NewEncoder(w).Encode(&editors)
 }
 
 // PATCH /editors/{lang}/{slug} - Update editor

@@ -4,14 +4,38 @@ These routes are responsible for advertisements management.
 
 | Method | Route | Reference |
 | --- | --- | --- |
-| GET | `/cms/ads/{id}` | [Get an advertisement](#get-cmsadsid) |
 | GET | `/cms/ads/groups` | [List advertisement groups](#get-cmsadsgroups) |
+| GET | `/cms/ads/{id}` | [Get an advertisement](#get-cmsadsid) |
 | POST | `/cms/ads` | [Create an advertisement](#post-cmsads) |
 | POST | `/cms/ads/search` | [Search advertisements](#post-cmsadssearch) |
 | PATCH | `/cms/ads/{id}` | [Update an advertisement](#patch-cmsadsid) |
 | DELETE | `/cms/ads/{id}` | [Delete an advertisement](#delete-cmsadsid) |
 
 ## Routes
+
+### `GET /cms/ads/groups`
+
+Get all group values. Request body is ignored if sent.
+
+- **Headers:**
+  - `Authorization` — `Bearer <sessionID>` (required).
+- **Path parameters:** None.
+- **Request body:** None.
+- **Request limit:** 4 KiB.
+- **Response:**
+  - `200 OK` — if group retreival succeeds
+
+  ```json
+  {
+    "groups": [
+      "array",
+      "of",
+      "strings"
+    ]
+  }
+  ```
+
+  - `401 Unauthorized` — if session is invalid, missing or expired identity. Returns a plain-text message.
 
 ### `GET /cms/ads/{id}`
 
@@ -42,30 +66,6 @@ Get advertisement by id. Request body is ignored if sent.
   - `400 Bad Request` — if advertisement ID is missing or invalid. Returns a plain-text message.
   - `401 Unauthorized` — if session is invalid, missing or expired identity. Returns a plain-text message.
   - `404 Not Found` — if advertisement was not found. Returns a plain-text message.
-
-### `GET /cms/ads/groups`
-
-Get all group values. Request body is ignored if sent.
-
-- **Headers:**
-  - `Authorization` — `Bearer <sessionID>` (required).
-- **Path parameters:** None.
-- **Request body:** None.
-- **Request limit:** 4 KiB.
-- **Response:**
-  - `200 OK` — if group retreival succeeds
-
-  ```json
-  {
-    "groups": [
-      "array",
-      "of",
-      "strings"
-    ]
-  }
-  ```
-
-  - `401 Unauthorized` — if session is invalid, missing or expired identity. Returns a plain-text message.
 
 ### `POST /cms/ads`
 

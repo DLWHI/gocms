@@ -2,7 +2,7 @@
   "meta": {
     "format_version": 1,
     "source_document": "docs/public.md",
-    "reset": "Reset DB, cache and search index to `fixtures` before every case. Fixture objects are flat: one object per translation (posts: per (post_id, language); categories and editors: per (slug, language)). Entity-level fields (created_at, created_by, published_at, views, author, categories on posts; hidden/navbar on categories; deleted_at on editors) are repeated identically on every row of the same entity. Ids of posts and ads are the ones given in the fixtures; new entities get the next sequential id. Editors are bound to a fixture user: editor.slug equals editor.username equals the user's username, and the public `email` is the user's email. Actor rows are seeded by the harness (permissions = session mask). Public routes are called as `anonymous` (no Authorization header) unless a case says otherwise. Fixture timestamps are either far in the past (published/expired) or far in the future (2100+) so results do not depend on the wall clock.",
+    "reset": "Reset DB, cache and search index to `fixtures` before every case. Fixture objects are flat: one object per translation (posts: per (post_id, language); categories and editors: per (slug, language)). Entity-level fields (created_at, created_by, published_at, views, author, categories on posts; hidden/navbar on categories; deleted_at on editors) are repeated identically on every row of the same entity. Ids of posts and ads are the ones given in the fixtures; new entities get the next sequential id. Actor rows are seeded by the harness (permissions = session mask). Public routes are called as `anonymous` (no Authorization header) unless a case says otherwise. Fixture timestamps are either far in the past (published/expired) or far in the future (2100+) so results do not depend on the wall clock.",
     "actor": "Key into fixtures.actors, or: anonymous (no Authorization header), garbage_session (invalid Authorization header). `root` is used for admin side steps and for authenticated calls.",
     "request": "path_params are unescaped and must be percent-encoded when substituted. `path` may carry a literal query string that is already percent-encoded (e.g. /public/advertisements?groups=a,b&groups=c). headers: null removes a default header; an empty string sends an empty header. Default Accept-Language is `en` on routes that require it. body_raw (even empty string) overrides body. body_generator {json_padded_bytes: N, base} = valid JSON of exactly N bytes, padded with an unknown field.",
     "tokens": "{$const: NAME} constants; {$repeat: {s, n}}; {$email_of_length: N}; {$raw_session: actor} session id without Bearer; {$actor_perms: actor} the actor's permission mask. Tokens appear only as direct field values (body, headers, path_params, assertion value).",
@@ -29,45 +29,17 @@
       },
       "anonymous": {
         "username": "anonymous",
+        "permissions": 4294967295,
         "permanent": true,
         "session": ""
       },
       "garbage_session": {
         "username": "garbage_session",
+        "permissions": 4294967295,
         "permanent": true,
         "session": "Bearer garbage_session.<Garbage>.L1o-Uh-MnWLqx1ZlmvUPuMN-BZau8UL5JewxvPhkJlI"
       }
     },
-    "users": [
-      {
-        "username": "alice",
-        "email": "alice@example.com",
-        "permissions": 0,
-        "last_login": null,
-        "suspended_at": null
-      },
-      {
-        "username": "bobby",
-        "email": "bobby@example.com",
-        "permissions": 0,
-        "last_login": null,
-        "suspended_at": null
-      },
-      {
-        "username": "carol",
-        "email": "carol@example.com",
-        "permissions": 0,
-        "last_login": null,
-        "suspended_at": null
-      },
-      {
-        "username": "dave",
-        "email": "dave@example.com",
-        "permissions": 0,
-        "last_login": null,
-        "suspended_at": null
-      }
-    ],
     "languages": [
       {
         "code": "en",
@@ -98,12 +70,6 @@
         "navbar": true
       },
       {
-        "slug": "news",
-        "lang": "de",
-        "name": "Nachrichten",
-        "hidden": false,
-        "navbar": true
-      },{
         "slug": "sports",
         "lang": "en",
         "name": "Sports",
@@ -128,7 +94,6 @@
     "editors": [
       {
         "slug": "alice",
-        "username": "alice",
         "lang": "en",
         "name": "Alice Smith",
         "bio": "Senior **editor**",
@@ -136,7 +101,6 @@
       },
       {
         "slug": "alice",
-        "username": "alice",
         "lang": "ru",
         "name": "Алиса Смит",
         "bio": "Старший **редактор**",
@@ -144,7 +108,6 @@
       },
       {
         "slug": "bobby",
-        "username": "bobby",
         "lang": "en",
         "name": "Bobby Brown",
         "bio": "Sports editor",
@@ -152,7 +115,6 @@
       },
       {
         "slug": "carol",
-        "username": "carol",
         "lang": "ru",
         "name": "Кэрол Уайт",
         "bio": "Редактор культуры",
@@ -160,7 +122,6 @@
       },
       {
         "slug": "dave",
-        "username": "dave",
         "lang": "en",
         "name": "Dave Old",
         "bio": "Retired editor",
@@ -173,7 +134,7 @@
         "lang": "en",
         "title": "Alpha Post",
         "description": "First post of the series",
-        "content": "# Alpha\n\nFirst paragraph",
+        "content": "<p>Alpha First paragraph</p>",
         "slug": "alpha-post",
         "keywords": "alpha, first",
         "created_at": 1590000000,
@@ -192,8 +153,8 @@
         "lang": "ru",
         "title": "Альфа пост",
         "description": "Первый пост серии",
-        "content": "# Альфа\n\nПервый абзац",
-        "slug": "alfa-post",
+        "content": "<p>Альфа Первый абзац</p>",
+        "slug": "alpha-post",
         "keywords": "альфа, первый",
         "created_at": 1590000000,
         "published_at": 1600000000,
@@ -211,7 +172,7 @@
         "lang": "en",
         "title": "Beta Draft",
         "description": "Draft not yet published",
-        "content": "# Beta\n\nDraft body",
+        "content": "<p>Beta Draft body</p>",
         "slug": "beta-draft",
         "keywords": "draftonly",
         "created_at": 1595000000,
@@ -230,7 +191,7 @@
         "lang": "en",
         "title": "Gamma Story",
         "description": "Quarterly figures explained",
-        "content": "# Gamma\n\nGamma body",
+        "content": "<p>Gamma Gamma body</p>",
         "slug": "gamma-story",
         "keywords": "gamma, story",
         "created_at": 1640000000,
@@ -249,8 +210,8 @@
         "lang": "ru",
         "title": "Дельта новости",
         "description": "Только русская версия",
-        "content": "# Дельта\n\nТекст",
-        "slug": "delta-novosti",
+        "content": "<p>Дельта Текст</p>",
+        "slug": "delta-news",
         "keywords": "дельта",
         "created_at": 1670000000,
         "published_at": 1680000000,
@@ -268,7 +229,7 @@
         "lang": "en",
         "title": "Epsilon Review",
         "description": "A review of the year",
-        "content": "# Epsilon\n\nEpsilon body",
+        "content": "<p>Epsilon Epsilon body</p>",
         "slug": "epsilon-review",
         "keywords": "annual, yearbook",
         "created_at": 1690000000,
@@ -368,9 +329,9 @@
   },
   "cases": [
     {
-      "id": "PUBLIC-FUNC-LOCALES-001",
+      "id": "PUBLIC-FUNC-LANGUAGES-001",
       "group": "GET /public/languages",
-      "title": "200: lists configured locales without any headers",
+      "title": "200: lists configured languages without any headers",
       "source": "documented",
       "tags": [],
       "steps": [
@@ -425,7 +386,7 @@
       ]
     },
     {
-      "id": "PUBLIC-FUNC-LOCALES-002",
+      "id": "PUBLIC-FUNC-LANGUAGES-002",
       "group": "GET /public/languages",
       "title": "Request body is ignored",
       "source": "documented",
@@ -453,7 +414,7 @@
       ]
     },
     {
-      "id": "PUBLIC-FUNC-LOCALES-003",
+      "id": "PUBLIC-FUNC-LANGUAGES-003",
       "group": "GET /public/languages",
       "title": "Works with an authenticated session as well",
       "source": "inferred",
@@ -480,11 +441,11 @@
       ]
     },
     {
-      "id": "PUBLIC-FUNC-LOCALES-004",
+      "id": "PUBLIC-FUNC-LANGUAGES-004",
       "group": "GET /public/languages",
       "title": "A garbage Authorization header is ignored",
       "source": "inferred",
-      "tags": ["ambiguous"],
+      "tags": [],
       "note": "Headers are 'not required'; an invalid session is assumed not to be validated on public routes (a 401 is an alternative).",
       "steps": [
         {
@@ -508,12 +469,12 @@
       ]
     },
     {
-      "id": "PUBLIC-FUNC-LOCALES-005",
+      "id": "PUBLIC-FUNC-LANGUAGES-005",
       "group": "GET /public/languages",
       "title": "Accept-Language header is not required and not used",
       "source": "inferred",
-      "tags": ["ambiguous"],
-      "note": "This route lists locales, so an unsupported Accept-Language is assumed to be irrelevant.",
+      "tags": [],
+      "note": "This route lists languages, so an unsupported Accept-Language is assumed to be irrelevant.",
       "steps": [
         {
           "actor": "anonymous",
@@ -539,11 +500,11 @@
       ]
     },
     {
-      "id": "PUBLIC-FUNC-LOCALES-006",
+      "id": "PUBLIC-FUNC-LANGUAGES-006",
       "group": "GET /public/languages",
       "title": "413: oversized body (4 KiB + 1) on a route that ignores its body",
       "source": "documented",
-      "tags": ["ambiguous", "boundary"],
+      "tags": ["boundary"],
       "note": "Docs say no body is expected but list a 4 KiB limit; the limit is assumed to be enforced first.",
       "steps": [
         {
@@ -564,11 +525,11 @@
       ]
     },
     {
-      "id": "PUBLIC-FUNC-LOCALES-007",
+      "id": "PUBLIC-FUNC-LANGUAGES-007",
       "group": "GET /public/languages",
       "title": "Body of exactly 4096 bytes is accepted",
       "source": "documented",
-      "tags": ["ambiguous", "boundary"],
+      "tags": ["boundary"],
       "steps": [
         {
           "actor": "anonymous",
@@ -589,7 +550,7 @@
       "note": "Docs say no body is expected but list a 4 KiB limit; a body exactly at the limit is assumed to be accepted and ignored."
     },
     {
-      "id": "PUBLIC-FUNC-LOCALES-008",
+      "id": "PUBLIC-FUNC-LANGUAGES-008",
       "group": "GET /public/languages",
       "title": "A newly created language is listed",
       "source": "documented",
@@ -662,7 +623,7 @@
       ]
     },
     {
-      "id": "PUBLIC-FUNC-LOCALES-009",
+      "id": "PUBLIC-FUNC-LANGUAGES-009",
       "group": "GET /public/languages",
       "title": "A deleted language disappears and its content becomes unavailable",
       "source": "documented",
@@ -755,7 +716,7 @@
       ]
     },
     {
-      "id": "PUBLIC-FUNC-LOCALES-010",
+      "id": "PUBLIC-FUNC-LANGUAGES-010",
       "group": "GET /public/languages",
       "title": "A language that is created again restores its content",
       "source": "documented",
@@ -860,7 +821,7 @@
       ]
     },
     {
-      "id": "PUBLIC-FUNC-LOCALES-011",
+      "id": "PUBLIC-FUNC-LANGUAGES-011",
       "group": "GET /public/languages",
       "title": "A freshly created language is accepted by Accept-Language",
       "source": "documented",
@@ -966,6 +927,302 @@
       ]
     },
     {
+      "id": "PUBLIC-LANG-CATEGORIES-001",
+      "group": "GET /public/categories",
+      "title": "400: Accept-Language header missing",
+      "source": "documented",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "anonymous",
+          "request": {
+            "method": "GET",
+            "path": "/public/categories"
+          },
+          "expect": {
+            "status": 400,
+            "body": "plain_text"
+          }
+        }
+      ]
+    },
+    {
+      "id": "PUBLIC-LANG-CATEGORIES-002",
+      "group": "GET /public/categories",
+      "title": "400: Accept-Language header empty",
+      "source": "documented",
+      "tags": [],
+      "note": "An empty value is invalid (and effectively missing).",
+      "steps": [
+        {
+          "actor": "anonymous",
+          "request": {
+            "method": "GET",
+            "path": "/public/categories",
+            "headers": {
+              "Accept-Language": ""
+            }
+          },
+          "expect": {
+            "status": 400,
+            "body": "plain_text"
+          }
+        }
+      ]
+    },
+    {
+      "id": "PUBLIC-LANG-CATEGORIES-003",
+      "group": "GET /public/categories",
+      "title": "406: well-formed but unsupported language (fr)",
+      "source": "documented",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "anonymous",
+          "request": {
+            "method": "GET",
+            "path": "/public/categories",
+            "headers": {
+              "Accept-Language": "fr"
+            }
+          },
+          "expect": {
+            "status": 406,
+            "body": "plain_text"
+          }
+        }
+      ]
+    },
+    {
+      "id": "PUBLIC-LANG-CATEGORIES-004",
+      "group": "GET /public/categories",
+      "title": "200: Accept-Language 'eng'",
+      "source": "documented",
+      "tags": [],
+      "note": "golang.org/x/text/language ParseAcceptLanguage accepts 3 letter codes",
+      "steps": [
+        {
+          "actor": "anonymous",
+          "request": {
+            "method": "GET",
+            "path": "/public/categories",
+            "headers": {
+              "Accept-Language": "eng"
+            }
+          },
+          "expect": {
+            "status": 200,
+            "body": "json"
+          }
+        }
+      ]
+    },
+    {
+      "id": "PUBLIC-LANG-CATEGORIES-005",
+      "group": "GET /public/categories",
+      "title": "400: invalid language 'e1'",
+      "source": "documented",
+      "tags": [],
+      "note": "Docs: 400 when the language is missing or invalid, 406 when it is not supported by the CMS. Invalid is read as not a well-formed ISO 639-1 code, unsupported as well-formed but absent from the CMS language record.",
+      "steps": [
+        {
+          "actor": "anonymous",
+          "request": {
+            "method": "GET",
+            "path": "/public/categories",
+            "headers": {
+              "Accept-Language": "e1"
+            }
+          },
+          "expect": {
+            "status": 400,
+            "body": "plain_text"
+          }
+        }
+      ]
+    },
+    {
+      "id": "PUBLIC-LANG-CATEGORIES-006",
+      "group": "GET /public/categories",
+      "title": "400: invalid language '!!'",
+      "source": "documented",
+      "tags": [],
+      "note": "Docs: 400 when the language is missing or invalid, 406 when it is not supported by the CMS. Invalid is read as not a well-formed ISO 639-1 code, unsupported as well-formed but absent from the CMS language record.",
+      "steps": [
+        {
+          "actor": "anonymous",
+          "request": {
+            "method": "GET",
+            "path": "/public/categories",
+            "headers": {
+              "Accept-Language": "!!"
+            }
+          },
+          "expect": {
+            "status": 400,
+            "body": "plain_text"
+          }
+        }
+      ]
+    },
+    {
+      "id": "PUBLIC-LANG-EDITOR-001",
+      "group": "GET /public/editors/{slug}",
+      "title": "400: Accept-Language header missing",
+      "source": "documented",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "anonymous",
+          "request": {
+            "method": "GET",
+            "path": "/public/editors/{slug}",
+            "path_params": {
+              "slug": "alice"
+            }
+          },
+          "expect": {
+            "status": 400,
+            "body": "plain_text"
+          }
+        }
+      ]
+    },
+    {
+      "id": "PUBLIC-LANG-EDITOR-002",
+      "group": "GET /public/editors/{slug}",
+      "title": "400: Accept-Language header empty",
+      "source": "documented",
+      "tags": [],
+      "note": "An empty value is invalid (and effectively missing).",
+      "steps": [
+        {
+          "actor": "anonymous",
+          "request": {
+            "method": "GET",
+            "path": "/public/editors/{slug}",
+            "path_params": {
+              "slug": "alice"
+            },
+            "headers": {
+              "Accept-Language": ""
+            }
+          },
+          "expect": {
+            "status": 400,
+            "body": "plain_text"
+          }
+        }
+      ]
+    },
+    {
+      "id": "PUBLIC-LANG-EDITOR-003",
+      "group": "GET /public/editors/{slug}",
+      "title": "406: well-formed but unsupported language (fr)",
+      "source": "documented",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "anonymous",
+          "request": {
+            "method": "GET",
+            "path": "/public/editors/{slug}",
+            "path_params": {
+              "slug": "alice"
+            },
+            "headers": {
+              "Accept-Language": "fr"
+            }
+          },
+          "expect": {
+            "status": 406,
+            "body": "plain_text"
+          }
+        }
+      ]
+    },
+    {
+      "id": "PUBLIC-LANG-EDITOR-004",
+      "group": "GET /public/editors/{slug}",
+      "title": "200: Accept-Language 'eng'",
+      "source": "documented",
+      "tags": [],
+      "note": "golang.org/x/text/language ParseAcceptLanguage accepts 3 letter codes",
+      "steps": [
+        {
+          "actor": "anonymous",
+          "request": {
+            "method": "GET",
+            "path": "/public/editors/{slug}",
+            "path_params": {
+              "slug": "alice"
+            },
+            "headers": {
+              "Accept-Language": "eng"
+            }
+          },
+          "expect": {
+            "status": 200,
+            "body": "json"
+          }
+        }
+      ]
+    },
+    {
+      "id": "PUBLIC-LANG-EDITOR-005",
+      "group": "GET /public/editors/{slug}",
+      "title": "400: invalid language 'e1'",
+      "source": "documented",
+      "tags": [],
+      "note": "Docs: 400 when the language is missing or invalid, 406 when it is not supported by the CMS. Invalid is read as not a well-formed ISO 639-1 code, unsupported as well-formed but absent from the CMS language record.",
+      "steps": [
+        {
+          "actor": "anonymous",
+          "request": {
+            "method": "GET",
+            "path": "/public/editors/{slug}",
+            "path_params": {
+              "slug": "alice"
+            },
+            "headers": {
+              "Accept-Language": "e1"
+            }
+          },
+          "expect": {
+            "status": 400,
+            "body": "plain_text"
+          }
+        }
+      ]
+    },
+    {
+      "id": "PUBLIC-LANG-EDITOR-006",
+      "group": "GET /public/editors/{slug}",
+      "title": "400: invalid language '!!'",
+      "source": "documented",
+      "tags": [],
+      "note": "Docs: 400 when the language is missing or invalid, 406 when it is not supported by the CMS. Invalid is read as not a well-formed ISO 639-1 code, unsupported as well-formed but absent from the CMS language record.",
+      "steps": [
+        {
+          "actor": "anonymous",
+          "request": {
+            "method": "GET",
+            "path": "/public/editors/{slug}",
+            "path_params": {
+              "slug": "alice"
+            },
+            "headers": {
+              "Accept-Language": "!!"
+            }
+          },
+          "expect": {
+            "status": 400,
+            "body": "plain_text"
+          }
+        }
+      ]
+    },
+    {
       "id": "PUBLIC-LANG-EDITORS-001",
       "group": "GET /public/editors",
       "title": "400: Accept-Language header missing",
@@ -989,9 +1246,9 @@
       "id": "PUBLIC-LANG-EDITORS-002",
       "group": "GET /public/editors",
       "title": "400: Accept-Language header empty",
-      "source": "inferred",
-      "tags": ["ambiguous"],
-      "note": "An empty value is assumed to be the same as a missing locale.",
+      "source": "documented",
+      "tags": [],
+      "note": "An empty value is invalid (and effectively missing).",
       "steps": [
         {
           "actor": "anonymous",
@@ -1012,7 +1269,7 @@
     {
       "id": "PUBLIC-LANG-EDITORS-003",
       "group": "GET /public/editors",
-      "title": "406: well-formed but unsupported locale (fr)",
+      "title": "406: well-formed but unsupported language (fr)",
       "source": "documented",
       "tags": [],
       "steps": [
@@ -1035,9 +1292,10 @@
     {
       "id": "PUBLIC-LANG-EDITORS-004",
       "group": "GET /public/editors",
-      "title": "200: Accept-Language not in ISO-639-1 format ('eng')",
-      "source": "inferred",
+      "title": "200: Accept-Language 'eng'",
+      "source": "documented",
       "tags": [],
+      "note": "golang.org/x/text/language ParseAcceptLanguage accepts 3 letter codes",
       "steps": [
         {
           "actor": "anonymous",
@@ -1058,9 +1316,10 @@
     {
       "id": "PUBLIC-LANG-EDITORS-005",
       "group": "GET /public/editors",
-      "title": "400: malformed Accept-Language 'e1'",
-      "source": "inferred",
+      "title": "400: invalid language 'e1'",
+      "source": "documented",
       "tags": [],
+      "note": "Docs: 400 when the language is missing or invalid, 406 when it is not supported by the CMS. Invalid is read as not a well-formed ISO 639-1 code, unsupported as well-formed but absent from the CMS language record.",
       "steps": [
         {
           "actor": "anonymous",
@@ -1081,15 +1340,173 @@
     {
       "id": "PUBLIC-LANG-EDITORS-006",
       "group": "GET /public/editors",
-      "title": "400: malformed Accept-Language '!!'",
-      "source": "inferred",
+      "title": "400: invalid language '!!'",
+      "source": "documented",
       "tags": [],
+      "note": "Docs: 400 when the language is missing or invalid, 406 when it is not supported by the CMS. Invalid is read as not a well-formed ISO 639-1 code, unsupported as well-formed but absent from the CMS language record.",
       "steps": [
         {
           "actor": "anonymous",
           "request": {
             "method": "GET",
             "path": "/public/editors",
+            "headers": {
+              "Accept-Language": "!!"
+            }
+          },
+          "expect": {
+            "status": 400,
+            "body": "plain_text"
+          }
+        }
+      ]
+    },
+    {
+      "id": "PUBLIC-LANG-POST-001",
+      "group": "GET /public/posts/{id}",
+      "title": "400: Accept-Language header missing",
+      "source": "documented",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "anonymous",
+          "request": {
+            "method": "GET",
+            "path": "/public/posts/{id}",
+            "path_params": {
+              "id": "1"
+            }
+          },
+          "expect": {
+            "status": 400,
+            "body": "plain_text"
+          }
+        }
+      ]
+    },
+    {
+      "id": "PUBLIC-LANG-POST-002",
+      "group": "GET /public/posts/{id}",
+      "title": "400: Accept-Language header empty",
+      "source": "documented",
+      "tags": [],
+      "note": "An empty value is invalid (and effectively missing).",
+      "steps": [
+        {
+          "actor": "anonymous",
+          "request": {
+            "method": "GET",
+            "path": "/public/posts/{id}",
+            "path_params": {
+              "id": "1"
+            },
+            "headers": {
+              "Accept-Language": ""
+            }
+          },
+          "expect": {
+            "status": 400,
+            "body": "plain_text"
+          }
+        }
+      ]
+    },
+    {
+      "id": "PUBLIC-LANG-POST-003",
+      "group": "GET /public/posts/{id}",
+      "title": "406: well-formed but unsupported language (fr)",
+      "source": "documented",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "anonymous",
+          "request": {
+            "method": "GET",
+            "path": "/public/posts/{id}",
+            "path_params": {
+              "id": "1"
+            },
+            "headers": {
+              "Accept-Language": "fr"
+            }
+          },
+          "expect": {
+            "status": 406,
+            "body": "plain_text"
+          }
+        }
+      ]
+    },
+    {
+      "id": "PUBLIC-LANG-POST-004",
+      "group": "GET /public/posts/{id}",
+      "title": "200: Accept-Language 'eng'",
+      "source": "documented",
+      "tags": [],
+      "note": "golang.org/x/text/language ParseAcceptLanguage accepts 3 letter codes",
+      "steps": [
+        {
+          "actor": "anonymous",
+          "request": {
+            "method": "GET",
+            "path": "/public/posts/{id}",
+            "path_params": {
+              "id": "1"
+            },
+            "headers": {
+              "Accept-Language": "eng"
+            }
+          },
+          "expect": {
+            "status": 200,
+            "body": "json"
+          }
+        }
+      ]
+    },
+    {
+      "id": "PUBLIC-LANG-POST-005",
+      "group": "GET /public/posts/{id}",
+      "title": "400: invalid language 'e1'",
+      "source": "documented",
+      "tags": [],
+      "note": "Docs: 400 when the language is missing or invalid, 406 when it is not supported by the CMS. Invalid is read as not a well-formed ISO 639-1 code, unsupported as well-formed but absent from the CMS language record.",
+      "steps": [
+        {
+          "actor": "anonymous",
+          "request": {
+            "method": "GET",
+            "path": "/public/posts/{id}",
+            "path_params": {
+              "id": "1"
+            },
+            "headers": {
+              "Accept-Language": "e1"
+            }
+          },
+          "expect": {
+            "status": 400,
+            "body": "plain_text"
+          }
+        }
+      ]
+    },
+    {
+      "id": "PUBLIC-LANG-POST-006",
+      "group": "GET /public/posts/{id}",
+      "title": "400: invalid language '!!'",
+      "source": "documented",
+      "tags": [],
+      "note": "Docs: 400 when the language is missing or invalid, 406 when it is not supported by the CMS. Invalid is read as not a well-formed ISO 639-1 code, unsupported as well-formed but absent from the CMS language record.",
+      "steps": [
+        {
+          "actor": "anonymous",
+          "request": {
+            "method": "GET",
+            "path": "/public/posts/{id}",
+            "path_params": {
+              "id": "1"
+            },
             "headers": {
               "Accept-Language": "!!"
             }
@@ -1129,9 +1546,9 @@
       "id": "PUBLIC-LANG-SEARCH-002",
       "group": "POST /public/posts",
       "title": "400: Accept-Language header empty",
-      "source": "inferred",
-      "tags": ["ambiguous"],
-      "note": "An empty value is assumed to be the same as a missing locale.",
+      "source": "documented",
+      "tags": [],
+      "note": "An empty value is invalid (and effectively missing).",
       "steps": [
         {
           "actor": "anonymous",
@@ -1154,7 +1571,7 @@
     {
       "id": "PUBLIC-LANG-SEARCH-003",
       "group": "POST /public/posts",
-      "title": "406: well-formed but unsupported locale (fr)",
+      "title": "406: well-formed but unsupported language (fr)",
       "source": "documented",
       "tags": [],
       "steps": [
@@ -1179,9 +1596,10 @@
     {
       "id": "PUBLIC-LANG-SEARCH-004",
       "group": "POST /public/posts",
-      "title": "200: Accept-Language not in ISO-639-1 format ('eng')",
-      "source": "inferred",
+      "title": "200: Accept-Language 'eng'",
+      "source": "documented",
       "tags": [],
+      "note": "golang.org/x/text/language ParseAcceptLanguage accepts 3 letter codes",
       "steps": [
         {
           "actor": "anonymous",
@@ -1204,9 +1622,10 @@
     {
       "id": "PUBLIC-LANG-SEARCH-005",
       "group": "POST /public/posts",
-      "title": "400: malformed Accept-Language 'e1'",
-      "source": "inferred",
-      "tags": ["ambiguous"],
+      "title": "400: invalid language 'e1'",
+      "source": "documented",
+      "tags": [],
+      "note": "Docs: 400 when the language is missing or invalid, 406 when it is not supported by the CMS. Invalid is read as not a well-formed ISO 639-1 code, unsupported as well-formed but absent from the CMS language record.",
       "steps": [
         {
           "actor": "anonymous",
@@ -1229,9 +1648,10 @@
     {
       "id": "PUBLIC-LANG-SEARCH-006",
       "group": "POST /public/posts",
-      "title": "400: malformed Accept-Language '!!'",
-      "source": "inferred",
-      "tags": ["ambiguous"],
+      "title": "400: invalid language '!!'",
+      "source": "documented",
+      "tags": [],
+      "note": "Docs: 400 when the language is missing or invalid, 406 when it is not supported by the CMS. Invalid is read as not a well-formed ISO 639-1 code, unsupported as well-formed but absent from the CMS language record.",
       "steps": [
         {
           "actor": "anonymous",
@@ -1252,456 +1672,12 @@
       ]
     },
     {
-      "id": "PUBLIC-LANG-POST-001",
-      "group": "GET /public/posts/{id}",
-      "title": "400: Accept-Language header missing",
-      "source": "documented",
-      "tags": [],
-      "steps": [
-        {
-          "actor": "anonymous",
-          "request": {
-            "method": "GET",
-            "path": "/public/posts/{id}",
-            "path_params": {
-              "id": "1"
-            }
-          },
-          "expect": {
-            "status": 400,
-            "body": "plain_text"
-          }
-        }
-      ]
-    },
-    {
-      "id": "PUBLIC-LANG-POST-002",
-      "group": "GET /public/posts/{id}",
-      "title": "400: Accept-Language header empty",
-      "source": "inferred",
-      "tags": ["ambiguous"],
-      "note": "An empty value is assumed to be the same as a missing locale.",
-      "steps": [
-        {
-          "actor": "anonymous",
-          "request": {
-            "method": "GET",
-            "path": "/public/posts/{id}",
-            "path_params": {
-              "id": "1"
-            },
-            "headers": {
-              "Accept-Language": ""
-            }
-          },
-          "expect": {
-            "status": 400,
-            "body": "plain_text"
-          }
-        }
-      ]
-    },
-    {
-      "id": "PUBLIC-LANG-POST-003",
-      "group": "GET /public/posts/{id}",
-      "title": "406: well-formed but unsupported locale (fr)",
-      "source": "documented",
-      "tags": [],
-      "steps": [
-        {
-          "actor": "anonymous",
-          "request": {
-            "method": "GET",
-            "path": "/public/posts/{id}",
-            "path_params": {
-              "id": "1"
-            },
-            "headers": {
-              "Accept-Language": "fr"
-            }
-          },
-          "expect": {
-            "status": 406,
-            "body": "plain_text"
-          }
-        }
-      ]
-    },
-    {
-      "id": "PUBLIC-LANG-POST-004",
-      "group": "GET /public/posts/{id}",
-      "title": "200: Accept-Language not in ISO-639-1 format ('eng')",
-      "source": "inferred",
-      "tags": [],
-      "steps": [
-        {
-          "actor": "anonymous",
-          "request": {
-            "method": "GET",
-            "path": "/public/posts/{id}",
-            "path_params": {
-              "id": "1"
-            },
-            "headers": {
-              "Accept-Language": "eng"
-            }
-          },
-          "expect": {
-            "status": 200,
-            "body": "json"
-          }
-        }
-      ]
-    },
-    {
-      "id": "PUBLIC-LANG-POST-005",
-      "group": "GET /public/posts/{id}",
-      "title": "400: malformed Accept-Language 'e1'",
-      "source": "inferred",
-      "tags": [],
-      "steps": [
-        {
-          "actor": "anonymous",
-          "request": {
-            "method": "GET",
-            "path": "/public/posts/{id}",
-            "path_params": {
-              "id": "1"
-            },
-            "headers": {
-              "Accept-Language": "e1"
-            }
-          },
-          "expect": {
-            "status": 400,
-            "body": "plain_text"
-          }
-        }
-      ]
-    },
-    {
-      "id": "PUBLIC-LANG-POST-006",
-      "group": "GET /public/posts/{id}",
-      "title": "400: malformed Accept-Language '!!'",
-      "source": "inferred",
-      "tags": [],
-      "steps": [
-        {
-          "actor": "anonymous",
-          "request": {
-            "method": "GET",
-            "path": "/public/posts/{id}",
-            "path_params": {
-              "id": "1"
-            },
-            "headers": {
-              "Accept-Language": "!!"
-            }
-          },
-          "expect": {
-            "status": 400,
-            "body": "plain_text"
-          }
-        }
-      ]
-    },
-    {
-      "id": "PUBLIC-LANG-EDITOR-001",
-      "group": "GET /public/editors/{username}",
-      "title": "400: Accept-Language header missing",
-      "source": "documented",
-      "tags": [],
-      "steps": [
-        {
-          "actor": "anonymous",
-          "request": {
-            "method": "GET",
-            "path": "/public/editors/{username}",
-            "path_params": {
-              "username": "alice"
-            }
-          },
-          "expect": {
-            "status": 400,
-            "body": "plain_text"
-          }
-        }
-      ]
-    },
-    {
-      "id": "PUBLIC-LANG-EDITOR-002",
-      "group": "GET /public/editors/{username}",
-      "title": "400: Accept-Language header empty",
-      "source": "inferred",
-      "tags": [],
-      "note": "An empty value is assumed to be the same as a missing locale.",
-      "steps": [
-        {
-          "actor": "anonymous",
-          "request": {
-            "method": "GET",
-            "path": "/public/editors/{username}",
-            "path_params": {
-              "username": "alice"
-            },
-            "headers": {
-              "Accept-Language": ""
-            }
-          },
-          "expect": {
-            "status": 400,
-            "body": "plain_text"
-          }
-        }
-      ]
-    },
-    {
-      "id": "PUBLIC-LANG-EDITOR-003",
-      "group": "GET /public/editors/{username}",
-      "title": "406: well-formed but unsupported locale (fr)",
-      "source": "documented",
-      "tags": [],
-      "steps": [
-        {
-          "actor": "anonymous",
-          "request": {
-            "method": "GET",
-            "path": "/public/editors/{username}",
-            "path_params": {
-              "username": "alice"
-            },
-            "headers": {
-              "Accept-Language": "fr"
-            }
-          },
-          "expect": {
-            "status": 406,
-            "body": "plain_text"
-          }
-        }
-      ]
-    },
-    {
-      "id": "PUBLIC-LANG-EDITOR-004",
-      "group": "GET /public/editors/{username}",
-      "title": "200: Accept-Language not in ISO-639-1 format ('eng')",
-      "source": "inferred",
-      "tags": [],
-      "steps": [
-        {
-          "actor": "anonymous",
-          "request": {
-            "method": "GET",
-            "path": "/public/editors/{username}",
-            "path_params": {
-              "username": "alice"
-            },
-            "headers": {
-              "Accept-Language": "eng"
-            }
-          },
-          "expect": {
-            "status": 200,
-            "body": "json"
-          }
-        }
-      ]
-    },
-    {
-      "id": "PUBLIC-LANG-EDITOR-005",
-      "group": "GET /public/editors/{username}",
-      "title": "400: malformed Accept-Language 'e1'",
-      "source": "inferred",
-      "tags": [],
-      "steps": [
-        {
-          "actor": "anonymous",
-          "request": {
-            "method": "GET",
-            "path": "/public/editors/{username}",
-            "path_params": {
-              "username": "alice"
-            },
-            "headers": {
-              "Accept-Language": "e1"
-            }
-          },
-          "expect": {
-            "status": 400,
-            "body": "plain_text"
-          }
-        }
-      ]
-    },
-    {
-      "id": "PUBLIC-LANG-EDITOR-006",
-      "group": "GET /public/editors/{username}",
-      "title": "400: malformed Accept-Language '!!'",
-      "source": "inferred",
-      "tags": [],
-      "steps": [
-        {
-          "actor": "anonymous",
-          "request": {
-            "method": "GET",
-            "path": "/public/editors/{username}",
-            "path_params": {
-              "username": "alice"
-            },
-            "headers": {
-              "Accept-Language": "!!"
-            }
-          },
-          "expect": {
-            "status": 400,
-            "body": "plain_text"
-          }
-        }
-      ]
-    },
-    {
-      "id": "PUBLIC-LANG-CATEGORIES-001",
-      "group": "GET /public/categories",
-      "title": "400: Accept-Language header missing",
-      "source": "documented",
-      "tags": [],
-      "steps": [
-        {
-          "actor": "anonymous",
-          "request": {
-            "method": "GET",
-            "path": "/public/categories"
-          },
-          "expect": {
-            "status": 400,
-            "body": "plain_text"
-          }
-        }
-      ]
-    },
-    {
-      "id": "PUBLIC-LANG-CATEGORIES-002",
-      "group": "GET /public/categories",
-      "title": "400: Accept-Language header empty",
-      "source": "inferred",
-      "tags": [],
-      "note": "An empty value is assumed to be the same as a missing locale.",
-      "steps": [
-        {
-          "actor": "anonymous",
-          "request": {
-            "method": "GET",
-            "path": "/public/categories",
-            "headers": {
-              "Accept-Language": ""
-            }
-          },
-          "expect": {
-            "status": 400,
-            "body": "plain_text"
-          }
-        }
-      ]
-    },
-    {
-      "id": "PUBLIC-LANG-CATEGORIES-003",
-      "group": "GET /public/categories",
-      "title": "406: well-formed but unsupported locale (fr)",
-      "source": "documented",
-      "tags": [],
-      "steps": [
-        {
-          "actor": "anonymous",
-          "request": {
-            "method": "GET",
-            "path": "/public/categories",
-            "headers": {
-              "Accept-Language": "fr"
-            }
-          },
-          "expect": {
-            "status": 406,
-            "body": "plain_text"
-          }
-        }
-      ]
-    },
-    {
-      "id": "PUBLIC-LANG-CATEGORIES-004",
-      "group": "GET /public/categories",
-      "title": "200: Accept-Language not in ISO-639-1 format ('eng')",
-      "source": "inferred",
-      "tags": [],
-      "steps": [
-        {
-          "actor": "anonymous",
-          "request": {
-            "method": "GET",
-            "path": "/public/categories",
-            "headers": {
-              "Accept-Language": "eng"
-            }
-          },
-          "expect": {
-            "status": 200,
-            "body": "json"
-          }
-        }
-      ]
-    },
-    {
-      "id": "PUBLIC-LANG-CATEGORIES-005",
-      "group": "GET /public/categories",
-      "title": "400: malformed Accept-Language 'e1'",
-      "source": "inferred",
-      "tags": [],
-      "steps": [
-        {
-          "actor": "anonymous",
-          "request": {
-            "method": "GET",
-            "path": "/public/categories",
-            "headers": {
-              "Accept-Language": "e1"
-            }
-          },
-          "expect": {
-            "status": 400,
-            "body": "plain_text"
-          }
-        }
-      ]
-    },
-    {
-      "id": "PUBLIC-LANG-CATEGORIES-006",
-      "group": "GET /public/categories",
-      "title": "400: malformed Accept-Language '!!'",
-      "source": "inferred",
-      "tags": [],
-      "steps": [
-        {
-          "actor": "anonymous",
-          "request": {
-            "method": "GET",
-            "path": "/public/categories",
-            "headers": {
-              "Accept-Language": "!!"
-            }
-          },
-          "expect": {
-            "status": 400,
-            "body": "plain_text"
-          }
-        }
-      ]
-    },
-    {
       "id": "PUBLIC-LANG-SEARCH-007",
       "group": "POST /public/posts",
       "title": "406 wins over a malformed body",
       "source": "inferred",
       "tags": [],
-      "note": "Locale validation is assumed to run before body parsing.",
+      "note": "Language validation is assumed to run before body parsing.",
       "steps": [
         {
           "actor": "anonymous",
@@ -1727,7 +1703,7 @@
       "title": "406 wins over 404 for an unknown post id",
       "source": "inferred",
       "tags": [],
-      "note": "Locale validation is assumed to run before the post lookup.",
+      "note": "Language validation is assumed to run before the post lookup.",
       "steps": [
         {
           "actor": "anonymous",
@@ -1750,19 +1726,19 @@
     },
     {
       "id": "PUBLIC-LANG-EDITOR-007",
-      "group": "GET /public/editors/{username}",
+      "group": "GET /public/editors/{slug}",
       "title": "406 wins over 404 for an unknown editor",
       "source": "inferred",
-      "tags": ["ambiguous"],
-      "note": "Locale validation is assumed to run before the editor lookup.",
+      "tags": [],
+      "note": "Language validation is assumed to run before the editor lookup.",
       "steps": [
         {
           "actor": "anonymous",
           "request": {
             "method": "GET",
-            "path": "/public/editors/{username}",
+            "path": "/public/editors/{slug}",
             "path_params": {
-              "username": "ghost"
+              "slug": "ghost"
             },
             "headers": {
               "Accept-Language": "fr"
@@ -1781,6 +1757,7 @@
       "title": "Accept-Language 'en-US'",
       "source": "inferred",
       "tags": [],
+      "note": "A region subtag is assumed to be ignored (matches 'en'). Docs describe a single language code only.",
       "steps": [
         {
           "actor": "anonymous",
@@ -1815,8 +1792,8 @@
       "group": "GET /public/categories",
       "title": "Accept-Language 'EN'",
       "source": "inferred",
-      "tags": ["ambiguous"],
-      "note": "Locale matching is assumed to be case-insensitive. Docs describe a single language code only.",
+      "tags": [],
+      "note": "Language matching is assumed to be case-insensitive. Docs describe a single language code only.",
       "steps": [
         {
           "actor": "anonymous",
@@ -1851,7 +1828,7 @@
       "group": "GET /public/categories",
       "title": "Accept-Language 'en-US,en;q=0.9'",
       "source": "inferred",
-      "tags": ["ambiguous"],
+      "tags": [],
       "note": "Standard Accept-Language lists are assumed to be understood; the best supported language wins. Docs describe a single language code only.",
       "steps": [
         {
@@ -1887,7 +1864,8 @@
       "group": "GET /public/categories",
       "title": "Accept-Language 'fr, de;q=0.8'",
       "source": "inferred",
-      "tags": ["ambiguous"],
+      "tags": [],
+      "note": "A list is assumed to fall back to the first supported language.",
       "steps": [
         {
           "actor": "anonymous",
@@ -1904,13 +1882,13 @@
             "json_assertions": [
               {
                 "path": "$.categories[*].lang",
-                "op": "includes",
-                "value": "de"
+                "op": "excludes",
+                "value": "en"
               },
               {
                 "path": "$.categories[*].lang",
                 "op": "excludes",
-                "value": "en"
+                "value": "ru"
               }
             ]
           }
@@ -1920,10 +1898,10 @@
     {
       "id": "PUBLIC-LANG-CATEGORIES-011",
       "group": "GET /public/categories",
-      "title": "Accept-Language 'fr,xx;q=0.5'",
+      "title": "400: Accept-Language 'fr,xx;q=0.5'",
       "source": "inferred",
-      "tags": ["ambiguous"],
-      "note": "No listed language is supported -> 406. Docs describe a single language code only.",
+      "tags": [],
+      "note": "golang.org/x/text/language ParseAcceptLanguage fails on unknown codes",
       "steps": [
         {
           "actor": "anonymous",
@@ -1935,7 +1913,7 @@
             }
           },
           "expect": {
-            "status": 406,
+            "status": 400,
             "body": "plain_text"
           }
         }
@@ -1946,7 +1924,7 @@
       "group": "POST /public/posts",
       "title": "Accept-Language with a region subtag selects the language",
       "source": "inferred",
-      "tags": ["ambiguous"],
+      "tags": [],
       "note": "A region subtag is assumed to be ignored.",
       "steps": [
         {
@@ -2036,7 +2014,6 @@
               "page": null,
               "count": null,
               "categories": null,
-              "exclude_categories": null,
               "authors": null,
               "published": null,
               "published_after": null,
@@ -2154,7 +2131,7 @@
       "group": "POST /public/posts",
       "title": "A garbage Authorization header is ignored",
       "source": "inferred",
-      "tags": ["ambiguous"],
+      "tags": [],
       "note": "An invalid session is assumed not to be validated on public routes.",
       "steps": [
         {
@@ -2325,7 +2302,7 @@
     {
       "id": "PUBLIC-FUNC-SEARCH-008",
       "group": "POST /public/posts",
-      "title": "Result entries do not expose private or heavy fields",
+      "title": "Result entries do not expose content, keywords or creation data",
       "source": "inferred",
       "tags": [],
       "note": "Only the documented response fields are assumed to be returned.",
@@ -2348,10 +2325,6 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "$.results[0].markdown",
-                "op": "is_null"
-              },
-              {
                 "path": "$.results[0].content",
                 "op": "is_null"
               },
@@ -2365,6 +2338,10 @@
               },
               {
                 "path": "$.results[0].created_at",
+                "op": "is_null"
+              },
+              {
+                "path": "$.results[0].media",
                 "op": "is_null"
               }
             ]
@@ -2450,7 +2427,7 @@
     {
       "id": "PUBLIC-FUNC-SEARCH-011",
       "group": "POST /public/posts",
-      "title": "Locale without posts returns an empty result",
+      "title": "Language without posts returns an empty result",
       "source": "documented",
       "tags": [],
       "steps": [
@@ -2489,7 +2466,7 @@
     {
       "id": "PUBLIC-FUNC-SEARCH-012",
       "group": "POST /public/posts",
-      "title": "Results contain only the requested locale",
+      "title": "Results contain only the requested language",
       "source": "documented",
       "tags": [],
       "steps": [
@@ -2681,7 +2658,7 @@
       "group": "POST /public/posts",
       "title": "Pagination: page beyond last_page returns an empty list",
       "source": "inferred",
-      "tags": ["ambiguous"],
+      "tags": [],
       "note": "Docs do not cover out-of-range pages; 200 with empty results assumed.",
       "steps": [
         {
@@ -3044,7 +3021,7 @@
             "method": "POST",
             "path": "/public/posts",
             "body": {
-              "query": "alfa-post",
+              "query": "alpha-post",
               "count": 100
             },
             "headers": {
@@ -3142,7 +3119,7 @@
       "group": "POST /public/posts",
       "title": "Query matches keywords",
       "source": "documented",
-      "tags": ["ambiguous"],
+      "tags": [],
       "note": "Keywords are a comma-separated string ('annual, yearbook'); matching on its first word is assumed to work.",
       "steps": [
         {
@@ -3183,7 +3160,7 @@
       "group": "POST /public/posts",
       "title": "Query matches post id",
       "source": "documented",
-      "tags": ["ambiguous"],
+      "tags": [],
       "note": "Exact id match assumed (no searched text of published posts contains digits).",
       "steps": [
         {
@@ -3412,7 +3389,7 @@
       "group": "POST /public/posts",
       "title": "Content is not searched",
       "source": "inferred",
-      "tags": ["ambiguous"],
+      "tags": [],
       "note": "Docs list id, title, description, slug and keywords only.",
       "steps": [
         {
@@ -3448,7 +3425,7 @@
       "group": "POST /public/posts",
       "title": "Partial (prefix) query matches",
       "source": "inferred",
-      "tags": ["ambiguous"],
+      "tags": [],
       "note": "Docs do not say whether matching is exact, prefix or substring; a prefix is the safe lowest common denominator.",
       "steps": [
         {
@@ -3489,7 +3466,7 @@
       "group": "POST /public/posts",
       "title": "Query is case-insensitive",
       "source": "inferred",
-      "tags": ["ambiguous", "verify_normalisation"],
+      "tags": ["verify_normalisation"],
       "steps": [
         {
           "actor": "anonymous",
@@ -3690,7 +3667,7 @@
       "group": "POST /public/posts",
       "title": "Category filter: several categories match any of them",
       "source": "documented",
-      "tags": ["ambiguous"],
+      "tags": [],
       "note": "Docs do not say whether the list is OR or AND. ANY is assumed (an AND reading would give 0 results).",
       "steps": [
         {
@@ -3736,7 +3713,7 @@
       "group": "POST /public/posts",
       "title": "Category filter: unknown category yields no results",
       "source": "inferred",
-      "tags": ["ambiguous"],
+      "tags": [],
       "note": "200 with no results assumed instead of 400/404.",
       "steps": [
         {
@@ -3781,7 +3758,6 @@
             "path": "/public/posts",
             "body": {
               "categories": [],
-              "exclude_categories": [],
               "authors": [],
               "count": 100
             },
@@ -3818,7 +3794,6 @@
             "path": "/public/posts",
             "body": {
               "categories": null,
-              "exclude_categories": null,
               "authors": null,
               "count": 100
             },
@@ -3844,7 +3819,7 @@
     {
       "id": "PUBLIC-FUNC-SEARCH-042",
       "group": "POST /public/posts",
-      "title": "Category filter is scoped by locale",
+      "title": "Category filter is scoped by language",
       "source": "documented",
       "tags": [],
       "steps": [
@@ -3884,9 +3859,10 @@
     {
       "id": "PUBLIC-FUNC-SEARCH-043",
       "group": "POST /public/posts",
-      "title": "exclude_categories removes matching posts",
+      "title": "exclude_categories is no longer a filter and is ignored",
       "source": "documented",
       "tags": [],
+      "note": "The field is not part of the public body any more; unknown fields are ignored.",
       "steps": [
         {
           "actor": "anonymous",
@@ -3909,12 +3885,22 @@
               {
                 "path": "$.total",
                 "op": "eq",
+                "value": 3
+              },
+              {
+                "path": "$.results[*].post_id",
+                "op": "includes",
                 "value": 1
               },
               {
                 "path": "$.results[*].post_id",
                 "op": "includes",
                 "value": 3
+              },
+              {
+                "path": "$.results[*].post_id",
+                "op": "includes",
+                "value": 5
               }
             ]
           }
@@ -3923,128 +3909,6 @@
     },
     {
       "id": "PUBLIC-FUNC-SEARCH-044",
-      "group": "POST /public/posts",
-      "title": "exclude_categories with a hidden category",
-      "source": "documented",
-      "tags": [],
-      "steps": [
-        {
-          "actor": "anonymous",
-          "request": {
-            "method": "POST",
-            "path": "/public/posts",
-            "body": {
-              "exclude_categories": ["archive"],
-              "count": 100
-            },
-            "headers": {
-              "Accept-Language": "en",
-              "Content-Type": "application/json"
-            }
-          },
-          "expect": {
-            "status": 200,
-            "body": "json",
-            "json_assertions": [
-              {
-                "path": "$.total",
-                "op": "eq",
-                "value": 2
-              },
-              {
-                "path": "$.results[*].post_id",
-                "op": "includes",
-                "value": 1
-              },
-              {
-                "path": "$.results[*].post_id",
-                "op": "includes",
-                "value": 5
-              }
-            ]
-          }
-        }
-      ]
-    },
-    {
-      "id": "PUBLIC-FUNC-SEARCH-045",
-      "group": "POST /public/posts",
-      "title": "categories and exclude_categories combine",
-      "source": "documented",
-      "tags": [],
-      "steps": [
-        {
-          "actor": "anonymous",
-          "request": {
-            "method": "POST",
-            "path": "/public/posts",
-            "body": {
-              "categories": ["news"],
-              "exclude_categories": ["sports"],
-              "count": 100
-            },
-            "headers": {
-              "Accept-Language": "en",
-              "Content-Type": "application/json"
-            }
-          },
-          "expect": {
-            "status": 200,
-            "body": "json",
-            "json_assertions": [
-              {
-                "path": "$.total",
-                "op": "eq",
-                "value": 1
-              },
-              {
-                "path": "$.results[*].post_id",
-                "op": "includes",
-                "value": 5
-              }
-            ]
-          }
-        }
-      ]
-    },
-    {
-      "id": "PUBLIC-FUNC-SEARCH-046",
-      "group": "POST /public/posts",
-      "title": "exclude_categories: unknown category excludes nothing",
-      "source": "inferred",
-      "tags": ["ambiguous"],
-      "steps": [
-        {
-          "actor": "anonymous",
-          "request": {
-            "method": "POST",
-            "path": "/public/posts",
-            "body": {
-              "exclude_categories": ["ghost-category"],
-              "count": 100
-            },
-            "headers": {
-              "Accept-Language": "en",
-              "Content-Type": "application/json"
-            }
-          },
-          "expect": {
-            "status": 200,
-            "body": "json",
-            "json_assertions": [
-              {
-                "path": "$.total",
-                "op": "eq",
-                "value": 3
-              }
-            ]
-          }
-        }
-      ],
-      "note": "Docs do not say what an unknown category slug in exclude_categories does; it is assumed to exclude nothing (a 400 is an alternative)."
-    },
-    {
-      "id": "PUBLIC-FUNC-SEARCH-047",
       "group": "POST /public/posts",
       "title": "Author filter: single editor",
       "source": "documented",
@@ -4084,7 +3948,7 @@
       ]
     },
     {
-      "id": "PUBLIC-FUNC-SEARCH-048",
+      "id": "PUBLIC-FUNC-SEARCH-045",
       "group": "POST /public/posts",
       "title": "Author filter: soft-deleted editor",
       "source": "documented",
@@ -4124,11 +3988,11 @@
       ]
     },
     {
-      "id": "PUBLIC-FUNC-SEARCH-049",
+      "id": "PUBLIC-FUNC-SEARCH-046",
       "group": "POST /public/posts",
       "title": "Author filter: several editors match any of them",
       "source": "documented",
-      "tags": ["ambiguous"],
+      "tags": [],
       "note": "OR semantics assumed (see category filter).",
       "steps": [
         {
@@ -4170,11 +4034,11 @@
       ]
     },
     {
-      "id": "PUBLIC-FUNC-SEARCH-050",
+      "id": "PUBLIC-FUNC-SEARCH-047",
       "group": "POST /public/posts",
       "title": "Author filter: unknown editor yields no results",
       "source": "inferred",
-      "tags": ["ambiguous"],
+      "tags": [],
       "steps": [
         {
           "actor": "anonymous",
@@ -4203,12 +4067,12 @@
           }
         }
       ],
-      "note": "Docs do not say what an unknown editor in authors does; 200 with no results is assumed instead of 400/404."
+      "note": "Docs do not say what an unknown editor slug in authors does; 200 with no results is assumed instead of 400/404."
     },
     {
-      "id": "PUBLIC-FUNC-SEARCH-051",
+      "id": "PUBLIC-FUNC-SEARCH-048",
       "group": "POST /public/posts",
-      "title": "Author filter is scoped by locale",
+      "title": "Author filter is scoped by language",
       "source": "documented",
       "tags": [],
       "steps": [
@@ -4251,11 +4115,11 @@
       ]
     },
     {
-      "id": "PUBLIC-FUNC-SEARCH-052",
+      "id": "PUBLIC-FUNC-SEARCH-049",
       "group": "POST /public/posts",
       "title": "A post by a soft-deleted editor still shows its author",
       "source": "inferred",
-      "tags": ["ambiguous"],
+      "tags": [],
       "note": "Docs only say authors filters may contain soft-deleted editors; the author field is assumed to remain.",
       "steps": [
         {
@@ -4287,11 +4151,11 @@
       ]
     },
     {
-      "id": "PUBLIC-FUNC-SEARCH-053",
+      "id": "PUBLIC-FUNC-SEARCH-050",
       "group": "POST /public/posts",
       "title": "Categories of a result may include hidden categories",
       "source": "inferred",
-      "tags": ["ambiguous"],
+      "tags": [],
       "note": "Hidden categories are allowed in filters; they are assumed to be listed on the post too.",
       "steps": [
         {
@@ -4313,7 +4177,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "$.results[0].categories",
+                "path": "$.results[0].categories[*]",
                 "op": "includes",
                 "value": "archive"
               }
@@ -4323,7 +4187,7 @@
       ]
     },
     {
-      "id": "PUBLIC-FUNC-SEARCH-054",
+      "id": "PUBLIC-FUNC-SEARCH-051",
       "group": "POST /public/posts",
       "title": "Filter published=true",
       "source": "documented",
@@ -4373,12 +4237,11 @@
       ]
     },
     {
-      "id": "PUBLIC-FUNC-SEARCH-055",
+      "id": "PUBLIC-FUNC-SEARCH-052",
       "group": "POST /public/posts",
-      "title": "Filter published=false finds nothing (only published posts are searched)",
+      "title": "Filter published=false ignored (only published posts are searched)",
       "source": "inferred",
-      "tags": ["ambiguous"],
-      "note": "The route searches published posts only, so asking for unpublished ones is assumed to match nothing (it could also be ignored, total 3).",
+      "tags": [],
       "steps": [
         {
           "actor": "anonymous",
@@ -4401,7 +4264,7 @@
               {
                 "path": "$.total",
                 "op": "eq",
-                "value": 0
+                "value": 3
               }
             ]
           }
@@ -4409,7 +4272,7 @@
       ]
     },
     {
-      "id": "PUBLIC-FUNC-SEARCH-056",
+      "id": "PUBLIC-FUNC-SEARCH-053",
       "group": "POST /public/posts",
       "title": "published=null is ignored",
       "source": "documented",
@@ -4444,7 +4307,7 @@
       ]
     },
     {
-      "id": "PUBLIC-FUNC-SEARCH-057",
+      "id": "PUBLIC-FUNC-SEARCH-054",
       "group": "POST /public/posts",
       "title": "published_after",
       "source": "documented",
@@ -4489,7 +4352,7 @@
       ]
     },
     {
-      "id": "PUBLIC-FUNC-SEARCH-058",
+      "id": "PUBLIC-FUNC-SEARCH-055",
       "group": "POST /public/posts",
       "title": "published_before",
       "source": "documented",
@@ -4529,7 +4392,7 @@
       ]
     },
     {
-      "id": "PUBLIC-FUNC-SEARCH-059",
+      "id": "PUBLIC-FUNC-SEARCH-056",
       "group": "POST /public/posts",
       "title": "published_after and published_before form a range",
       "source": "documented",
@@ -4575,7 +4438,7 @@
       ]
     },
     {
-      "id": "PUBLIC-FUNC-SEARCH-060",
+      "id": "PUBLIC-FUNC-SEARCH-057",
       "group": "POST /public/posts",
       "title": "published range matching nothing",
       "source": "documented",
@@ -4610,11 +4473,11 @@
       ]
     },
     {
-      "id": "PUBLIC-FUNC-SEARCH-061",
+      "id": "PUBLIC-FUNC-SEARCH-058",
       "group": "POST /public/posts",
       "title": "published_after later than published_before yields no results",
       "source": "inferred",
-      "tags": ["ambiguous"],
+      "tags": [],
       "note": "Assumed 200 with empty result rather than 400.",
       "steps": [
         {
@@ -4647,7 +4510,7 @@
       ]
     },
     {
-      "id": "PUBLIC-FUNC-SEARCH-062",
+      "id": "PUBLIC-FUNC-SEARCH-059",
       "group": "POST /public/posts",
       "title": "Time filters are null-safe",
       "source": "documented",
@@ -4683,7 +4546,7 @@
       ]
     },
     {
-      "id": "PUBLIC-FUNC-SEARCH-063",
+      "id": "PUBLIC-FUNC-SEARCH-060",
       "group": "POST /public/posts",
       "title": "Filters combine with query",
       "source": "documented",
@@ -4731,7 +4594,7 @@
       ]
     },
     {
-      "id": "PUBLIC-FUNC-SEARCH-064",
+      "id": "PUBLIC-FUNC-SEARCH-061",
       "group": "POST /public/posts",
       "title": "Sort by post_id:asc",
       "source": "documented",
@@ -4770,7 +4633,7 @@
       ]
     },
     {
-      "id": "PUBLIC-FUNC-SEARCH-065",
+      "id": "PUBLIC-FUNC-SEARCH-062",
       "group": "POST /public/posts",
       "title": "Sort by post_id:desc",
       "source": "documented",
@@ -4809,7 +4672,7 @@
       ]
     },
     {
-      "id": "PUBLIC-FUNC-SEARCH-066",
+      "id": "PUBLIC-FUNC-SEARCH-063",
       "group": "POST /public/posts",
       "title": "Sort by title:asc",
       "source": "documented",
@@ -4848,7 +4711,7 @@
       ]
     },
     {
-      "id": "PUBLIC-FUNC-SEARCH-067",
+      "id": "PUBLIC-FUNC-SEARCH-064",
       "group": "POST /public/posts",
       "title": "Sort by title:desc",
       "source": "documented",
@@ -4887,7 +4750,7 @@
       ]
     },
     {
-      "id": "PUBLIC-FUNC-SEARCH-068",
+      "id": "PUBLIC-FUNC-SEARCH-065",
       "group": "POST /public/posts",
       "title": "Sort by author:asc",
       "source": "documented",
@@ -4926,7 +4789,7 @@
       ]
     },
     {
-      "id": "PUBLIC-FUNC-SEARCH-069",
+      "id": "PUBLIC-FUNC-SEARCH-066",
       "group": "POST /public/posts",
       "title": "Sort by author:desc",
       "source": "documented",
@@ -4965,7 +4828,7 @@
       ]
     },
     {
-      "id": "PUBLIC-FUNC-SEARCH-070",
+      "id": "PUBLIC-FUNC-SEARCH-067",
       "group": "POST /public/posts",
       "title": "Sort by published_at:asc",
       "source": "documented",
@@ -5004,7 +4867,7 @@
       ]
     },
     {
-      "id": "PUBLIC-FUNC-SEARCH-071",
+      "id": "PUBLIC-FUNC-SEARCH-068",
       "group": "POST /public/posts",
       "title": "Sort by published_at:desc",
       "source": "documented",
@@ -5043,7 +4906,7 @@
       ]
     },
     {
-      "id": "PUBLIC-FUNC-SEARCH-072",
+      "id": "PUBLIC-FUNC-SEARCH-069",
       "group": "POST /public/posts",
       "title": "Sort by views:asc",
       "source": "documented",
@@ -5082,7 +4945,7 @@
       ]
     },
     {
-      "id": "PUBLIC-FUNC-SEARCH-073",
+      "id": "PUBLIC-FUNC-SEARCH-070",
       "group": "POST /public/posts",
       "title": "Sort by views:desc",
       "source": "documented",
@@ -5121,171 +4984,7 @@
       ]
     },
     {
-      "id": "PUBLIC-FUNC-SEARCH-074",
-      "group": "POST /public/posts",
-      "title": "Sort by created_at:asc (column is not part of the response)",
-      "source": "documented",
-      "tags": [],
-      "note": "created_at and created_by are sortable but not returned, so the first row is checked. created_at: 1=1590000000, 3=1640000000, 5=1690000000; created_by: 1=creator, 3=reader, 5=root.",
-      "steps": [
-        {
-          "actor": "anonymous",
-          "request": {
-            "method": "POST",
-            "path": "/public/posts",
-            "body": {
-              "sort_by": "created_at:asc",
-              "count": 1
-            },
-            "headers": {
-              "Accept-Language": "en",
-              "Content-Type": "application/json"
-            }
-          },
-          "expect": {
-            "status": 200,
-            "body": "json",
-            "json_assertions": [
-              {
-                "path": "$.results",
-                "op": "len_eq",
-                "value": 1
-              },
-              {
-                "path": "$.results[0].post_id",
-                "op": "eq",
-                "value": 1
-              }
-            ]
-          }
-        }
-      ]
-    },
-    {
-      "id": "PUBLIC-FUNC-SEARCH-075",
-      "group": "POST /public/posts",
-      "title": "Sort by created_at:desc (column is not part of the response)",
-      "source": "documented",
-      "tags": [],
-      "note": "created_at and created_by are sortable but not returned, so the first row is checked. created_at: 1=1590000000, 3=1640000000, 5=1690000000; created_by: 1=creator, 3=reader, 5=root.",
-      "steps": [
-        {
-          "actor": "anonymous",
-          "request": {
-            "method": "POST",
-            "path": "/public/posts",
-            "body": {
-              "sort_by": "created_at:desc",
-              "count": 1
-            },
-            "headers": {
-              "Accept-Language": "en",
-              "Content-Type": "application/json"
-            }
-          },
-          "expect": {
-            "status": 200,
-            "body": "json",
-            "json_assertions": [
-              {
-                "path": "$.results",
-                "op": "len_eq",
-                "value": 1
-              },
-              {
-                "path": "$.results[0].post_id",
-                "op": "eq",
-                "value": 5
-              }
-            ]
-          }
-        }
-      ]
-    },
-    {
-      "id": "PUBLIC-FUNC-SEARCH-076",
-      "group": "POST /public/posts",
-      "title": "Sort by created_by:asc (column is not part of the response)",
-      "source": "documented",
-      "tags": [],
-      "note": "created_at and created_by are sortable but not returned, so the first row is checked. created_at: 1=1590000000, 3=1640000000, 5=1690000000; created_by: 1=creator, 3=reader, 5=root.",
-      "steps": [
-        {
-          "actor": "anonymous",
-          "request": {
-            "method": "POST",
-            "path": "/public/posts",
-            "body": {
-              "sort_by": "created_by:asc",
-              "count": 1
-            },
-            "headers": {
-              "Accept-Language": "en",
-              "Content-Type": "application/json"
-            }
-          },
-          "expect": {
-            "status": 200,
-            "body": "json",
-            "json_assertions": [
-              {
-                "path": "$.results",
-                "op": "len_eq",
-                "value": 1
-              },
-              {
-                "path": "$.results[0].post_id",
-                "op": "eq",
-                "value": 1
-              }
-            ]
-          }
-        }
-      ]
-    },
-    {
-      "id": "PUBLIC-FUNC-SEARCH-077",
-      "group": "POST /public/posts",
-      "title": "Sort by created_by:desc (column is not part of the response)",
-      "source": "documented",
-      "tags": [],
-      "note": "created_at and created_by are sortable but not returned, so the first row is checked. created_at: 1=1590000000, 3=1640000000, 5=1690000000; created_by: 1=creator, 3=reader, 5=root.",
-      "steps": [
-        {
-          "actor": "anonymous",
-          "request": {
-            "method": "POST",
-            "path": "/public/posts",
-            "body": {
-              "sort_by": "created_by:desc",
-              "count": 1
-            },
-            "headers": {
-              "Accept-Language": "en",
-              "Content-Type": "application/json"
-            }
-          },
-          "expect": {
-            "status": 200,
-            "body": "json",
-            "json_assertions": [
-              {
-                "path": "$.results",
-                "op": "len_eq",
-                "value": 1
-              },
-              {
-                "path": "$.results[0].post_id",
-                "op": "eq",
-                "value": 5
-              }
-            ]
-          }
-        }
-      ]
-    },
-    {
-      "id": "PUBLIC-FUNC-SEARCH-078",
+      "id": "PUBLIC-FUNC-SEARCH-071",
       "group": "POST /public/posts",
       "title": "Sort order is applied before pagination",
       "source": "documented",
@@ -5326,7 +5025,7 @@
       ]
     },
     {
-      "id": "PUBLIC-FUNC-SEARCH-079",
+      "id": "PUBLIC-FUNC-SEARCH-072",
       "group": "POST /public/posts",
       "title": "Empty sort_by is the default order",
       "source": "documented",
@@ -5419,6 +5118,62 @@
     {
       "id": "PUBLIC-VALID-SEARCH-003",
       "group": "POST /public/posts",
+      "title": "400: invalid sort_by (column not listed as sortable (created_at))",
+      "source": "documented",
+      "tags": [],
+      "note": "Docs list the sortable columns; anything else is assumed to be an invalid body.",
+      "steps": [
+        {
+          "actor": "anonymous",
+          "request": {
+            "method": "POST",
+            "path": "/public/posts",
+            "body": {
+              "sort_by": "created_at:asc"
+            },
+            "headers": {
+              "Accept-Language": "en",
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 400,
+            "body": "plain_text"
+          }
+        }
+      ]
+    },
+    {
+      "id": "PUBLIC-VALID-SEARCH-004",
+      "group": "POST /public/posts",
+      "title": "400: invalid sort_by (column not listed as sortable (created_by))",
+      "source": "documented",
+      "tags": [],
+      "note": "Docs list the sortable columns; anything else is assumed to be an invalid body.",
+      "steps": [
+        {
+          "actor": "anonymous",
+          "request": {
+            "method": "POST",
+            "path": "/public/posts",
+            "body": {
+              "sort_by": "created_by:asc"
+            },
+            "headers": {
+              "Accept-Language": "en",
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 400,
+            "body": "plain_text"
+          }
+        }
+      ]
+    },
+    {
+      "id": "PUBLIC-VALID-SEARCH-005",
+      "group": "POST /public/posts",
       "title": "400: invalid sort_by (column not listed as sortable (keywords))",
       "source": "documented",
       "tags": [],
@@ -5445,7 +5200,7 @@
       ]
     },
     {
-      "id": "PUBLIC-VALID-SEARCH-004",
+      "id": "PUBLIC-VALID-SEARCH-006",
       "group": "POST /public/posts",
       "title": "400: invalid sort_by (column not listed as sortable (categories))",
       "source": "documented",
@@ -5473,11 +5228,11 @@
       ]
     },
     {
-      "id": "PUBLIC-VALID-SEARCH-005",
+      "id": "PUBLIC-VALID-SEARCH-007",
       "group": "POST /public/posts",
       "title": "400: invalid sort_by (direction missing)",
       "source": "inferred",
-      "tags": ["ambiguous"],
+      "tags": [],
       "note": "Sort syntax errors are assumed to be an invalid body.",
       "steps": [
         {
@@ -5501,11 +5256,11 @@
       ]
     },
     {
-      "id": "PUBLIC-VALID-SEARCH-006",
+      "id": "PUBLIC-VALID-SEARCH-008",
       "group": "POST /public/posts",
       "title": "400: invalid sort_by (unknown direction)",
       "source": "inferred",
-      "tags": ["ambiguous"],
+      "tags": [],
       "note": "Sort syntax errors are assumed to be an invalid body.",
       "steps": [
         {
@@ -5529,11 +5284,11 @@
       ]
     },
     {
-      "id": "PUBLIC-VALID-SEARCH-007",
+      "id": "PUBLIC-VALID-SEARCH-009",
       "group": "POST /public/posts",
       "title": "400: invalid sort_by (unknown column)",
       "source": "inferred",
-      "tags": ["ambiguous"],
+      "tags": [],
       "note": "Sort syntax errors are assumed to be an invalid body.",
       "steps": [
         {
@@ -5557,11 +5312,11 @@
       ]
     },
     {
-      "id": "PUBLIC-VALID-SEARCH-008",
+      "id": "PUBLIC-VALID-SEARCH-010",
       "group": "POST /public/posts",
       "title": "400: invalid sort_by (too many parts)",
       "source": "inferred",
-      "tags": ["ambiguous"],
+      "tags": [],
       "note": "Sort syntax errors are assumed to be an invalid body.",
       "steps": [
         {
@@ -5585,7 +5340,7 @@
       ]
     },
     {
-      "id": "PUBLIC-VALID-SEARCH-009",
+      "id": "PUBLIC-VALID-SEARCH-011",
       "group": "POST /public/posts",
       "title": "400: malformed JSON",
       "source": "documented",
@@ -5610,7 +5365,7 @@
       ]
     },
     {
-      "id": "PUBLIC-VALID-SEARCH-010",
+      "id": "PUBLIC-VALID-SEARCH-012",
       "group": "POST /public/posts",
       "title": "400: empty body",
       "source": "documented",
@@ -5635,7 +5390,7 @@
       ]
     },
     {
-      "id": "PUBLIC-VALID-SEARCH-011",
+      "id": "PUBLIC-VALID-SEARCH-013",
       "group": "POST /public/posts",
       "title": "400: JSON array",
       "source": "documented",
@@ -5660,7 +5415,7 @@
       ]
     },
     {
-      "id": "PUBLIC-VALID-SEARCH-012",
+      "id": "PUBLIC-VALID-SEARCH-014",
       "group": "POST /public/posts",
       "title": "400: query wrong type",
       "source": "documented",
@@ -5687,7 +5442,7 @@
       ]
     },
     {
-      "id": "PUBLIC-VALID-SEARCH-013",
+      "id": "PUBLIC-VALID-SEARCH-015",
       "group": "POST /public/posts",
       "title": "400: page wrong type",
       "source": "documented",
@@ -5714,7 +5469,7 @@
       ]
     },
     {
-      "id": "PUBLIC-VALID-SEARCH-014",
+      "id": "PUBLIC-VALID-SEARCH-016",
       "group": "POST /public/posts",
       "title": "400: count wrong type",
       "source": "documented",
@@ -5741,7 +5496,7 @@
       ]
     },
     {
-      "id": "PUBLIC-VALID-SEARCH-015",
+      "id": "PUBLIC-VALID-SEARCH-017",
       "group": "POST /public/posts",
       "title": "400: count fractional",
       "source": "documented",
@@ -5768,7 +5523,7 @@
       ]
     },
     {
-      "id": "PUBLIC-VALID-SEARCH-016",
+      "id": "PUBLIC-VALID-SEARCH-018",
       "group": "POST /public/posts",
       "title": "400: categories not an array",
       "source": "documented",
@@ -5795,7 +5550,7 @@
       ]
     },
     {
-      "id": "PUBLIC-VALID-SEARCH-017",
+      "id": "PUBLIC-VALID-SEARCH-019",
       "group": "POST /public/posts",
       "title": "400: categories with non-string",
       "source": "documented",
@@ -5822,34 +5577,7 @@
       ]
     },
     {
-      "id": "PUBLIC-VALID-SEARCH-018",
-      "group": "POST /public/posts",
-      "title": "400: exclude_categories not an array",
-      "source": "documented",
-      "tags": [],
-      "steps": [
-        {
-          "actor": "anonymous",
-          "request": {
-            "method": "POST",
-            "path": "/public/posts",
-            "body": {
-              "exclude_categories": "news"
-            },
-            "headers": {
-              "Accept-Language": "en",
-              "Content-Type": "application/json"
-            }
-          },
-          "expect": {
-            "status": 400,
-            "body": "plain_text"
-          }
-        }
-      ]
-    },
-    {
-      "id": "PUBLIC-VALID-SEARCH-019",
+      "id": "PUBLIC-VALID-SEARCH-020",
       "group": "POST /public/posts",
       "title": "400: authors not an array",
       "source": "documented",
@@ -5876,7 +5604,7 @@
       ]
     },
     {
-      "id": "PUBLIC-VALID-SEARCH-020",
+      "id": "PUBLIC-VALID-SEARCH-021",
       "group": "POST /public/posts",
       "title": "400: authors with non-string",
       "source": "documented",
@@ -5903,61 +5631,7 @@
       ]
     },
     {
-      "id": "PUBLIC-VALID-SEARCH-021",
-      "group": "POST /public/posts",
-      "title": "400: published wrong type",
-      "source": "documented",
-      "tags": [],
-      "steps": [
-        {
-          "actor": "anonymous",
-          "request": {
-            "method": "POST",
-            "path": "/public/posts",
-            "body": {
-              "published": "true"
-            },
-            "headers": {
-              "Accept-Language": "en",
-              "Content-Type": "application/json"
-            }
-          },
-          "expect": {
-            "status": 400,
-            "body": "plain_text"
-          }
-        }
-      ]
-    },
-    {
-      "id": "PUBLIC-VALID-SEARCH-022",
-      "group": "POST /public/posts",
-      "title": "400: published as number",
-      "source": "documented",
-      "tags": [],
-      "steps": [
-        {
-          "actor": "anonymous",
-          "request": {
-            "method": "POST",
-            "path": "/public/posts",
-            "body": {
-              "published": 1
-            },
-            "headers": {
-              "Accept-Language": "en",
-              "Content-Type": "application/json"
-            }
-          },
-          "expect": {
-            "status": 400,
-            "body": "plain_text"
-          }
-        }
-      ]
-    },
-    {
-      "id": "PUBLIC-VALID-SEARCH-023",
+      "id": "PUBLIC-VALID-SEARCH-024",
       "group": "POST /public/posts",
       "title": "400: published_after wrong type",
       "source": "documented",
@@ -5984,7 +5658,7 @@
       ]
     },
     {
-      "id": "PUBLIC-VALID-SEARCH-024",
+      "id": "PUBLIC-VALID-SEARCH-025",
       "group": "POST /public/posts",
       "title": "400: published_before wrong type",
       "source": "documented",
@@ -6011,7 +5685,7 @@
       ]
     },
     {
-      "id": "PUBLIC-VALID-SEARCH-025",
+      "id": "PUBLIC-VALID-SEARCH-026",
       "group": "POST /public/posts",
       "title": "400: published_after fractional",
       "source": "documented",
@@ -6038,7 +5712,7 @@
       ]
     },
     {
-      "id": "PUBLIC-VALID-SEARCH-026",
+      "id": "PUBLIC-VALID-SEARCH-027",
       "group": "POST /public/posts",
       "title": "400: sort_by wrong type",
       "source": "documented",
@@ -6104,7 +5778,7 @@
       "group": "POST /public/posts",
       "title": "Wildcard characters in query are literal",
       "source": "inferred",
-      "tags": ["security", "ambiguous"],
+      "tags": ["security"],
       "note": "Assumes LIKE/glob wildcards are escaped.",
       "steps": [
         {
@@ -6113,7 +5787,7 @@
             "method": "POST",
             "path": "/public/posts",
             "body": {
-              "query": "%",
+              "query": "%z%",
               "count": 100
             },
             "headers": {
@@ -6139,7 +5813,7 @@
             "method": "POST",
             "path": "/public/posts",
             "body": {
-              "query": "_",
+              "query": "_z_",
               "count": 100
             },
             "headers": {
@@ -6166,7 +5840,7 @@
       "group": "POST /public/posts",
       "title": "SQL-injection-like category and author filters are treated as text",
       "source": "inferred",
-      "tags": ["security", "ambiguous"],
+      "tags": ["security"],
       "note": "If filter slugs are validated first this may be a 400; either way no rows may leak.",
       "steps": [
         {
@@ -6280,7 +5954,7 @@
       "group": "POST /public/posts",
       "title": "415: Content-Type header missing",
       "source": "inferred",
-      "tags": ["ambiguous"],
+      "tags": [],
       "note": "Route specifies application/json, so a missing header is assumed to be a mismatch.",
       "steps": [
         {
@@ -6306,7 +5980,7 @@
       "group": "POST /public/posts",
       "title": "Content-Type with charset parameter is accepted",
       "source": "inferred",
-      "tags": ["ambiguous"],
+      "tags": [],
       "note": "Media-type parameters are normally ignored.",
       "steps": [
         {
@@ -6385,11 +6059,12 @@
       ]
     },
     {
-      "id": "PUBLIC-FUNC-SEARCH-080",
+      "id": "PUBLIC-FUNC-SEARCH-073",
       "group": "POST /public/posts",
       "title": "Scheduled post (published_at in the future) is not returned yet",
       "source": "inferred",
       "tags": ["assumes_sequential_id"],
+      "note": "'Published' is assumed to mean published_at is set and not in the future. If any non-null published_at counts, totals would be 1 and 4. Assumes ids are allocated sequentially, so the first post created after the fixtures (max id 5) gets id 6.",
       "steps": [
         {
           "actor": "root",
@@ -6469,11 +6144,12 @@
       ]
     },
     {
-      "id": "PUBLIC-FUNC-SEARCH-081",
+      "id": "PUBLIC-FUNC-SEARCH-074",
       "group": "POST /public/posts",
       "title": "A newly published post appears",
       "source": "documented",
-      "tags": ["cache"],
+      "tags": ["assumes_sequential_id", "cache"],
+      "note": "Assumes ids are allocated sequentially, so the first post created after the fixtures (max id 5) gets id 6.",
       "steps": [
         {
           "actor": "anonymous",
@@ -6595,7 +6271,7 @@
       ]
     },
     {
-      "id": "PUBLIC-FUNC-SEARCH-082",
+      "id": "PUBLIC-FUNC-SEARCH-075",
       "group": "POST /public/posts",
       "title": "A draft stays hidden after creation",
       "source": "documented",
@@ -6678,7 +6354,7 @@
       ]
     },
     {
-      "id": "PUBLIC-FUNC-SEARCH-083",
+      "id": "PUBLIC-FUNC-SEARCH-076",
       "group": "POST /public/posts",
       "title": "Publishing a draft makes it searchable",
       "source": "documented",
@@ -6766,7 +6442,7 @@
       ]
     },
     {
-      "id": "PUBLIC-FUNC-SEARCH-084",
+      "id": "PUBLIC-FUNC-SEARCH-077",
       "group": "POST /public/posts",
       "title": "Unpublishing removes a post (PATCH without published_at)",
       "source": "documented",
@@ -6859,7 +6535,7 @@
       ]
     },
     {
-      "id": "PUBLIC-FUNC-SEARCH-085",
+      "id": "PUBLIC-FUNC-SEARCH-078",
       "group": "POST /public/posts",
       "title": "Deleting a post removes it",
       "source": "documented",
@@ -6944,7 +6620,7 @@
       ]
     },
     {
-      "id": "PUBLIC-FUNC-SEARCH-086",
+      "id": "PUBLIC-FUNC-SEARCH-079",
       "group": "POST /public/posts",
       "title": "Renaming a post is reflected",
       "source": "documented",
@@ -7025,9 +6701,9 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "$.total",
-                "op": "eq",
-                "value": 0
+                "path": "$.results[*].title",
+                "op": "ne",
+                "value": "Epsilon Review"
               }
             ]
           },
@@ -7036,11 +6712,11 @@
       ]
     },
     {
-      "id": "PUBLIC-FUNC-SEARCH-087",
+      "id": "PUBLIC-FUNC-SEARCH-080",
       "group": "POST /public/posts",
       "title": "Changing keywords is reflected",
       "source": "documented",
-      "tags": ["cache", "ambiguous"],
+      "tags": ["cache"],
       "note": "Keyword matching on the first word of a comma-separated list is assumed.",
       "steps": [
         {
@@ -7129,7 +6805,7 @@
       ]
     },
     {
-      "id": "PUBLIC-FUNC-SEARCH-088",
+      "id": "PUBLIC-FUNC-SEARCH-081",
       "group": "POST /public/posts",
       "title": "A views update is reflected",
       "source": "documented",
@@ -7190,7 +6866,7 @@
       ]
     },
     {
-      "id": "PUBLIC-FUNC-SEARCH-089",
+      "id": "PUBLIC-FUNC-SEARCH-082",
       "group": "POST /public/posts",
       "title": "Changing categories is reflected in filters",
       "source": "documented",
@@ -7297,6 +6973,11 @@
                 "value": "First post of the series"
               },
               {
+                "path": "$.content",
+                "op": "eq",
+                "value": "<p>Alpha First paragraph</p>"
+              },
+              {
                 "path": "$.slug",
                 "op": "eq",
                 "value": "alpha-post"
@@ -7352,12 +7033,12 @@
                 "value": 2
               },
               {
-                "path": "$.categories",
+                "path": "$.categories[*]",
                 "op": "includes",
                 "value": "news"
               },
               {
-                "path": "$.categories",
+                "path": "$.categories[*]",
                 "op": "includes",
                 "value": "sports"
               }
@@ -7369,7 +7050,7 @@
     {
       "id": "PUBLIC-FUNC-POST-002",
       "group": "GET /public/posts/{id}",
-      "title": "200: ru translation has its own text, slug and locale",
+      "title": "200: ru translation has its own text, slug and language",
       "source": "documented",
       "tags": [],
       "steps": [
@@ -7402,7 +7083,7 @@
               {
                 "path": "$.slug",
                 "op": "eq",
-                "value": "alfa-post"
+                "value": "alpha-post"
               },
               {
                 "path": "$.lang",
@@ -7432,40 +7113,6 @@
     {
       "id": "PUBLIC-FUNC-POST-003",
       "group": "GET /public/posts/{id}",
-      "title": "markdown field carries the post content",
-      "source": "inferred",
-      "tags": ["ambiguous"],
-      "note": "The response has 'markdown' where the admin API has 'content'; the stored content is assumed to be returned as is (the fixture content is already Markdown).",
-      "steps": [
-        {
-          "actor": "anonymous",
-          "request": {
-            "method": "GET",
-            "path": "/public/posts/{id}",
-            "path_params": {
-              "id": "1"
-            },
-            "headers": {
-              "Accept-Language": "en"
-            }
-          },
-          "expect": {
-            "status": 200,
-            "body": "json",
-            "json_assertions": [
-              {
-                "path": "$.markdown",
-                "op": "eq",
-                "value": "# Alpha\n\nFirst paragraph"
-              }
-            ]
-          }
-        }
-      ]
-    },
-    {
-      "id": "PUBLIC-FUNC-POST-004",
-      "group": "GET /public/posts/{id}",
       "title": "Response does not expose the admin-only fields",
       "source": "inferred",
       "tags": [],
@@ -7487,10 +7134,6 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "$.content",
-                "op": "is_null"
-              },
-              {
                 "path": "$.created_by",
                 "op": "is_null"
               },
@@ -7499,7 +7142,7 @@
                 "op": "is_null"
               },
               {
-                "path": "$.language",
+                "path": "$.markdown",
                 "op": "is_null"
               }
             ]
@@ -7508,11 +7151,11 @@
       ]
     },
     {
-      "id": "PUBLIC-FUNC-POST-005",
+      "id": "PUBLIC-FUNC-POST-004",
       "group": "GET /public/posts/{id}",
       "title": "200: post without media has empty media fields",
       "source": "inferred",
-      "tags": ["ambiguous"],
+      "tags": [],
       "note": "Empty strings are assumed for absent optional text fields.",
       "steps": [
         {
@@ -7552,7 +7195,7 @@
       ]
     },
     {
-      "id": "PUBLIC-FUNC-POST-006",
+      "id": "PUBLIC-FUNC-POST-005",
       "group": "GET /public/posts/{id}",
       "title": "200: video media type",
       "source": "documented",
@@ -7590,11 +7233,11 @@
       ]
     },
     {
-      "id": "PUBLIC-FUNC-POST-007",
+      "id": "PUBLIC-FUNC-POST-006",
       "group": "GET /public/posts/{id}",
       "title": "200: categories may contain hidden categories",
       "source": "inferred",
-      "tags": ["ambiguous"],
+      "tags": [],
       "note": "Hidden categories are allowed in filters; they are assumed to be listed on the post too.",
       "steps": [
         {
@@ -7614,7 +7257,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "$.categories",
+                "path": "$.categories[*]",
                 "op": "includes",
                 "value": "archive"
               }
@@ -7624,11 +7267,11 @@
       ]
     },
     {
-      "id": "PUBLIC-FUNC-POST-008",
+      "id": "PUBLIC-FUNC-POST-007",
       "group": "GET /public/posts/{id}",
       "title": "200: author may be a soft-deleted editor",
       "source": "inferred",
-      "tags": ["ambiguous"],
+      "tags": [],
       "steps": [
         {
           "actor": "anonymous",
@@ -7658,7 +7301,7 @@
       "note": "Docs only say the search authors filter may contain soft-deleted editors; the author field of the post itself is assumed to remain."
     },
     {
-      "id": "PUBLIC-FUNC-POST-009",
+      "id": "PUBLIC-FUNC-POST-008",
       "group": "GET /public/posts/{id}",
       "title": "No Authorization header is needed",
       "source": "documented",
@@ -7691,7 +7334,7 @@
       ]
     },
     {
-      "id": "PUBLIC-FUNC-POST-010",
+      "id": "PUBLIC-FUNC-POST-009",
       "group": "GET /public/posts/{id}",
       "title": "Works with an authenticated session as well",
       "source": "inferred",
@@ -7724,11 +7367,11 @@
       ]
     },
     {
-      "id": "PUBLIC-FUNC-POST-011",
+      "id": "PUBLIC-FUNC-POST-010",
       "group": "GET /public/posts/{id}",
       "title": "A garbage Authorization header is ignored",
       "source": "inferred",
-      "tags": ["ambiguous"],
+      "tags": [],
       "note": "An invalid session is assumed not to be validated on public routes.",
       "steps": [
         {
@@ -7758,7 +7401,7 @@
       ]
     },
     {
-      "id": "PUBLIC-FUNC-POST-012",
+      "id": "PUBLIC-FUNC-POST-011",
       "group": "GET /public/posts/{id}",
       "title": "404: unpublished post",
       "source": "documented",
@@ -7785,7 +7428,7 @@
       ]
     },
     {
-      "id": "PUBLIC-FUNC-POST-013",
+      "id": "PUBLIC-FUNC-POST-012",
       "group": "GET /public/posts/{id}",
       "title": "404: unknown post id",
       "source": "documented",
@@ -7811,7 +7454,7 @@
       ]
     },
     {
-      "id": "PUBLIC-FUNC-POST-014",
+      "id": "PUBLIC-FUNC-POST-013",
       "group": "GET /public/posts/{id}",
       "title": "406: post exists but not in the requested translation",
       "source": "documented",
@@ -7855,12 +7498,11 @@
       ]
     },
     {
-      "id": "PUBLIC-FUNC-POST-015",
+      "id": "PUBLIC-FUNC-POST-014",
       "group": "GET /public/posts/{id}",
-      "title": "Id 0 is a valid unsigned integer and finds no post",
+      "title": "400: Id 0 is a invalid integer",
       "source": "inferred",
-      "tags": ["ambiguous"],
-      "note": "Docs say 'unsigned integer', which includes 0; the admin API says 'positive'. 400 is an alternative reading.",
+      "tags": [],
       "steps": [
         {
           "actor": "anonymous",
@@ -7875,19 +7517,18 @@
             }
           },
           "expect": {
-            "status": 404,
+            "status": 400,
             "body": "plain_text"
           }
         }
       ]
     },
     {
-      "id": "PUBLIC-FUNC-POST-016",
+      "id": "PUBLIC-FUNC-POST-015",
       "group": "GET /public/posts/{id}",
-      "title": "Retrieving a post does not change its view counter",
+      "title": "Retrieving a post changes its view counter",
       "source": "inferred",
-      "tags": ["ambiguous"],
-      "note": "Docs do not say whether views are incremented on read; unchanged is assumed. If your handler counts a view per read, expect 101 on the second read.",
+      "tags": [],
       "steps": [
         {
           "actor": "anonymous",
@@ -7932,7 +7573,7 @@
               {
                 "path": "$.views",
                 "op": "eq",
-                "value": 100
+                "value": 101
               }
             ]
           }
@@ -7940,7 +7581,7 @@
       ]
     },
     {
-      "id": "PUBLIC-FUNC-POST-017",
+      "id": "PUBLIC-FUNC-POST-016",
       "group": "GET /public/posts/{id}",
       "title": "Request body is ignored",
       "source": "documented",
@@ -7967,7 +7608,7 @@
       ]
     },
     {
-      "id": "PUBLIC-FUNC-POST-018",
+      "id": "PUBLIC-FUNC-POST-017",
       "group": "GET /public/posts/{id}",
       "title": "Query parameters are ignored",
       "source": "documented",
@@ -8001,11 +7642,11 @@
       ]
     },
     {
-      "id": "PUBLIC-FUNC-POST-019",
+      "id": "PUBLIC-FUNC-POST-018",
       "group": "GET /public/posts/{id}",
       "title": "413: oversized body (4 KiB + 1) on a route that ignores its body",
       "source": "documented",
-      "tags": ["ambiguous", "boundary"],
+      "tags": ["boundary"],
       "note": "Docs say no body is expected but list a 4 KiB limit; the limit is assumed to be enforced first.",
       "steps": [
         {
@@ -8166,7 +7807,7 @@
       "group": "GET /public/posts/{id}",
       "title": "400: invalid post id (with plus sign)",
       "source": "inferred",
-      "tags": ["ambiguous"],
+      "tags": [],
       "note": "'+1' is accepted by many integer parsers; docs only say 'unsigned integer'.",
       "steps": [
         {
@@ -8189,11 +7830,11 @@
       ]
     },
     {
-      "id": "PUBLIC-FUNC-POST-020",
+      "id": "PUBLIC-FUNC-POST-019",
       "group": "GET /public/posts/{id}",
       "title": "Scheduled post (published_at in the future) is not available yet",
       "source": "inferred",
-      "tags": ["ambiguous", "assumes_sequential_id"],
+      "tags": ["assumes_sequential_id"],
       "note": "See the matching search case. Assumes ids are allocated sequentially, so the first post created after the fixtures (max id 5) gets id 6.",
       "steps": [
         {
@@ -8239,7 +7880,7 @@
       ]
     },
     {
-      "id": "PUBLIC-FUNC-POST-021",
+      "id": "PUBLIC-FUNC-POST-020",
       "group": "GET /public/posts/{id}",
       "title": "Publishing a draft makes it available",
       "source": "documented",
@@ -8316,7 +7957,7 @@
       ]
     },
     {
-      "id": "PUBLIC-FUNC-POST-022",
+      "id": "PUBLIC-FUNC-POST-021",
       "group": "GET /public/posts/{id}",
       "title": "Unpublishing a post makes it unavailable",
       "source": "documented",
@@ -8406,7 +8047,7 @@
       ]
     },
     {
-      "id": "PUBLIC-FUNC-POST-023",
+      "id": "PUBLIC-FUNC-POST-022",
       "group": "GET /public/posts/{id}",
       "title": "Deleting a post makes it unavailable",
       "source": "documented",
@@ -8482,7 +8123,7 @@
       ]
     },
     {
-      "id": "PUBLIC-FUNC-POST-024",
+      "id": "PUBLIC-FUNC-POST-023",
       "group": "GET /public/posts/{id}",
       "title": "Updates are reflected",
       "source": "documented",
@@ -8569,7 +8210,7 @@
       ]
     },
     {
-      "id": "PUBLIC-FUNC-POST-025",
+      "id": "PUBLIC-FUNC-POST-024",
       "group": "GET /public/posts/{id}",
       "title": "A translation added through the admin API becomes available",
       "source": "documented",
@@ -8652,7 +8293,7 @@
     {
       "id": "PUBLIC-FUNC-CATEGORIES-001",
       "group": "GET /public/categories",
-      "title": "200: lists non-hidden categories of the locale",
+      "title": "200: lists non-hidden categories of the language",
       "source": "documented",
       "tags": [],
       "steps": [
@@ -8842,7 +8483,7 @@
     {
       "id": "PUBLIC-FUNC-CATEGORIES-005",
       "group": "GET /public/categories",
-      "title": "Locale without categories returns an empty array",
+      "title": "Language without categories returns an empty array",
       "source": "documented",
       "tags": [],
       "note": "'If there are no categories, the response is an empty array' (the array lives under 'categories').",
@@ -8935,7 +8576,7 @@
       "group": "GET /public/categories",
       "title": "A garbage Authorization header is ignored",
       "source": "inferred",
-      "tags": ["ambiguous"],
+      "tags": [],
       "note": "An invalid session is assumed not to be validated on public routes.",
       "steps": [
         {
@@ -8997,7 +8638,7 @@
       "group": "GET /public/categories",
       "title": "413: oversized body (4 KiB + 1) on a route that ignores its body",
       "source": "documented",
-      "tags": ["ambiguous", "boundary"],
+      "tags": ["boundary"],
       "note": "Docs say no body is expected but list a 4 KiB limit; the limit is assumed to be enforced first.",
       "steps": [
         {
@@ -9201,7 +8842,7 @@
           },
           "expect": {
             "status": 201,
-            "body": "empty"
+            "body": "json"
           }
         },
         {
@@ -9259,7 +8900,7 @@
           },
           "expect": {
             "status": 201,
-            "body": "empty"
+            "body": "json"
           }
         },
         {
@@ -9294,7 +8935,7 @@
     {
       "id": "PUBLIC-FUNC-CATEGORIES-015",
       "group": "GET /public/categories",
-      "title": "A deleted category disappears from every locale",
+      "title": "A deleted category disappears from every language",
       "source": "documented",
       "tags": ["cache"],
       "steps": [
@@ -9476,7 +9117,7 @@
     {
       "id": "PUBLIC-FUNC-EDITORS-001",
       "group": "GET /public/editors",
-      "title": "200: lists active editors of the locale",
+      "title": "200: lists active editors of the language",
       "source": "documented",
       "tags": [],
       "steps": [
@@ -9499,17 +9140,17 @@
                 "value": 2
               },
               {
-                "path": "$.editors[*].username",
+                "path": "$.editors[*].slug",
                 "op": "includes",
                 "value": "alice"
               },
               {
-                "path": "$.editors[*].username",
+                "path": "$.editors[*].slug",
                 "op": "includes",
                 "value": "bobby"
               },
               {
-                "path": "$.editors[*].username",
+                "path": "$.editors[*].slug",
                 "op": "excludes",
                 "value": "dave"
               },
@@ -9549,19 +9190,19 @@
                 "value": "Bobby Brown"
               },
               {
-                "path": "$.editors[*].username",
+                "path": "$.editors[*].bio",
+                "op": "includes",
+                "value": "Sports editor"
+              },
+              {
+                "path": "$.editors[*].bio",
+                "op": "includes",
+                "value": "Senior **editor**"
+              },
+              {
+                "path": "$.editors[*].slug",
                 "op": "includes",
                 "value": "bobby"
-              },
-              {
-                "path": "$.editors[*].email",
-                "op": "includes",
-                "value": "bobby@example.com"
-              },
-              {
-                "path": "$.editors[*].email",
-                "op": "includes",
-                "value": "alice@example.com"
               },
               {
                 "path": "$.editors[*].lang",
@@ -9576,10 +9217,10 @@
     {
       "id": "PUBLIC-FUNC-EDITORS-003",
       "group": "GET /public/editors",
-      "title": "The list does not include the bio",
+      "title": "Entries do not expose deletion data or account details",
       "source": "inferred",
       "tags": [],
-      "note": "Only the documented fields are assumed to be returned.",
+      "note": "Only the documented response fields are assumed to be returned.",
       "steps": [
         {
           "actor": "anonymous",
@@ -9595,7 +9236,15 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "$.editors[0].bio",
+                "path": "$.editors[0].deleted_at",
+                "op": "is_null"
+              },
+              {
+                "path": "$.editors[0].email",
+                "op": "is_null"
+              },
+              {
+                "path": "$.editors[0].username",
                 "op": "is_null"
               }
             ]
@@ -9625,7 +9274,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "$.editors[*].username",
+                "path": "$.editors[*].slug",
                 "op": "excludes",
                 "value": "dave"
               },
@@ -9665,17 +9314,17 @@
                 "value": 2
               },
               {
-                "path": "$.editors[*].username",
+                "path": "$.editors[*].slug",
                 "op": "includes",
                 "value": "alice"
               },
               {
-                "path": "$.editors[*].username",
+                "path": "$.editors[*].slug",
                 "op": "includes",
                 "value": "carol"
               },
               {
-                "path": "$.editors[*].username",
+                "path": "$.editors[*].slug",
                 "op": "excludes",
                 "value": "bobby"
               },
@@ -9688,6 +9337,11 @@
                 "path": "$.editors[*].name",
                 "op": "includes",
                 "value": "Алиса Смит"
+              },
+              {
+                "path": "$.editors[*].bio",
+                "op": "includes",
+                "value": "Старший **редактор**"
               }
             ]
           }
@@ -9697,7 +9351,7 @@
     {
       "id": "PUBLIC-FUNC-EDITORS-006",
       "group": "GET /public/editors",
-      "title": "Locale without editors returns an empty array",
+      "title": "Language without editors returns an empty array",
       "source": "documented",
       "tags": [],
       "steps": [
@@ -9789,7 +9443,7 @@
       "group": "GET /public/editors",
       "title": "A garbage Authorization header is ignored",
       "source": "inferred",
-      "tags": ["ambiguous"],
+      "tags": [],
       "note": "An invalid session is assumed not to be validated on public routes.",
       "steps": [
         {
@@ -9851,7 +9505,7 @@
       "group": "GET /public/editors",
       "title": "413: oversized body (4 KiB + 1) on a route that ignores its body",
       "source": "documented",
-      "tags": ["ambiguous", "boundary"],
+      "tags": ["boundary"],
       "note": "Docs say no body is expected but list a 4 KiB limit; the limit is assumed to be enforced first.",
       "steps": [
         {
@@ -9909,7 +9563,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "$.editors[*].username",
+                "path": "$.editors[*].slug",
                 "op": "excludes",
                 "value": "bobby"
               },
@@ -9927,10 +9581,9 @@
     {
       "id": "PUBLIC-FUNC-EDITORS-013",
       "group": "GET /public/editors",
-      "title": "A new editor translation appears in its locale",
+      "title": "A new editor translation appears in its language",
       "source": "documented",
       "tags": ["cache"],
-      "note": "Fixtures use slug == username, so the editor slug and the bound account username coincide.",
       "steps": [
         {
           "actor": "root",
@@ -9973,7 +9626,7 @@
                 "value": 1
               },
               {
-                "path": "$.editors[0].username",
+                "path": "$.editors[0].slug",
                 "op": "eq",
                 "value": "alice"
               },
@@ -9983,9 +9636,14 @@
                 "value": "Alice DE"
               },
               {
-                "path": "$.editors[0].email",
+                "path": "$.editors[0].bio",
                 "op": "eq",
-                "value": "alice@example.com"
+                "value": "Bio DE"
+              },
+              {
+                "path": "$.editors[0].lang",
+                "op": "eq",
+                "value": "de"
               }
             ]
           },
@@ -10010,7 +9668,8 @@
               "slug": "alice"
             },
             "body": {
-              "name": "Alice Renamed"
+              "name": "Alice Renamed",
+              "bio": "New bio"
             },
             "headers": {
               "Content-Type": "application/json"
@@ -10043,6 +9702,11 @@
                 "path": "$.editors[*].name",
                 "op": "excludes",
                 "value": "Alice Smith"
+              },
+              {
+                "path": "$.editors[*].bio",
+                "op": "includes",
+                "value": "New bio"
               }
             ]
           },
@@ -10052,7 +9716,7 @@
     },
     {
       "id": "PUBLIC-FUNC-EDITOR-001",
-      "group": "GET /public/editors/{username}",
+      "group": "GET /public/editors/{slug}",
       "title": "200: editor profile (en)",
       "source": "documented",
       "tags": [],
@@ -10061,9 +9725,9 @@
           "actor": "anonymous",
           "request": {
             "method": "GET",
-            "path": "/public/editors/{username}",
+            "path": "/public/editors/{slug}",
             "path_params": {
-              "username": "alice"
+              "slug": "alice"
             },
             "headers": {
               "Accept-Language": "en"
@@ -10084,14 +9748,9 @@
                 "value": "Senior **editor**"
               },
               {
-                "path": "$.username",
+                "path": "$.slug",
                 "op": "eq",
                 "value": "alice"
-              },
-              {
-                "path": "$.email",
-                "op": "eq",
-                "value": "alice@example.com"
               },
               {
                 "path": "$.lang",
@@ -10105,7 +9764,7 @@
     },
     {
       "id": "PUBLIC-FUNC-EDITOR-002",
-      "group": "GET /public/editors/{username}",
+      "group": "GET /public/editors/{slug}",
       "title": "200: ru translation has its own name and bio",
       "source": "documented",
       "tags": [],
@@ -10114,9 +9773,9 @@
           "actor": "anonymous",
           "request": {
             "method": "GET",
-            "path": "/public/editors/{username}",
+            "path": "/public/editors/{slug}",
             "path_params": {
-              "username": "alice"
+              "slug": "alice"
             },
             "headers": {
               "Accept-Language": "ru"
@@ -10137,14 +9796,9 @@
                 "value": "Старший **редактор**"
               },
               {
-                "path": "$.username",
+                "path": "$.slug",
                 "op": "eq",
                 "value": "alice"
-              },
-              {
-                "path": "$.email",
-                "op": "eq",
-                "value": "alice@example.com"
               },
               {
                 "path": "$.lang",
@@ -10158,8 +9812,8 @@
     },
     {
       "id": "PUBLIC-FUNC-EDITOR-003",
-      "group": "GET /public/editors/{username}",
-      "title": "200: editor that exists only in one locale",
+      "group": "GET /public/editors/{slug}",
+      "title": "200: editor that exists only in one language",
       "source": "documented",
       "tags": [],
       "steps": [
@@ -10167,9 +9821,9 @@
           "actor": "anonymous",
           "request": {
             "method": "GET",
-            "path": "/public/editors/{username}",
+            "path": "/public/editors/{slug}",
             "path_params": {
-              "username": "bobby"
+              "slug": "bobby"
             },
             "headers": {
               "Accept-Language": "en"
@@ -10191,9 +9845,9 @@
           "actor": "anonymous",
           "request": {
             "method": "GET",
-            "path": "/public/editors/{username}",
+            "path": "/public/editors/{slug}",
             "path_params": {
-              "username": "carol"
+              "slug": "carol"
             },
             "headers": {
               "Accept-Language": "ru"
@@ -10209,9 +9863,9 @@
                 "value": "Кэрол Уайт"
               },
               {
-                "path": "$.email",
+                "path": "$.slug",
                 "op": "eq",
-                "value": "carol@example.com"
+                "value": "carol"
               }
             ]
           }
@@ -10220,8 +9874,48 @@
     },
     {
       "id": "PUBLIC-FUNC-EDITOR-004",
-      "group": "GET /public/editors/{username}",
-      "title": "406: editor exists but not in the requested locale",
+      "group": "GET /public/editors/{slug}",
+      "title": "Entries do not expose deletion data or account details",
+      "source": "inferred",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "anonymous",
+          "request": {
+            "method": "GET",
+            "path": "/public/editors/{slug}",
+            "path_params": {
+              "slug": "alice"
+            },
+            "headers": {
+              "Accept-Language": "en"
+            }
+          },
+          "expect": {
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.deleted_at",
+                "op": "is_null"
+              },
+              {
+                "path": "$.email",
+                "op": "is_null"
+              },
+              {
+                "path": "$.username",
+                "op": "is_null"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "PUBLIC-FUNC-EDITOR-005",
+      "group": "GET /public/editors/{slug}",
+      "title": "406: editor exists but not in the requested language",
       "source": "documented",
       "tags": [],
       "note": "Docs: 406 if the editor is not available in that language (not 404).",
@@ -10230,9 +9924,9 @@
           "actor": "anonymous",
           "request": {
             "method": "GET",
-            "path": "/public/editors/{username}",
+            "path": "/public/editors/{slug}",
             "path_params": {
-              "username": "bobby"
+              "slug": "bobby"
             },
             "headers": {
               "Accept-Language": "ru"
@@ -10247,9 +9941,9 @@
           "actor": "anonymous",
           "request": {
             "method": "GET",
-            "path": "/public/editors/{username}",
+            "path": "/public/editors/{slug}",
             "path_params": {
-              "username": "carol"
+              "slug": "carol"
             },
             "headers": {
               "Accept-Language": "en"
@@ -10264,9 +9958,9 @@
           "actor": "anonymous",
           "request": {
             "method": "GET",
-            "path": "/public/editors/{username}",
+            "path": "/public/editors/{slug}",
             "path_params": {
-              "username": "alice"
+              "slug": "alice"
             },
             "headers": {
               "Accept-Language": "de"
@@ -10280,8 +9974,8 @@
       ]
     },
     {
-      "id": "PUBLIC-FUNC-EDITOR-005",
-      "group": "GET /public/editors/{username}",
+      "id": "PUBLIC-FUNC-EDITOR-006",
+      "group": "GET /public/editors/{slug}",
       "title": "404: unknown editor",
       "source": "documented",
       "tags": [],
@@ -10290,36 +9984,9 @@
           "actor": "anonymous",
           "request": {
             "method": "GET",
-            "path": "/public/editors/{username}",
+            "path": "/public/editors/{slug}",
             "path_params": {
-              "username": "ghost"
-            },
-            "headers": {
-              "Accept-Language": "en"
-            }
-          },
-          "expect": {
-            "status": 404,
-            "body": "plain_text"
-          }
-        }
-      ]
-    },
-    {
-      "id": "PUBLIC-FUNC-EDITOR-006",
-      "group": "GET /public/editors/{username}",
-      "title": "Soft-deleted editor is not available",
-      "source": "inferred",
-      "tags": ["ambiguous"],
-      "note": "Docs say 404 if the editor 'does not exist'; the list route shows only active editors, so a soft-deleted editor is assumed to behave as missing. 200 is an alternative reading.",
-      "steps": [
-        {
-          "actor": "anonymous",
-          "request": {
-            "method": "GET",
-            "path": "/public/editors/{username}",
-            "path_params": {
-              "username": "dave"
+              "slug": "ghost"
             },
             "headers": {
               "Accept-Language": "en"
@@ -10334,51 +10001,46 @@
     },
     {
       "id": "PUBLIC-FUNC-EDITOR-007",
-      "group": "GET /public/editors/{username}",
-      "title": "No Authorization header is needed",
-      "source": "documented",
+      "group": "GET /public/editors/{slug}",
+      "title": "Soft-deleted editor is not available",
+      "source": "inferred",
       "tags": [],
+      "note": "Docs say 404 if the editor 'does not exist'; the list route shows only active editors, so a soft-deleted editor is assumed to behave as missing. 200 is an alternative reading.",
       "steps": [
         {
           "actor": "anonymous",
           "request": {
             "method": "GET",
-            "path": "/public/editors/{username}",
+            "path": "/public/editors/{slug}",
             "path_params": {
-              "username": "alice"
+              "slug": "dave"
             },
             "headers": {
               "Accept-Language": "en"
             }
           },
           "expect": {
-            "status": 200,
-            "body": "json",
-            "json_assertions": [
-              {
-                "path": "$.username",
-                "op": "eq",
-                "value": "alice"
-              }
-            ]
+            "status": 404,
+            "body": "plain_text"
           }
         }
       ]
     },
     {
       "id": "PUBLIC-FUNC-EDITOR-008",
-      "group": "GET /public/editors/{username}",
-      "title": "Works with an authenticated session as well",
+      "group": "GET /public/editors/{slug}",
+      "title": "Slug lookup is case-insensitive",
       "source": "inferred",
-      "tags": [],
+      "tags": ["verify_normalisation"],
+      "note": "Slugs are stored lower-cased; lookups are assumed to be normalised the same way.",
       "steps": [
         {
-          "actor": "root",
+          "actor": "anonymous",
           "request": {
             "method": "GET",
-            "path": "/public/editors/{username}",
+            "path": "/public/editors/{slug}",
             "path_params": {
-              "username": "alice"
+              "slug": "ALICE"
             },
             "headers": {
               "Accept-Language": "en"
@@ -10389,7 +10051,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "$.username",
+                "path": "$.slug",
                 "op": "eq",
                 "value": "alice"
               }
@@ -10400,19 +10062,85 @@
     },
     {
       "id": "PUBLIC-FUNC-EDITOR-009",
-      "group": "GET /public/editors/{username}",
+      "group": "GET /public/editors/{slug}",
+      "title": "No Authorization header is needed",
+      "source": "documented",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "anonymous",
+          "request": {
+            "method": "GET",
+            "path": "/public/editors/{slug}",
+            "path_params": {
+              "slug": "alice"
+            },
+            "headers": {
+              "Accept-Language": "en"
+            }
+          },
+          "expect": {
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.slug",
+                "op": "eq",
+                "value": "alice"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "PUBLIC-FUNC-EDITOR-010",
+      "group": "GET /public/editors/{slug}",
+      "title": "Works with an authenticated session as well",
+      "source": "inferred",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "GET",
+            "path": "/public/editors/{slug}",
+            "path_params": {
+              "slug": "alice"
+            },
+            "headers": {
+              "Accept-Language": "en"
+            }
+          },
+          "expect": {
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.slug",
+                "op": "eq",
+                "value": "alice"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "PUBLIC-FUNC-EDITOR-011",
+      "group": "GET /public/editors/{slug}",
       "title": "A garbage Authorization header is ignored",
       "source": "inferred",
-      "tags": ["ambiguous"],
+      "tags": [],
       "note": "An invalid session is assumed not to be validated on public routes.",
       "steps": [
         {
           "actor": "garbage_session",
           "request": {
             "method": "GET",
-            "path": "/public/editors/{username}",
+            "path": "/public/editors/{slug}",
             "path_params": {
-              "username": "alice"
+              "slug": "alice"
             },
             "headers": {
               "Accept-Language": "en"
@@ -10426,8 +10154,8 @@
       ]
     },
     {
-      "id": "PUBLIC-FUNC-EDITOR-010",
-      "group": "GET /public/editors/{username}",
+      "id": "PUBLIC-FUNC-EDITOR-012",
+      "group": "GET /public/editors/{slug}",
       "title": "Request body is ignored",
       "source": "documented",
       "tags": [],
@@ -10436,9 +10164,9 @@
           "actor": "anonymous",
           "request": {
             "method": "GET",
-            "path": "/public/editors/{username}",
+            "path": "/public/editors/{slug}",
             "path_params": {
-              "username": "alice"
+              "slug": "alice"
             },
             "body_raw": "{not json",
             "headers": {
@@ -10453,20 +10181,20 @@
       ]
     },
     {
-      "id": "PUBLIC-FUNC-EDITOR-011",
-      "group": "GET /public/editors/{username}",
+      "id": "PUBLIC-FUNC-EDITOR-013",
+      "group": "GET /public/editors/{slug}",
       "title": "413: oversized body (4 KiB + 1) on a route that ignores its body",
       "source": "documented",
-      "tags": ["ambiguous", "boundary"],
+      "tags": ["boundary"],
       "note": "Docs say no body is expected but list a 4 KiB limit; the limit is assumed to be enforced first.",
       "steps": [
         {
           "actor": "anonymous",
           "request": {
             "method": "GET",
-            "path": "/public/editors/{username}",
+            "path": "/public/editors/{slug}",
             "path_params": {
-              "username": "alice"
+              "slug": "alice"
             },
             "body_generator": {
               "json_padded_bytes": 4097,
@@ -10485,19 +10213,19 @@
     },
     {
       "id": "PUBLIC-VALID-EDITOR-001",
-      "group": "GET /public/editors/{username}",
-      "title": "400: invalid username (contains a space)",
+      "group": "GET /public/editors/{slug}",
+      "title": "400: invalid slug (contains a space)",
       "source": "inferred",
-      "tags": ["ambiguous"],
-      "note": "Docs say 400 for an invalid username without defining valid usernames (account username rules are not part of this document); the rules for ordinary slugs/usernames are assumed.",
+      "tags": [],
+      "note": "Editor slugs follow the slug rules (NormalizeSlug in strings.go).",
       "steps": [
         {
           "actor": "anonymous",
           "request": {
             "method": "GET",
-            "path": "/public/editors/{username}",
+            "path": "/public/editors/{slug}",
             "path_params": {
-              "username": "bad name"
+              "slug": "bad slug"
             },
             "headers": {
               "Accept-Language": "en"
@@ -10512,19 +10240,19 @@
     },
     {
       "id": "PUBLIC-VALID-EDITOR-002",
-      "group": "GET /public/editors/{username}",
-      "title": "400: invalid username (contains a slash (encoded))",
+      "group": "GET /public/editors/{slug}",
+      "title": "400: invalid slug (contains a dot)",
       "source": "inferred",
-      "tags": ["ambiguous"],
-      "note": "Docs say 400 for an invalid username without defining valid usernames (account username rules are not part of this document); the rules for ordinary slugs/usernames are assumed.",
+      "tags": [],
+      "note": "Editor slugs follow the slug rules (NormalizeSlug in strings.go).",
       "steps": [
         {
           "actor": "anonymous",
           "request": {
             "method": "GET",
-            "path": "/public/editors/{username}",
+            "path": "/public/editors/{slug}",
             "path_params": {
-              "username": "a/b"
+              "slug": "bad.slug"
             },
             "headers": {
               "Accept-Language": "en"
@@ -10539,19 +10267,19 @@
     },
     {
       "id": "PUBLIC-VALID-EDITOR-003",
-      "group": "GET /public/editors/{username}",
-      "title": "400: invalid username (contains a percent sign)",
+      "group": "GET /public/editors/{slug}",
+      "title": "400: invalid slug (non-ASCII)",
       "source": "inferred",
-      "tags": ["ambiguous"],
-      "note": "Docs say 400 for an invalid username without defining valid usernames (account username rules are not part of this document); the rules for ordinary slugs/usernames are assumed.",
+      "tags": [],
+      "note": "Editor slugs follow the slug rules (NormalizeSlug in strings.go).",
       "steps": [
         {
           "actor": "anonymous",
           "request": {
             "method": "GET",
-            "path": "/public/editors/{username}",
+            "path": "/public/editors/{slug}",
             "path_params": {
-              "username": "100%"
+              "slug": "алиса"
             },
             "headers": {
               "Accept-Language": "en"
@@ -10566,22 +10294,103 @@
     },
     {
       "id": "PUBLIC-VALID-EDITOR-004",
-      "group": "GET /public/editors/{username}",
-      "title": "400: invalid username (excessively long)",
+      "group": "GET /public/editors/{slug}",
+      "title": "400: invalid slug (only dashes/underscores)",
       "source": "inferred",
-      "tags": ["ambiguous"],
-      "note": "Docs say 400 for an invalid username without defining valid usernames (account username rules are not part of this document); the rules for ordinary slugs/usernames are assumed.",
+      "tags": [],
+      "note": "Editor slugs follow the slug rules (NormalizeSlug in strings.go).",
       "steps": [
         {
           "actor": "anonymous",
           "request": {
             "method": "GET",
-            "path": "/public/editors/{username}",
+            "path": "/public/editors/{slug}",
             "path_params": {
-              "username": {
+              "slug": "-_-"
+            },
+            "headers": {
+              "Accept-Language": "en"
+            }
+          },
+          "expect": {
+            "status": 400,
+            "body": "plain_text"
+          }
+        }
+      ]
+    },
+    {
+      "id": "PUBLIC-VALID-EDITOR-005",
+      "group": "GET /public/editors/{slug}",
+      "title": "400: invalid slug (contains a percent sign)",
+      "source": "inferred",
+      "tags": [],
+      "note": "Editor slugs follow the slug rules (NormalizeSlug in strings.go).",
+      "steps": [
+        {
+          "actor": "anonymous",
+          "request": {
+            "method": "GET",
+            "path": "/public/editors/{slug}",
+            "path_params": {
+              "slug": "100%"
+            },
+            "headers": {
+              "Accept-Language": "en"
+            }
+          },
+          "expect": {
+            "status": 400,
+            "body": "plain_text"
+          }
+        }
+      ]
+    },
+    {
+      "id": "PUBLIC-VALID-EDITOR-006",
+      "group": "GET /public/editors/{slug}",
+      "title": "400: invalid slug (only whitespace)",
+      "source": "inferred",
+      "tags": [],
+      "note": "Editor slugs follow the slug rules (NormalizeSlug in strings.go).",
+      "steps": [
+        {
+          "actor": "anonymous",
+          "request": {
+            "method": "GET",
+            "path": "/public/editors/{slug}",
+            "path_params": {
+              "slug": "   "
+            },
+            "headers": {
+              "Accept-Language": "en"
+            }
+          },
+          "expect": {
+            "status": 400,
+            "body": "plain_text"
+          }
+        }
+      ]
+    },
+    {
+      "id": "PUBLIC-VALID-EDITOR-007",
+      "group": "GET /public/editors/{slug}",
+      "title": "400: invalid slug (longer than 128 chars)",
+      "source": "inferred",
+      "tags": ["undocumented_limit"],
+      "note": "Slug length limit (MaxSlugChars) from strings.go.",
+      "steps": [
+        {
+          "actor": "anonymous",
+          "request": {
+            "method": "GET",
+            "path": "/public/editors/{slug}",
+            "path_params": {
+              "slug": {
                 "$repeat": {
                   "s": "a",
-                  "n": 300
+                  "n": 129
                 }
               }
             },
@@ -10597,20 +10406,20 @@
       ]
     },
     {
-      "id": "PUBLIC-VALID-EDITOR-005",
-      "group": "GET /public/editors/{username}",
-      "title": "400: invalid username (only whitespace)",
+      "id": "PUBLIC-VALID-EDITOR-008",
+      "group": "GET /public/editors/{slug}",
+      "title": "400: invalid slug (contains a slash (encoded))",
       "source": "inferred",
-      "tags": ["ambiguous"],
-      "note": "Docs say 400 for an invalid username without defining valid usernames (account username rules are not part of this document); the rules for ordinary slugs/usernames are assumed.",
+      "tags": [],
+      "note": "Slash is encoded as %2F; depending on the router this may yield 404 instead.",
       "steps": [
         {
           "actor": "anonymous",
           "request": {
             "method": "GET",
-            "path": "/public/editors/{username}",
+            "path": "/public/editors/{slug}",
             "path_params": {
-              "username": "   "
+              "slug": "a/b"
             },
             "headers": {
               "Accept-Language": "en"
@@ -10624,8 +10433,8 @@
       ]
     },
     {
-      "id": "PUBLIC-FUNC-EDITOR-012",
-      "group": "GET /public/editors/{username}",
+      "id": "PUBLIC-FUNC-EDITOR-014",
+      "group": "GET /public/editors/{slug}",
       "title": "Profile updates are reflected",
       "source": "documented",
       "tags": ["cache"],
@@ -10656,9 +10465,9 @@
           "actor": "anonymous",
           "request": {
             "method": "GET",
-            "path": "/public/editors/{username}",
+            "path": "/public/editors/{slug}",
             "path_params": {
-              "username": "alice"
+              "slug": "alice"
             },
             "headers": {
               "Accept-Language": "en"
@@ -10686,9 +10495,9 @@
           "actor": "anonymous",
           "request": {
             "method": "GET",
-            "path": "/public/editors/{username}",
+            "path": "/public/editors/{slug}",
             "path_params": {
-              "username": "alice"
+              "slug": "alice"
             },
             "headers": {
               "Accept-Language": "ru"
@@ -10709,20 +10518,20 @@
       ]
     },
     {
-      "id": "PUBLIC-FUNC-EDITOR-013",
-      "group": "GET /public/editors/{username}",
+      "id": "PUBLIC-FUNC-EDITOR-015",
+      "group": "GET /public/editors/{slug}",
       "title": "A soft-deleted editor becomes unavailable",
       "source": "inferred",
-      "tags": ["cache", "ambiguous"],
+      "tags": ["cache"],
       "note": "See the soft-deleted editor case above.",
       "steps": [
         {
           "actor": "anonymous",
           "request": {
             "method": "GET",
-            "path": "/public/editors/{username}",
+            "path": "/public/editors/{slug}",
             "path_params": {
-              "username": "bobby"
+              "slug": "bobby"
             },
             "headers": {
               "Accept-Language": "en"
@@ -10758,9 +10567,9 @@
           "actor": "anonymous",
           "request": {
             "method": "GET",
-            "path": "/public/editors/{username}",
+            "path": "/public/editors/{slug}",
             "path_params": {
-              "username": "bobby"
+              "slug": "bobby"
             },
             "headers": {
               "Accept-Language": "en"
@@ -10775,8 +10584,8 @@
       ]
     },
     {
-      "id": "PUBLIC-FUNC-EDITOR-014",
-      "group": "GET /public/editors/{username}",
+      "id": "PUBLIC-FUNC-EDITOR-016",
+      "group": "GET /public/editors/{slug}",
       "title": "A translation added through the admin API becomes available",
       "source": "documented",
       "tags": ["cache"],
@@ -10785,9 +10594,9 @@
           "actor": "anonymous",
           "request": {
             "method": "GET",
-            "path": "/public/editors/{username}",
+            "path": "/public/editors/{slug}",
             "path_params": {
-              "username": "bobby"
+              "slug": "bobby"
             },
             "headers": {
               "Accept-Language": "ru"
@@ -10824,9 +10633,9 @@
           "actor": "anonymous",
           "request": {
             "method": "GET",
-            "path": "/public/editors/{username}",
+            "path": "/public/editors/{slug}",
             "path_params": {
-              "username": "bobby"
+              "slug": "bobby"
             },
             "headers": {
               "Accept-Language": "ru"
@@ -10842,9 +10651,9 @@
                 "value": "Бобби Браун"
               },
               {
-                "path": "$.email",
+                "path": "$.bio",
                 "op": "eq",
-                "value": "bobby@example.com"
+                "value": "Био"
               }
             ]
           },
@@ -11064,6 +10873,11 @@
             "body": "json",
             "json_assertions": [
               {
+                "path": "$.partners[0].id",
+                "op": "eq",
+                "value": 1
+              },
+              {
                 "path": "$.partners[0].name",
                 "op": "eq",
                 "value": "Partner One"
@@ -11087,6 +10901,11 @@
                 "path": "$.partners[0].banner",
                 "op": "eq",
                 "value": "https://example.com/banners/partner-one.jpg"
+              },
+              {
+                "path": "$.partners[1].id",
+                "op": "eq",
+                "value": 2
               }
             ]
           }
@@ -11096,7 +10915,7 @@
     {
       "id": "PUBLIC-FUNC-ADS-007",
       "group": "GET /public/advertisements",
-      "title": "Entries do not expose id, description or expires_at",
+      "title": "Entries do not expose description or expires_at",
       "source": "inferred",
       "tags": [],
       "note": "Only the documented response fields are assumed to be returned. Partner One has a non-null expires_at in the fixtures.",
@@ -11111,14 +10930,6 @@
             "status": 200,
             "body": "json",
             "json_assertions": [
-              {
-                "path": "$.partners[0].id",
-                "op": "is_null"
-              },
-              {
-                "path": "$.partners[0].description",
-                "op": "is_null"
-              },
               {
                 "path": "$.partners[0].expires_at",
                 "op": "is_null"
@@ -11232,7 +11043,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "$.ghost-group",
+                "path": "$['ghost-group']",
                 "op": "len_eq",
                 "value": 0
               }
@@ -11264,7 +11075,7 @@
                 "value": 2
               },
               {
-                "path": "$.ghost-group",
+                "path": "$['ghost-group']",
                 "op": "len_eq",
                 "value": 0
               }
@@ -11352,7 +11163,7 @@
       "group": "GET /public/advertisements",
       "title": "Unknown query parameters are ignored",
       "source": "inferred",
-      "tags": ["ambiguous"],
+      "tags": [],
       "note": "Docs list only 'groups'; other parameters are assumed to be ignored (400 is an alternative).",
       "steps": [
         {
@@ -11380,7 +11191,7 @@
       "group": "GET /public/advertisements",
       "title": "Duplicate group names return a single key",
       "source": "inferred",
-      "tags": ["ambiguous"],
+      "tags": [],
       "note": "The result is a map, so repeated names are assumed to collapse and not to duplicate advertisements.",
       "steps": [
         {
@@ -11413,7 +11224,7 @@
       "group": "GET /public/advertisements",
       "title": "Group name case is normalised",
       "source": "inferred",
-      "tags": ["ambiguous", "verify_normalisation"],
+      "tags": ["verify_normalisation"],
       "note": "Groups are 'formatted as slug' (lower-cased); the key is assumed to be the normalised name.",
       "steps": [
         {
@@ -11495,7 +11306,7 @@
       "group": "GET /public/advertisements",
       "title": "A garbage Authorization header is ignored",
       "source": "inferred",
-      "tags": ["ambiguous"],
+      "tags": [],
       "note": "An invalid session is assumed not to be validated on public routes.",
       "steps": [
         {
@@ -11551,7 +11362,7 @@
       "group": "GET /public/advertisements",
       "title": "413: oversized body (4 KiB + 1) on a route that ignores its body",
       "source": "documented",
-      "tags": ["ambiguous", "boundary"],
+      "tags": ["boundary"],
       "note": "Docs say no body is expected but list a 4 KiB limit; the limit is assumed to be enforced first.",
       "steps": [
         {
@@ -11696,7 +11507,7 @@
       "group": "GET /public/advertisements",
       "title": "400: empty groups parameter",
       "source": "inferred",
-      "tags": ["ambiguous"],
+      "tags": [],
       "note": "'Empty names are rejected' versus 'no group names supplied -> {}'; an empty parameter value is assumed to be an empty name.",
       "steps": [
         {
@@ -11817,7 +11628,7 @@
       "group": "GET /public/advertisements",
       "title": "400: group of only dashes/underscores",
       "source": "inferred",
-      "tags": ["ambiguous"],
+      "tags": [],
       "note": "A value that normalises to empty is assumed to be rejected.",
       "steps": [
         {
@@ -11838,7 +11649,7 @@
       "group": "GET /public/advertisements",
       "title": "400: group longer than 128 chars",
       "source": "inferred",
-      "tags": ["undocumented_limit", "ambiguous"],
+      "tags": ["undocumented_limit"],
       "note": "Slug length limit (MaxSlugChars) assumed to apply to groups.",
       "steps": [
         {
@@ -11859,7 +11670,7 @@
       "group": "GET /public/advertisements",
       "title": "SQL-injection-like group name is rejected or treated as text",
       "source": "inferred",
-      "tags": ["security", "ambiguous"],
+      "tags": ["security"],
       "note": "The name is not a valid slug, so a 400 is assumed.",
       "steps": [
         {
@@ -12041,6 +11852,7 @@
       "title": "A new advertisement appears and is placed by priority",
       "source": "documented",
       "tags": ["cache"],
+      "note": "Ids are sequential and the fixtures hold ids 1..8, so the new advertisement gets id 9.",
       "steps": [
         {
           "actor": "root",
@@ -12084,6 +11896,11 @@
                 "path": "$.sidebar[0].name",
                 "op": "eq",
                 "value": "Sidebar Zero"
+              },
+              {
+                "path": "$.sidebar[0].id",
+                "op": "eq",
+                "value": 9
               },
               {
                 "path": "$.sidebar[*].priority",
@@ -12172,7 +11989,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "$.brand-new",
+                "path": "$['brand-new']",
                 "op": "len_eq",
                 "value": 0
               }
@@ -12211,7 +12028,7 @@
             "body": "json",
             "json_assertions": [
               {
-                "path": "$.brand-new",
+                "path": "$['brand-new']",
                 "op": "len_eq",
                 "value": 1
               }
@@ -12223,7 +12040,7 @@
     },
     {
       "id": "PUBLIC-FUNC-PARTNERS-001",
-      "group": "GET /cms/partners",
+      "group": "GET /public/partners",
       "title": "200: advertisements of the partners group",
       "source": "documented",
       "tags": [],
@@ -12232,7 +12049,7 @@
           "actor": "anonymous",
           "request": {
             "method": "GET",
-            "path": "/cms/partners"
+            "path": "/public/partners"
           },
           "expect": {
             "status": 200,
@@ -12265,7 +12082,7 @@
     },
     {
       "id": "PUBLIC-FUNC-PARTNERS-002",
-      "group": "GET /cms/partners",
+      "group": "GET /public/partners",
       "title": "Entry fields have the documented shape",
       "source": "documented",
       "tags": [],
@@ -12274,12 +12091,17 @@
           "actor": "anonymous",
           "request": {
             "method": "GET",
-            "path": "/cms/partners"
+            "path": "/public/partners"
           },
           "expect": {
             "status": 200,
             "body": "json",
             "json_assertions": [
+              {
+                "path": "$.partners[0].id",
+                "op": "eq",
+                "value": 1
+              },
               {
                 "path": "$.partners[0].name",
                 "op": "eq",
@@ -12304,6 +12126,11 @@
                 "path": "$.partners[0].banner",
                 "op": "eq",
                 "value": "https://example.com/banners/partner-one.jpg"
+              },
+              {
+                "path": "$.partners[1].id",
+                "op": "eq",
+                "value": 2
               }
             ]
           }
@@ -12312,7 +12139,7 @@
     },
     {
       "id": "PUBLIC-FUNC-PARTNERS-003",
-      "group": "GET /cms/partners",
+      "group": "GET /public/partners",
       "title": "Only the partners group is returned",
       "source": "documented",
       "tags": [],
@@ -12321,7 +12148,7 @@
           "actor": "anonymous",
           "request": {
             "method": "GET",
-            "path": "/cms/partners"
+            "path": "/public/partners"
           },
           "expect": {
             "status": 200,
@@ -12349,7 +12176,7 @@
     },
     {
       "id": "PUBLIC-FUNC-PARTNERS-004",
-      "group": "GET /cms/partners",
+      "group": "GET /public/partners",
       "title": "Advertisements are ordered by priority (lower first)",
       "source": "stated",
       "tags": [],
@@ -12359,7 +12186,7 @@
           "actor": "anonymous",
           "request": {
             "method": "GET",
-            "path": "/cms/partners"
+            "path": "/public/partners"
           },
           "expect": {
             "status": 200,
@@ -12386,17 +12213,17 @@
     },
     {
       "id": "PUBLIC-FUNC-PARTNERS-005",
-      "group": "GET /cms/partners",
+      "group": "GET /public/partners",
       "title": "Expired advertisements are not returned",
       "source": "inferred",
-      "tags": ["ambiguous"],
+      "tags": [],
       "note": "Docs only say 'advertisements in the partners group'; the sibling route returns unexpired advertisements only and expired ads 'cannot be retrieved with group', so the same is assumed here.",
       "steps": [
         {
           "actor": "anonymous",
           "request": {
             "method": "GET",
-            "path": "/cms/partners"
+            "path": "/public/partners"
           },
           "expect": {
             "status": 200,
@@ -12419,7 +12246,7 @@
     },
     {
       "id": "PUBLIC-FUNC-PARTNERS-006",
-      "group": "GET /cms/partners",
+      "group": "GET /public/partners",
       "title": "Never-expiring advertisements are returned",
       "source": "inferred",
       "tags": [],
@@ -12428,7 +12255,7 @@
           "actor": "anonymous",
           "request": {
             "method": "GET",
-            "path": "/cms/partners"
+            "path": "/public/partners"
           },
           "expect": {
             "status": 200,
@@ -12446,8 +12273,8 @@
     },
     {
       "id": "PUBLIC-FUNC-PARTNERS-007",
-      "group": "GET /cms/partners",
-      "title": "Entries do not expose id, description or expires_at",
+      "group": "GET /public/partners",
+      "title": "Entries do not expose description or expires_at",
       "source": "inferred",
       "tags": [],
       "steps": [
@@ -12455,20 +12282,12 @@
           "actor": "anonymous",
           "request": {
             "method": "GET",
-            "path": "/cms/partners"
+            "path": "/public/partners"
           },
           "expect": {
             "status": 200,
             "body": "json",
             "json_assertions": [
-              {
-                "path": "$.partners[0].id",
-                "op": "is_null"
-              },
-              {
-                "path": "$.partners[0].description",
-                "op": "is_null"
-              },
               {
                 "path": "$.partners[0].expires_at",
                 "op": "is_null"
@@ -12480,16 +12299,16 @@
     },
     {
       "id": "PUBLIC-FUNC-PARTNERS-008",
-      "group": "GET /cms/partners",
+      "group": "GET /public/partners",
       "title": "Returns the same data as /public/advertisements?groups=partners",
       "source": "inferred",
-      "tags": ["ambiguous"],
+      "tags": [],
       "steps": [
         {
           "actor": "anonymous",
           "request": {
             "method": "GET",
-            "path": "/cms/partners"
+            "path": "/public/partners"
           },
           "expect": {
             "status": 200,
@@ -12532,11 +12351,11 @@
           }
         }
       ],
-      "note": "Docs do not say that /cms/partners mirrors the 'partners' group of /public/advertisements, but both describe the same advertisements, so identical data is assumed."
+      "note": "Docs do not say that /public/partners mirrors the 'partners' group of /public/advertisements, but both describe the same advertisements (same fields, now including id), so identical data is assumed."
     },
     {
       "id": "PUBLIC-FUNC-PARTNERS-009",
-      "group": "GET /cms/partners",
+      "group": "GET /public/partners",
       "title": "No Authorization header is needed",
       "source": "documented",
       "tags": [],
@@ -12545,7 +12364,7 @@
           "actor": "anonymous",
           "request": {
             "method": "GET",
-            "path": "/cms/partners"
+            "path": "/public/partners"
           },
           "expect": {
             "status": 200,
@@ -12563,7 +12382,7 @@
     },
     {
       "id": "PUBLIC-FUNC-PARTNERS-010",
-      "group": "GET /cms/partners",
+      "group": "GET /public/partners",
       "title": "Works with an authenticated session as well",
       "source": "inferred",
       "tags": [],
@@ -12572,7 +12391,7 @@
           "actor": "root",
           "request": {
             "method": "GET",
-            "path": "/cms/partners"
+            "path": "/public/partners"
           },
           "expect": {
             "status": 200,
@@ -12590,17 +12409,17 @@
     },
     {
       "id": "PUBLIC-FUNC-PARTNERS-011",
-      "group": "GET /cms/partners",
+      "group": "GET /public/partners",
       "title": "A garbage Authorization header is ignored",
       "source": "inferred",
-      "tags": ["ambiguous"],
+      "tags": [],
       "note": "An invalid session is assumed not to be validated on public routes.",
       "steps": [
         {
           "actor": "garbage_session",
           "request": {
             "method": "GET",
-            "path": "/cms/partners"
+            "path": "/public/partners"
           },
           "expect": {
             "status": 200,
@@ -12618,7 +12437,7 @@
     },
     {
       "id": "PUBLIC-FUNC-PARTNERS-012",
-      "group": "GET /cms/partners",
+      "group": "GET /public/partners",
       "title": "Request body is ignored",
       "source": "documented",
       "tags": [],
@@ -12627,7 +12446,7 @@
           "actor": "anonymous",
           "request": {
             "method": "GET",
-            "path": "/cms/partners",
+            "path": "/public/partners",
             "body_raw": "{not json"
           },
           "expect": {
@@ -12646,17 +12465,17 @@
     },
     {
       "id": "PUBLIC-FUNC-PARTNERS-013",
-      "group": "GET /cms/partners",
+      "group": "GET /public/partners",
       "title": "Query parameters are ignored",
       "source": "inferred",
-      "tags": ["ambiguous"],
+      "tags": [],
       "note": "Docs list no query parameters; the route is fixed to the partners group.",
       "steps": [
         {
           "actor": "anonymous",
           "request": {
             "method": "GET",
-            "path": "/cms/partners?groups=sidebar"
+            "path": "/public/partners?groups=sidebar"
           },
           "expect": {
             "status": 200,
@@ -12679,17 +12498,17 @@
     },
     {
       "id": "PUBLIC-FUNC-PARTNERS-014",
-      "group": "GET /cms/partners",
+      "group": "GET /public/partners",
       "title": "413: oversized body (4 KiB + 1) on a route that ignores its body",
       "source": "documented",
-      "tags": ["ambiguous", "boundary"],
+      "tags": ["boundary"],
       "note": "Docs say no body is expected but list a 4 KiB limit; the limit is assumed to be enforced first.",
       "steps": [
         {
           "actor": "anonymous",
           "request": {
             "method": "GET",
-            "path": "/cms/partners",
+            "path": "/public/partners",
             "body_generator": {
               "json_padded_bytes": 4097,
               "base": {}
@@ -12704,10 +12523,10 @@
     },
     {
       "id": "PUBLIC-FUNC-PARTNERS-015",
-      "group": "GET /cms/partners",
+      "group": "GET /public/partners",
       "title": "Without partner advertisements the list is empty",
       "source": "inferred",
-      "tags": ["ambiguous", "cache"],
+      "tags": ["cache"],
       "note": "Expected shape is {\"partners\": []} (the route name suggests the key is always present); an empty object is an alternative.",
       "steps": [
         {
@@ -12742,7 +12561,7 @@
           "actor": "anonymous",
           "request": {
             "method": "GET",
-            "path": "/cms/partners"
+            "path": "/public/partners"
           },
           "expect": {
             "status": 200,
@@ -12761,7 +12580,7 @@
     },
     {
       "id": "PUBLIC-FUNC-PARTNERS-016",
-      "group": "GET /cms/partners",
+      "group": "GET /public/partners",
       "title": "A deleted advertisement disappears",
       "source": "documented",
       "tags": ["cache"],
@@ -12784,7 +12603,7 @@
           "actor": "anonymous",
           "request": {
             "method": "GET",
-            "path": "/cms/partners"
+            "path": "/public/partners"
           },
           "expect": {
             "status": 200,
@@ -12808,10 +12627,10 @@
     },
     {
       "id": "PUBLIC-FUNC-PARTNERS-017",
-      "group": "GET /cms/partners",
+      "group": "GET /public/partners",
       "title": "An advertisement that expires disappears",
       "source": "inferred",
-      "tags": ["cache", "ambiguous"],
+      "tags": ["cache"],
       "note": "Same expiry assumption as above.",
       "steps": [
         {
@@ -12838,7 +12657,7 @@
           "actor": "anonymous",
           "request": {
             "method": "GET",
-            "path": "/cms/partners"
+            "path": "/public/partners"
           },
           "expect": {
             "status": 200,
@@ -12862,10 +12681,11 @@
     },
     {
       "id": "PUBLIC-FUNC-PARTNERS-018",
-      "group": "GET /cms/partners",
+      "group": "GET /public/partners",
       "title": "A new partner advertisement appears",
       "source": "documented",
       "tags": ["cache"],
+      "note": "Ids are sequential and the fixtures hold ids 1..8, so the new advertisement gets id 9.",
       "steps": [
         {
           "actor": "root",
@@ -12893,7 +12713,7 @@
           "actor": "anonymous",
           "request": {
             "method": "GET",
-            "path": "/cms/partners"
+            "path": "/public/partners"
           },
           "expect": {
             "status": 200,
@@ -12908,6 +12728,11 @@
                 "path": "$.partners[0].name",
                 "op": "eq",
                 "value": "Partner Zero"
+              },
+              {
+                "path": "$.partners[0].id",
+                "op": "eq",
+                "value": 9
               }
             ]
           },
@@ -12917,7 +12742,7 @@
     },
     {
       "id": "PUBLIC-FUNC-PARTNERS-019",
-      "group": "GET /cms/partners",
+      "group": "GET /public/partners",
       "title": "An advertisement moved out of the partners group disappears",
       "source": "documented",
       "tags": ["cache"],
@@ -12947,7 +12772,7 @@
           "actor": "anonymous",
           "request": {
             "method": "GET",
-            "path": "/cms/partners"
+            "path": "/public/partners"
           },
           "expect": {
             "status": 200,

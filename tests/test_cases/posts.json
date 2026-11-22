@@ -6376,7 +6376,7 @@
             }
           },
           "expect": {
-            "status": 404,
+            "status": 406,
             "body": "plain_text"
           }
         }
@@ -7069,7 +7069,7 @@
       "group": "POST /cms/posts/{lang}",
       "title": "author may be a soft-deleted editor",
       "source": "inferred",
-      "tags": ["ambiguous"],
+      "tags": [],
       "note": "Search docs mention soft-deleted editors as authors, so assigning one is assumed valid. Assumes ids are allocated sequentially, so the first post created after the fixtures (max id 5) gets id 6.",
       "steps": [
         {
@@ -7816,7 +7816,7 @@
             }
           },
           "expect": {
-            "status": 404,
+            "status": 406,
             "body": "plain_text"
           }
         }
@@ -9148,6 +9148,10 @@
                 "path": "$.results[*].author",
                 "op": "includes",
                 "value": "alice-smith"
+              },
+              {
+                "path": "$.results[*].keywords",
+                "op": "is_null"
               },
               {
                 "path": "$.results[*].published_at",
@@ -10959,6 +10963,80 @@
             },
             "body": {
               "authors": null,
+              "count": 100
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.total",
+                "op": "eq",
+                "value": 4
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "POSTS-FUNC-SEARCH-044",
+      "group": "POST /cms/posts/{lang}/search",
+      "title": "CreatedBy filter",
+      "source": "inferred",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "POST",
+            "path": "/cms/posts/{lang}/search",
+            "path_params": {
+              "lang": "en"
+            },
+            "body": {
+              "created_by": ["creator"],
+              "count": 100
+            },
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "expect": {
+            "status": 200,
+            "body": "json",
+            "json_assertions": [
+              {
+                "path": "$.total",
+                "op": "eq",
+                "value": 2
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "POSTS-FUNC-SEARCH-044",
+      "group": "POST /cms/posts/{lang}/search",
+      "title": "CreatedBy null is ignored filter",
+      "source": "inferred",
+      "tags": [],
+      "steps": [
+        {
+          "actor": "root",
+          "request": {
+            "method": "POST",
+            "path": "/cms/posts/{lang}/search",
+            "path_params": {
+              "lang": "en"
+            },
+            "body": {
+              "created_by": null,
               "count": 100
             },
             "headers": {
@@ -14877,7 +14955,7 @@
       "group": "PATCH /cms/posts/{lang}/{id}",
       "title": "204: author may be a soft-deleted editor",
       "source": "inferred",
-      "tags": ["ambiguous"],
+      "tags": [],
       "steps": [
         {
           "actor": "root",
@@ -15683,7 +15761,7 @@
             }
           },
           "expect": {
-            "status": 404,
+            "status": 406,
             "body": "plain_text"
           }
         }

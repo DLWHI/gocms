@@ -3,9 +3,16 @@
 This document covers CMS routes that are responsible for file storage access and management.
 Return to the [route index](README.md).
 
-## Routes
+| Method | Route | Reference |
+| --- | --- | --- |
+| GET | `/storage/tree/{path...}` | [List a storage directory](#get-storagetreepath) |
+| GET | `/storage/media/{path...}` | [Read a storage file](#get-storagemediapath) |
+| PUT | `/storage/media/{path...}` | [Upload a storage file](#put-storagemediapath) |
+| DELETE | `/storage/media/{path...}` | [Delete a storage path](#delete-storagemediapath) |
+| PUT | `/storage/folders/{path...}` | [Create a storage folder](#put-storagefolderspath) |
+| GET | `/storage/preview/{path...}` | [Read a storage preview path](#get-storagepreviewpath) |
 
-<a id="storage-tree"></a>
+## Routes
 
 ### `GET /storage/tree/{path...}`
 
@@ -35,11 +42,8 @@ List the contents of a directory and report storage capacity.
   ```
 
   - `400 Bad Request` — if the requested path is invalid. Returns a plain-text message.
-  - `401 Unauthorized` — if the authorization header is invalid or missing. Returns a plain-text message.
+  - `401 Unauthorized` — if session is invalid, missing or expired identity. Returns a plain-text message.
   - `404 Not Found` — if the requested path does not exist. Returns a plain-text message.
-  - `500 Internal Server Error` — if listing entries, retrieving storage capacity, or validating the session fails. Returns a plain-text message.
-
-<a id="storage-media-get"></a>
 
 ### `GET /storage/media/{path...}`
 
@@ -54,9 +58,6 @@ Stream a stored file.
   - `200 OK` — Raw file bytes with the detected `Content-Type`. Streaming may fail after the `200` response.
   - `400 Bad Request` — if the requested path is invalid. Returns a plain-text message.
   - `404 Not Found` — if the requested path does not exist. Returns a plain-text message.
-  - `500 Internal Server Error` — if reading the file fails. Returns a plain-text message.
-
-<a id="storage-media-put"></a>
 
 ### `PUT /storage/media/{path...}`
 
@@ -71,10 +72,7 @@ Create or replace a file. Handler reads raw request bytes rather than a multipar
 - **Response:**
   - `200 OK` — Empty body.
   - `400 Bad Request` — if the requested path is invalid. Returns a plain-text message.
-  - `401 Unauthorized` — if the authorization header is invalid or missing. Returns a plain-text message.
-  - `500 Internal Server Error` — if writing the file or validating the session fails. Returns a plain-text message.
-
-<a id="storage-media-delete"></a>
+  - `401 Unauthorized` — if session is invalid, missing or expired identity. Returns a plain-text message.
 
 ### `DELETE /storage/media/{path...}`
 
@@ -90,12 +88,9 @@ Delete a file or directory.
 - **Request limit:** 4 KiB.
 - **Response:**
   - `200 OK` — Empty body. Also returned for a non-existent path if the `recursive` query parameter is set to `true`.
+  - `401 Unauthorized` — if session is invalid, missing or expired identity. Returns a plain-text message.
   - `400 Bad Request` — if the requested path or `recursive` parameter is invalid, or if the directory is not empty while `recursive=false`. Returns a plain-text message.
   - `404 Not Found` — if the requested path does not exist and `recursive=false`. Returns a plain-text message.
-  - `401 Unauthorized` — if the authorization header is invalid or missing. Returns a plain-text message.
-  - `500 Internal Server Error` — if deleting the file fails. Returns a plain-text message.
-
-<a id="storage-folders"></a>
 
 ### `PUT /storage/folders/{path...}`
 
@@ -110,10 +105,7 @@ Create a directory.
 - **Response:**
   - `200 OK` — Empty body.
   - `400 Bad Request` — if the requested path is invalid. Returns a plain-text message.
-  - `401 Unauthorized` — if the authorization header is invalid or missing. Returns a plain-text message.
-  - `500 Internal Server Error` — if creating the folder or validating the session fails. Returns a plain-text message.
-
-<a id="storage-preview"></a>
+  - `401 Unauthorized` — if session is invalid, missing or expired identity. Returns a plain-text message.
 
 ### `GET /storage/preview/{path...}`
 
@@ -131,4 +123,3 @@ Get a preview of an image file.
   - `200 OK` — Raw file bytes with `Content-Type: image/webp`.
   - `400 Bad Request` — if the requested path, `w`, or `h` is invalid, or if the target file is not an image. Returns a plain-text message.
   - `404 Not Found` — if the requested path does not exist. Returns a plain-text message.
-  - `500 Internal Server Error` — if preview generation fails. Returns a plain-text message.

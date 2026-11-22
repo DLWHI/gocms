@@ -3304,7 +3304,7 @@
       ]
     },
     {
-      "id": "EDITORS-FUNC-LIST-003",
+      "id": "EDITORS-FUNC-LIST-002",
       "group": "GET /cms/editors/{lang}",
       "title": "200: entry fields have the documented shape",
       "source": "documented",
@@ -3344,7 +3344,7 @@
       ]
     },
     {
-      "id": "EDITORS-FUNC-LIST-004",
+      "id": "EDITORS-FUNC-LIST-003",
       "group": "GET /cms/editors/{lang}",
       "title": "200: ru list contains only ru translations",
       "source": "documented",
@@ -3389,7 +3389,7 @@
       ]
     },
     {
-      "id": "EDITORS-FUNC-LIST-005",
+      "id": "EDITORS-FUNC-LIST-004",
       "group": "GET /cms/editors/{lang}",
       "title": "200: de list has a single translation",
       "source": "documented",
@@ -3424,7 +3424,7 @@
       ]
     },
     {
-      "id": "EDITORS-FUNC-LIST-006",
+      "id": "EDITORS-FUNC-LIST-005",
       "group": "GET /cms/editors/{lang}",
       "title": "Request body is ignored",
       "source": "documented",
@@ -3455,7 +3455,7 @@
       ]
     },
     {
-      "id": "EDITORS-FUNC-LIST-007",
+      "id": "EDITORS-FUNC-LIST-006",
       "group": "GET /cms/editors/{lang}",
       "title": "Names differ per language",
       "source": "documented",
@@ -3506,7 +3506,7 @@
       ]
     },
     {
-      "id": "EDITORS-FUNC-LIST-008",
+      "id": "EDITORS-FUNC-LIST-007",
       "group": "GET /cms/editors/{lang}",
       "title": "List reflects a new editor",
       "source": "inferred",
@@ -3583,7 +3583,7 @@
       ]
     },
     {
-      "id": "EDITORS-FUNC-LIST-009",
+      "id": "EDITORS-FUNC-LIST-008",
       "group": "GET /cms/editors/{lang}",
       "title": "List keeps a soft-deleted editor and marks it",
       "source": "documented",
@@ -3674,7 +3674,7 @@
       ]
     },
     {
-      "id": "EDITORS-FUNC-LIST-010",
+      "id": "EDITORS-FUNC-LIST-009",
       "group": "GET /cms/editors/{lang}",
       "title": "List reflects an update",
       "source": "inferred",

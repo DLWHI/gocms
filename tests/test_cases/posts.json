@@ -9694,7 +9694,7 @@
       ]
     },
     {
-      "id": "POSTS-FUNC-SEARCH-083",
+      "id": "POSTS-FUNC-SEARCH-017",
       "group": "POST /cms/posts/{lang}/search",
       "title": "Query matches keywords",
       "source": "documented",
@@ -9736,7 +9736,7 @@
       ]
     },
     {
-      "id": "POSTS-FUNC-SEARCH-017",
+      "id": "POSTS-FUNC-SEARCH-018",
       "group": "POST /cms/posts/{lang}/search",
       "title": "Query matches description",
       "source": "documented",
@@ -9778,7 +9778,7 @@
       ]
     },
     {
-      "id": "POSTS-FUNC-SEARCH-018",
+      "id": "POSTS-FUNC-SEARCH-019",
       "group": "POST /cms/posts/{lang}/search",
       "title": "Query matches post id",
       "source": "documented",
@@ -9820,7 +9820,7 @@
       ]
     },
     {
-      "id": "POSTS-FUNC-SEARCH-019",
+      "id": "POSTS-FUNC-SEARCH-020",
       "group": "POST /cms/posts/{lang}/search",
       "title": "Query with an unknown id finds nothing",
       "source": "documented",
@@ -9857,7 +9857,7 @@
       ]
     },
     {
-      "id": "POSTS-FUNC-SEARCH-020",
+      "id": "POSTS-FUNC-SEARCH-021",
       "group": "POST /cms/posts/{lang}/search",
       "title": "Query matching several fields returns the post once",
       "source": "documented",
@@ -9894,7 +9894,7 @@
       ]
     },
     {
-      "id": "POSTS-FUNC-SEARCH-021",
+      "id": "POSTS-FUNC-SEARCH-022",
       "group": "POST /cms/posts/{lang}/search",
       "title": "Content is not searched",
       "source": "inferred",
@@ -9931,7 +9931,7 @@
       ]
     },
     {
-      "id": "POSTS-FUNC-SEARCH-022",
+      "id": "POSTS-FUNC-SEARCH-023",
       "group": "POST /cms/posts/{lang}/search",
       "title": "Partial (prefix) query matches",
       "source": "inferred",
@@ -9973,7 +9973,7 @@
       ]
     },
     {
-      "id": "POSTS-FUNC-SEARCH-023",
+      "id": "POSTS-FUNC-SEARCH-024",
       "group": "POST /cms/posts/{lang}/search",
       "title": "Query is case-insensitive",
       "source": "inferred",
@@ -10010,7 +10010,7 @@
       ]
     },
     {
-      "id": "POSTS-FUNC-SEARCH-024",
+      "id": "POSTS-FUNC-SEARCH-025",
       "group": "POST /cms/posts/{lang}/search",
       "title": "Query is scoped to the requested language",
       "source": "documented",
@@ -10080,7 +10080,7 @@
       ]
     },
     {
-      "id": "POSTS-FUNC-SEARCH-025",
+      "id": "POSTS-FUNC-SEARCH-026",
       "group": "POST /cms/posts/{lang}/search",
       "title": "Slug search is scoped to the requested language",
       "source": "documented",
@@ -10150,7 +10150,7 @@
       ]
     },
     {
-      "id": "POSTS-FUNC-SEARCH-026",
+      "id": "POSTS-FUNC-SEARCH-027",
       "group": "POST /cms/posts/{lang}/search",
       "title": "Results contain only the requested language",
       "source": "documented",
@@ -10196,7 +10196,7 @@
       ]
     },
     {
-      "id": "POSTS-FUNC-SEARCH-027",
+      "id": "POSTS-FUNC-SEARCH-028",
       "group": "POST /cms/posts/{lang}/search",
       "title": "No match returns empty results",
       "source": "documented",
@@ -10238,7 +10238,7 @@
       ]
     },
     {
-      "id": "POSTS-FUNC-SEARCH-028",
+      "id": "POSTS-FUNC-SEARCH-029",
       "group": "POST /cms/posts/{lang}/search",
       "title": "Empty query returns everything",
       "source": "documented",
@@ -10275,7 +10275,7 @@
       ]
     },
     {
-      "id": "POSTS-FUNC-SEARCH-029",
+      "id": "POSTS-FUNC-SEARCH-030",
       "group": "POST /cms/posts/{lang}/search",
       "title": "Category filter: single category",
       "source": "documented",
@@ -10322,7 +10322,7 @@
       ]
     },
     {
-      "id": "POSTS-FUNC-SEARCH-030",
+      "id": "POSTS-FUNC-SEARCH-031",
       "group": "POST /cms/posts/{lang}/search",
       "title": "Category filter: hidden category",
       "source": "documented",
@@ -10364,7 +10364,7 @@
       ]
     },
     {
-      "id": "POSTS-FUNC-SEARCH-031",
+      "id": "POSTS-FUNC-SEARCH-032",
       "group": "POST /cms/posts/{lang}/search",
       "title": "Category filter: several categories match any of them",
       "source": "documented",
@@ -10411,7 +10411,7 @@
       ]
     },
     {
-      "id": "POSTS-FUNC-SEARCH-032",
+      "id": "POSTS-FUNC-SEARCH-033",
       "group": "POST /cms/posts/{lang}/search",
       "title": "Category filter: unknown category yields no results",
       "source": "inferred",
@@ -10448,7 +10448,7 @@
       ]
     },
     {
-      "id": "POSTS-FUNC-SEARCH-033",
+      "id": "POSTS-FUNC-SEARCH-034",
       "group": "POST /cms/posts/{lang}/search",
       "title": "Category filter: empty array is ignored",
       "source": "inferred",
@@ -10485,7 +10485,7 @@
       ]
     },
     {
-      "id": "POSTS-FUNC-SEARCH-034",
+      "id": "POSTS-FUNC-SEARCH-035",
       "group": "POST /cms/posts/{lang}/search",
       "title": "Category filter: null is ignored",
       "source": "documented",
@@ -10523,7 +10523,7 @@
       ]
     },
     {
-      "id": "POSTS-FUNC-SEARCH-035",
+      "id": "POSTS-FUNC-SEARCH-036",
       "group": "POST /cms/posts/{lang}/search",
       "title": "Category filter is scoped by language",
       "source": "documented",
@@ -10565,7 +10565,7 @@
       ]
     },
     {
-      "id": "POSTS-FUNC-SEARCH-036",
+      "id": "POSTS-FUNC-SEARCH-037",
       "group": "POST /cms/posts/{lang}/search",
       "title": "exclude_categories removes matching posts (uncategorised stay)",
       "source": "documented",
@@ -10612,7 +10612,7 @@
       ]
     },
     {
-      "id": "POSTS-FUNC-SEARCH-037",
+      "id": "POSTS-FUNC-SEARCH-038",
       "group": "POST /cms/posts/{lang}/search",
       "title": "exclude_categories with a hidden category",
       "source": "documented",
@@ -10664,7 +10664,7 @@
       ]
     },
     {
-      "id": "POSTS-FUNC-SEARCH-038",
+      "id": "POSTS-FUNC-SEARCH-039",
       "group": "POST /cms/posts/{lang}/search",
       "title": "categories and exclude_categories combine",
       "source": "documented",
@@ -10707,7 +10707,7 @@
       ]
     },
     {
-      "id": "POSTS-FUNC-SEARCH-039",
+      "id": "POSTS-FUNC-SEARCH-040",
       "group": "POST /cms/posts/{lang}/search",
       "title": "exclude_categories: unknown category excludes nothing",
       "source": "inferred",
@@ -10745,7 +10745,7 @@
       "note": "Docs do not say what an unknown category slug in exclude_categories does; ignoring it (no posts excluded) is assumed. A 400 is an alternative."
     },
     {
-      "id": "POSTS-FUNC-SEARCH-040",
+      "id": "POSTS-FUNC-SEARCH-041",
       "group": "POST /cms/posts/{lang}/search",
       "title": "Author filter: single editor",
       "source": "documented",
@@ -10792,7 +10792,7 @@
       ]
     },
     {
-      "id": "POSTS-FUNC-SEARCH-041",
+      "id": "POSTS-FUNC-SEARCH-042",
       "group": "POST /cms/posts/{lang}/search",
       "title": "Author filter: soft-deleted editor",
       "source": "documented",
@@ -10834,7 +10834,7 @@
       ]
     },
     {
-      "id": "POSTS-FUNC-SEARCH-042",
+      "id": "POSTS-FUNC-SEARCH-043",
       "group": "POST /cms/posts/{lang}/search",
       "title": "Author filter: several editors match any of them",
       "source": "documented",
@@ -10871,7 +10871,7 @@
       ]
     },
     {
-      "id": "POSTS-FUNC-SEARCH-043",
+      "id": "POSTS-FUNC-SEARCH-044",
       "group": "POST /cms/posts/{lang}/search",
       "title": "Author filter: unknown editor yields no results",
       "source": "inferred",
@@ -10909,7 +10909,7 @@
       "note": "Docs do not say what an unknown editor slug does; 200 with no results is assumed instead of 400/404."
     },
     {
-      "id": "POSTS-FUNC-SEARCH-044",
+      "id": "POSTS-FUNC-SEARCH-045",
       "group": "POST /cms/posts/{lang}/search",
       "title": "Author filter: empty array is ignored",
       "source": "inferred",
@@ -10947,7 +10947,7 @@
       "note": "Docs say the filter is ignored if omitted; an empty array is assumed equivalent."
     },
     {
-      "id": "POSTS-FUNC-SEARCH-045",
+      "id": "POSTS-FUNC-SEARCH-046",
       "group": "POST /cms/posts/{lang}/search",
       "title": "Author filter: null is ignored",
       "source": "documented",
@@ -10984,7 +10984,7 @@
       ]
     },
     {
-      "id": "POSTS-FUNC-SEARCH-044",
+      "id": "POSTS-FUNC-SEARCH-047",
       "group": "POST /cms/posts/{lang}/search",
       "title": "CreatedBy filter",
       "source": "inferred",
@@ -11021,7 +11021,7 @@
       ]
     },
     {
-      "id": "POSTS-FUNC-SEARCH-044",
+      "id": "POSTS-FUNC-SEARCH-048",
       "group": "POST /cms/posts/{lang}/search",
       "title": "CreatedBy null is ignored filter",
       "source": "inferred",
@@ -11058,7 +11058,7 @@
       ]
     },
     {
-      "id": "POSTS-FUNC-SEARCH-046",
+      "id": "POSTS-FUNC-SEARCH-049",
       "group": "POST /cms/posts/{lang}/search",
       "title": "Filter published=true",
       "source": "documented",
@@ -11115,7 +11115,7 @@
       ]
     },
     {
-      "id": "POSTS-FUNC-SEARCH-047",
+      "id": "POSTS-FUNC-SEARCH-050",
       "group": "POST /cms/posts/{lang}/search",
       "title": "Filter published=false",
       "source": "documented",
@@ -11157,7 +11157,7 @@
       ]
     },
     {
-      "id": "POSTS-FUNC-SEARCH-048",
+      "id": "POSTS-FUNC-SEARCH-051",
       "group": "POST /cms/posts/{lang}/search",
       "title": "published=null is ignored",
       "source": "documented",
@@ -11194,7 +11194,7 @@
       ]
     },
     {
-      "id": "POSTS-FUNC-SEARCH-049",
+      "id": "POSTS-FUNC-SEARCH-052",
       "group": "POST /cms/posts/{lang}/search",
       "title": "published_after",
       "source": "documented",
@@ -11241,7 +11241,7 @@
       ]
     },
     {
-      "id": "POSTS-FUNC-SEARCH-050",
+      "id": "POSTS-FUNC-SEARCH-053",
       "group": "POST /cms/posts/{lang}/search",
       "title": "published_before",
       "source": "documented",
@@ -11283,7 +11283,7 @@
       ]
     },
     {
-      "id": "POSTS-FUNC-SEARCH-051",
+      "id": "POSTS-FUNC-SEARCH-054",
       "group": "POST /cms/posts/{lang}/search",
       "title": "published_after and published_before form a range",
       "source": "documented",
@@ -11331,7 +11331,7 @@
       ]
     },
     {
-      "id": "POSTS-FUNC-SEARCH-052",
+      "id": "POSTS-FUNC-SEARCH-055",
       "group": "POST /cms/posts/{lang}/search",
       "title": "published range matching nothing",
       "source": "documented",
@@ -11368,7 +11368,7 @@
       ]
     },
     {
-      "id": "POSTS-FUNC-SEARCH-053",
+      "id": "POSTS-FUNC-SEARCH-056",
       "group": "POST /cms/posts/{lang}/search",
       "title": "Unpublished posts never match a published time filter",
       "source": "inferred",
@@ -11411,7 +11411,7 @@
       "note": "A post without published_at cannot satisfy a publication-time filter; assumed excluded."
     },
     {
-      "id": "POSTS-FUNC-SEARCH-054",
+      "id": "POSTS-FUNC-SEARCH-057",
       "group": "POST /cms/posts/{lang}/search",
       "title": "created_after",
       "source": "documented",
@@ -11458,7 +11458,7 @@
       ]
     },
     {
-      "id": "POSTS-FUNC-SEARCH-055",
+      "id": "POSTS-FUNC-SEARCH-058",
       "group": "POST /cms/posts/{lang}/search",
       "title": "created_before",
       "source": "documented",
@@ -11505,7 +11505,7 @@
       ]
     },
     {
-      "id": "POSTS-FUNC-SEARCH-056",
+      "id": "POSTS-FUNC-SEARCH-059",
       "group": "POST /cms/posts/{lang}/search",
       "title": "created_after and created_before form a range",
       "source": "documented",
@@ -11553,7 +11553,7 @@
       ]
     },
     {
-      "id": "POSTS-FUNC-SEARCH-057",
+      "id": "POSTS-FUNC-SEARCH-060",
       "group": "POST /cms/posts/{lang}/search",
       "title": "Time filters are null-safe",
       "source": "documented",
@@ -11593,7 +11593,7 @@
       ]
     },
     {
-      "id": "POSTS-FUNC-SEARCH-058",
+      "id": "POSTS-FUNC-SEARCH-061",
       "group": "POST /cms/posts/{lang}/search",
       "title": "after later than before yields no results",
       "source": "inferred",
@@ -11631,7 +11631,7 @@
       ]
     },
     {
-      "id": "POSTS-FUNC-SEARCH-059",
+      "id": "POSTS-FUNC-SEARCH-062",
       "group": "POST /cms/posts/{lang}/search",
       "title": "published=false combined with published_after yields no results",
       "source": "inferred",
@@ -11670,7 +11670,7 @@
       "note": "Contradictory filters are assumed to simply match nothing (200, empty)."
     },
     {
-      "id": "POSTS-FUNC-SEARCH-060",
+      "id": "POSTS-FUNC-SEARCH-063",
       "group": "POST /cms/posts/{lang}/search",
       "title": "Filters combine with query",
       "source": "documented",
@@ -11711,7 +11711,7 @@
       ]
     },
     {
-      "id": "POSTS-FUNC-SEARCH-061",
+      "id": "POSTS-FUNC-SEARCH-064",
       "group": "POST /cms/posts/{lang}/search",
       "title": "Sort by post_id:asc",
       "source": "documented",
@@ -11752,7 +11752,7 @@
       ]
     },
     {
-      "id": "POSTS-FUNC-SEARCH-062",
+      "id": "POSTS-FUNC-SEARCH-065",
       "group": "POST /cms/posts/{lang}/search",
       "title": "Sort by post_id:desc",
       "source": "documented",
@@ -11793,7 +11793,7 @@
       ]
     },
     {
-      "id": "POSTS-FUNC-SEARCH-063",
+      "id": "POSTS-FUNC-SEARCH-066",
       "group": "POST /cms/posts/{lang}/search",
       "title": "Sort by title:asc",
       "source": "documented",
@@ -11834,7 +11834,7 @@
       ]
     },
     {
-      "id": "POSTS-FUNC-SEARCH-064",
+      "id": "POSTS-FUNC-SEARCH-067",
       "group": "POST /cms/posts/{lang}/search",
       "title": "Sort by title:desc",
       "source": "documented",
@@ -11875,7 +11875,7 @@
       ]
     },
     {
-      "id": "POSTS-FUNC-SEARCH-065",
+      "id": "POSTS-FUNC-SEARCH-068",
       "group": "POST /cms/posts/{lang}/search",
       "title": "Sort by created_at:asc",
       "source": "documented",
@@ -11916,7 +11916,7 @@
       ]
     },
     {
-      "id": "POSTS-FUNC-SEARCH-066",
+      "id": "POSTS-FUNC-SEARCH-069",
       "group": "POST /cms/posts/{lang}/search",
       "title": "Sort by created_at:desc",
       "source": "documented",
@@ -11957,7 +11957,7 @@
       ]
     },
     {
-      "id": "POSTS-FUNC-SEARCH-067",
+      "id": "POSTS-FUNC-SEARCH-070",
       "group": "POST /cms/posts/{lang}/search",
       "title": "Sort by created_by:asc",
       "source": "documented",
@@ -11998,7 +11998,7 @@
       ]
     },
     {
-      "id": "POSTS-FUNC-SEARCH-068",
+      "id": "POSTS-FUNC-SEARCH-071",
       "group": "POST /cms/posts/{lang}/search",
       "title": "Sort by created_by:desc",
       "source": "documented",
@@ -12039,7 +12039,7 @@
       ]
     },
     {
-      "id": "POSTS-FUNC-SEARCH-069",
+      "id": "POSTS-FUNC-SEARCH-072",
       "group": "POST /cms/posts/{lang}/search",
       "title": "Sort by views:asc",
       "source": "documented",
@@ -12080,7 +12080,7 @@
       ]
     },
     {
-      "id": "POSTS-FUNC-SEARCH-070",
+      "id": "POSTS-FUNC-SEARCH-073",
       "group": "POST /cms/posts/{lang}/search",
       "title": "Sort by views:desc",
       "source": "documented",
@@ -12121,7 +12121,7 @@
       ]
     },
     {
-      "id": "POSTS-FUNC-SEARCH-071",
+      "id": "POSTS-FUNC-SEARCH-074",
       "group": "POST /cms/posts/{lang}/search",
       "title": "Sort by author:asc (rows with a value only)",
       "source": "documented",
@@ -12163,7 +12163,7 @@
       ]
     },
     {
-      "id": "POSTS-FUNC-SEARCH-072",
+      "id": "POSTS-FUNC-SEARCH-075",
       "group": "POST /cms/posts/{lang}/search",
       "title": "Sort by author:desc (rows with a value only)",
       "source": "documented",
@@ -12205,7 +12205,7 @@
       ]
     },
     {
-      "id": "POSTS-FUNC-SEARCH-073",
+      "id": "POSTS-FUNC-SEARCH-076",
       "group": "POST /cms/posts/{lang}/search",
       "title": "Sort by published_at:asc (rows with a value only)",
       "source": "documented",
@@ -12248,7 +12248,7 @@
       ]
     },
     {
-      "id": "POSTS-FUNC-SEARCH-074",
+      "id": "POSTS-FUNC-SEARCH-077",
       "group": "POST /cms/posts/{lang}/search",
       "title": "Sort by published_at:desc (rows with a value only)",
       "source": "documented",
@@ -12291,7 +12291,7 @@
       ]
     },
     {
-      "id": "POSTS-FUNC-SEARCH-075",
+      "id": "POSTS-FUNC-SEARCH-078",
       "group": "POST /cms/posts/{lang}/search",
       "title": "Sort by author / published_at with null values present",
       "source": "documented",
@@ -12360,7 +12360,7 @@
       ]
     },
     {
-      "id": "POSTS-FUNC-SEARCH-076",
+      "id": "POSTS-FUNC-SEARCH-079",
       "group": "POST /cms/posts/{lang}/search",
       "title": "Sort order is applied before pagination",
       "source": "documented",
@@ -12403,7 +12403,7 @@
       ]
     },
     {
-      "id": "POSTS-FUNC-SEARCH-077",
+      "id": "POSTS-FUNC-SEARCH-080",
       "group": "POST /cms/posts/{lang}/search",
       "title": "Empty sort_by is the default order",
       "source": "documented",
@@ -13419,7 +13419,7 @@
       ]
     },
     {
-      "id": "POSTS-FUNC-SEARCH-078",
+      "id": "POSTS-FUNC-SEARCH-081",
       "group": "POST /cms/posts/{lang}/search",
       "title": "Search reflects an update",
       "source": "inferred",
@@ -13482,7 +13482,7 @@
       ]
     },
     {
-      "id": "POSTS-FUNC-SEARCH-079",
+      "id": "POSTS-FUNC-SEARCH-082",
       "group": "POST /cms/posts/{lang}/search",
       "title": "Search reflects a slug change",
       "source": "inferred",
@@ -13545,7 +13545,7 @@
       ]
     },
     {
-      "id": "POSTS-FUNC-SEARCH-080",
+      "id": "POSTS-FUNC-SEARCH-083",
       "group": "POST /cms/posts/{lang}/search",
       "title": "Search reflects a delete",
       "source": "inferred",
@@ -13601,7 +13601,7 @@
       ]
     },
     {
-      "id": "POSTS-FUNC-SEARCH-081",
+      "id": "POSTS-FUNC-SEARCH-084",
       "group": "POST /cms/posts/{lang}/search",
       "title": "Search reflects a views update",
       "source": "inferred",
@@ -13664,7 +13664,7 @@
       ]
     },
     {
-      "id": "POSTS-FUNC-SEARCH-082",
+      "id": "POSTS-FUNC-SEARCH-085",
       "group": "POST /cms/posts/{lang}/search",
       "title": "Search reflects publication changes",
       "source": "inferred",

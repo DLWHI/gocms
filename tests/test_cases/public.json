@@ -5631,7 +5631,7 @@
       ]
     },
     {
-      "id": "PUBLIC-VALID-SEARCH-024",
+      "id": "PUBLIC-VALID-SEARCH-022",
       "group": "POST /public/posts",
       "title": "400: published_after wrong type",
       "source": "documented",
@@ -5658,7 +5658,7 @@
       ]
     },
     {
-      "id": "PUBLIC-VALID-SEARCH-025",
+      "id": "PUBLIC-VALID-SEARCH-023",
       "group": "POST /public/posts",
       "title": "400: published_before wrong type",
       "source": "documented",
@@ -5685,7 +5685,7 @@
       ]
     },
     {
-      "id": "PUBLIC-VALID-SEARCH-026",
+      "id": "PUBLIC-VALID-SEARCH-024",
       "group": "POST /public/posts",
       "title": "400: published_after fractional",
       "source": "documented",
@@ -5712,7 +5712,7 @@
       ]
     },
     {
-      "id": "PUBLIC-VALID-SEARCH-027",
+      "id": "PUBLIC-VALID-SEARCH-025",
       "group": "POST /public/posts",
       "title": "400: sort_by wrong type",
       "source": "documented",

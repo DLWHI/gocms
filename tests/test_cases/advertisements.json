@@ -4041,7 +4041,7 @@
       ]
     },
     {
-      "id": "ADS-FUNC-GROUPS-020",
+      "id": "ADS-FUNC-GROUPS-018",
       "group": "GET /cms/ads/groups",
       "title": "Updating an advertisement without expires_at keeps its group listed",
       "source": "documented",
@@ -4089,7 +4089,7 @@
       ]
     },
     {
-      "id": "ADS-FUNC-GROUPS-021",
+      "id": "ADS-FUNC-GROUPS-019",
       "group": "GET /cms/ads/groups",
       "title": "Expired advertisements keep a group alive after the active one is deleted",
       "source": "stated",
@@ -4171,7 +4171,7 @@
       ]
     },
     {
-      "id": "ADS-FUNC-GROUPS-022",
+      "id": "ADS-FUNC-GROUPS-020",
       "group": "GET /cms/ads/groups",
       "title": "Two advertisements created with the same new group give one group",
       "source": "stated",
@@ -4249,7 +4249,7 @@
       ]
     },
     {
-      "id": "ADS-FUNC-GROUPS-023",
+      "id": "ADS-FUNC-GROUPS-021",
       "group": "GET /cms/ads/groups",
       "title": "The empty group disappears with its last advertisement",
       "source": "stated",
@@ -4290,7 +4290,7 @@
       ]
     },
     {
-      "id": "ADS-FUNC-GROUPS-024",
+      "id": "ADS-FUNC-GROUPS-022",
       "group": "GET /cms/ads/groups",
       "title": "Group is stored in normalised form",
       "source": "stated",
@@ -4350,7 +4350,7 @@
       ]
     },
     {
-      "id": "ADS-FUNC-GROUPS-025",
+      "id": "ADS-FUNC-GROUPS-023",
       "group": "GET /cms/ads/groups",
       "title": "Groups list reflects deletes and creates (cache)",
       "source": "inferred",
